@@ -19,7 +19,9 @@ For the team manager or the club admin; other members only see squads and crews.
 The league office or the series' organizer (*the series* › *Clubs & registrations*)
 enters your club in a series, and with it in its matchdays not yet started and every
 later one. For an event in no series, its
-organizer enters the clubs. You cannot apply on your own yet: ask them.
+organizer enters the clubs. Or apply yourself: [*your club* › *Squads*](place:club.series)
+› *Apply for a series* — *waiting* until the series' organizer accepts; *Withdraw*
+takes it back.
 
 ### Find your sailors {#squad-and-lineup-sailors}
 

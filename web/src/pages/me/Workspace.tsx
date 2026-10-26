@@ -41,14 +41,16 @@ import { useMySpace } from "./shared";
  * screen has built (`only`) — never a role. A section that needs me carries its count.
  */
 
-/** One section of a context page: its key (from `lib/workspace.ts`), its words, the to-do
- *  codes it is where to act on, and its panel. A `notice` is no section: it stands above
- *  every section, and only while one of its `needs` is there (an unsigned waiver, S-1). */
+/** One section of a context page: its key (from `lib/workspace.ts`), the to-do codes it is
+ *  where to act on, and its panel. Its words are `workspace.sectionLabels.<kind>.<key>`,
+ *  never the panel's own: the sidebar, the breadcrumb, the switcher's search and a
+ *  remembered visit read the one label, so they cannot name a section two ways (#38). A
+ *  `notice` is no section — its value is its name: it stands above every section, and
+ *  only while one of its `needs` is there (an unsigned waiver, S-1). */
 export type WorkspaceSection = {
   key: string;
-  label: string;
   needs?: string[];
-  notice?: boolean;
+  notice?: string;
   render: () => ReactNode;
 };
 
@@ -89,7 +91,7 @@ export function WorkspaceFrame({
   // Each to-do names the section that clears it (#33): that section carries its count.
   const count = (k: string) => needs.filter((n) => n.section === k).reduce((sum, n) => sum + n.count, 0);
 
-  const label = (k: string) => (k === "overview" ? t("workspace.overview") : (panels.find((s) => s.key === k)?.label ?? k));
+  const label = (k: string) => t(`workspace.sectionLabels.${kind}.${k}`);
   const crumbs: Crumb[] = [{ label: shortName || name, to: sectionPath(current) }];
   if (key !== "overview") {
     if (group?.heading && group.key) crumbs.push({ label: t(`workspace.groups.${group.key}`) });
@@ -151,7 +153,7 @@ export function WorkspaceFrame({
         {notices.map((s) => (
           <section
             key={s.key}
-            aria-label={s.label}
+            aria-label={s.notice}
             className="rounded-xl border-2 border-warning/50 bg-warning-soft p-1"
             data-testid={`me-context-${s.key}-notice`}
           >

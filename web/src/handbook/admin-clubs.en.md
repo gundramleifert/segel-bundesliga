@@ -50,7 +50,9 @@ registrations*](place:series.organize), under *Registered clubs*. The ticked clu
 
 ### Applications {#admin-clubs-applications}
 
-Clubs cannot apply for a series on the site: a club asks the series' organizer or the
-league office, who [enter it](#admin-clubs-series). Refusals: [FAQ](#faq-administration).
+A club applies under *its club* › *Squads* ([how](#squad-and-lineup-apply)); the
+series' organizer accepts or rejects it, with a reason, in
+[*the series* › *Clubs & registrations*](place:series.organize). Or you
+[enter it](#admin-clubs-series) directly. Refusals: [FAQ](#faq-administration).
 
 [Open the league office](place:admin.clubs)

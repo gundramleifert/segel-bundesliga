@@ -137,7 +137,8 @@ function LiveBlock({ context, sections, publicLive }: { context: MyContext; sect
             className={link}
             data-testid={`${testId}-${s}`}
           >
-            {t(`workspace.live.${s}`)}
+            {/* The section's own label (#38) — but its overview is, on the day, its times and people. */}
+            {s === "overview" ? t("workspace.live.overview") : t(`workspace.sectionLabels.event.${s}`)}
           </Link>
         ))}
         {publicLive && (

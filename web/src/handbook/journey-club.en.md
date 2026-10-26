@@ -28,7 +28,7 @@ the current year exists.
 | J-2.4 | Club admin | the club is in their context switcher, marked *Admin* | [My club in my space](#my-space-club) |
 | J-2.5 | Club admin | the club's crest is stored and shown wherever the club appears | [Crest](#club-members-crest) |
 | J-2.7 | Club admin | the team manager is one of the club's organizers — at once, nobody has to accept | [Organizers](#club-members-organizers) |
-| J-2.8 | Team manager | the club asks to take part — the series' organizer or the league office, as it cannot apply on the site yet; it is still not public | [How the club gets into a series](#squad-and-lineup-apply) |
+| J-2.8 | Team manager | the club applies under *Squads* — *waiting*, still not public | [How the club gets into a series](#squad-and-lineup-apply) |
 | J-2.9 | League office | the club is entered in the series and takes part in it | [Applications](#admin-clubs-applications) |
 | J-2.10 | Visitor | the club is in the public list, and its page shows the series | the public site |
 

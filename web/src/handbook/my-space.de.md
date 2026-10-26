@@ -43,7 +43,7 @@ Jeder Kontext öffnet mit seiner *Übersicht*: was wartet, Termine, Stand.
 
 | Kontext | Als Segler oder Mitglied |
 |---|---|
-| *Ich* | [*Konto*](place:profile.account), [*Meine Vereine*](place:profile.clubs), [*Haftungsausschlüsse*](place:profile.waivers), [*Abrechnungen*](place:profile.claims), [*Dokumente*](place:profile.documents), [*Bankverbindung*](place:profile.bank) – siehe [Profil](#profile-sailor) |
+| *Ich* | [*Profil & Konto*](place:profile.account), [*Meine Vereine*](place:profile.clubs), [*Meine Haftungsausschlüsse*](place:profile.waivers), [*Meine Abrechnungen*](place:profile.claims), [*Dokumente*](place:profile.documents), [*Bankverbindung*](place:profile.bank) – siehe [Profil](#profile-sailor) |
 | Ihr Verein | [*Personen*](place:club.people), nur zum Lesen; *Segeln* › [*Kader*](place:club.series) und [*Veranstaltungen & Crews*](place:club.events), nur zum Lesen; [*Meine Abrechnungen*](place:club.claims) |
 | eine Serie | [*Mein Team*](place:series.team): der Verein, für den Sie segeln; [*Veranstaltungen*](place:series.events); *Tabelle* |
 | eine Veranstaltung | [*Meine Crew*](place:event.crew); ist die Veranstaltung veröffentlicht, ein Link zu ihren Crews und ihrer Pairing-Liste |

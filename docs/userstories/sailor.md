@@ -584,6 +584,9 @@ Acceptance criteria:
   event) and *Events & crews* (with a team picker when the club enters several teams).
 - **Where am I, twice on every page**: the switcher names the context, the sidebar marks
   the section, and the breadcrumb joins them (`ASVW › Sailors › Minors & guardians`).
+- **A section has one name** (#38): the sidebar, the breadcrumb, the switcher's search,
+  *Last visited* and *Live now* all read `workspace.sectionLabels`, so none of them calls
+  a section something the others do not.
 - **Search in the switcher** (#34): a box at the top of its list, there from 8 entries on
   and always for someone with a site relation.
   - **Everyone** finds their own contexts by name and the **sections** of them by label,
@@ -717,8 +720,7 @@ manager opens the event from the series and gets *Set up* as its own manager wou
 - The event's **Overview** shows its organizers what still keeps a planned event from the
   draw and the start (VA-8), each reason a line, with the way to *General* — where the
   `event_not_ready` to-do leads.
-- Not built yet, so not listed: **Boats** (an event's boats cannot be changed after it is
-  created), **Trackers** (no screen for them yet), the editorial **News & pictures**.
+- Not built yet, so not listed: **Trackers** (no screen for them yet).
 - The context reads the event, drafts included, from `GET /api/admin/events/{id}` — its
   organizers and race committee — and the race committee reads its readiness too, because
   it may declare the start. The administration's Events tab keeps its panel for now; each

@@ -37,9 +37,8 @@ import type { WorkspaceSection } from "../Workspace";
  * section is the declaration's business (`lib/workspace.ts`); the server asks the model
  * again on every request.
  *
- * Built only what has a screen today: *Boats* (no way to change an event's boats after it
- * is created), *Trackers* (no screen for the trackers yet) and the editorial *News* wait,
- * and the declaration leaves them out until they come. */
+ * Built only what has a screen today: *Trackers* (no screen for the trackers yet) waits,
+ * and the declaration leaves it out until it comes. */
 
 type T = (key: string, values?: Record<string, unknown>) => string;
 
@@ -70,7 +69,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
   return [
     {
       key: "general",
-      label: t("eventSections.general"),
       render: () => (
         <Panel title={t("eventSections.general")} testId="me-event-general">
           <WithEvent id={id} testId="me-event-general">
@@ -87,7 +85,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "boats",
-      label: t("eventSections.boats"),
       render: () => (
         <Panel title={t("eventSections.boats")} testId="me-event-boats">
           <WithEvent id={id} testId="me-event-boats">
@@ -98,7 +95,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "clubs",
-      label: t("eventSections.clubs"),
       needs: ["registrations_open"],
       render: () => (
         <Panel title={t("eventSections.clubs")} testId="me-event-clubs">
@@ -110,7 +106,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "pairing",
-      label: t("eventSections.pairing"),
       render: () => (
         <Panel title={t("eventSections.pairing")} testId="me-event-pairing">
           <WithEvent id={id} testId="me-event-pairing">
@@ -126,7 +121,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "publication",
-      label: t("eventSections.publication"),
       needs: ["event_unpublished"],
       render: () => (
         <Panel title={t("eventSections.publication")} testId="me-event-publication">
@@ -144,7 +138,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "people",
-      label: t("eventSections.people"),
       render: () => (
         <Panel title={t("eventSections.people")} testId="me-event-people">
           <p className="text-sm text-muted">{t("eventSections.peopleHint")}</p>
@@ -161,7 +154,6 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
   return [
     {
       key: "check-in",
-      label: t("eventSections.checkIn"),
       needs: ["checkin_waivers_missing"],
       render: () => (
         <Panel title={t("eventSections.checkIn")} testId="me-event-check-in">
@@ -171,7 +163,6 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "race-control",
-      label: t("eventSections.raceControl"),
       render: () => (
         <Panel title={t("eventSections.raceControl")} testId="me-event-race-control">
           <Door
@@ -193,7 +184,6 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "results",
-      label: t("eventSections.results"),
       needs: ["results_missing"],
       render: () => (
         <Panel title={t("eventSections.results")} testId="me-event-results">
@@ -214,7 +204,6 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "notice-board",
-      label: t("eventSections.noticeBoard"),
       render: () => (
         <Panel title={t("eventSections.noticeBoard")} testId="me-event-notice-board">
           <NoticeBoard event={{ id }} />

@@ -21,7 +21,7 @@ dem Sie *Mitglied* sind. Es zahlt der Ausrichter der Veranstaltung bzw. Ihr Vere
 
 1. In [*Ich* › *Bankverbindung*](place:profile.bank): *Kontoinhaber* und
    *IBAN* eintragen (*BIC* ist optional) und *Speichern*. Dort sehen nur Sie sie.
-2. [*Ich* › *Abrechnungen*](place:profile.claims) öffnen, oder [*die Veranstaltung* › *Meine Abrechnungen*](place:event.claims)
+2. [*Ich* › *Meine Abrechnungen*](place:profile.claims) öffnen, oder [*die Veranstaltung* › *Meine Abrechnungen*](place:event.claims)
    bzw. [*Ihr Verein* › *Meine Abrechnungen*](place:club.claims).
 3. Unter *Neue Abrechnung* bei *Für* ① die Veranstaltung oder den Verein wählen, einen
    *Titel* ② eingeben und *Abrechnung anlegen* ③ drücken. Die Abrechnung ist ein
@@ -30,7 +30,7 @@ dem Sie *Mitglied* sind. Es zahlt der Ausrichter der Veranstaltung bzw. Ihr Vere
 ![Neue Abrechnung: *Für* ①, *Titel* ②, *Abrechnung anlegen* ③](shot:help-claim-new)
 
 *Für* zeigt nur, wofür Sie abrechnen dürfen; eine Aufgabe für die ganze Website
-berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über [*Ich* › *Abrechnungen*](place:profile.claims) abrechnen.
+berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über [*Ich* › *Meine Abrechnungen*](place:profile.claims) abrechnen.
 
 Eine Veranstaltung, bei der Sie mitarbeiten, aber noch nicht abrechnen können, steht über
 dem Formular, mit dem Grund: Dort ist noch kein Ausrichter eingetragen (bitten Sie die

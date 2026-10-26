@@ -20,6 +20,7 @@ import type { ApplicationOut } from "../../api/generated/model/applicationOut";
 import type { MyContext, SeriesAdmin } from "../../api/types";
 import { WHOLE_LIST, useAsync, useAsyncRows, useInvalidate } from "../../api/useApi";
 import { AccessPanel } from "../../components/AccessPanel";
+import { AddButton } from "../../components/AddButton";
 import { Async } from "../../components/Async";
 import { Badge, ErrorMessage, Loading } from "../../components/Blocks";
 import { ClubSelector } from "../../components/ClubSelector";
@@ -372,9 +373,16 @@ export function OrganizerSeriesEvents({ seriesId }: { seriesId: number }) {
   const events = useAsync(useListAllEvents({ series_id: seriesId, limit: WHOLE_LIST }));
   const ours = [...(events.data?.items ?? [])]
     .sort((a, b) => (a.matchday ?? 99) - (b.matchday ?? 99) || (a.starts_on ?? "9999").localeCompare(b.starts_on ?? "9999"));
+  // *+ New event*: the series' manager adds its acts (VA-6, #39) — My space's door to the
+  // wizard, which offers the series they may create in.
   return (
-    <Async state={events} testId="me-series-events" empty={t("context.noEvents")} isEmpty={() => !ours.length}>
-      {() => <EventLinks events={ours} testId="me-series-event" />}
-    </Async>
+    <Section
+      testId={`me-series-events-${seriesId}`}
+      action={<AddButton label={t("seriesSections.newEvent")} to="/me/event/new" testId="me-series-new-event" />}
+    >
+      <Async state={events} testId="me-series-events" empty={t("context.noEvents")} isEmpty={() => !ours.length}>
+        {() => <EventLinks events={ours} testId="me-series-event" />}
+      </Async>
+    </Section>
   );
 }

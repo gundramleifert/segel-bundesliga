@@ -31,7 +31,7 @@ Before: the clubs exist; the series manager has an account with no role yet.
 
 ### If … {#journey-series-variations}
 
-- **A club wants to join (J-4.4, J-4.5):** it cannot apply on the site yet; its team
-  manager asks, and the series manager enters it at *Clubs & registrations*. It then
+- **A club wants to join (J-4.4, J-4.5):** its team manager applies under *Squads*,
+  and the series manager accepts it at *Clubs & registrations* — or enters it there. It then
   becomes an entry of the matchday created next.
   [How a club gets in](#squad-and-lineup-apply) · [Applications](#admin-clubs-applications)

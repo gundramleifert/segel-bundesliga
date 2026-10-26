@@ -54,8 +54,9 @@ Serie eingetragen.
 
 ### Bewerbungen {#admin-clubs-applications}
 
-Vereine können sich auf der Seite nicht für eine Serie bewerben: Ein Verein fragt bei
-der Organisation der Serie oder der Geschäftsstelle an, und diese
-[tragen ihn ein](#admin-clubs-series). Ablehnungen: [FAQ](#faq-administration).
+Ein Verein bewirbt sich unter *sein Verein* › *Kader* ([so geht's](#squad-and-lineup-apply));
+die Organisation der Serie nimmt an oder lehnt mit Begründung ab, unter
+[*die Serie* › *Vereine & Meldungen*](place:series.organize). Oder Sie
+[tragen ihn direkt ein](#admin-clubs-series). Ablehnungen: [FAQ](#faq-administration).
 
 [Ligabüro öffnen](place:admin.clubs)

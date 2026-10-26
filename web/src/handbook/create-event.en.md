@@ -23,7 +23,7 @@ the page itself does not.
 1. The league office: [*League office* › *Events*](place:admin.events),
    [*＋ New event*](place:admin.new-event). A club's organizer:
    [*your club* › *Hosting*](place:club.hosting), *+ New event*. A series' manager:
-   [*New event*](place:admin.new-event) from this page.
+   [*the series* › *Events*](place:series.events), *+ New event*.
 2. *General data*: only *Name* ① (three characters or more) is required. *Create Event*
    ② saves a draft nobody else sees.
 3. *Clubs*: tick the entrants, then *Enter … clubs and continue*. In a series only its

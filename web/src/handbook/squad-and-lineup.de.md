@@ -19,8 +19,9 @@ Für Teammanager oder Vereinsverwaltung; andere Mitglieder sehen Kader und Crews
 Die Geschäftsstelle oder die Organisation der Serie (*die Serie* › *Vereine &
 Meldungen*) meldet Ihren Verein für eine Serie, damit auch für deren noch nicht
 begonnene und alle späteren Spieltage. Bei einer
-Veranstaltung ohne Serie meldet deren Organisation die Vereine. Selbst anmelden können
-Sie sich noch nicht: Fragen Sie dort.
+Veranstaltung ohne Serie meldet deren Organisation die Vereine. Oder bewerben Sie sich
+selbst: [*Ihr Verein* › *Kader*](place:club.series) › *Für eine Serie bewerben* –
+*wartet*, bis die Organisation der Serie annimmt; *Zurückziehen* nimmt sie zurück.
 
 ### Ihre Segler finden {#squad-and-lineup-sailors}
 

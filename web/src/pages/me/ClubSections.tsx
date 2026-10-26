@@ -1,16 +1,26 @@
 import { Button } from "@heroui/react";
+import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { useClubWaivers, useListAllEvents } from "../../api/generated/sbl";
+import {
+  getListOwnApplicationsQueryKey,
+  useClubWaivers,
+  useListAllEvents,
+  useListOwnApplications,
+  useListSeries,
+  useSubmitApplication,
+  useWithdrawApplication,
+} from "../../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../../api/types";
-import { WHOLE_LIST, useAsync } from "../../api/useApi";
+import { WHOLE_LIST, errorText, useAsync, useInvalidate } from "../../api/useApi";
 import { AddButton } from "../../components/AddButton";
 import { Async } from "../../components/Async";
 import { Section } from "../../components/Form";
+import { Select } from "../../components/Select";
 import { EventLinks } from "./EventLinks";
 import { WaiverName, WaiverStatus } from "../../components/WaiverStatus";
-import { Empty, StatusBadge } from "../../components/Blocks";
+import { Badge, Empty, ErrorMessage, StatusBadge } from "../../components/Blocks";
 import { LineupPanel } from "../../components/LineupPanel";
 import { SquadPanel } from "../../components/SquadPanel";
 import { eventDates } from "../../lib/format";
@@ -251,6 +261,95 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
   );
 }
 
+/** Stories V-5, A-9: the club applies for a series, and sees what became of it (#39) —
+ * for the club's organizers, under its squads, where an accepted application then
+ * appears as a registration.
+ *
+ * Offered are the published series of this year and the next the club is in no way part
+ * of yet. Waiting and rejected applications stand with their status (and the reason a
+ * rejection gave); both can be withdrawn — a rejected one to apply again.
+ */
+export function ClubApplications({ entry }: { entry: MyClubOut }) {
+  const { t } = useTranslation("space");
+  const invalidate = useInvalidate();
+  const club = entry.club.id;
+  const year = new Date().getFullYear();
+  const thisYear = useListSeries({ year });
+  const nextYear = useListSeries({ year: year + 1 });
+  const applications = useListOwnApplications();
+  const [seriesId, setSeriesId] = useState("");
+  const done = () => {
+    setSeriesId("");
+    invalidate(getListOwnApplicationsQueryKey(), "/api/clubs/mine", "/api/me/contexts");
+  };
+  const apply = useSubmitApplication({ mutation: { onSuccess: done } });
+  const withdraw = useWithdrawApplication({ mutation: { onSuccess: done } });
+
+  const ours = (applications.data ?? []).filter((a) => a.club.id === club && a.series);
+  const taken = new Set([...ours.map((a) => a.series!.id), ...(entry.teams ?? []).map((team) => team.series.id)]);
+  const open = [...(thisYear.data ?? []), ...(nextYear.data ?? [])].filter((s) => !taken.has(s.id));
+  const pending = ours.filter((a) => a.status !== "accepted");
+  const error = apply.error ?? withdraw.error;
+
+  return (
+    <Section title={t("clubSections.applicationsTitle")} testId={`my-club-applications-${club}`}>
+      <p className="text-sm text-muted">{t("clubSections.applicationsHint")}</p>
+      {pending.length > 0 && (
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
+          {pending.map((a) => (
+            <li key={a.team_id} className="flex flex-wrap items-center gap-2" data-testid={`my-club-application-${a.team_id}`}>
+              <span className="min-w-0 flex-1 truncate">{a.series!.name}</span>
+              <Badge tone={a.status === "rejected" ? "danger" : "warning"} testId={`my-club-application-${a.team_id}-status`}>
+                {t(`clubSections.applicationStatus.${a.status}`)}
+              </Badge>
+              {a.decision_note && <span className="w-full text-sm text-muted">{a.decision_note}</span>}
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => withdraw.mutate({ teamId: a.team_id })}
+                data-testid={`my-club-application-${a.team_id}-withdraw`}
+              >
+                {t("clubSections.withdraw")}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {open.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            size="inline"
+            value={seriesId}
+            onChange={(e) => setSeriesId(e.target.value)}
+            aria-label={t("clubSections.applyFor")}
+            testId={`my-club-apply-series-${club}`}
+          >
+            <option value="">{t("clubSections.applyFor")}</option>
+            {open.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
+          <Button
+            size="sm"
+            isDisabled={!seriesId || apply.isPending}
+            onPress={() => apply.mutate({ data: { club_id: club, series_id: Number(seriesId) } })}
+            data-testid={`my-club-apply-${club}`}
+          >
+            {t("clubSections.apply")}
+          </Button>
+        </div>
+      ) : (
+        <p className="text-sm text-muted" data-testid={`my-club-apply-none-${club}`}>
+          {t("clubSections.applyNone")}
+        </p>
+      )}
+      {error && <ErrorMessage text={errorText(error)} testId={`my-club-applications-${club}-error`} />}
+    </Section>
+  );
+}
+
 /** Story Z-10: the events the club hosts, each opening its own context — where it is
  * organized (a hosted event is not edited here) — and *+ New event*, the event wizard,
  * where a club's organizer creates one outside a series (VA-6).
@@ -263,7 +362,7 @@ export function ClubHosting({ club }: { club: { id: number; name: string; short_
   return (
     <Section
       testId={`my-club-hosting-${club.id}`}
-      action={<AddButton label={t("clubSections.newEvent")} to="/office/events/new" testId="my-club-hosting-new-event" />}
+      action={<AddButton label={t("clubSections.newEvent")} to="/me/event/new" testId="my-club-hosting-new-event" />}
     >
       <p className="text-sm text-muted">{t("clubSections.hostingHint")}</p>
       <Async

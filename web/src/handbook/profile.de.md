@@ -16,7 +16,7 @@ Alles im Kontext *Ich* von [Mein Bereich](place:profile.account).
 
 ### Segler-Profil {#profile-sailor}
 
-[*Ich* › *Konto*](place:profile.account) → *Mein Segler-Profil*: Ihr *Vorname*, *Nachname* und *Geburtsdatum*, wie die
+[*Ich* › *Profil & Konto*](place:profile.account) → *Mein Segler-Profil*: Ihr *Vorname*, *Nachname* und *Geburtsdatum*, wie die
 Seite sie zeigt; *Speichern*.
 
 Die Karte ist ab Ihrer ersten Anmeldung mit bestätigter Adresse da: Ihr eigener

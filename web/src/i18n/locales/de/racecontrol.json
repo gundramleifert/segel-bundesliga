@@ -84,7 +84,7 @@
   },
   "elapsed": "Gesegelt {time}",
   "xHint": "X steht: ein Boot antippen, das über der Linie war — es bekommt {code}. Nochmal tippen löscht.",
-  "localHint": "Die Eingaben bleiben auf diesem Gerät, bis du die Wettfahrt beendest.",
+  "localHint": "Die Eingaben bleiben auf diesem Gerät, bis Sie die Wettfahrt beenden.",
   "duplicateWarning": "Zwei Boote haben denselben Zielplatz.",
   "codeLabel": "Code für {boat}",
   "finishedBanner": "Wettfahrt {sequence} beendet.",

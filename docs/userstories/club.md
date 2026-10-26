@@ -254,10 +254,14 @@ Acceptance criteria:
 - A second application for the same series is rejected, not duplicated.
 - After rejection, a new attempt is possible.
 
+- On screen (#39): the club's *Squads* section, for its organizers — *Apply for a
+  series* offers the published series of this year and next the club is not in yet, and
+  lists the waiting and rejected applications (with the reason) to withdraw.
+
 Endpoints: `POST /api/applications`, `GET /api/applications`,
 `DELETE /api/applications/{team_id}`
 
-Tests: `api/tests/stories/test_participation.py::TestApplying`
+Tests: `api/tests/stories/test_participation.py::TestApplying`, `e2e/workspace-club.spec.ts`
 
 ### V-6 ● Request participation in an event
 As a **team manager** I want to **register my club for a single event**,

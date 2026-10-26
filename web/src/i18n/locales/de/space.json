@@ -93,7 +93,7 @@
       "noHostClub": "aber dort ist noch kein Ausrichter eingetragen — der Ausrichter zahlt die Abrechnungen. Bitten Sie die Organisation, einen einzutragen.",
       "notCovered": "aber der Ausrichter erstattet für diese Aufgabe nichts."
     },
-    "reopenHint": "Bis zur Genehmigung kannst du sie noch ändern — eine Änderung macht sie wieder zum Entwurf, der neu eingereicht wird.",
+    "reopenHint": "Bis zur Genehmigung können Sie sie noch ändern — eine Änderung macht sie wieder zum Entwurf, der neu eingereicht wird.",
     "itemReceipt": "Beleg",
     "editItem": "Ändern",
     "editItemTitle": "Position ändern",
@@ -211,7 +211,7 @@
     "documents_expired": "{count, plural, one {1 Dokument ist abgelaufen} other {# Dokumente sind abgelaufen}}",
     "crew_waiver_missing": "{count, plural, one {Bei 1 kommenden Spieltag fehlt einem Crewmitglied der Haftungsausschluss} other {Bei # kommenden Spieltagen fehlt Crewmitgliedern der Haftungsausschluss}}",
     "ward_waiver": "{count, plural, one {Der Haftungsausschluss Ihres Kindes wartet auf Sie} other {# Haftungsausschlüsse Ihrer Kinder warten auf Sie}}",
-    "claim_rejected": "{count, plural, one {1 deiner Abrechnungen wurde abgelehnt — lies warum und korrigiere sie} other {# deiner Abrechnungen wurden abgelehnt — lies warum und korrigiere sie}}",
+    "claim_rejected": "{count, plural, one {1 Ihrer Abrechnungen wurde abgelehnt — lesen Sie, warum, und korrigieren Sie sie} other {# Ihrer Abrechnungen wurden abgelehnt — lesen Sie, warum, und korrigieren Sie sie}}",
     "minor_without_guardian": "{count, plural, one {1 Minderjährige(r) ohne verknüpfte Erziehungsberechtigte} other {# Minderjährige ohne verknüpfte Erziehungsberechtigte}}",
     "person_without_birth_date": "{count, plural, one {1 Person ohne Geburtsdatum — kein Haftungsausschluss möglich} other {# Personen ohne Geburtsdatum — kein Haftungsausschluss möglich}}",
     "payment_run_open": "{count, plural, one {1 Zahlungslauf ist noch nicht gebucht} other {# Zahlungsläufe sind noch nicht gebucht}}",
@@ -246,9 +246,6 @@
     "noEvents": "In dieser Serie sind noch keine Veranstaltungen veröffentlicht.",
     "raceControl": "Wettfahrten starten, zurückrufen und beenden und Ergebnisse eintragen.",
     "raceControlLink": "Wettfahrtleitung öffnen",
-    "organizeSeries": "Serie, Veranstaltungen und Teilnehmer bearbeiten Sie in der Verwaltung.",
-    "organizeEvent": "Veranstaltung, Boote, Pairing-Liste und Personen bearbeiten Sie in der Verwaltung.",
-    "organizeLink": "Verwaltung öffnen",
     "tabs": {
       "account": "Konto",
       "waivers": "Haftungsausschlüsse",
@@ -266,8 +263,7 @@
       "hosting": "Ausrichten",
       "crews": "Veranstaltungen & Crews",
       "squadsOnly": "Kader"
-    },
-    "organizeHosted": "Die Veranstaltungen, die Ihr Verein ausrichtet, organisieren Sie im Reiter „Veranstaltungen“ der Verwaltung — Termin, Vereine, Auslosung und Veröffentlichung. Eine Veranstaltung außerhalb einer Serie legen Sie dort auch an."
+    }
   },
   "clubWaivers": {
     "none": "Der Verein ist in keinem laufenden Wettbewerb gemeldet – es gibt keinen Haftungsausschluss einzusammeln.",
@@ -309,14 +305,7 @@
     "toDo": "Zu erledigen",
     "lastVisited": "Zuletzt besucht",
     "live": {
-      "race-control": "Wettfahrtleitung",
-      "results": "Ergebnisse",
-      "check-in": "Check-in",
-      "notice-board": "Aushang",
-      "crew": "Meine Crew",
       "overview": "Zeiten und Personen",
-      "my-claims": "Meine Abrechnungen",
-      "news": "News & Bilder",
       "publicLive": "Live-Ansicht"
     },
     "sectionLabels": {
@@ -339,7 +328,7 @@
         "events": "Veranstaltungen",
         "people": "Personen",
         "accounts": "Konten",
-        "news": "Nachrichten",
+        "news": "News",
         "media": "Medien",
         "imports": "Importe"
       },
@@ -461,7 +450,20 @@
     "shortName": "Kurzname",
     "city": "Ort",
     "website": "Website",
-    "factsByOffice": "Name, Kurzname, Ort und Website ändert die Geschäftsstelle — schreibt ihr, wenn etwas nicht stimmt."
+    "factsByOffice": "Name, Kurzname, Ort und Website ändert die Geschäftsstelle — schreiben Sie ihr, wenn etwas nicht stimmt.",
+    "applicationsTitle": "Für eine Serie bewerben",
+    "applicationsHint": "Eine Bewerbung zählt, sobald die Organisation der Serie sie annimmt; bis dahin steht der Verein nicht in der Serie.",
+    "applicationStatus": {
+      "requested": "wartet",
+      "rejected": "abgelehnt",
+      "accepted": "angenommen"
+    },
+    "withdraw": "Zurückziehen",
+    "applyFor": "Serie wählen",
+    "apply": "Bewerben",
+    "applyNone": "Keine veröffentlichte Serie in diesem oder im nächsten Jahr, in der der Verein nicht schon ist.",
+    "saveFacts": "Speichern",
+    "factsSaved": "Gespeichert."
   },
   "seriesSections": {
     "events": "Veranstaltungen",
@@ -470,7 +472,7 @@
     "dates": "Termine & Veröffentlichung",
     "scoring": "Kadergröße & Wertung",
     "officials": "Wettfahrtleitung & Jury",
-    "notFound": "Diese Serie gehört nicht zu denen, die du organisierst.",
+    "notFound": "Diese Serie gehört nicht zu denen, die Sie organisieren.",
     "clubsTitle": "Gemeldete Vereine",
     "clubsHint": "Die Vereine dieser Serie. Hier gesetzt, ist ein Verein sofort gemeldet; ein Verein, der schon gesegelt ist, kann nicht entfernt werden.",
     "saved": "Gespeichert.",
@@ -488,6 +490,7 @@
     "officialsHint": "Wer was in der Serie innehat. Wer hier zur Wettfahrtleitung oder Jury gehört, gehört es bei jeder ihrer Veranstaltungen.",
     "standingsHint": "Die Tabelle steht auf der öffentlichen Seite der Serie, aus den Ergebnissen berechnet.",
     "standingsLink": "Tabelle öffnen",
-    "standingsDraft": "Die Serie ist ein Entwurf — ihre Tabelle erscheint auf der öffentlichen Seite, sobald sie veröffentlicht ist."
+    "standingsDraft": "Die Serie ist ein Entwurf — ihre Tabelle erscheint auf der öffentlichen Seite, sobald sie veröffentlicht ist.",
+    "newEvent": "+ Neue Veranstaltung"
   }
 }

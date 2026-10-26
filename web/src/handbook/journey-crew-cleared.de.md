@@ -51,4 +51,4 @@ kann, muss freigegeben sein.
   lädt den Scan hoch. [Das Papierformular](#waiver-minor-paper)
 - **Der Verein sammelt die Formulare (J-5.13):** Die Vereinsseite hat
   keinen Upload — der Teammanager gibt das Formular dem Segler zurück, der es unter
-  *Ich* › *Haftungsausschlüsse* hochlädt. [Papierformulare](#club-waivers-upload)
+  *Ich* › *Meine Haftungsausschlüsse* hochlädt. [Papierformulare](#club-waivers-upload)

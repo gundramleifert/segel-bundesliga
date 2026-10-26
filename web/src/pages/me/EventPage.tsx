@@ -22,7 +22,6 @@ export function EventPage() {
         c.series_id != null ? waiverNotice(t, "series", c.series_id) : waiverNotice(t, "event", c.id),
         {
           key: "crew",
-          label: t("context.tabs.crew"),
           render: () => (
             <Stack gap={3}>
               <MyTeams context={c} testId="me-event-teams" />
@@ -39,17 +38,15 @@ export function EventPage() {
         {
           // Those who work the event file claims on it (Story F-2); sailing is not work.
           key: "my-claims",
-          label: t("context.tabs.myClaims"),
           needs: ["claim_rejected"],
           render: () => <ClaimsTab target={{ kind: "event", id: c.id }} />,
         },
         {
           key: "decide-claims",
-          label: t("context.tabs.toDecide"),
           needs: ["claims"],
           render: () => <EventClaimsTab eventId={c.id} />,
         },
-        { key: "news", label: t("workspace.sectionLabels.event.news"), render: () => <RegattaNews kind="event" id={c.id} /> },
+        { key: "news", render: () => <RegattaNews kind="event" id={c.id} /> },
       ]}
     />
   );

@@ -35,30 +35,26 @@ export function SeriesPage() {
           waiverNotice(t, "series", c.id),
           {
             key: "team",
-            label: t("context.tabs.team"),
             render: () => <MyTeams context={c} testId="me-series-teams" />,
           },
           {
             key: "events",
-            label: t("seriesSections.events"),
             render: () => (organizer ? <OrganizerSeriesEvents seriesId={c.id} /> : <SeriesEvents seriesId={c.id} />),
           },
-          { key: "standings", label: t("seriesSections.standings"), render: () => <SeriesStandings context={c} /> },
+          { key: "standings", render: () => <SeriesStandings context={c} /> },
           {
             key: "registrations",
-            label: t("seriesSections.registrations"),
             needs: ["registrations_open"],
             render: () => <SeriesRegistrations seriesId={c.id} />,
           },
           {
             key: "dates",
-            label: t("seriesSections.dates"),
             needs: ["event_unpublished"],
             render: () => <SeriesDates seriesId={c.id} />,
           },
-          { key: "scoring", label: t("seriesSections.scoring"), render: () => <SeriesScoring seriesId={c.id} /> },
-          { key: "officials", label: t("seriesSections.officials"), render: () => <SeriesOfficials seriesId={c.id} /> },
-          { key: "news", label: t("workspace.sectionLabels.series.news"), render: () => <RegattaNews kind="series" id={c.id} /> },
+          { key: "scoring", render: () => <SeriesScoring seriesId={c.id} /> },
+          { key: "officials", render: () => <SeriesOfficials seriesId={c.id} /> },
+          { key: "news", render: () => <RegattaNews kind="series" id={c.id} /> },
         ];
       }}
     />

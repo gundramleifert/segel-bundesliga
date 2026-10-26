@@ -99,3 +99,57 @@ describeStory("Z-10: the series is organized in its own context", () => {
     await expect(page.getByTestId(`admin-series-save-clubs-button-${series}`)).toBeVisible();
   });
 });
+
+describeStory("S-5: the club's organizers reach a member's documents from the list", () => {
+  test("the club's admin has Documents beside a member; the treasurer has none", async ({ page, request }) => {
+    const club = await managedClub(request, CLUB_ADMIN);
+    const people = (await (
+      await request.get(`/api/clubs/${club}/people?q=${encodeURIComponent(TEAM_MANAGER)}`, {
+        headers: await bearer(request, CLUB_ADMIN),
+      })
+    ).json()) as { items: { user_id: number | null }[] };
+    const manager = people.items[0].user_id!;
+    const documents = `my-club-member-documents-${manager}-button`;
+
+    await signIn(page, CLUB_ADMIN);
+    await page.goto(`/me/club/${club}/people?q=${encodeURIComponent(TEAM_MANAGER)}`);
+    await expect(page.getByTestId(documents)).toBeVisible();
+
+    // Not an organizer: the button would only lead to a refusal (#11).
+    await signIn(page, "treasurer@asvw.example.com");
+    await page.goto(`/me/club/${club}/people?q=Voigt`);
+    await expect(page.getByTestId(`my-club-member-relation-${manager}-manager`)).toBeVisible();
+    await expect(page.getByTestId(documents)).toHaveCount(0);
+  });
+});
+
+describeStory("V-5: the team manager applies for a series from the club's Squads", () => {
+  test("applying puts it on the list as waiting; withdrawing takes it off", async ({ page, request }) => {
+    const club = await managedClub(request, TEAM_MANAGER);
+    await signIn(page, TEAM_MANAGER);
+    await page.goto(`/me/club/${club}/squads`);
+    const select = page.getByTestId(`my-club-apply-series-${club}`);
+    await expect(select).toBeVisible();
+    const choice = await select.locator("option").nth(1).getAttribute("value");
+    await select.selectOption(choice!);
+    await page.getByTestId(`my-club-apply-${club}`).click();
+
+    const applications = page.getByTestId(`my-club-applications-${club}`);
+    const row = applications.locator("[data-testid^='my-club-application-'][data-testid$='-status']");
+    await expect(row).toHaveText(/waiting/);
+    // The series is no longer offered, and the application can be withdrawn.
+    await expect(select.locator(`option[value="${choice}"]`)).toHaveCount(0);
+    await applications.locator("[data-testid$='-withdraw']").click();
+    await expect(row).toHaveCount(0);
+  });
+});
+
+describeStory("VA-6: the series manager adds an act from the series' Events", () => {
+  test("New event leads to My space's wizard", async ({ page, request }) => {
+    const series = await managedSeries(request, SERIES_MANAGER);
+    await signIn(page, SERIES_MANAGER);
+    await page.goto(`/me/series/${series}/events`);
+    await page.getByTestId("me-series-new-event").click();
+    await expect(page).toHaveURL(/\/me\/event\/new$/);
+  });
+});

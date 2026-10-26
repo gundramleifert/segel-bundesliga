@@ -42,7 +42,7 @@ Code per E-Mail funktioniert weiterhin und hebt die Sperre auf.
 
 ### Passwort festlegen, ändern oder entfernen {#account-password}
 
-[*Ich* › *Konto*](place:profile.account) → *Anmeldewege*. Ihre Adresse muss
+[*Ich* › *Profil & Konto*](place:profile.account) → *Anmeldewege*. Ihre Adresse muss
 bestätigt sein – eine Anmeldung mit Code erledigt das.
 
 - Zum ersten Mal: unter *Passwort festlegen* ① eintippen, dann die Schaltfläche
@@ -56,7 +56,7 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 
 ### Konto löschen {#account-delete}
 
-[*Ich* › *Konto*](place:profile.account) → *Mein Konto löschen* → *Ja, endgültig löschen*.
+[*Ich* › *Profil & Konto*](place:profile.account) → *Mein Konto löschen* → *Ja, endgültig löschen*.
 
 > **Achtung:** Das lässt sich nicht rückgängig machen.
 

@@ -28,7 +28,6 @@ import { WorkspaceFrame, type WorkspaceSection } from "../me/Workspace";
  */
 export function OfficePage({ section: fixed }: { section?: string } = {}) {
   const { t } = useTranslation("space");
-  const ta = useTranslation("admin").t;
   const params = useParams();
   const section = fixed ?? params.section;
   const { account, loading } = useAccount();
@@ -49,7 +48,6 @@ export function OfficePage({ section: fixed }: { section?: string } = {}) {
   const sections: WorkspaceSection[] = [
     {
       key: "overview",
-      label: t("workspace.overview"),
       render: () =>
         office.needs.length ? (
           <TodoList context={{ kind: "office" }} needs={office.needs} testId="office-todo" />
@@ -59,13 +57,13 @@ export function OfficePage({ section: fixed }: { section?: string } = {}) {
           </p>
         ),
     },
-    { key: "clubs", label: ta("clubs.title"), render: () => <Clubs /> },
-    { key: "series", label: ta("series.title"), render: () => <SeriesList mayCreate={mayCreateIn("series", office.relations)} /> },
-    { key: "events", label: ta("events.title"), render: () => <EventsAdmin /> },
-    { key: "people", label: ta("sailors.title"), render: () => <SailorsAdmin /> },
-    { key: "accounts", label: ta("accounts.title"), render: () => <AccountsAdmin /> },
-    { key: "news", label: ta("posts.title"), render: () => <PostsAdmin /> },
-    { key: "media", label: ta("media.title"), render: () => <MediaAdmin /> },
+    { key: "clubs", render: () => <Clubs /> },
+    { key: "series", render: () => <SeriesList mayCreate={mayCreateIn("series", office.relations)} /> },
+    { key: "events", render: () => <EventsAdmin /> },
+    { key: "people", render: () => <SailorsAdmin /> },
+    { key: "accounts", render: () => <AccountsAdmin /> },
+    { key: "news", render: () => <PostsAdmin /> },
+    { key: "media", render: () => <MediaAdmin /> },
   ];
   return (
     <WorkspaceFrame

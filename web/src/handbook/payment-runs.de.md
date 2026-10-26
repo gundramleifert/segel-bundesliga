@@ -15,12 +15,12 @@ title: "Über die Bank des Vereins zahlen"
 Die genehmigten Abrechnungen, die Ihr Verein schuldet, werden eine SEPA-Datei für das
 Online-Banking des Vereins. Die Website verbindet sich nie mit der Bank und speichert
 keinen Bank-Zugang. Hier arbeiten nur *Organisation*, *Kassenwart* und *Verwaltung* des
-Vereins: unter [*Ihr Verein* › *Zahlläufe*](place:club.payment-runs) und
-[*Bankkonto*](place:club.bank-account).
+Vereins: unter [*Ihr Verein* › *Zahlungsläufe*](place:club.payment-runs) und
+[*Bankverbindung*](place:club.bank-account).
 
 ### Das Konto des Vereins {#payment-runs-bank}
 
-Unter [*Ihr Verein* › *Bankkonto*](place:club.bank-account), bei *Konto des Vereins*,
+Unter [*Ihr Verein* › *Bankverbindung*](place:club.bank-account), bei *Konto des Vereins*,
 *Kontoinhaber*, *IBAN* und optional *BIC* (wird aus der IBAN ergänzt) eintragen, dann
 *Speichern*. Von diesem Konto gehen die Überweisungen ab. Nur
 Organisation und Kassenwart des Vereins sehen es – nicht seine Mitglieder.
@@ -30,7 +30,7 @@ Organisation und Kassenwart des Vereins sehen es – nicht seine Mitglieder.
 Ausgangslage: Unter *Freigegeben, zu zahlen* in [*Abrechnungen
 entscheiden*](place:club.money) stehen Abrechnungen.
 
-1. Unter [*Ihr Verein* › *Zahlläufe*](place:club.payment-runs), bei *Per SEPA-Datei
+1. Unter [*Ihr Verein* › *Zahlungsläufe*](place:club.payment-runs), bei *Per SEPA-Datei
    zahlen*, ist jede Abrechnung angehakt ①; Haken bei denen entfernen, die nicht mit
    sollen.
 2. Das *Ausführungsdatum* ② prüfen (Vorgabe: heute).
@@ -48,7 +48,7 @@ zahlen.
 
 ### Gebucht oder zurückgegeben {#payment-runs-settle}
 
-Der Zahlungslauf bleibt als *Bei der Bank: …* mit seiner *Nachrichten-ID* unter *Zahlläufe*.
+Der Zahlungslauf bleibt als *Bei der Bank: …* mit seiner *Nachrichten-ID* unter *Zahlungsläufe*.
 
 1. Eine Überweisung, die die Bank zurückgegeben hat: *Zurückgegeben…*, einen *Grund*,
    *Als zurückgegeben markieren*. Ihre Abrechnungen sind wieder offen für die nächste

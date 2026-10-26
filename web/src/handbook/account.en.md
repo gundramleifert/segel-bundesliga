@@ -41,7 +41,7 @@ ends the lock.
 
 ### Set, change or remove a password {#account-password}
 
-[*Me* › *Account*](place:profile.account) → *Sign-in methods*. Your address must be
+[*Me* › *Profile & account*](place:profile.account) → *Sign-in methods*. Your address must be
 confirmed — signing in with a code once does that.
 
 - First time: type it under *Set a password* ①, then *Set password* ②. 12 to 128
@@ -55,7 +55,7 @@ confirmed — signing in with a code once does that.
 
 ### Delete your account {#account-delete}
 
-[*Me* › *Account*](place:profile.account) → *Delete my account* → *Yes, delete permanently*.
+[*Me* › *Profile & account*](place:profile.account) → *Delete my account* → *Yes, delete permanently*.
 
 > **Careful:** This cannot be undone.
 

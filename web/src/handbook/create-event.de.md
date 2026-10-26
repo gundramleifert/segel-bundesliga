@@ -24,7 +24,7 @@ Bildschirm, lässt sich seitlich schieben, die Seite selbst nicht.
 1. Die Geschäftsstelle: [*Ligabüro* › *Veranstaltungen*](place:admin.events),
    [*＋ Neue Veranstaltung*](place:admin.new-event). Die Organisation eines Vereins:
    [*Ihr Verein* › *Ausrichten*](place:club.hosting), *+ Neue Veranstaltung*. Die
-   Organisation einer Serie: [*Neue Veranstaltung*](place:admin.new-event) von dieser Seite aus.
+   Organisation einer Serie: [*die Serie* › *Veranstaltungen*](place:series.events), *+ Neue Veranstaltung*.
 2. *Allgemeines*: Pflicht ist nur *Name* ① (mindestens drei Zeichen). *Veranstaltung
    anlegen* ② speichert einen Entwurf, den sonst niemand sieht.
 3. *Vereine*: die Teilnehmer ankreuzen, dann *… Vereine eintragen und weiter*. In einer

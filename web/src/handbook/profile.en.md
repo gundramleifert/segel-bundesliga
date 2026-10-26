@@ -16,7 +16,7 @@ All in the context *Me* of [my space](place:profile.account).
 
 ### Sailor profile {#profile-sailor}
 
-[*Me* › *Account*](place:profile.account) → *My sailor profile*: your *First name*, *Last name* and *Birthdate* as the
+[*Me* › *Profile & account*](place:profile.account) → *My sailor profile*: your *First name*, *Last name* and *Birthdate* as the
 site shows them; *Save*.
 
 The card is there from your first sign-in with a confirmed address: your own person

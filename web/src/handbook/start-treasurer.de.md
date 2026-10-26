@@ -26,8 +26,8 @@ Zahlung finden alle in *Mein Bereich* statt.
 ### Entscheiden und zahlen {#start-treasurer-pay}
 
 Die Kasse eines Vereins steht in seinem Kontext unter *Finanzen*:
-[*Abrechnungen entscheiden*](place:club.money), [*Zahlläufe*](place:club.payment-runs),
-[*Bankkonto*](place:club.bank-account).
+[*Abrechnungen entscheiden*](place:club.money), [*Zahlungsläufe*](place:club.payment-runs),
+[*Bankverbindung*](place:club.bank-account).
 
 - [Wer über eine Abrechnung entscheidet](#decide-claims-who) – Organisation oder
   Kassenwart der Veranstaltung bzw. des Vereins, nie die abrechnende Person selbst.

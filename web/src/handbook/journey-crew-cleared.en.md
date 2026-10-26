@@ -48,5 +48,5 @@ up must be cleared.
   downloads the form, the guardian signs, the sailor uploads the scan.
   [The paper form](#waiver-minor-paper)
 - **The club collects the forms (J-5.13):** the club's page has no upload — the
-  team manager hands the form back to the sailor to upload in *Me* › *Waivers*.
+  team manager hands the form back to the sailor to upload in *Me* › *My waivers*.
   [Paper forms](#club-waivers-upload)

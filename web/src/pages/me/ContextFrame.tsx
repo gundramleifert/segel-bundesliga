@@ -124,7 +124,6 @@ export function ContextFrame({
   }
   const overview: WorkspaceSection = {
     key: "overview",
-    label: t("workspace.overview"),
     render: () => <ContextSummary context={context} link={publicPath(context)} extra={overviewExtra?.(context)} />,
   };
   return (
@@ -147,9 +146,8 @@ export function ContextFrame({
 export function waiverNotice(t: (key: string) => string, scope: "series" | "event", id: number): WorkspaceSection {
   return {
     key: "waiver",
-    label: t("context.tabs.waivers"),
     needs: ["waiver"],
-    notice: true,
+    notice: t("context.tabs.waivers"),
     render: () => <Waivers only={{ scope, id }} />,
   };
 }

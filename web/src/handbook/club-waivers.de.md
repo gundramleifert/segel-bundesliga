@@ -45,7 +45,7 @@ Erziehungsberechtigten:
 
 - **Online** – [verknüpfen Sie das Elternteil](#club-members-guardians) mit dem Kind; das
   Elternteil nimmt dann von seinem eigenen Konto aus an. Nichts auf Papier.
-- **Auf Papier** – in seinem eigenen *Ich* › *Haftungsausschlüsse*
+- **Auf Papier** – in seinem eigenen *Ich* › *Meine Haftungsausschlüsse*
   nutzt der Segler *Formular herunterladen (PDF)*, lässt es unterschreiben und nutzt
   *Unterschriebenes Formular hochladen*: PDF, JPEG oder PNG, bis 10 MB, mit dem Namen
   der Person, die unterschrieben hat ([so geht's](#waiver-minor-paper)).

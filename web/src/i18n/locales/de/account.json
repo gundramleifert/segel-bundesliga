@@ -86,7 +86,7 @@
   "waiver": {
     "title": "Haftungsausschluss",
     "description": "Eine Erklärung pro Serie – oder pro Veranstaltung, wenn sie zu keiner Serie gehört. Sie gilt für alle Spieltage dieser Wettbewerbe; ein neuer Wortlaut verlangt eine neue Bestätigung.",
-    "none": "Du bist noch für keinen Wettbewerb gemeldet, es gibt also nichts zu unterschreiben.",
+    "none": "Sie sind noch für keinen Wettbewerb gemeldet, es gibt also nichts zu unterschreiben.",
     "forCompetition": "Stichtag {date}",
     "status": {
       "cleared": "Erledigt",
@@ -100,24 +100,24 @@
     "methodOnline": "online",
     "methodGuardian": "unterschrieben von {name}",
     "viewScan": "Hochgeladenes Formular öffnen",
-    "needBirthDate": "Trage zuerst oben im Profil dein Geburtsdatum ein – es entscheidet, ob du online bestätigst oder ein Elternteil unterschreiben muss.",
+    "needBirthDate": "Tragen Sie zuerst oben im Profil Ihr Geburtsdatum ein – es entscheidet, ob Sie online bestätigen oder ein Elternteil unterschreiben muss.",
     "adult": {
       "read": "Lesen und bestätigen",
       "hide": "Text ausblenden",
       "agree": "Ich habe die obige Erklärung gelesen und stimme ihr für diesen Wettbewerb zu.",
       "confirm": "Bestätigen",
       "confirming": "Wird bestätigt…",
-      "done": "Danke – deine Bestätigung ist gespeichert."
+      "done": "Danke – Ihre Bestätigung ist gespeichert."
     },
     "minor": {
-      "explain": "Du bist am Stichtag unter 18, deshalb muss ein Elternteil oder Erziehungsberechtigter unterschreiben. Lade das Formular herunter, lass es unterschreiben und lade hier ein Foto oder einen Scan davon hoch (PDF, JPEG oder PNG, bis 10 MB).",
+      "explain": "Sie sind am Stichtag unter 18, deshalb muss ein Elternteil oder Erziehungsberechtigter unterschreiben. Laden Sie das Formular herunter, lassen Sie es unterschreiben und laden Sie hier ein Foto oder einen Scan davon hoch (PDF, JPEG oder PNG, bis 10 MB).",
       "download": "Formular herunterladen (PDF)",
       "downloading": "Wird erstellt…",
       "guardianName": "Name des Elternteils / Erziehungsberechtigten, der unterschrieben hat",
       "upload": "Unterschriebenes Formular hochladen",
       "replace": "Neuen Scan hochladen",
       "uploading": "Wird hochgeladen…",
-      "done": "Das unterschriebene Formular liegt vor – du bist freigegeben."
+      "done": "Das unterschriebene Formular liegt vor – Sie sind freigegeben."
     },
     "methodGuardianOnline": "online angenommen von {name}",
     "guardian": {

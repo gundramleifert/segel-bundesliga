@@ -31,7 +31,7 @@ Mehr unter [Rollen](#roles-list).
 - **[*Ihr Verein* › *Abrechnungen entscheiden*](place:club.money):** Abrechnungen für den
   Verein und für jede Veranstaltung, die er ausrichtet – zuerst *Zu entscheiden*, dann
   *Freigegeben, zu zahlen*.
-- **[*Die Veranstaltung* › *Zu entscheiden*](place:event.decide):** die Abrechnungen für
+- **[*Die Veranstaltung* › *Abrechnungen entscheiden*](place:event.decide):** die Abrechnungen für
   diese Veranstaltung, über die Sie entscheiden.
 - [*Ich* › *Übersicht*](place:space) listet sie unter *Zu erledigen*: *… Abrechnungen
   warten auf Sie*.

@@ -28,7 +28,7 @@ host. **Nobody decides or pays their own claim**, whatever roles they hold. More
 
 - **[*Your club* › *Decide claims*](place:club.money):** claims on the club and on every
   event it hosts — *To decide* first, then *Approved, to pay*.
-- **[*The event* › *Claims to decide*](place:event.decide):** the claims on that event
+- **[*The event* › *Decide claims*](place:event.decide):** the claims on that event
   that you decide.
 - [*Me* › *Overview*](place:space) lists them under *To do*: *… claims wait for you*.
 

@@ -42,7 +42,7 @@ A sailor under 18 on the competition's reference date needs a parent or guardian
 
 - **Online** — [link the parent](#club-members-guardians) to the child; the parent then
   accepts from their own account. Nothing on paper.
-- **On paper** — in their own *Me* › *Waivers*, the sailor uses *Download the
+- **On paper** — in their own *Me* › *My waivers*, the sailor uses *Download the
   form (PDF)*, has it signed, and uses *Upload the signed form*: PDF, JPEG or PNG, up to
   10 MB, with the name of whoever signed ([how](#waiver-minor-paper)).
 

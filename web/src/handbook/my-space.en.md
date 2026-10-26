@@ -42,7 +42,7 @@ Each context opens on its *Overview*: what waits, dates, status.
 
 | Context | As a sailor or member |
 |---|---|
-| *Me* | [*Account*](place:profile.account), [*My clubs*](place:profile.clubs), [*Waivers*](place:profile.waivers), [*Claims*](place:profile.claims), [*Documents*](place:profile.documents), [*Bank account*](place:profile.bank) — see [profile](#profile-sailor) |
+| *Me* | [*Profile & account*](place:profile.account), [*My clubs*](place:profile.clubs), [*My waivers*](place:profile.waivers), [*My claims*](place:profile.claims), [*Documents*](place:profile.documents), [*Bank account*](place:profile.bank) — see [profile](#profile-sailor) |
 | your club | [*People*](place:club.people), read only; *Racing* › [*Squads*](place:club.series) and [*Events & crews*](place:club.events), read only; [*My claims*](place:club.claims) |
 | a series | [*My team*](place:series.team): the club you sail for; [*Events*](place:series.events); *Standings* |
 | an event | [*My crew*](place:event.crew); once the event is published, a link to its crews and pairing list |

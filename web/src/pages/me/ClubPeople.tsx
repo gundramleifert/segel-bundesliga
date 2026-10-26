@@ -19,20 +19,23 @@ import {
   useListMyMemberships,
   useReadTuples,
   useRemoveClubMember,
+  useUpdateClub,
   useUpdatePerson,
 } from "../../api/generated/sbl";
 import type { ClubPersonOut } from "../../api/generated/model/clubPersonOut";
 import type { MembershipStatus } from "../../api/generated/model/membershipStatus";
 import type { TupleOut } from "../../api/generated/model/tupleOut";
-import { Relation } from "../../api/types";
+import { Relation, Role } from "../../api/types";
 import { useAccount, useAsync, useInvalidate } from "../../api/useApi";
 import { AddDialog } from "../../components/AddDialog";
 import { Async } from "../../components/Async";
 import { Badge, ErrorMessage } from "../../components/Blocks";
 import { ConfirmButton } from "../../components/ConfirmButton";
 import { CrestEditor } from "../../components/CrestEditor";
+import { Field, Message } from "../../components/Form";
 import { DataTable } from "../../components/DataTable";
 import { GrantForm } from "../../components/GrantForm";
+import { PersonDocuments } from "../../components/PersonDocuments";
 import { NewPerson } from "../../components/SquadPanel";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { useListParams, type ListParams } from "../../lib/listParams";
@@ -264,6 +267,14 @@ function PeopleTable({
               {row.original.user_id != null && row.original.user_id === account?.id && (
                 <span className="text-xs text-muted">{t("members.you")}</span>
               )}
+              {/* Only the organizers' (Story S-5) — a plain member would only be refused (#11). */}
+              {mayOrganize && row.original.user_id != null && row.original.user_id !== account?.id && (
+                <PersonDocuments
+                  userId={row.original.user_id}
+                  name={[row.original.first_name, row.original.last_name].filter(Boolean).join(" ")}
+                  testId={`my-club-member-documents-${row.original.user_id}`}
+                />
+              )}
             </span>
           ),
         }),
@@ -471,13 +482,15 @@ function Leave({ clubId, onLeft }: { clubId: number; onLeft?: () => void }) {
 
 /** The club's own page (Story V-3): its crest, kept by the club's `admin` — and its name,
  * short name, city and website as the public page shows them. Those are the league
- * office's to change (`PATCH /api/admin/clubs/{id}` is the site admin's), so they are
- * shown here, not offered as fields that would answer 403.
+ * office's to change (`PATCH /api/admin/clubs/{id}` is the site admin's): the site's
+ * admin, who reaches every club from the office, gets the fields (#39); everyone else
+ * reads them, rather than meeting fields that would answer 403.
  */
 export function ClubPageSection({ clubId }: { clubId: number }) {
   const { t } = useTranslation("space");
   const { t: tc } = useTranslation("club");
   const invalidate = useInvalidate();
+  const { hasRole } = useAccount();
   const club = useAsync(useGetClub(clubId));
 
   return (
@@ -493,27 +506,87 @@ export function ClubPageSection({ clubId }: { clubId: number }) {
               <p className="min-w-0 flex-1 text-sm text-muted">{tc("members.crestHint")}</p>
             </CrestEditor>
           </section>
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm" data-testid={`my-club-page-${clubId}-facts`}>
-            <dt className="text-muted">{t("clubSections.name")}</dt>
-            <dd>{data.name}</dd>
-            <dt className="text-muted">{t("clubSections.shortName")}</dt>
-            <dd>{data.short_name}</dd>
-            {data.city && (
-              <>
-                <dt className="text-muted">{t("clubSections.city")}</dt>
-                <dd>{data.city}</dd>
-              </>
-            )}
-            {data.website && (
-              <>
-                <dt className="text-muted">{t("clubSections.website")}</dt>
-                <dd className="break-all">{data.website}</dd>
-              </>
-            )}
-          </dl>
-          <p className="text-sm text-muted">{t("clubSections.factsByOffice")}</p>
+          {hasRole(Role.admin) ? (
+            <ClubFacts club={data} onSaved={() => invalidate("/api/clubs", "/api/admin/clubs", "/api/me/contexts")} />
+          ) : (
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm" data-testid={`my-club-page-${clubId}-facts`}>
+              <dt className="text-muted">{t("clubSections.name")}</dt>
+              <dd>{data.name}</dd>
+              <dt className="text-muted">{t("clubSections.shortName")}</dt>
+              <dd>{data.short_name}</dd>
+              {data.city && (
+                <>
+                  <dt className="text-muted">{t("clubSections.city")}</dt>
+                  <dd>{data.city}</dd>
+                </>
+              )}
+              {data.website && (
+                <>
+                  <dt className="text-muted">{t("clubSections.website")}</dt>
+                  <dd className="break-all">{data.website}</dd>
+                </>
+              )}
+            </dl>
+          )}
+          {hasRole(Role.admin) || <p className="text-sm text-muted">{t("clubSections.factsByOffice")}</p>}
         </div>
       )}
     </Async>
+  );
+}
+
+/** The league office's fields for a club's facts (#39) — name, short name, city, website. */
+function ClubFacts({
+  club,
+  onSaved,
+}: {
+  club: { id: number; name: string; short_name: string; city?: string | null; website?: string | null };
+  onSaved: () => void;
+}) {
+  const { t } = useTranslation("space");
+  const [form, setForm] = useState({
+    name: club.name,
+    short_name: club.short_name,
+    city: club.city ?? "",
+    website: club.website ?? "",
+  });
+  const save = useUpdateClub({ mutation: { onSuccess: onSaved } });
+  const field = (key: keyof typeof form, label: string) => (
+    <Field label={label} testId={`my-club-page-${club.id}-${key}`}>
+      <input
+        className={INPUT_CLASS}
+        value={form[key]}
+        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+        data-testid={`my-club-page-${club.id}-${key}-input`}
+      />
+    </Field>
+  );
+  return (
+    <form
+      className="grid grid-cols-[minmax(0,1fr)] gap-3"
+      data-testid={`my-club-page-${club.id}-facts-form`}
+      onSubmit={(e) => {
+        e.preventDefault();
+        save.mutate({
+          clubId: club.id,
+          data: { name: form.name, short_name: form.short_name, city: form.city || null, website: form.website || null },
+        });
+      }}
+    >
+      {field("name", t("clubSections.name"))}
+      {field("short_name", t("clubSections.shortName"))}
+      {field("city", t("clubSections.city"))}
+      {field("website", t("clubSections.website"))}
+      <div>
+        <Button type="submit" size="sm" isDisabled={save.isPending} data-testid={`my-club-page-${club.id}-facts-save`}>
+          {t("clubSections.saveFacts")}
+        </Button>
+      </div>
+      <Message
+        success={save.isSuccess ? t("clubSections.factsSaved") : null}
+        error={save.isError ? errorText(save.error) : null}
+        testId={`my-club-page-${club.id}-facts`}
+      />
+    </form>
   );
 }

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
 
 import { useAccount, useInvalidate } from "../../api/useApi";
@@ -35,7 +34,6 @@ export function ProfilePage() {
  *  own sections under `/me/profile/`. One list, so the overview and every section share
  *  one sidebar. */
 export function MeFrame({ active, overview }: { active?: string; overview?: ReactNode }) {
-  const { t } = useTranslation("space");
   const { account, loading } = useAccount();
   const invalidate = useInvalidate();
   const { space } = useMySpace();
@@ -47,10 +45,9 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
   if (!space.data && !space.error) return <Loading testId="me-context-loading" />;
 
   const sections: WorkspaceSection[] = [
-    { key: "overview", label: t("workspace.overview"), render: () => overview },
+    { key: "overview", render: () => overview },
     {
       key: "account",
-      label: t("context.tabs.account"),
       render: () => (
         <Stack gap={4} testId="me-profile">
           <AccountInfo account={account} />
@@ -63,15 +60,13 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
     // Story V-15: my memberships, invitations and requests, and asking a club.
     {
       key: "clubs",
-      label: t("workspace.sectionLabels.me.clubs"),
       needs: ["membership_invited"],
       render: () => <MyClubs />,
     },
-    { key: "documents", label: t("tabs.documents"), needs: ["documents_expired"], render: () => <DocumentsTab /> },
-    { key: "bank", label: t("tabs.bank"), render: () => <BankTab /> },
+    { key: "documents", needs: ["documents_expired"], render: () => <DocumentsTab /> },
+    { key: "bank", render: () => <BankTab /> },
     {
       key: "waivers",
-      label: t("context.tabs.waivers"),
       needs: ["waiver", "ward_waiver"],
       // Mine (S-1), then my children's (S-8) — a parent with no sailor record of their
       // own sees only the second, until *My children* is a section of its own (#32).
@@ -82,15 +77,13 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
         </div>
       ),
     },
-    { key: "claims", label: t("tabs.claims"), needs: ["claim_rejected"], render: () => <ClaimsTab /> },
+    { key: "claims", needs: ["claim_rejected"], render: () => <ClaimsTab /> },
     {
       key: "news",
-      label: t("workspace.sectionLabels.me.news"),
       render: () => <PostsAdmin base="/me" testId="me-news" />,
     },
     {
       key: "media",
-      label: t("workspace.sectionLabels.me.media"),
       render: () => <MediaAdmin withKeys={false} />,
     },
   ];

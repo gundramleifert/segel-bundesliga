@@ -246,9 +246,6 @@
     "noEvents": "No events published in this series yet.",
     "raceControl": "Start, recall and finish races, and enter results.",
     "raceControlLink": "Open race control",
-    "organizeSeries": "Edit the series, its events and its participants on the organizer screen.",
-    "organizeEvent": "Edit the event, its boats, pairing list and people on the organizer screen.",
-    "organizeLink": "Open the organizer screen",
     "tabs": {
       "account": "Account",
       "waivers": "Waivers",
@@ -266,8 +263,7 @@
       "hosting": "Hosting",
       "crews": "Events & crews",
       "squadsOnly": "Squads"
-    },
-    "organizeHosted": "The events your club hosts are organized in the administration's Events tab — the date, the clubs, the draw and publication. An event outside a series you create there too."
+    }
   },
   "clubWaivers": {
     "none": "The club is in no running competition, so there is no waiver to collect.",
@@ -309,14 +305,7 @@
     "toDo": "To do",
     "lastVisited": "Last visited",
     "live": {
-      "race-control": "Race control",
-      "results": "Results",
-      "check-in": "Check-in",
-      "notice-board": "Notice board",
-      "crew": "My crew",
       "overview": "Times and people",
-      "my-claims": "My claims",
-      "news": "News & pictures",
       "publicLive": "Live view"
     },
     "sectionLabels": {
@@ -461,7 +450,20 @@
     "shortName": "Short name",
     "city": "City",
     "website": "Website",
-    "factsByOffice": "Name, short name, city and website are changed by the league office — write to it if one is wrong."
+    "factsByOffice": "Name, short name, city and website are changed by the league office — write to it if one is wrong.",
+    "applicationsTitle": "Apply for a series",
+    "applicationsHint": "An application counts once the series' organizer accepts it; until then the club is not listed in the series.",
+    "applicationStatus": {
+      "requested": "waiting",
+      "rejected": "rejected",
+      "accepted": "accepted"
+    },
+    "withdraw": "Withdraw",
+    "applyFor": "Choose a series",
+    "apply": "Apply",
+    "applyNone": "No published series this year or next that the club is not already in.",
+    "saveFacts": "Save",
+    "factsSaved": "Saved."
   },
   "seriesSections": {
     "events": "Events",
@@ -488,6 +490,7 @@
     "officialsHint": "Who holds what on the series. A race officer or jury member named here is one at every event of it.",
     "standingsHint": "The table is on the series' public page, recomputed from the results.",
     "standingsLink": "Open the standings",
-    "standingsDraft": "The series is a draft — its standings appear on the public page once it is published."
+    "standingsDraft": "The series is a draft — its standings appear on the public page once it is published.",
+    "newEvent": "+ New event"
   }
 }

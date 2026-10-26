@@ -31,7 +31,6 @@ Vorher: Die Vereine existieren; die Serienleitung hat ein Konto, noch ohne Rolle
 
 ### Wenn … {#journey-series-variations}
 
-- **Ein Verein möchte hinein (J-4.4, J-4.5):** Melden kann er sich auf der Website noch
-  nicht; sein Teammanager fragt an, und die Serienleitung trägt ihn unter *Vereine &
-  Meldungen* ein. Er wird dann Teilnehmer des danach angelegten Spieltags. [Wie ein Verein hineinkommt](#squad-and-lineup-apply) ·
+- **Ein Verein möchte hinein (J-4.4, J-4.5):** Sein Teammanager bewirbt sich unter *Kader*,
+  und die Serienleitung nimmt unter *Vereine & Meldungen* an — oder trägt ihn dort ein. Er wird dann Teilnehmer des danach angelegten Spieltags. [Wie ein Verein hineinkommt](#squad-and-lineup-apply) ·
   [Bewerbungen](#admin-clubs-applications)
