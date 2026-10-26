@@ -13,6 +13,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A mutation fired from a ticking effect repeats until its refetch lands, and each repeat's invalidation cancels that refetch](a-mutation-fired-from-a-ticking-effect-repeats-until-its-refetch-lands-and-each-.md)
 - [A native select takes its text colour from the page but paints its own white field and list, so on a white-text surface it is white on white](a-native-select-takes-its-text-colour-from-the-page-but-paints-its-own-white-fie.md)
 - [A PDF from the pairing tool is never byte-identical twice, so equal bytes prove the cache and unequal bytes prove nothing](a-pdf-from-the-pairing-tool-is-never-byte-identical-twice-so-equal-bytes-prove-t.md)
+- [A problem or to-do code renamed in the backend breaks no compile: the frontend compares it as a string](a-problem-or-to-do-code-renamed-in-the-backend-breaks-no-compile-the-frontend-co.md)
 - [`require_ready` answers with a *different* code depending on how many things are missing](a-readiness-refusal-carries-two-different-codes.md)
 - [A relationship on a row you just appended is not loaded after the commit, and reading it in the response fails with MissingGreenlet](a-relationship-on-a-row-you-just-appended-is-not-loaded-after-the-commit-and-rea.md)
 - [A sandbox-denied file shows up as a 0-byte `/dev/null`, so `ls` and `stat` describe something that is not there](a-sandbox-denied-file-looks-like-an-empty-file.md)
