@@ -23,7 +23,7 @@ type DevUser = { email: string; roles: string[] };
 
 async function aJunior(request: APIRequestContext, nth: number): Promise<SailorRow> {
   const headers = await bearer(request, ADMIN);
-  const response = await request.get(`/api/admin/sailors?q=${CLUB_DOMAIN}&limit=100`, { headers });
+  const response = await request.get(`/api/admin/people?q=${CLUB_DOMAIN}&limit=100`, { headers });
   expect(response.ok(), await response.text()).toBeTruthy();
   const juniors = ((await response.json()) as { items: SailorRow[] }).items.filter(
     (s) => s.email && Number(s.birth_date?.slice(0, 4) ?? 0) >= 2009,

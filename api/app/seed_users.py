@@ -33,7 +33,7 @@ from app import authz
 from app.auth import create_access_token
 from app.authz import ObjectRef
 from app.db import SessionLocal
-from app.models import Club, Event, Sailor, Series, Team, TeamMembership
+from app.models import Club, Event, Person, Series, Team, TeamMembership
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.services import grants
@@ -156,29 +156,29 @@ async def seed_users() -> None:
         # Every sailor of the club's squads and entries, as a member of it.
         rows = (
             await session.execute(
-                select(Sailor)
-                .join(TeamMembership, TeamMembership.sailor_id == Sailor.id)
+                select(Person)
+                .join(TeamMembership, TeamMembership.person_id == Person.id)
                 .join(Team, TeamMembership.team_id == Team.id)
-                .where(Team.club_id == club.id, Sailor.email.is_not(None))
+                .where(Team.club_id == club.id, Person.email.is_not(None))
                 .distinct()
-                .order_by(Sailor.id)
+                .order_by(Person.id)
             )
         ).scalars()
-        sailors = 0
-        for sailor in rows:
-            assert sailor.email is not None
-            user = await _account(session, sailor.email, sailor.full_name)
+        people = 0
+        for person in rows:
+            assert person.email is not None
+            user = await _account(session, person.email, person.full_name)
             await _tuple(session, user, Relation.MEMBER, here)
-            sailors += 1
+            people += 1
 
         await session.commit()
         admin = (
             await session.execute(select(User).where(User.email == SITE_ACCOUNTS[0][0]))
         ).scalar_one()
-        _report(club, sailors, admin)
+        _report(club, people, admin)
 
 
-def _report(club: Club, sailors: int, admin: User) -> None:
+def _report(club: Club, people: int, admin: User) -> None:
     print("League office and guest:")
     for email, name, relations in SITE_ACCOUNTS:
         print(f"  {email:30s} {', '.join(relations) or 'no relation':22s} {name}")
@@ -193,7 +193,7 @@ def _report(club: Club, sailors: int, admin: User) -> None:
     print(f"{club.name}:")
     for local, what, name, relation in CLUB_OFFICIALS:
         print(f"  {local + '@' + club.slug + '.example.com':30s} {relation:22s} {name or what}")
-    print(f"…and {sailors} sailors of the club, each a member.")
+    print(f"…and {people} sailors of the club, each a member.")
     # A convenience line, and nothing the seed depends on — so a missing signing secret
     # must not take the whole seeding down with it. It used to: `create_access_token`
     # raises 503 without `SBL_JWT_SECRET`, which made `seed_test_setup` exit 1 *after*

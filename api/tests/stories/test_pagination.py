@@ -17,7 +17,7 @@ from tests.stories.test_master_data import as_role
 #: Every list that grows with the database, with the role that may read it. A new paged
 #: endpoint is one line here and is then held to all of the rules below.
 PAGED = [
-    ("/api/admin/sailors", Role.ADMIN),
+    ("/api/admin/people", Role.ADMIN),
     ("/api/auth/users", Role.ADMIN),
     ("/api/admin/clubs", Role.ADMIN),
     ("/api/admin/series", Role.ADMIN),
@@ -103,12 +103,12 @@ class TestSearchingAndSorting:
 
         up = (
             await client.get(
-                "/api/admin/sailors", params={"sort": "last_name", "limit": 50}, headers=head
+                "/api/admin/people", params={"sort": "last_name", "limit": 50}, headers=head
             )
         ).json()
         down = (
             await client.get(
-                "/api/admin/sailors", params={"sort": "-last_name", "limit": 50}, headers=head
+                "/api/admin/people", params={"sort": "-last_name", "limit": 50}, headers=head
             )
         ).json()
 
@@ -123,7 +123,7 @@ class TestSearchingAndSorting:
         assert descending[0].lower() >= ascending[-1].lower()
 
     async def test_the_whole_list_is_reachable_by_paging(self, client, caplog):
-        """The old `/api/sailors` answered with at most 500 rows and no way to ask for 501."""
+        """The old `/api/people` answered with at most 500 rows and no way to ask for 501."""
         head = await as_role(client, caplog, "page-walk@example.com", Role.ADMIN)
 
         seen: list[int] = []
@@ -131,7 +131,7 @@ class TestSearchingAndSorting:
         while True:
             page = (
                 await client.get(
-                    "/api/admin/sailors", params={"limit": 100, "offset": offset}, headers=head
+                    "/api/admin/people", params={"limit": 100, "offset": offset}, headers=head
                 )
             ).json()
             seen.extend(item["id"] for item in page["items"])
@@ -152,7 +152,7 @@ SEARCHABLE = [
     ("/api/admin/clubs", Role.ADMIN, "hamburg"),
     ("/api/admin/events", Role.ADMIN, "act"),
     ("/api/admin/series", Role.ADMIN, "2026"),
-    ("/api/admin/sailors", Role.ADMIN, "a"),
+    ("/api/admin/people", Role.ADMIN, "a"),
     ("/api/auth/users", Role.ADMIN, "example.com"),
 ]
 
@@ -243,7 +243,7 @@ FILTERABLE = [
     ("/api/admin/series", Role.ADMIN, "league_id", _field("league_id")),
     ("/api/admin/series", Role.ADMIN, "year", _field("year")),
     ("/api/admin/series", Role.ADMIN, "published", _field("published")),
-    ("/api/admin/sailors", Role.ADMIN, "club_id", _field("club_ids")),
+    ("/api/admin/people", Role.ADMIN, "club_id", _field("club_ids")),
     ("/api/events", None, "host_club_id", _id_of("host_club")),
 ]
 

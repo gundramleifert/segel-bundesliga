@@ -45,7 +45,7 @@ def test_a_clubs_admin_is_its_manager_but_holds_no_manager_tuple():
 def test_the_sites_admin_reaches_everything_but_lists_nothing():
     site_admin = person(Grant(relation=Relation.ADMIN))
     assert authz.check(site_admin, Relation.MANAGER, on=CLUB)
-    assert authz.check(site_admin, Relation.ADMIN, on=ObjectRef(ObjectType.SAILOR, 9))
+    assert authz.check(site_admin, Relation.ADMIN, on=ObjectRef(ObjectType.PERSON, 9))
     # "Every club" is a query, not a list of tuples.
     assert authz.list_objects(site_admin, Relation.MANAGER, ObjectType.CLUB) == set()
 
@@ -62,8 +62,8 @@ def test_an_event_reaches_its_series_and_host_club():
 
 
 def test_a_sailors_admin_is_derived_and_cannot_be_written():
-    assert Relation.ADMIN not in writable(ObjectType.SAILOR)
-    assert writable(ObjectType.SAILOR) == [Relation.GUARDIAN]
+    assert Relation.ADMIN not in writable(ObjectType.PERSON)
+    assert writable(ObjectType.PERSON) == [Relation.GUARDIAN]
 
 
 def test_ensure_refuses_with_a_typed_problem():

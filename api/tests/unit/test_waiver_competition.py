@@ -12,7 +12,7 @@ from app.services.waivers import SCAN_REF_PREFIX, Competition, has_scan
 
 
 def _row(*, series_id: int | None = None, event_id: int | None = None) -> WaiverConfirmation:
-    return WaiverConfirmation(sailor_id=1, series_id=series_id, event_id=event_id)
+    return WaiverConfirmation(person_id=1, series_id=series_id, event_id=event_id)
 
 
 def test_a_series_counts_only_its_own_confirmations():

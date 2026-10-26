@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # Where runtime uploads (sailor photos, club crests, ...) are stored on local disk. A
-    # file's mere existence at a deterministic path (e.g. "sailors/{sailor_id}.jpg",
+    # file's mere existence at a deterministic path (e.g. "sailors/{person_id}.jpg",
     # "clubs/{club_id}.png") *is* the "has an image" state — no database column needed.
     # Not versioned (see .gitignore); an S3-compatible store remains a future option, see
     # docs/userstories/, Stories S-2 and V-3.

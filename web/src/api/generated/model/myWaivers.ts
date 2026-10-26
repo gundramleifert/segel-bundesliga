@@ -8,7 +8,7 @@
 import type { MyCompetitionWaiver } from './myCompetitionWaiver';
 
 export interface MyWaivers {
-  sailor_id: number;
+  person_id: number;
   first_name: string;
   last_name: string;
   birth_date_known: boolean;

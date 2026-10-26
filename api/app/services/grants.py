@@ -18,7 +18,7 @@ from sqlalchemy.orm import selectinload
 
 from app import authz
 from app.authz import ObjectRef
-from app.models import Club, Event, Sailor, Series
+from app.models import Club, Event, Person, Series
 from app.models.auth import GRANT_COLUMN, Grant, ObjectType, Relation, User, grant_names, writable
 from app.problems import Problem
 from app.services.audit import EntityType, audit
@@ -27,7 +27,7 @@ _TABLES = {
     ObjectType.CLUB: Club,
     ObjectType.SERIES: Series,
     ObjectType.EVENT: Event,
-    ObjectType.SAILOR: Sailor,
+    ObjectType.PERSON: Person,
 }
 
 
@@ -51,7 +51,7 @@ def check_schema(relation: Relation, object_type: ObjectType) -> None:
 
 async def resolve(
     session: AsyncSession, object_type: ObjectType, object_id: int | None
-) -> Club | Series | Event | Sailor | None:
+) -> Club | Series | Event | Person | None:
     """The object a tuple names, loaded — or a 404/422. ``None`` for the site."""
     if object_type is ObjectType.SITE:
         if object_id is not None:
@@ -286,7 +286,7 @@ async def admin_count(session: AsyncSession, club_id: int, *, excluding_user_id:
 
 
 def may_administer(
-    acting: User, object_type: ObjectType, obj: Club | Series | Event | Sailor | None
+    acting: User, object_type: ObjectType, obj: Club | Series | Event | Person | None
 ) -> bool:
     """Who may write tuples on this object: its ``admin`` — which the model resolves to
     the site's admin for everything, a series' admin for its events, the host club's for

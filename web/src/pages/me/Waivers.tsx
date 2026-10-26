@@ -159,7 +159,7 @@ export function Wards() {
         {wards.map((ward) => {
           const name = `${ward.first_name} ${ward.last_name}`;
           return (
-            <section key={ward.sailor_id} data-testid={`account-ward-${ward.sailor_id}`}>
+            <section key={ward.person_id} data-testid={`account-ward-${ward.person_id}`}>
               <h3 className="mb-2 font-medium">{name}</h3>
               {ward.competitions.length === 0 ? (
                 <p className="text-sm text-muted">{t("waiver.guardian.none", { name })}</p>
@@ -173,7 +173,7 @@ export function Wards() {
                         lang={lang}
                         birthDateKnown={ward.birth_date_known}
                         guardianOf={name}
-                        prefix={`account-ward-waiver-${ward.sailor_id}`}
+                        prefix={`account-ward-waiver-${ward.person_id}`}
                         onChanged={() => {
                           load();
                           invalidate("/api/me/contexts");
@@ -254,7 +254,7 @@ function CompetitionRow({
     run(
       "confirm",
       async () => {
-        const body = { sailor_id: row.sailor_id, locale_shown: lang };
+        const body = { person_id: row.person_id, locale_shown: lang };
         if (row.scope === "series") await confirmForSeries(row.scope_id, body);
         else await confirmForEvent(row.scope_id, body);
         setReading(false);
@@ -269,7 +269,7 @@ function CompetitionRow({
         getWaiverFormUrl({
           scope: row.scope,
           scope_id: row.scope_id,
-          sailor_id: row.sailor_id,
+          person_id: row.person_id,
           locale: lang,
         }),
         `waiver-${id}.pdf`,
@@ -282,7 +282,7 @@ function CompetitionRow({
       async () => {
         const body = {
           file,
-          sailor_id: row.sailor_id,
+          person_id: row.person_id,
           guardian_name: guardianName.trim() || null,
           locale_shown: lang,
         };

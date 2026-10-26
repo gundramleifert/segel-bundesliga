@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: b654a28b5f45
+Revision ID: d76358a4dd89
 Revises: 
-Create Date: 2026-10-25 07:31:30.235497
+Create Date: 2026-10-26 06:35:31.664512
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'b654a28b5f45'
+revision: str = 'd76358a4dd89'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -125,7 +125,7 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_login_code_email'), ['email'], unique=False)
         batch_op.create_index(batch_op.f('ix_login_code_expires_at'), ['expires_at'], unique=False)
 
-    op.create_table('sailor',
+    op.create_table('person',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('first_name', sa.String(length=80), nullable=False),
     sa.Column('last_name', sa.String(length=80), nullable=False),
@@ -135,11 +135,11 @@ def upgrade() -> None:
     sa.Column('profile_public_choice', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_sailor'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_person'))
     )
-    with op.batch_alter_table('sailor', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_sailor_email'), ['email'], unique=True)
-        batch_op.create_index(batch_op.f('ix_sailor_federation_id'), ['federation_id'], unique=False)
+    with op.batch_alter_table('person', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_person_email'), ['email'], unique=True)
+        batch_op.create_index(batch_op.f('ix_person_federation_id'), ['federation_id'], unique=False)
 
     op.create_table('venue',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -196,6 +196,21 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_club_bank_account')),
     sa.UniqueConstraint('club_id', name=op.f('uq_club_bank_account_club_id'))
     )
+    op.create_table('club_membership',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('person_id', sa.Integer(), nullable=False),
+    sa.Column('club_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_club_membership_club_id_club'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_club_membership_person_id_person'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_club_membership')),
+    sa.UniqueConstraint('person_id', 'club_id', name=op.f('uq_club_membership_person_id'))
+    )
+    with op.batch_alter_table('club_membership', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_club_membership_club_id'), ['club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_club_membership_person_id'), ['person_id'], unique=False)
+
     op.create_table('identity',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -262,21 +277,6 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_personal_document_user_id'), ['user_id'], unique=False)
-
-    op.create_table('sailor_club',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('sailor_id', sa.Integer(), nullable=False),
-    sa.Column('club_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_sailor_club_club_id_club'), ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_sailor_club_sailor_id_sailor'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_sailor_club')),
-    sa.UniqueConstraint('sailor_id', 'club_id', name=op.f('uq_sailor_club_sailor_id'))
-    )
-    with op.batch_alter_table('sailor_club', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_sailor_club_club_id'), ['club_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_sailor_club_sailor_id'), ['sailor_id'], unique=False)
 
     op.create_table('series',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -375,23 +375,23 @@ def upgrade() -> None:
     sa.Column('club_id', sa.Integer(), nullable=True),
     sa.Column('series_id', sa.Integer(), nullable=True),
     sa.Column('event_id', sa.Integer(), nullable=True),
-    sa.Column('sailor_id', sa.Integer(), nullable=True),
+    sa.Column('person_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.CheckConstraint('(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL) + (sailor_id IS NOT NULL) <= 1', name=op.f('ck_access_grant_one_object')),
+    sa.CheckConstraint('(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL) + (person_id IS NOT NULL) <= 1', name=op.f('ck_access_grant_one_object')),
     sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_access_grant_club_id_club')),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_access_grant_event_id_event')),
-    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_access_grant_sailor_id_sailor'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_access_grant_person_id_person'), ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_access_grant_series_id_series')),
     sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_access_grant_user_id_app_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_access_grant')),
-    sa.UniqueConstraint('user_id', 'relation', 'club_id', 'series_id', 'event_id', 'sailor_id', name=op.f('uq_access_grant_user_id'))
+    sa.UniqueConstraint('user_id', 'relation', 'club_id', 'series_id', 'event_id', 'person_id', name=op.f('uq_access_grant_user_id'))
     )
     with op.batch_alter_table('access_grant', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_access_grant_club_id'), ['club_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_access_grant_person_id'), ['person_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_relation'), ['relation'], unique=False)
-        batch_op.create_index(batch_op.f('ix_access_grant_sailor_id'), ['sailor_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_series_id'), ['series_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_user_id'), ['user_id'], unique=False)
 
@@ -595,7 +595,7 @@ def upgrade() -> None:
 
     op.create_table('waiver_confirmation',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('sailor_id', sa.Integer(), nullable=False),
+    sa.Column('person_id', sa.Integer(), nullable=False),
     sa.Column('waiver_text_id', sa.Integer(), nullable=False),
     sa.Column('series_id', sa.Integer(), nullable=True),
     sa.Column('event_id', sa.Integer(), nullable=True),
@@ -610,37 +610,37 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.CheckConstraint('(series_id IS NULL) <> (event_id IS NULL)', name=op.f('ck_waiver_confirmation_exactly_one_scope')),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_waiver_confirmation_event_id_event')),
+    sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_waiver_confirmation_person_id_person')),
     sa.ForeignKeyConstraint(['recorded_by_user_id'], ['app_user.id'], name=op.f('fk_waiver_confirmation_recorded_by_user_id_app_user')),
-    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_waiver_confirmation_sailor_id_sailor')),
     sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_waiver_confirmation_series_id_series')),
     sa.ForeignKeyConstraint(['waiver_text_id'], ['waiver_text.id'], name=op.f('fk_waiver_confirmation_waiver_text_id_waiver_text')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_waiver_confirmation'))
     )
     with op.batch_alter_table('waiver_confirmation', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_waiver_confirmation_event_id'), ['event_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_waiver_confirmation_sailor_id'), ['sailor_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_waiver_confirmation_person_id'), ['person_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_waiver_confirmation_series_id'), ['series_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_waiver_confirmation_waiver_text_id'), ['waiver_text_id'], unique=False)
-        batch_op.create_index('uq_waiver_conf_event', ['sailor_id', 'event_id', 'waiver_text_id'], unique=True, sqlite_where=sa.text('series_id IS NULL'), postgresql_where=sa.text('series_id IS NULL'))
-        batch_op.create_index('uq_waiver_conf_series', ['sailor_id', 'series_id', 'waiver_text_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
+        batch_op.create_index('uq_waiver_conf_event', ['person_id', 'event_id', 'waiver_text_id'], unique=True, sqlite_where=sa.text('series_id IS NULL'), postgresql_where=sa.text('series_id IS NULL'))
+        batch_op.create_index('uq_waiver_conf_series', ['person_id', 'series_id', 'waiver_text_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
 
     op.create_table('event_crew',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('event_id', sa.Integer(), nullable=False),
     sa.Column('team_id', sa.Integer(), nullable=False),
-    sa.Column('sailor_id', sa.Integer(), nullable=False),
+    sa.Column('person_id', sa.Integer(), nullable=False),
     sa.Column('role', sa.String(length=16), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_event_crew_event_id_event')),
-    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_event_crew_sailor_id_sailor')),
+    sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_event_crew_person_id_person')),
     sa.ForeignKeyConstraint(['team_id'], ['team.id'], name=op.f('fk_event_crew_team_id_team')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_event_crew')),
-    sa.UniqueConstraint('event_id', 'sailor_id', name=op.f('uq_event_crew_event_id'))
+    sa.UniqueConstraint('event_id', 'person_id', name=op.f('uq_event_crew_event_id'))
     )
     with op.batch_alter_table('event_crew', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_event_crew_event_id'), ['event_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_event_crew_sailor_id'), ['sailor_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_event_crew_person_id'), ['person_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_event_crew_team_id'), ['team_id'], unique=False)
 
     op.create_table('event_standing',
@@ -798,19 +798,19 @@ def upgrade() -> None:
     op.create_table('team_membership',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('team_id', sa.Integer(), nullable=False),
-    sa.Column('sailor_id', sa.Integer(), nullable=False),
+    sa.Column('person_id', sa.Integer(), nullable=False),
     sa.Column('role', sa.String(length=16), nullable=False),
     sa.Column('valid_from', sa.Date(), nullable=True),
     sa.Column('valid_to', sa.Date(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_team_membership_sailor_id_sailor')),
+    sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_team_membership_person_id_person')),
     sa.ForeignKeyConstraint(['team_id'], ['team.id'], name=op.f('fk_team_membership_team_id_team')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_team_membership')),
-    sa.UniqueConstraint('team_id', 'sailor_id', name=op.f('uq_team_membership_team_id'))
+    sa.UniqueConstraint('team_id', 'person_id', name=op.f('uq_team_membership_team_id'))
     )
     with op.batch_alter_table('team_membership', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_team_membership_sailor_id'), ['sailor_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_team_membership_person_id'), ['person_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_team_membership_team_id'), ['team_id'], unique=False)
 
     op.create_table('tracker',
@@ -923,7 +923,7 @@ def downgrade() -> None:
     op.drop_table('tracker')
     with op.batch_alter_table('team_membership', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_team_membership_team_id'))
-        batch_op.drop_index(batch_op.f('ix_team_membership_sailor_id'))
+        batch_op.drop_index(batch_op.f('ix_team_membership_person_id'))
 
     op.drop_table('team_membership')
     with op.batch_alter_table('series_standing', schema=None) as batch_op:
@@ -964,7 +964,7 @@ def downgrade() -> None:
     op.drop_table('event_standing')
     with op.batch_alter_table('event_crew', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_event_crew_team_id'))
-        batch_op.drop_index(batch_op.f('ix_event_crew_sailor_id'))
+        batch_op.drop_index(batch_op.f('ix_event_crew_person_id'))
         batch_op.drop_index(batch_op.f('ix_event_crew_event_id'))
 
     op.drop_table('event_crew')
@@ -973,7 +973,7 @@ def downgrade() -> None:
         batch_op.drop_index('uq_waiver_conf_event', sqlite_where=sa.text('series_id IS NULL'), postgresql_where=sa.text('series_id IS NULL'))
         batch_op.drop_index(batch_op.f('ix_waiver_confirmation_waiver_text_id'))
         batch_op.drop_index(batch_op.f('ix_waiver_confirmation_series_id'))
-        batch_op.drop_index(batch_op.f('ix_waiver_confirmation_sailor_id'))
+        batch_op.drop_index(batch_op.f('ix_waiver_confirmation_person_id'))
         batch_op.drop_index(batch_op.f('ix_waiver_confirmation_event_id'))
 
     op.drop_table('waiver_confirmation')
@@ -1031,8 +1031,8 @@ def downgrade() -> None:
     with op.batch_alter_table('access_grant', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_access_grant_user_id'))
         batch_op.drop_index(batch_op.f('ix_access_grant_series_id'))
-        batch_op.drop_index(batch_op.f('ix_access_grant_sailor_id'))
         batch_op.drop_index(batch_op.f('ix_access_grant_relation'))
+        batch_op.drop_index(batch_op.f('ix_access_grant_person_id'))
         batch_op.drop_index(batch_op.f('ix_access_grant_event_id'))
         batch_op.drop_index(batch_op.f('ix_access_grant_club_id'))
 
@@ -1057,11 +1057,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_series_league_id'))
 
     op.drop_table('series')
-    with op.batch_alter_table('sailor_club', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_sailor_club_sailor_id'))
-        batch_op.drop_index(batch_op.f('ix_sailor_club_club_id'))
-
-    op.drop_table('sailor_club')
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
 
@@ -1076,6 +1071,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_identity_provider'))
 
     op.drop_table('identity')
+    with op.batch_alter_table('club_membership', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_club_membership_person_id'))
+        batch_op.drop_index(batch_op.f('ix_club_membership_club_id'))
+
+    op.drop_table('club_membership')
     op.drop_table('club_bank_account')
     op.drop_table('bank_account')
     with op.batch_alter_table('waiver_text', schema=None) as batch_op:
@@ -1086,11 +1086,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_venue_slug'))
 
     op.drop_table('venue')
-    with op.batch_alter_table('sailor', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_sailor_federation_id'))
-        batch_op.drop_index(batch_op.f('ix_sailor_email'))
+    with op.batch_alter_table('person', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_person_federation_id'))
+        batch_op.drop_index(batch_op.f('ix_person_email'))
 
-    op.drop_table('sailor')
+    op.drop_table('person')
     with op.batch_alter_table('login_code', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_login_code_expires_at'))
         batch_op.drop_index(batch_op.f('ix_login_code_email'))

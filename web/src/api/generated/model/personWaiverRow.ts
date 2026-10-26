@@ -8,8 +8,8 @@
 import type { WaiverMethod } from './waiverMethod';
 import type { WaiverStatus } from './waiverStatus';
 
-export interface SailorWaiverRow {
-  sailor_id: number;
+export interface PersonWaiverRow {
+  person_id: number;
   first_name: string;
   last_name: string;
   club?: string | null;

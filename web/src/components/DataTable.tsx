@@ -26,11 +26,11 @@ import { Pager } from "./Pager";
  * a reload.
  *
  *     const list = useListParams();
- *     const query = useListSailors({ ...list.request, sort: list.sort ?? undefined },
+ *     const query = useListPeople({ ...list.request, sort: list.sort ?? undefined },
  *       { query: { placeholderData: keepPreviousData } });
  *
  *     <DataTable columns={columns} page={query.data} params={list}
- *                testId="admin-sailors" empty={t("sailors.emptyText")} />
+ *                testId="admin-people" empty={t("sailors.emptyText")} />
  *
  * Headless means we own every element: the markup below is ours, carries the project's
  * `.data-table` surface, sits in a `TableFrame` so a wide table scrolls inside its panel

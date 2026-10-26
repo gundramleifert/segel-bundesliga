@@ -21,16 +21,16 @@ async def _minor_in_squad(client, caplog) -> tuple[_Setting, int, dict]:
     """A series matchday whose club has one minor in its squad and crew."""
     the = _Setting(client, caplog)
     await the.series_matchday()
-    sailors = await the.sailors(MINOR)
-    await the.register_squad(sailors)
-    await the.name_crew(sailors)
-    child_id, child = sailors[0]
+    people = await the.people(MINOR)
+    await the.register_squad(people)
+    await the.name_crew(people)
+    child_id, child = people[0]
     return the, child_id, child
 
 
-async def _link(client, headers, sailor_id: int, email: str):
+async def _link(client, headers, person_id: int, email: str):
     return await client.post(
-        f"/api/sailors/{sailor_id}/guardians", headers=headers, json={"email": email}
+        f"/api/people/{person_id}/guardians", headers=headers, json={"email": email}
     )
 
 
@@ -48,7 +48,7 @@ class TestLinkingAGuardian:
 
         listed = await client.get(f"/api/clubs/{the.club_id}/guardians", headers=the.manager)
         assert listed.status_code == 200, listed.text
-        row = next(r for r in listed.json() if r["sailor"]["id"] == child_id)
+        row = next(r for r in listed.json() if r["person"]["id"] == child_id)
         assert [g["email"] for g in row["guardians"]] == [parent]
         assert row["minor"] is True
 
@@ -57,11 +57,11 @@ class TestLinkingAGuardian:
         assert again.json()["type"] == "/errors/tuple-exists"
 
         removed = await client.delete(
-            f"/api/sailors/{child_id}/guardians/{tuple_id}", headers=the.manager
+            f"/api/people/{child_id}/guardians/{tuple_id}", headers=the.manager
         )
         assert removed.status_code == 204, removed.text
         listed = await client.get(f"/api/clubs/{the.club_id}/guardians", headers=the.manager)
-        row = next(r for r in listed.json() if r["sailor"]["id"] == child_id)
+        row = next(r for r in listed.json() if r["person"]["id"] == child_id)
         assert row["guardians"] == []
 
     async def test_the_clubs_admin_links_too(self, client, caplog):
@@ -98,7 +98,7 @@ class TestLinkingAGuardian:
         child_email = f"j5-sailor-0-{the.tag}@example.com"
         itself = await _link(client, the.manager, child_id, child_email)
         assert itself.status_code == 422
-        assert itself.json()["type"] == "/errors/guardian-is-the-sailor"
+        assert itself.json()["type"] == "/errors/guardian-is-the-person"
 
 
 class TestAGuardianConfirms:
@@ -111,7 +111,7 @@ class TestAGuardianConfirms:
         url = f"/api/series/{the.series_id}/waiver"
 
         # Before the club links them, the parent is a stranger to the child.
-        before = await client.post(url, headers=mum, json={"sailor_id": child_id})
+        before = await client.post(url, headers=mum, json={"person_id": child_id})
         assert before.status_code == 403
         assert (await _link(client, the.manager, child_id, parent)).status_code == 201
 
@@ -120,12 +120,12 @@ class TestAGuardianConfirms:
 
         wards = await client.get("/api/waiver/wards", headers=mum)
         assert wards.status_code == 200, wards.text
-        ward = next(w for w in wards.json() if w["sailor_id"] == child_id)
+        ward = next(w for w in wards.json() if w["person_id"] == child_id)
         row = next(c for c in ward["competitions"] if c["scope"] == "series")
         assert row["status"] == "missing" and row["minor"] is True
 
         confirmed = await client.post(
-            url, headers=mum, json={"sailor_id": child_id, "locale_shown": "de"}
+            url, headers=mum, json={"person_id": child_id, "locale_shown": "de"}
         )
         assert confirmed.status_code == 201, confirmed.text
         body = confirmed.json()
@@ -136,11 +136,11 @@ class TestAGuardianConfirms:
             f"/api/admin/events/{the.event_id}/waivers", headers=the.organizer
         )
         assert (
-            next(r for r in checklist.json()["sailors"] if r["sailor_id"] == child_id)["status"]
+            next(r for r in checklist.json()["people"] if r["person_id"] == child_id)["status"]
             == "cleared"
         )
         wards = await client.get("/api/waiver/wards", headers=mum)
-        ward = next(w for w in wards.json() if w["sailor_id"] == child_id)
+        ward = next(w for w in wards.json() if w["person_id"] == child_id)
         assert all(c["status"] == "cleared" for c in ward["competitions"])
 
     async def test_a_parent_who_also_runs_the_club_accepts_as_the_parent(self, client, caplog):
@@ -154,7 +154,7 @@ class TestAGuardianConfirms:
         confirmed = await client.post(
             f"/api/series/{the.series_id}/waiver",
             headers=the.manager,
-            json={"sailor_id": child_id, "locale_shown": "de"},
+            json={"person_id": child_id, "locale_shown": "de"},
         )
         assert confirmed.status_code == 201, confirmed.text
         assert (confirmed.json()["method"], confirmed.json()["cleared"]) == (
@@ -165,15 +165,15 @@ class TestAGuardianConfirms:
     async def test_an_adult_ward_confirms_for_themselves(self, client, caplog):
         the = _Setting(client, caplog)
         await the.series_matchday()
-        sailors = await the.sailors(ADULT)
-        await the.register_squad(sailors)
-        grown_id, _ = sailors[0]
+        people = await the.people(ADULT)
+        await the.register_squad(people)
+        grown_id, _ = people[0]
         parent = f"dad-{the.tag}@example.com"
         dad = await _signed_in(client, caplog, parent)
         assert (await _link(client, the.manager, grown_id, parent)).status_code == 201
 
         refused = await client.post(
-            f"/api/series/{the.series_id}/waiver", headers=dad, json={"sailor_id": grown_id}
+            f"/api/series/{the.series_id}/waiver", headers=dad, json={"person_id": grown_id}
         )
         assert refused.status_code == 422
         assert refused.json()["type"] == "/errors/waiver-ward-is-adult"
@@ -191,7 +191,7 @@ class TestAGuardianConfirms:
         ]
 
         await client.post(
-            f"/api/series/{the.series_id}/waiver", headers=gran, json={"sailor_id": child_id}
+            f"/api/series/{the.series_id}/waiver", headers=gran, json={"person_id": child_id}
         )
         mine = (await client.get("/api/me/contexts", headers=gran)).json()
         assert "ward_waiver" not in {n["code"] for n in mine["me"]["needs"]}
@@ -209,6 +209,6 @@ class TestTheCrewWaiverIsSaid:
         aunt = await _signed_in(client, caplog, parent)
         assert (await _link(client, the.manager, child_id, parent)).status_code == 201
         await client.post(
-            f"/api/series/{the.series_id}/waiver", headers=aunt, json={"sailor_id": child_id}
+            f"/api/series/{the.series_id}/waiver", headers=aunt, json={"person_id": child_id}
         )
         assert "crew_waiver_missing" not in await _needs(client, the.manager, "club", the.club_id)

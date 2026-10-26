@@ -73,10 +73,10 @@ export function LineupPanel({
   for (const m of saved) people.set(m.id, m);
   for (const m of squad.data?.members ?? []) people.set(m.id, m);
 
-  const named = new Set(draft.map((d) => d.sailor_id));
+  const named = new Set(draft.map((d) => d.person_id));
   const selected = roster
     .ordered()
-    .map((d) => people.get(d.sailor_id))
+    .map((d) => people.get(d.person_id))
     .filter((m): m is Member => Boolean(m));
   const available = (squad.data?.members ?? []).filter((m) => !named.has(m.id));
 

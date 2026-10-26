@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 /** The one way a new entry is added to a list: a "＋" and the name of the thing, top-right
  * in the list's section header (`Section`'s `action` slot), leading to the entry's own
- * page — `/office/events/new`, `/office/series/new`, `/office/clubs/new`, `/office/sailors/new`.
+ * page — `/office/events/new`, `/office/series/new`, `/office/clubs/new`, `/office/people/new`.
  *
  * Creation is a page, never a form embedded above the list: a form at the top of a tab put
  * the thing being worked on below the fold, asked for input before showing what was

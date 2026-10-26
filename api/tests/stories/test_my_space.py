@@ -20,6 +20,7 @@ from app.db import SessionLocal
 from app.models import (
     Boat,
     Club,
+    ClubMembership,
     Event,
     EventCrew,
     Flight,
@@ -27,10 +28,9 @@ from app.models import (
     League,
     Payment,
     PaymentRun,
+    Person,
     Race,
     RaceEntry,
-    Sailor,
-    SailorClub,
     Series,
     Team,
     TeamMembership,
@@ -86,21 +86,21 @@ async def _team(club_id: int, *, series_id: int | None = None, event_id: int | N
         return team.id
 
 
-async def _sailor(email: str, *team_ids: int, birth_date: date | None = None) -> int:
-    """A sailor record under this address, in these teams (squads or crews)."""
+async def _person(email: str, *team_ids: int, birth_date: date | None = None) -> int:
+    """A person record under this address, in these teams (squads or crews)."""
     async with SessionLocal() as session:
         old = (
-            await session.execute(select(Sailor).where(Sailor.email == email))
+            await session.execute(select(Person).where(Person.email == email))
         ).scalar_one_or_none()
         if old is not None:
             await session.delete(old)
             await session.commit()
-        sailor = Sailor(first_name="Sai", last_name="Lor", email=email, birth_date=birth_date)
-        session.add(sailor)
+        person = Person(first_name="Sai", last_name="Lor", email=email, birth_date=birth_date)
+        session.add(person)
         await session.flush()
-        session.add_all(TeamMembership(team_id=t, sailor_id=sailor.id) for t in team_ids)
+        session.add_all(TeamMembership(team_id=t, person_id=person.id) for t in team_ids)
         await session.commit()
-        return sailor.id
+        return person.id
 
 
 async def _mine(client, headers) -> dict:
@@ -181,7 +181,7 @@ class TestMySpace:
         squad = await _team(club, series_id=series)
         crew = await _team(club, series_id=series, event_id=event)
         headers = await login(client, caplog, email)
-        await _sailor(email, squad, crew, birth_date=date(1990, 1, 1))
+        await _person(email, squad, crew, birth_date=date(1990, 1, 1))
 
         body = await _mine(client, headers)
         sailed = _context(body, "series", series)
@@ -192,9 +192,9 @@ class TestMySpace:
         assert sailing["relations"] == ["sailor"]
         assert _needs(sailing) == {"waiver": 1}
 
-        sailor_id = (await client.get("/api/waiver/me", headers=headers)).json()["sailor_id"]
+        person_id = (await client.get("/api/waiver/me", headers=headers)).json()["person_id"]
         signed = await client.post(
-            f"/api/series/{series}/waiver", headers=headers, json={"sailor_id": sailor_id}
+            f"/api/series/{series}/waiver", headers=headers, json={"person_id": person_id}
         )
         assert signed.status_code == 201, signed.text
         body = await _mine(client, headers)
@@ -214,9 +214,9 @@ class TestMySpace:
         squad = await _team(club, series_id=series)
         entry = await _team(club, series_id=series, event_id=event)
         headers = await login(client, caplog, email)
-        sailor_id = await _sailor(email, squad, birth_date=date(1990, 1, 1))
+        person_id = await _person(email, squad, birth_date=date(1990, 1, 1))
         async with SessionLocal() as session:
-            session.add(EventCrew(event_id=event, team_id=entry, sailor_id=sailor_id, role="crew"))
+            session.add(EventCrew(event_id=event, team_id=entry, person_id=person_id, role="crew"))
             await session.commit()
 
         body = await _mine(client, headers)
@@ -317,17 +317,17 @@ def _need(entry: dict, code: str) -> dict | None:
     return next((n for n in entry["needs"] if n["code"] == code), None)
 
 
-async def _club_sailor(club_id: int, birth_date: date | None) -> int:
-    """A sailor who sails for this club (`SailorClub`, Story V-4), no account."""
+async def _club_person(club_id: int, birth_date: date | None) -> int:
+    """A sailor who sails for this club (`ClubMembership`, Story V-4), no account."""
     async with SessionLocal() as session:
         # A capitalised surname: the admin's sailor list sorts in SQL, case-sensitively,
         # and its own test reads the seed's names (test_pagination).
-        sailor = Sailor(first_name=f"Kid {_tag()}", last_name="Kidd", birth_date=birth_date)
-        session.add(sailor)
+        person = Person(first_name=f"Kid {_tag()}", last_name="Kidd", birth_date=birth_date)
+        session.add(person)
         await session.flush()
-        session.add(SailorClub(sailor_id=sailor.id, club_id=club_id))
+        session.add(ClubMembership(person_id=person.id, club_id=club_id))
         await session.commit()
-        return sailor.id
+        return person.id
 
 
 class TestTodos:
@@ -344,7 +344,7 @@ class TestTodos:
         squad = await _team(club, series_id=series)
         crew = await _team(club, series_id=series, event_id=event)
         headers = await login(client, caplog, email)
-        await _sailor(email, squad, crew, birth_date=date(1990, 1, 1))
+        await _person(email, squad, crew, birth_date=date(1990, 1, 1))
         await upload(client, headers, valid_until=(date.today() - timedelta(days=1)).isoformat())
 
         body = await _mine(client, headers)
@@ -369,9 +369,9 @@ class TestTodos:
         date of birth (no waiver can be confirmed) — for the club's organizers, never for
         a member. Linking a guardian clears the first."""
         club = await _club()
-        minor = await _club_sailor(club, date.today() - timedelta(days=365 * 12))
-        await _club_sailor(club, None)
-        await _club_sailor(club, date(1990, 1, 1))  # an adult with a date: nothing to do
+        minor = await _club_person(club, date.today() - timedelta(days=365 * 12))
+        await _club_person(club, None)
+        await _club_person(club, date(1990, 1, 1))  # an adult with a date: nothing to do
 
         manager = await login(
             client,
@@ -382,7 +382,7 @@ class TestTodos:
         mine = _context(await _mine(client, manager), "club", club)
         minors = _need(mine, "minor_without_guardian")
         assert (minors["count"], minors["section"]) == (1, "minors")
-        undated = _need(mine, "sailor_without_birth_date")
+        undated = _need(mine, "person_without_birth_date")
         assert (undated["count"], undated["section"]) == (1, "sailors")
 
         member = await login(
@@ -397,7 +397,7 @@ class TestTodos:
             client,
             caplog,
             f"z10-parent-{_tag()}@example.com",
-            Grant(relation=Relation.GUARDIAN, sailor_id=minor),
+            Grant(relation=Relation.GUARDIAN, person_id=minor),
         )
         mine = _context(await _mine(client, manager), "club", club)
         assert _need(mine, "minor_without_guardian") is None
@@ -496,9 +496,9 @@ class TestTodos:
         club = await _club()
         event = await _event(starts_on=THIS_WEEK)
         entry = await _team(club, event_id=event)
-        sailor = await _club_sailor(club, date(1990, 1, 1))
+        person = await _club_person(club, date(1990, 1, 1))
         async with SessionLocal() as session:
-            session.add(EventCrew(event_id=event, team_id=entry, sailor_id=sailor, role="crew"))
+            session.add(EventCrew(event_id=event, team_id=entry, person_id=person, role="crew"))
             await session.commit()
 
         officer = await login(

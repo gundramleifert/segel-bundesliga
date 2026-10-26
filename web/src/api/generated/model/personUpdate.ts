@@ -7,20 +7,11 @@
  */
 
 /**
- * First and last name are sufficient for creation.
+ * All fields are optional — only provided values are updated.
  */
-export interface SailorCreate {
-  /**
-     * @minLength 1
-     * @maxLength 80
-     */
-  first_name: string;
-  /**
-     * @minLength 1
-     * @maxLength 80
-     */
-  last_name: string;
-  email: string;
+export interface PersonUpdate {
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
   birth_date?: string | null;
-  club_id?: number | null;
 }

@@ -1,11 +1,11 @@
-"""A sailor joins their club: from no account at all to a member with a sailor record.
+"""A sailor joins their club: from no account at all to a member with a person record.
 
 Every step is covered on its own elsewhere — registering in ``test_registration.py``, the
 password in ``test_password_login.py``, membership and the roster in
-``test_club_members.py``, my space in ``test_my_space.py``, the sailor record in
+``test_club_members.py``, my space in ``test_my_space.py``, the person record in
 ``test_sailors_and_squads.py`` and ``test_sailor_profile.py``. What this adds is the
 **order**: the club admin cannot add someone before they register, the account a person
-registers is the one the membership lands on, and the sailor record a team manager
+registers is the one the membership lands on, and the person record a team manager
 creates later is the one the person then edits — linked by nothing but the verified
 address.
 
@@ -27,7 +27,7 @@ PASSWORD = "a long enough password for the pontoon"
 
 
 class TestASailorJoinsTheirClub:
-    """As a club I want a new sailor to become a member with their own sailor record."""
+    """As a club I want a new sailor to become a member with their own person record."""
 
     async def test_from_no_account_to_a_member_with_a_sailor_record(self, client, caplog):
         tag = uuid4().hex[:8]
@@ -86,10 +86,10 @@ class TestASailorJoinsTheirClub:
             c for c in contexts.json()["contexts"] if c["kind"] == "club" and c["id"] == club
         )
         assert card["relations"] == ["member"]
-        # Membership creates no sailor record — that is the team manager's step.
-        unlinked = await client.get("/api/sailors/me", headers=person)
+        # Membership creates no person record — that is the team manager's step.
+        unlinked = await client.get("/api/people/me", headers=person)
         assert unlinked.status_code == 404, unlinked.text
-        assert unlinked.json()["type"].endswith("/no-linked-sailor-record")
+        assert unlinked.json()["type"].endswith("/no-linked-person-record")
 
         step("J-3.7", "the member sees the roster — names, no email")
         roster = await client.get(f"/api/clubs/{club}/members", headers=person)
@@ -97,9 +97,9 @@ class TestASailorJoinsTheirClub:
         assert "Nina Neu" in {m["display_name"] for m in roster.json()}
         assert all("email" not in m for m in roster.json())
 
-        step("J-3.8", "the team manager creates the sailor record with email and date of birth")
+        step("J-3.8", "the team manager creates the person record with email and date of birth")
         created = await client.post(
-            "/api/admin/sailors",
+            "/api/admin/people",
             headers=team_manager,
             json={
                 "first_name": "Nina",
@@ -113,11 +113,11 @@ class TestASailorJoinsTheirClub:
         assert created.json()["email"] == email
 
         step("J-3.9", "the member corrects their own name and date of birth")
-        mine = await client.get("/api/sailors/me", headers=person)
+        mine = await client.get("/api/people/me", headers=person)
         assert mine.status_code == 200, mine.text
         assert mine.json()["id"] == created.json()["id"]
         corrected = await client.patch(
-            "/api/sailors/me",
+            "/api/people/me",
             headers=person,
             json={"last_name": "Neu", "birth_date": "2001-03-04"},
         )
@@ -136,5 +136,5 @@ class TestASailorJoinsTheirClub:
         assert left.status_code == 204, left.text
         contexts = (await client.get("/api/me/contexts", headers=person)).json()["contexts"]
         assert not any(c["kind"] == "club" and c["id"] == club for c in contexts)
-        # The sailor record is the person's, not the club's — it stays.
-        assert (await client.get("/api/sailors/me", headers=person)).status_code == 200
+        # The person record is the person's, not the club's — it stays.
+        assert (await client.get("/api/people/me", headers=person)).status_code == 200

@@ -9,7 +9,7 @@ these endpoints carry that rule rather than the generic tuple endpoint, which le
 sailor tuples to the site's admin.
 
 A child "belongs to" a club when they sail for it — the ``club`` edge of a sailor in the
-model (`SailorClub`, Story V-4), written when the club creates them or takes someone who
+model (`ClubMembership`, Story V-4), written when the club creates them or takes someone who
 sails for no club into its squad. Until 2026-10-25 a squad was enough, so any club could
 put a child in its squad and then link a parent to them.
 """
@@ -27,7 +27,7 @@ from app import authz
 from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
-from app.models import Club, Sailor, SailorClub
+from app.models import Club, ClubMembership, Person
 from app.models.auth import Grant, ObjectType, Relation, User
 from app.problems import Problem
 from app.services import grants
@@ -43,16 +43,16 @@ class GuardianOut(BaseModel):
     display_name: str | None
 
 
-class GuardianSailorOut(BaseModel):
+class GuardianPersonOut(BaseModel):
     id: int
     first_name: str
     last_name: str
 
 
-class SailorGuardiansOut(BaseModel):
+class PersonGuardiansOut(BaseModel):
     """One of the club's sailors and the guardians linked to them."""
 
-    sailor: GuardianSailorOut
+    person: GuardianPersonOut
     #: Under 18 today — `None` without a date of birth. A guardian accepts the waiver only
     #: while the child is a minor on the competition's reference date (Story S-8).
     minor: bool | None
@@ -65,50 +65,50 @@ class LinkGuardian(BaseModel):
 
 @router.get(
     "/api/clubs/{club_id}/guardians",
-    response_model=list[SailorGuardiansOut],
-    summary="The club's sailors and their guardians",
+    response_model=list[PersonGuardiansOut],
+    summary="The club's people and their guardians",
 )
 async def list_club_guardians(
     club_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> list[SailorGuardiansOut]:
+) -> list[PersonGuardiansOut]:
     """Story V-13: for the club's manager or admin — every sailor who sails for the club,
     with the guardians linked to them."""
     if await session.get(Club, club_id) is None:
         raise Problem(404, "club-not-found", "No such club.")
     if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
         raise _forbidden()
-    sailors = await _club_sailors(session, club_id)
+    people = await _club_people(session, club_id)
     links = await grants.holders(
-        session, Relation.GUARDIAN, ObjectType.SAILOR, [s.id for s in sailors]
+        session, Relation.GUARDIAN, ObjectType.PERSON, [s.id for s in people]
     )
     accounts = {g.user_id: g.user for g in links}
     return [
-        SailorGuardiansOut(
-            sailor=GuardianSailorOut(id=s.id, first_name=s.first_name, last_name=s.last_name),
+        PersonGuardiansOut(
+            person=GuardianPersonOut(id=s.id, first_name=s.first_name, last_name=s.last_name),
             minor=is_minor(s.birth_date, date.today()),
-            guardians=[_out(g, accounts[g.user_id]) for g in links if g.sailor_id == s.id],
+            guardians=[_out(g, accounts[g.user_id]) for g in links if g.person_id == s.id],
         )
-        for s in sailors
+        for s in people
     ]
 
 
 @router.post(
-    "/api/sailors/{sailor_id}/guardians",
+    "/api/people/{person_id}/guardians",
     response_model=GuardianOut,
     status_code=status.HTTP_201_CREATED,
-    summary="Link a parent to a sailor",
+    summary="Link a parent to a person",
 )
 async def link_guardian(
-    sailor_id: int,
+    person_id: int,
     request: LinkGuardian,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> GuardianOut:
     """Story V-13: writes `user:guardian:sailor` for an existing account, by email."""
-    sailor = await _sailor(session, sailor_id)
-    await _may_link(session, acting, sailor)
+    person = await _person(session, person_id)
+    await _may_link(session, acting, person)
     email = request.email.strip().lower()
     parent = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if parent is None:
@@ -117,34 +117,34 @@ async def link_guardian(
             "guardian-account-missing",
             "No account with this address — the parent registers first.",
         )
-    if sailor.email is not None and sailor.email.lower() == email:
+    if person.email is not None and person.email.lower() == email:
         raise Problem(
             422,
-            "guardian-is-the-sailor",
+            "guardian-is-the-person",
             "A sailor cannot be their own guardian.",
         )
     row = await grants.grant(
-        session, parent, Relation.GUARDIAN, ObjectType.SAILOR, sailor.id, actor=acting
+        session, parent, Relation.GUARDIAN, ObjectType.PERSON, person.id, actor=acting
     )
     await session.commit()
     return _out(row, parent)
 
 
 @router.delete(
-    "/api/sailors/{sailor_id}/guardians/{tuple_id}",
+    "/api/people/{person_id}/guardians/{tuple_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Unlink a parent from a sailor",
+    summary="Unlink a parent from a person",
 )
 async def unlink_guardian(
-    sailor_id: int,
+    person_id: int,
     tuple_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> Response:
-    sailor = await _sailor(session, sailor_id)
-    await _may_link(session, acting, sailor)
+    person = await _person(session, person_id)
+    await _may_link(session, acting, person)
     row = await session.get(Grant, tuple_id)
-    if row is None or row.sailor_id != sailor.id or row.relation != Relation.GUARDIAN:
+    if row is None or row.person_id != person.id or row.relation != Relation.GUARDIAN:
         raise Problem(404, "guardian-link-missing", "This sailor has no such guardian.")
     await grants.revoke_row(session, row, actor=acting)
     await session.commit()
@@ -154,31 +154,31 @@ async def unlink_guardian(
 # ------------------------------------------------------------------ Helper functions
 
 
-async def _may_link(session: AsyncSession, acting: User, sailor: Sailor) -> None:
+async def _may_link(session: AsyncSession, acting: User, person: Person) -> None:
     """The manager of a club the child sails for — the model's ``manager`` on the sailor
     (``manager from club``) — or the league office."""
-    if not authz.check(acting, Relation.MANAGER, on=sailor):
+    if not authz.check(acting, Relation.MANAGER, on=person):
         raise _forbidden()
 
 
-async def _club_sailors(session: AsyncSession, club_id: int) -> list[Sailor]:
+async def _club_people(session: AsyncSession, club_id: int) -> list[Person]:
     return list(
         (
             await session.execute(
-                select(Sailor)
-                .join(SailorClub, SailorClub.sailor_id == Sailor.id)
-                .where(SailorClub.club_id == club_id)
-                .order_by(Sailor.last_name, Sailor.first_name, Sailor.id)
+                select(Person)
+                .join(ClubMembership, ClubMembership.person_id == Person.id)
+                .where(ClubMembership.club_id == club_id)
+                .order_by(Person.last_name, Person.first_name, Person.id)
             )
         ).scalars()
     )
 
 
-async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
-    sailor = await session.get(Sailor, sailor_id)
-    if sailor is None:
-        raise Problem(404, "sailor-not-found", "No such sailor.")
-    return sailor
+async def _person(session: AsyncSession, person_id: int) -> Person:
+    person = await session.get(Person, person_id)
+    if person is None:
+        raise Problem(404, "person-not-found", "No such person.")
+    return person
 
 
 def _forbidden() -> Problem:

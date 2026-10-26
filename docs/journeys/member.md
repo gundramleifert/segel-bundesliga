@@ -87,7 +87,7 @@ Retired steps: none
 The person becomes a *club member* the moment the tuple is written (J-3.5) — the same
 account, now holding a relation. The sailor record (J-3.8) is a separate row tied to the
 account by nothing but the **verified** email address: membership does not create one, and
-until it exists `GET /api/sailors/me` answers `no-linked-sailor-record`. ◐ and not ●,
+until it exists `GET /api/people/me` answers `no-linked-sailor-record`. ◐ and not ●,
 because S-2 is ◐.
 
 Drawing this journey found that V-4 promised "an organizer creates only people of their

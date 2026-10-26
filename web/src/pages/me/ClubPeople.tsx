@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-  getListSailorsQueryKey,
-  useCreateSailor,
+  getListPeopleQueryKey,
+  useCreatePerson,
   useGetClub,
   useListClubGuardians,
-  useUpdateSailor,
+  useUpdatePerson,
 } from "../../api/generated/sbl";
-import type { SailorGuardiansOut } from "../../api/generated/model/sailorGuardiansOut";
+import type { PersonGuardiansOut } from "../../api/generated/model/personGuardiansOut";
 import { useAsync, useInvalidate } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { Badge, ErrorMessage } from "../../components/Blocks";
@@ -35,8 +35,8 @@ export function ClubSailors({ clubId }: { clubId: number }) {
   const invalidate = useInvalidate();
   const rows = useAsync(useListClubGuardians(clubId));
   const [creating, setCreating] = useState(false);
-  const refresh = () => invalidate(`/api/clubs/${clubId}/guardians`, getListSailorsQueryKey(), "/api/me/contexts");
-  const create = useCreateSailor({ mutation: { onSuccess: refresh } });
+  const refresh = () => invalidate(`/api/clubs/${clubId}/guardians`, getListPeopleQueryKey(), "/api/me/contexts");
+  const create = useCreatePerson({ mutation: { onSuccess: refresh } });
   const id = `my-club-sailors-${clubId}`;
 
   return (
@@ -85,7 +85,7 @@ export function ClubSailors({ clubId }: { clubId: number }) {
             data-testid="my-club-sailors-list"
           >
             {byName(data).map((row) => (
-              <SailorRow key={row.sailor.id} row={row} onChanged={refresh} />
+              <SailorRow key={row.person.id} row={row} onChanged={refresh} />
             ))}
           </ul>
         )}
@@ -94,19 +94,19 @@ export function ClubSailors({ clubId }: { clubId: number }) {
   );
 }
 
-function byName(rows: SailorGuardiansOut[]): SailorGuardiansOut[] {
+function byName(rows: PersonGuardiansOut[]): PersonGuardiansOut[] {
   return [...rows].sort(
-    (a, b) => a.sailor.last_name.localeCompare(b.sailor.last_name) || a.sailor.first_name.localeCompare(b.sailor.first_name),
+    (a, b) => a.person.last_name.localeCompare(b.person.last_name) || a.person.first_name.localeCompare(b.person.first_name),
   );
 }
 
 /** One sailor: the name, under 18 or not, and — without a date of birth — the date. */
-function SailorRow({ row, onChanged }: { row: SailorGuardiansOut; onChanged: () => void }) {
+function SailorRow({ row, onChanged }: { row: PersonGuardiansOut; onChanged: () => void }) {
   const { t } = useTranslation("space");
   const { t: tc } = useTranslation("club");
-  const id = row.sailor.id;
+  const id = row.person.id;
   const [birthDate, setBirthDate] = useState("");
-  const save = useUpdateSailor({ mutation: { onSuccess: onChanged } });
+  const save = useUpdatePerson({ mutation: { onSuccess: onChanged } });
   // `minor` is null exactly when the date of birth is missing (the endpoint's contract).
   const noBirthDate = row.minor == null;
 
@@ -114,7 +114,7 @@ function SailorRow({ row, onChanged }: { row: SailorGuardiansOut; onChanged: () 
     <li data-testid={`my-club-sailor-${id}`} className="grid grid-cols-[minmax(0,1fr)] gap-2 px-4 py-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="min-w-0 flex-1 font-medium">
-          {row.sailor.first_name} {row.sailor.last_name}
+          {row.person.first_name} {row.person.last_name}
         </span>
         {row.minor === true && <Badge tone="warning">{tc("guardians.minor")}</Badge>}
         {noBirthDate && (
@@ -128,7 +128,7 @@ function SailorRow({ row, onChanged }: { row: SailorGuardiansOut; onChanged: () 
           className="flex flex-wrap items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            save.mutate({ sailorId: id, data: { birth_date: birthDate } });
+            save.mutate({ personId: id, data: { birth_date: birthDate } });
           }}
         >
           {/* A wrapper sets the width: a class appended to INPUT_CLASS may lose to its own. */}

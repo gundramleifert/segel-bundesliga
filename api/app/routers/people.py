@@ -1,8 +1,8 @@
-"""Create sailors and register squad — Stories V-1 and V-4; self-service profile — Story S-2.
+"""Create people and register squad — Stories V-1 and V-4; self-service profile — Story S-2.
 
 Two levels that belong together:
 
-* The **Sailor** (`Sailor`) is a person. They exist independently of any competition
+* The **Person** (`Person`). They exist independently of any competition
   and can sail for multiple clubs.
 * The **Squad** (`TeamMembership`) is the registration of this person for a series. From this,
   the club later selects the lineup for a matchday (`EventCrew`, Story V-2).
@@ -11,7 +11,7 @@ The rule enforced here: **Within a series, a person competes only once.**
 Sailing for multiple clubs is allowed — competing against oneself is not.
 
 This file also carries the self-service half of Story S-2 (`me_router`, mounted at
-`/api/sailors`, separate from the `/api/admin` router above because a signed-in sailor is
+`/api/people`, separate from the `/api/admin` router above because a signed-in sailor is
 not administration): viewing/editing one's own name and birthdate, and a profile photo.
 See the docstring on `_save_photo` for the storage and minors-visibility design.
 """
@@ -34,13 +34,13 @@ from app.auth import current_user, optional_user
 from app.authz import ObjectRef
 from app.config import settings
 from app.db import get_session
-from app.filters import SailorFilter
+from app.filters import PersonFilter
 from app.listing import ListDepends
 from app.models import (
     Club,
     Event,
     EventCrew,
-    Sailor,
+    Person,
     Series,
     Team,
     TeamMembership,
@@ -58,15 +58,15 @@ from app.pagination import (
 from app.problems import Problem
 from app.schemas.public import MemberOut
 from app.services import is_minor, pictures
-from app.services.contexts import require_linked_sailor
+from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
-from app.services.participation import connect_sailor
+from app.services.participation import connect_person
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
-me_router = APIRouter(prefix="/api/sailors", tags=["sailors"])
+me_router = APIRouter(prefix="/api/people", tags=["people"])
 
 
-class SailorFields(BaseModel):
+class PersonFields(BaseModel):
     """Common validation for creation and updates.
 
     Both normalize in the same place: names without leading/trailing whitespace, emails
@@ -92,7 +92,7 @@ class SailorFields(BaseModel):
         return value.strip().lower() if value else None
 
 
-class SailorCreate(SailorFields):
+class PersonCreate(PersonFields):
     """First and last name are sufficient for creation."""
 
     first_name: str = Field(min_length=1, max_length=80)
@@ -110,7 +110,7 @@ class SailorCreate(SailorFields):
     club_id: int | None = None
 
 
-class SailorUpdate(SailorFields):
+class PersonUpdate(PersonFields):
     """All fields are optional — only provided values are updated."""
 
     first_name: str | None = Field(default=None, min_length=1, max_length=80)
@@ -135,7 +135,7 @@ class SquadSeriesOut(BaseModel):
     name: str
 
 
-class SailorRegistrationOut(BaseModel):
+class PersonRegistrationOut(BaseModel):
     """One series registration of a person — Story V-1.
 
     A `TeamMembership` row, as the candidate list needs it. There is one per registration
@@ -149,7 +149,7 @@ class SailorRegistrationOut(BaseModel):
     role: CrewRole
 
 
-class SailorAdminOut(BaseModel):
+class PersonAdminOut(BaseModel):
     """Like MemberOut, but with contact details — administration needs them, the website doesn't."""
 
     model_config = ConfigDict(from_attributes=True)
@@ -159,7 +159,7 @@ class SailorAdminOut(BaseModel):
     last_name: str
     email: str | None = None
     birth_date: date | None = None
-    # Story S-4: management sees the sailor's choice, never sets it (`SailorUpdate` has
+    # Story S-4: management sees the sailor's choice, never sets it (`PersonUpdate` has
     # no such field).
     profile_public: bool = True
     # How many series this person is registered for. Says at a glance whether they're
@@ -169,13 +169,13 @@ class SailorAdminOut(BaseModel):
     # — "is this the right Nanisberg" and "can I add them to *this* series" — because
     # eighteen people share that surname and a person may sail for several clubs at once
     # (Story V-1).
-    registrations: list[SailorRegistrationOut] = Field(default_factory=list)
+    registrations: list[PersonRegistrationOut] = Field(default_factory=list)
     # The clubs the person sails for (Story V-4): a squad takes only its own club's people,
     # or someone who sails for nobody yet. The squad screen greys out the rest.
     club_ids: list[int] = Field(default_factory=list)
 
 
-class SailorMeOut(BaseModel):
+class PersonMeOut(BaseModel):
     """A sailor's own view of their record — no email (that's account identity, handled
     by the sign-in flow, not this endpoint)."""
 
@@ -191,9 +191,9 @@ class SailorMeOut(BaseModel):
     profile_public: bool = True
 
 
-class SailorMeUpdate(SailorFields):
+class PersonMeUpdate(PersonFields):
     """Self-service edit. No `email` field: identity is out of scope here — it changes
-    via the account, not the sailor record, and a sailor may never grant themselves
+    via the account, not the person record, and a sailor may never grant themselves
     someone else's record by re-pointing the email that links the two."""
 
     first_name: str | None = Field(default=None, min_length=1, max_length=80)
@@ -205,7 +205,7 @@ class SailorMeUpdate(SailorFields):
 
 
 class SquadMemberIn(BaseModel):
-    sailor_id: int
+    person_id: int
     role: CrewRole = CrewRole.CREW
 
 
@@ -231,13 +231,13 @@ class SquadOut(BaseModel):
 
 #: What this list may be sorted by — Story A-13. A map rather than "any column of the
 #: model": a sort parameter is public API, and exposing the model's attribute names would
-@router.get("/sailors", response_model=Page[SailorAdminOut], summary="Search sailors")
-async def list_sailors(
-    filters: SailorFilter = ListDepends(SailorFilter),
+@router.get("/people", response_model=Page[PersonAdminOut], summary="Search people")
+async def list_people(
+    filters: PersonFilter = ListDepends(PersonFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> Page[SailorAdminOut]:
+) -> Page[PersonAdminOut]:
     """One page of people, filtered by `q` and sorted by `sort` (Story A-13).
 
     This used to answer with up to 500 rows and offer no way to ask for the 501st, so the
@@ -246,27 +246,27 @@ async def list_sailors(
     """
     _can_manage_master_data(acting)
 
-    sailors, total = await paginate(session, filters.sort(filters.filter(select(Sailor))), params)
-    registrations = await _registrations_by_sailor(session, [s.id for s in sailors])
+    people, total = await paginate(session, filters.sort(filters.filter(select(Person))), params)
+    registrations = await _registrations_by_person(session, [s.id for s in people])
 
     return page_of(
         [
-            SailorAdminOut.model_validate(sailor).model_copy(
+            PersonAdminOut.model_validate(person).model_copy(
                 update={
-                    "squads": len(registrations.get(sailor.id, [])),
-                    "registrations": registrations.get(sailor.id, []),
+                    "squads": len(registrations.get(person.id, [])),
+                    "registrations": registrations.get(person.id, []),
                 }
             )
-            for sailor in sailors
+            for person in people
         ],
         total,
         params,
     )
 
 
-async def _registrations_by_sailor(
-    session: AsyncSession, sailor_ids: list[int]
-) -> dict[int, list[SailorRegistrationOut]]:
+async def _registrations_by_person(
+    session: AsyncSession, person_ids: list[int]
+) -> dict[int, list[PersonRegistrationOut]]:
     """Every series registration of these people, grouped by person.
 
     **Series registrations only** (`Team.event_id is None`). The other kind of `Team` row
@@ -275,27 +275,27 @@ async def _registrations_by_sailor(
 
     One query rather than one per person: this feeds a candidate list of up to 500.
     """
-    if not sailor_ids:
+    if not person_ids:
         return {}
 
     rows = (
         await session.execute(
-            select(TeamMembership.sailor_id, Team.id, TeamMembership.role, Club, Series)
+            select(TeamMembership.person_id, Team.id, TeamMembership.role, Club, Series)
             .join(Team, TeamMembership.team_id == Team.id)
             .join(Club, Team.club_id == Club.id)
             .join(Series, Team.series_id == Series.id)
             .where(
-                TeamMembership.sailor_id.in_(sailor_ids),
+                TeamMembership.person_id.in_(person_ids),
                 Team.event_id.is_(None),
             )
             .order_by(Series.year.desc(), Series.name, Club.name)
         )
     ).all()
 
-    grouped: dict[int, list[SailorRegistrationOut]] = {}
-    for sailor_id, team_id, role, club, series in rows:
-        grouped.setdefault(sailor_id, []).append(
-            SailorRegistrationOut(
+    grouped: dict[int, list[PersonRegistrationOut]] = {}
+    for person_id, team_id, role, club, series in rows:
+        grouped.setdefault(person_id, []).append(
+            PersonRegistrationOut(
                 team_id=team_id,
                 club=SquadClubOut(id=club.id, name=club.name, short_name=club.short_name),
                 series=SquadSeriesOut(id=series.id, name=series.name),
@@ -306,16 +306,16 @@ async def _registrations_by_sailor(
 
 
 @router.post(
-    "/sailors",
-    response_model=SailorAdminOut,
+    "/people",
+    response_model=PersonAdminOut,
     status_code=status.HTTP_201_CREATED,
-    summary="Create sailor",
+    summary="Create person",
 )
-async def create_sailor(
-    request: SailorCreate,
+async def create_person(
+    request: PersonCreate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> SailorAdminOut:
+) -> PersonAdminOut:
     """Create a person, sailing for `club_id` (Story V-4).
 
     They don't belong to any competition yet — that comes with squad registration. A
@@ -326,7 +326,7 @@ async def create_sailor(
     if request.club_id is None:
         if not authz.check(acting, Relation.ADMIN):
             raise Problem(
-                422, "sailor-needs-club", "Say which of your clubs this person sails for."
+                422, "person-needs-club", "Say which of your clubs this person sails for."
             )
     else:
         if await session.get(Club, request.club_id) is None:
@@ -336,7 +336,7 @@ async def create_sailor(
         ):
             raise Problem(
                 403,
-                "sailor-club-not-yours",
+                "person-club-not-yours",
                 "You create people only for a club you organize.",
                 club_id=request.club_id,
             )
@@ -349,31 +349,31 @@ async def create_sailor(
             email=request.email,
         )
 
-    sailor = Sailor(**request.model_dump(exclude={"club_id"}), club_links=[])
+    person = Person(**request.model_dump(exclude={"club_id"}), club_memberships=[])
     if request.club_id is not None:
-        connect_sailor(sailor, request.club_id)
-    session.add(sailor)
+        connect_person(person, request.club_id)
+    session.add(person)
     await session.commit()
-    return SailorAdminOut.model_validate(sailor)
+    return PersonAdminOut.model_validate(person)
 
 
-@router.patch("/sailors/{sailor_id}", response_model=SailorAdminOut, summary="Update sailor")
-async def update_sailor(
-    sailor_id: int,
-    request: SailorUpdate,
+@router.patch("/people/{person_id}", response_model=PersonAdminOut, summary="Update person")
+async def update_person(
+    person_id: int,
+    request: PersonUpdate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> SailorAdminOut:
+) -> PersonAdminOut:
     _can_manage_master_data(acting)
-    sailor = await _sailor(session, sailor_id)
-    await _may_change_sailor(session, acting, sailor)
+    person = await _person(session, person_id)
+    await _may_change_person(session, acting, person)
 
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
     if (
         "email" in changes
-        and sailor.email is not None
-        and email != sailor.email
+        and person.email is not None
+        and email != person.email
         and not authz.check(acting, Relation.ADMIN)
     ):
         # The address is what links the record to an account (waivers, the profile): a
@@ -381,41 +381,41 @@ async def update_sailor(
         # the person's record to another account — the league office's to do.
         raise Problem(
             403,
-            "sailor-email-locked",
+            "person-email-locked",
             "Only the league office changes the address of a sailor who has one.",
-            sailor_id=sailor.id,
+            person_id=person.id,
         )
-    if email and await _email_taken(session, email, except_id=sailor.id):
+    if email and await _email_taken(session, email, except_id=person.id):
         raise Problem(
             409, "email-taken", f"Email {email} is already taken. Emails are unique.", email=email
         )
 
     for field, value in changes.items():
-        setattr(sailor, field, value)
+        setattr(person, field, value)
 
     await session.commit()
-    return SailorAdminOut.model_validate(sailor)
+    return PersonAdminOut.model_validate(person)
 
 
 @router.delete(
-    "/sailors/{sailor_id}/clubs/{club_id}",
-    response_model=SailorAdminOut,
-    summary="The sailor no longer sails for this club",
+    "/people/{person_id}/clubs/{club_id}",
+    response_model=PersonAdminOut,
+    summary="The person no longer sails for this club",
 )
-async def disconnect_sailor_from_club(
-    sailor_id: int,
+async def disconnect_person_from_club(
+    person_id: int,
     club_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> SailorAdminOut:
+) -> PersonAdminOut:
     """Story V-4: a club lets someone go — its own connection, never another club's. The
     squads they are in stay as they are; the club just stops being theirs to change."""
-    sailor = await _sailor(session, sailor_id)
+    person = await _person(session, person_id)
     if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
-        raise _not_yours(sailor)
-    sailor.club_links = [link for link in sailor.club_links if link.club_id != club_id]
+        raise _not_yours(person)
+    person.club_memberships = [link for link in person.club_memberships if link.club_id != club_id]
     await session.commit()
-    return SailorAdminOut.model_validate(sailor)
+    return PersonAdminOut.model_validate(person)
 
 
 # ------------------------------------------------------------------------- Squad
@@ -486,15 +486,15 @@ async def set_squad(
             team_id=team.id,
         )
 
-    desired = {entry.sailor_id: entry.role for entry in request.members}
+    desired = {entry.person_id: entry.role for entry in request.members}
     if len(desired) != len(request.members):
-        counts = Counter(entry.sailor_id for entry in request.members)
-        twice = sorted(sailor_id for sailor_id, n in counts.items() if n > 1)
+        counts = Counter(entry.person_id for entry in request.members)
+        twice = sorted(person_id for person_id, n in counts.items() if n > 1)
         raise Problem(
             422,
-            "squad-duplicate-sailor",
+            "squad-duplicate-person",
             "A person appears twice in this squad.",
-            sailor_ids=twice,
+            person_ids=twice,
         )
 
     _, squad_max = await _squad_limits(session, team)
@@ -513,13 +513,13 @@ async def set_squad(
     joining = await _may_join(session, acting, team, set(desired))
 
     await _not_removing_lined_up(session, team, set(desired))
-    for sailor in joining:
-        connect_sailor(sailor, team.club_id)
+    for person in joining:
+        connect_person(person, team.club_id)
 
     await session.execute(delete(TeamMembership).where(TeamMembership.team_id == team.id))
     session.add_all(
-        TeamMembership(team_id=team.id, sailor_id=sailor_id, role=role)
-        for sailor_id, role in desired.items()
+        TeamMembership(team_id=team.id, person_id=person_id, role=role)
+        for person_id, role in desired.items()
     )
     await session.commit()
     return await _squad_out(session, team)
@@ -535,50 +535,50 @@ _MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 _PHOTO_SIZE = 512
 
 
-@me_router.get("/me", response_model=SailorMeOut, summary="My own sailor record")
-async def get_my_sailor(
+@me_router.get("/me", response_model=PersonMeOut, summary="My own person record")
+async def get_my_person(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> SailorMeOut:
+) -> PersonMeOut:
     """Story S-2: a sailor views their own name, birthdate, and photo status.
 
     Not every account has a linked sailor — an admin-only account, for instance. That is
     not an error, just nothing to show here (404, not a crash).
     """
-    sailor = await require_linked_sailor(session, acting)
-    return _me_out(sailor)
+    person = await require_linked_person(session, acting)
+    return _me_out(person)
 
 
-@me_router.patch("/me", response_model=SailorMeOut, summary="Edit my own sailor record")
-async def update_my_sailor(
-    request: SailorMeUpdate,
+@me_router.patch("/me", response_model=PersonMeOut, summary="Edit my own person record")
+async def update_my_person(
+    request: PersonMeUpdate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> SailorMeOut:
+) -> PersonMeOut:
     """A sailor corrects their own name or birthdate — the same fields a team manager or
-    admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
+    admin can already set via `PATCH /api/admin/people/{id}`, just scoped to "my own
     record" instead of requiring `_can_manage_master_data`."""
-    sailor = await require_linked_sailor(session, acting)
+    person = await require_linked_person(session, acting)
     changes = request.model_dump(exclude_unset=True)
     profile_public = changes.pop("profile_public", None)
     if profile_public is not None:
-        sailor.profile_public_choice = profile_public
+        person.profile_public_choice = profile_public
     for field, value in changes.items():
-        setattr(sailor, field, value)
+        setattr(person, field, value)
     await session.commit()
-    return _me_out(sailor)
+    return _me_out(person)
 
 
-@me_router.post("/me/photo", response_model=SailorMeOut, summary="Upload or replace my photo")
+@me_router.post("/me/photo", response_model=PersonMeOut, summary="Upload or replace my photo")
 async def upload_my_photo(
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> SailorMeOut:
-    sailor = await require_linked_sailor(session, acting)
+) -> PersonMeOut:
+    person = await require_linked_person(session, acting)
     raw = await file.read()
-    await asyncio.to_thread(_save_photo, sailor.id, raw)
-    return _me_out(sailor)
+    await asyncio.to_thread(_save_photo, person.id, raw)
+    return _me_out(person)
 
 
 @me_router.delete("/me/photo", status_code=status.HTTP_204_NO_CONTENT, summary="Remove my photo")
@@ -587,24 +587,24 @@ async def delete_my_photo(
     acting: User = Depends(current_user),
 ) -> Response:
     """Removing a photo that doesn't exist is not an error — there is simply nothing to do."""
-    sailor = await require_linked_sailor(session, acting)
-    _photo_path(sailor.id).unlink(missing_ok=True)
+    person = await require_linked_person(session, acting)
+    _photo_path(person.id).unlink(missing_ok=True)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@me_router.get("/{sailor_id}/photo", summary="A sailor's photo")
-async def get_sailor_photo(
-    sailor_id: int,
+@me_router.get("/{person_id}/photo", summary="A person's photo")
+async def get_person_photo(
+    person_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User | None = Depends(optional_user),
 ) -> FileResponse:
     """Serves the stored photo — see `_save_photo` for the minors-visibility rule this
     enforces. There is no placeholder here: the frontend already renders one when
     `has_photo` is false, so a missing file is simply a 404."""
-    sailor = await _sailor(session, sailor_id)
-    path = _photo_path(sailor.id)
+    person = await _person(session, person_id)
+    path = _photo_path(person.id)
     if not path.exists():
-        raise Problem(404, "sailor-photo-not-found", "This sailor has no photo.")
+        raise Problem(404, "person-photo-not-found", "This person has no photo.")
 
     # `is_minor` is deliberately tri-state: None means the birth date is unset. None is
     # falsy, so a plain truth test here would fail *open* — and since the birth date is an
@@ -613,47 +613,47 @@ async def get_sailor_photo(
     # "adult" therefore requires the connected-viewer check. A sailor lifts the restriction
     # on their own photo by filling in their birth date in the same self-service form they
     # uploaded it from. `app/routers/waivers.py` treats the same unknown as blocking.
-    minor = is_minor(sailor.birth_date, date.today()) is not False
-    if (minor or not sailor.profile_public) and await connected_to_sailor(session, acting, sailor):
+    minor = is_minor(person.birth_date, date.today()) is not False
+    if (minor or not person.profile_public) and await connected_to_person(session, acting, person):
         return FileResponse(path, media_type="image/jpeg")
     if minor:
         raise Problem(
             403,
-            "sailor-photo-protected",
-            "This sailor is a minor, or their date of birth is not on file. Their photo is "
+            "person-photo-protected",
+            "This person is a minor, or their date of birth is not on file. Their photo is "
             "only shown to a signed-in account connected to them: the sailor themselves, "
             "administration, or their club's leadership.",
         )
     # Story S-4: a hidden profile takes its photo with it — the same 404 as a sailor
     # without one, for whoever is not connected to the person.
-    if not sailor.profile_public:
-        raise Problem(404, "sailor-photo-not-found", "This sailor has no photo.")
+    if not person.profile_public:
+        raise Problem(404, "person-photo-not-found", "This person has no photo.")
 
     return FileResponse(path, media_type="image/jpeg")
 
 
-def _me_out(sailor: Sailor) -> SailorMeOut:
-    return SailorMeOut(
-        id=sailor.id,
-        first_name=sailor.first_name,
-        last_name=sailor.last_name,
-        birth_date=sailor.birth_date,
-        has_photo=_photo_path(sailor.id).exists(),
-        profile_public=sailor.profile_public,
+def _me_out(person: Person) -> PersonMeOut:
+    return PersonMeOut(
+        id=person.id,
+        first_name=person.first_name,
+        last_name=person.last_name,
+        birth_date=person.birth_date,
+        has_photo=_photo_path(person.id).exists(),
+        profile_public=person.profile_public,
     )
 
 
-def _photo_path(sailor_id: int) -> Path:
+def _photo_path(person_id: int) -> Path:
     directory = Path(settings.uploads_dir) / "sailors"
     directory.mkdir(parents=True, exist_ok=True)
-    return directory / f"{sailor_id}.jpg"
+    return directory / f"{person_id}.jpg"
 
 
-def _save_photo(sailor_id: int, raw: bytes) -> None:
+def _save_photo(person_id: int, raw: bytes) -> None:
     """Validates, then center-crops and downsizes the upload — Story S-2.
 
     **Storage**: a deterministic path (`uploads/sailors/{id}.jpg`) needs no database
-    column — the file's existence *is* the "has a photo" state (`SailorMeOut.has_photo`,
+    column — the file's existence *is* the "has a photo" state (`PersonMeOut.has_photo`,
     `_me_out`). Not versioned (see `.gitignore`); Postgres/S3-backed storage remains a
     later option once this goes into production, see `docs/userstories/README.md`, "Still to Write".
 
@@ -670,12 +670,12 @@ def _save_photo(sailor_id: int, raw: bytes) -> None:
     Pillow itself: if it can't decode it, it wasn't a real image regardless of what the
     upload claimed to be.
     """
-    pictures.check(raw, code="sailor-photo", what="The photo", max_bytes=_MAX_UPLOAD_BYTES)
-    image = pictures.square(pictures.upright(raw, code="sailor-photo"), _PHOTO_SIZE)
-    _photo_path(sailor_id).write_bytes(pictures.jpeg(image))
+    pictures.check(raw, code="person-photo", what="The photo", max_bytes=_MAX_UPLOAD_BYTES)
+    image = pictures.square(pictures.upright(raw, code="person-photo"), _PHOTO_SIZE)
+    _photo_path(person_id).write_bytes(pictures.jpeg(image))
 
 
-async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor: Sailor) -> bool:
+async def connected_to_person(session: AsyncSession, acting: User | None, person: Person) -> bool:
     """Who may see a photo or a profile page that is not public — Story S-2's own open
     question, resolved here, and the same circle Story S-4 opens a hidden page for.
 
@@ -691,9 +691,9 @@ async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor
     """
     if acting is None:
         return False
-    if sailor.email is not None and sailor.email.lower() == acting.email.lower():
+    if person.email is not None and person.email.lower() == acting.email.lower():
         return True
-    return authz.check(acting, Relation.MANAGER, on=sailor)
+    return authz.check(acting, Relation.MANAGER, on=person)
 
 
 # ------------------------------------------------------------------ Helper functions
@@ -711,26 +711,26 @@ def _can_manage_master_data(acting: User) -> None:
         return
     raise Problem(
         403,
-        "sailor-manage-forbidden",
-        "Only administration and club leadership can manage sailors.",
+        "person-manage-forbidden",
+        "Only administration and club leadership can manage people.",
     )
 
 
-async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor) -> None:
+async def _may_change_person(session: AsyncSession, acting: User, person: Person) -> None:
     """Story V-4: a club's organizer changes the people who sail for *their* club — or
     someone who sails for no club yet. Finding stays open to every club's organizer
     (`_can_manage_master_data`): that is how they see whom they may not add."""
-    if not sailor.club_ids or authz.check(acting, Relation.MANAGER, on=sailor):
+    if not person.club_ids or authz.check(acting, Relation.MANAGER, on=person):
         return
-    raise _not_yours(sailor)
+    raise _not_yours(person)
 
 
-def _not_yours(sailor: Sailor) -> Problem:
+def _not_yours(person: Person) -> Problem:
     return Problem(
         403,
-        "sailor-not-yours",
+        "person-not-yours",
         "This person sails for another club; only that club's organizers can change them.",
-        sailor_id=sailor.id,
+        person_id=person.id,
     )
 
 
@@ -744,9 +744,9 @@ def _can_manage_squad(acting: User, team: Team) -> None:
     )
 
 
-async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
-    sailor = await get_or_404(session, Sailor, sailor_id)
-    return sailor
+async def _person(session: AsyncSession, person_id: int) -> Person:
+    person = await get_or_404(session, Person, person_id)
+    return person
 
 
 async def _team(session: AsyncSession, team_id: int) -> Team:
@@ -755,59 +755,59 @@ async def _team(session: AsyncSession, team_id: int) -> Team:
 
 
 async def _email_taken(session: AsyncSession, email: str, *, except_id: int | None = None) -> bool:
-    stmt = select(Sailor.id).where(Sailor.email == email)
+    stmt = select(Person.id).where(Person.email == email)
     if except_id is not None:
-        stmt = stmt.where(Sailor.id != except_id)
+        stmt = stmt.where(Person.id != except_id)
     return (await session.execute(stmt.limit(1))).scalar_one_or_none() is not None
 
 
-async def _all_exist(session: AsyncSession, sailor_ids: set[int]) -> None:
+async def _all_exist(session: AsyncSession, person_ids: set[int]) -> None:
     found = set(
-        (await session.execute(select(Sailor.id).where(Sailor.id.in_(sailor_ids)))).scalars()
+        (await session.execute(select(Person.id).where(Person.id.in_(person_ids)))).scalars()
     )
-    missing = sorted(sailor_ids - found)
+    missing = sorted(person_ids - found)
     if missing:
         raise Problem(
             404,
-            "squad-unknown-sailor",
+            "squad-unknown-person",
             "Some of these people do not exist.",
-            sailor_ids=missing,
+            person_ids=missing,
         )
 
 
-async def _not_already_in_series(session: AsyncSession, team: Team, sailor_ids: set[int]) -> None:
+async def _not_already_in_series(session: AsyncSession, team: Team, person_ids: set[int]) -> None:
     """The core rule: once per series, for whichever club."""
     if team.series_id is None:
         return
 
     rows = (
         await session.execute(
-            select(Sailor.first_name, Sailor.last_name)
-            .join(TeamMembership, TeamMembership.sailor_id == Sailor.id)
+            select(Person.first_name, Person.last_name)
+            .join(TeamMembership, TeamMembership.person_id == Person.id)
             .join(Team, TeamMembership.team_id == Team.id)
             .where(
                 Team.series_id == team.series_id,
                 Team.event_id.is_(None),
                 Team.id != team.id,
-                TeamMembership.sailor_id.in_(sailor_ids),
+                TeamMembership.person_id.in_(person_ids),
             )
         )
     ).all()
     if rows:
         # The names travel as data, not inside a sentence: the screen builds the sentence
-        # in the reader's language (`errors.squad-sailor-in-another-club`), and a sentence
+        # in the reader's language (`errors.squad-person-in-another-club`), and a sentence
         # assembled here could only ever be in one.
         raise Problem(
             409,
-            "squad-sailor-in-another-club",
+            "squad-person-in-another-club",
             "Some of these people already sail for another club in this series.",
-            sailors=[f"{first} {last}" for first, last in rows],
+            people=[f"{first} {last}" for first, last in rows],
         )
 
 
 async def _may_join(
     session: AsyncSession, acting: User, team: Team, desired: set[int]
-) -> list[Sailor]:
+) -> list[Person]:
     """Who joins the squad with this save — refused if they sail for another club (Story
     V-4). A club's organizer adds the people of their own club, and someone who sails for
     nobody yet, who then sails for it. The league office adds anyone — the one way a
@@ -815,14 +815,14 @@ async def _may_join(
     current = set(
         (
             await session.execute(
-                select(TeamMembership.sailor_id).where(TeamMembership.team_id == team.id)
+                select(TeamMembership.person_id).where(TeamMembership.team_id == team.id)
             )
         ).scalars()
     )
     joining = list(
         (
             await session.execute(
-                select(Sailor).where(Sailor.id.in_(desired - current)).order_by(Sailor.id)
+                select(Person).where(Person.id.in_(desired - current)).order_by(Person.id)
             )
         ).scalars()
     )
@@ -831,10 +831,10 @@ async def _may_join(
         if foreign:
             raise Problem(
                 403,
-                "squad-sailor-of-another-club",
+                "squad-person-of-another-club",
                 "Some of these people sail for another club.",
-                sailors=[s.full_name for s in foreign],
-                sailor_ids=[s.id for s in foreign],
+                people=[s.full_name for s in foreign],
+                person_ids=[s.id for s in foreign],
             )
     return joining
 
@@ -844,7 +844,7 @@ async def _not_removing_lined_up(session: AsyncSession, team: Team, staying: set
     current = set(
         (
             await session.execute(
-                select(TeamMembership.sailor_id).where(TeamMembership.team_id == team.id)
+                select(TeamMembership.person_id).where(TeamMembership.team_id == team.id)
             )
         ).scalars()
     )
@@ -853,11 +853,11 @@ async def _not_removing_lined_up(session: AsyncSession, team: Team, staying: set
         return
 
     stmt = (
-        select(Sailor.first_name, Sailor.last_name, Event.title)
-        .join(EventCrew, EventCrew.sailor_id == Sailor.id)
+        select(Person.first_name, Person.last_name, Event.title)
+        .join(EventCrew, EventCrew.person_id == Person.id)
         .join(Event, EventCrew.event_id == Event.id)
         .join(Team, EventCrew.team_id == Team.id)
-        .where(Team.club_id == team.club_id, EventCrew.sailor_id.in_(removing))
+        .where(Team.club_id == team.club_id, EventCrew.person_id.in_(removing))
     )
     if team.series_id is not None:
         stmt = stmt.where(Event.series_id == team.series_id)
@@ -902,13 +902,13 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
     squad_min, squad_max = await _squad_limits(session, team)
     rows = (
         await session.execute(
-            select(TeamMembership, Sailor)
-            .join(Sailor, TeamMembership.sailor_id == Sailor.id)
+            select(TeamMembership, Person)
+            .join(Person, TeamMembership.person_id == Person.id)
             .where(TeamMembership.team_id == team.id)
         )
     ).all()
     members = sorted(
-        (MemberOut.of(sailor, membership.role) for membership, sailor in rows),
+        (MemberOut.of(person, membership.role) for membership, person in rows),
         key=MemberOut.announce_order,
     )
     return SquadOut(

@@ -4,13 +4,13 @@ import { useTranslation } from "react-i18next";
 
 import {
   getGetSquadQueryKey,
-  getListSailorsQueryKey,
-  useCreateSailor,
+  getListPeopleQueryKey,
+  useCreatePerson,
   useGetSquad,
-  useListSailors,
+  useListPeople,
   useSetSquad,
 } from "../api/generated/sbl";
-import { CrewRole, Role, type SailorAdmin, type SailorRegistration } from "../api/types";
+import { CrewRole, Role, type PersonAdmin, type PersonRegistration } from "../api/types";
 import { useAccount, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "./Blocks";
 import { Field, Message } from "./Form";
@@ -54,7 +54,7 @@ type Person = {
   id: number;
   first_name: string;
   last_name: string;
-  registrations?: SailorRegistration[] | null;
+  registrations?: PersonRegistration[] | null;
   club_ids?: number[];
 };
 
@@ -74,15 +74,15 @@ export function SquadPanel({
   const [search, setSearch] = useState("");
   // A page of matches is what a search wants; the left pane shows them as they come.
   const results = useAsyncRows(
-    useListSailors({ q: search.trim() || undefined }, { query: { enabled: !readOnly } }),
+    useListPeople({ q: search.trim() || undefined }, { query: { enabled: !readOnly } }),
   );
 
   const { hasRole } = useAccount();
   const [creating, setCreating] = useState(false);
   // People created here: the search may not match them, the squad needs their names.
   const [created, setCreated] = useState<Person[]>([]);
-  const createSailor = useCreateSailor({
-    mutation: { onSuccess: () => invalidate(getListSailorsQueryKey()) },
+  const createPerson = useCreatePerson({
+    mutation: { onSuccess: () => invalidate(getListPeopleQueryKey()) },
   });
 
   const setSquad = useSetSquad({
@@ -112,10 +112,10 @@ export function SquadPanel({
   for (const p of results.data ?? []) people.set(p.id, p);
   for (const p of created) people.set(p.id, p);
 
-  const inDraft = new Set(draft.map((d) => d.sailor_id));
+  const inDraft = new Set(draft.map((d) => d.person_id));
   const selected = roster
     .ordered()
-    .map((d) => people.get(d.sailor_id))
+    .map((d) => people.get(d.person_id))
     .filter((p): p is Person => Boolean(p));
   const available = (results.data ?? []).filter((p) => !inDraft.has(p.id));
   const helmCount = draft.filter((d) => d.role === CrewRole.helm).length;
@@ -131,7 +131,7 @@ export function SquadPanel({
    *  A person is legitimately registered in several clubs — one row per series
    *  registration — and only twice *within one series* is forbidden. The endpoint still
    *  refuses it; this is a courtesy, not the enforcement. */
-  const clash = (person: SailorAdmin | Person): SailorRegistration | undefined =>
+  const clash = (person: PersonAdmin | Person): PersonRegistration | undefined =>
     seriesId == null ? undefined : person.registrations?.find((r) => r.series.id === seriesId);
   const sailsFor = (person: Person) =>
     person.registrations?.length
@@ -233,14 +233,14 @@ export function SquadPanel({
           />
           {creating ? (
             <NewPerson
-              pending={createSailor.isPending}
-              error={createSailor.isError ? errorText(createSailor.error) : null}
+              pending={createPerson.isPending}
+              error={createPerson.isError ? errorText(createPerson.error) : null}
               onCancel={() => {
                 setCreating(false);
-                createSailor.reset();
+                createPerson.reset();
               }}
               onCreate={(person) =>
-                createSailor.mutate(
+                createPerson.mutate(
                   { data: { ...person, club_id: clubId } },
                   {
                     onSuccess: (sailor) => {

@@ -14,5 +14,5 @@ export const ObjectType = {
   club: 'club',
   series: 'series',
   event: 'event',
-  sailor: 'sailor',
+  person: 'person',
 } as const;

@@ -17,7 +17,7 @@ export interface MyCompetitionWaiver {
   scope_id: number;
   name: string;
   reference_date: string;
-  sailor_id: number;
+  person_id: number;
   status: WaiverStatus;
   minor?: boolean | null;
   required_version?: number | null;

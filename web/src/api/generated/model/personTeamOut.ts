@@ -12,7 +12,7 @@ import type { SeriesOut } from './seriesOut';
 /**
  * Which club and which series a person is registered for in a season.
  */
-export interface SailorTeamOut {
+export interface PersonTeamOut {
   team_id: number;
   role: CrewRole;
   club: ClubOut;

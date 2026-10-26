@@ -36,13 +36,13 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
           <ul className="divide-y divide-separator rounded-lg border border-separator bg-surface">
             {minorsFirst(data).map((row) => (
               <li
-                key={row.sailor.id}
-                data-testid={`my-club-guardians-row-${row.sailor.id}`}
+                key={row.person.id}
+                data-testid={`my-club-guardians-row-${row.person.id}`}
                 className="grid grid-cols-[minmax(0,1fr)] gap-2 px-4 py-3"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="min-w-0 flex-1 font-medium">
-                    {row.sailor.first_name} {row.sailor.last_name}
+                    {row.person.first_name} {row.person.last_name}
                   </span>
                   {row.minor === true && (
                     <Badge tone="warning">{t("guardians.minor")}</Badge>
@@ -51,11 +51,11 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
                     size="sm"
                     variant="ghost"
                     onPress={() => {
-                      setAdding(adding === row.sailor.id ? null : row.sailor.id);
+                      setAdding(adding === row.person.id ? null : row.person.id);
                       setEmail("");
                       link.reset();
                     }}
-                    data-testid={`my-club-guardians-add-${row.sailor.id}`}
+                    data-testid={`my-club-guardians-add-${row.person.id}`}
                   >
                     {t("guardians.add")}
                   </Button>
@@ -65,7 +65,7 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
                     {row.guardians.map((g) => (
                       <li
                         key={g.id}
-                        data-testid={`my-club-guardian-${row.sailor.id}-${g.id}`}
+                        data-testid={`my-club-guardian-${row.person.id}-${g.id}`}
                         className="flex items-center gap-1 rounded-full bg-surface-tertiary py-0.5 pl-3 pr-1 text-sm"
                       >
                         <span>{g.display_name || g.email}</span>
@@ -73,9 +73,9 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
                           type="button"
                           aria-label={t("guardians.remove", { name: g.display_name || g.email })}
                           disabled={unlink.isPending}
-                          onClick={() => unlink.mutate({ sailorId: row.sailor.id, tupleId: g.id })}
+                          onClick={() => unlink.mutate({ personId: row.person.id, tupleId: g.id })}
                           className="rounded-full px-1.5 text-muted hover:bg-default-hover hover:text-foreground"
-                          data-testid={`my-club-guardian-remove-${row.sailor.id}-${g.id}`}
+                          data-testid={`my-club-guardian-remove-${row.person.id}-${g.id}`}
                         >
                           ×
                         </button>
@@ -83,13 +83,13 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
                     ))}
                   </ul>
                 )}
-                {adding === row.sailor.id && (
+                {adding === row.person.id && (
                   <form
                     className="flex flex-wrap items-center gap-2"
                     onSubmit={(e) => {
                       e.preventDefault();
                       link.mutate(
-                        { sailorId: row.sailor.id, data: { email } },
+                        { personId: row.person.id, data: { email } },
                         { onSuccess: () => setAdding(null) },
                       );
                     }}
@@ -102,20 +102,20 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
                       placeholder={t("guardians.emailPlaceholder")}
                       aria-label={t("guardians.emailPlaceholder")}
                       className={`${INPUT_CLASS} min-w-0 flex-1`}
-                      data-testid={`my-club-guardians-email-${row.sailor.id}`}
+                      data-testid={`my-club-guardians-email-${row.person.id}`}
                     />
                     <Button
                       size="sm"
                       type="submit"
                       isDisabled={link.isPending || !email.trim()}
-                      data-testid={`my-club-guardians-submit-${row.sailor.id}`}
+                      data-testid={`my-club-guardians-submit-${row.person.id}`}
                     >
                       {t("guardians.link")}
                     </Button>
                     {link.isError && (
                       <ErrorMessage
                         text={errorText(link.error)}
-                        testId={`my-club-guardians-error-${row.sailor.id}`}
+                        testId={`my-club-guardians-error-${row.person.id}`}
                       />
                     )}
                   </form>

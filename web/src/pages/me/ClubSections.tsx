@@ -309,16 +309,16 @@ export function ClubWaivers({ clubId }: { clubId: number }) {
                   className={`text-sm ${block.outstanding ? "font-medium text-warning-soft-foreground" : "text-success-soft-foreground"}`}
                   data-testid={`my-club-waivers-${block.scope}-${block.scope_id}-summary`}
                 >
-                  {t("clubWaivers.summary", { cleared: block.cleared, total: block.sailors.length })}
+                  {t("clubWaivers.summary", { cleared: block.cleared, total: block.people.length })}
                 </span>
               </div>
-              {block.sailors.length ? (
+              {block.people.length ? (
                 <ul className="mt-3 flex flex-col divide-y divide-separator text-sm">
-                  {block.sailors.map((row) => (
+                  {block.people.map((row) => (
                     <li
-                      key={row.sailor_id}
+                      key={row.person_id}
                       className="flex flex-wrap items-baseline justify-between gap-x-3 py-1.5"
-                      data-testid={`my-club-waiver-row-${block.scope}-${block.scope_id}-${row.sailor_id}`}
+                      data-testid={`my-club-waiver-row-${block.scope}-${block.scope_id}-${row.person_id}`}
                       data-status={row.status}
                     >
                       <span>

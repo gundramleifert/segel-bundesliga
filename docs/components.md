@@ -335,7 +335,7 @@ it — asks for `WHOLE_LIST` rows and reads them with `useAsyncRows`
 
 ```tsx
 const list = useListParams();
-const query = useListSailors(
+const query = useListPeople(
   { ...list.request, q: list.q || undefined, sort: list.sort ?? undefined },
   { query: { placeholderData: keepPreviousData } },
 );

@@ -55,9 +55,9 @@ async def _asvw_squad(ids) -> list[int]:
         return list(
             (
                 await session.execute(
-                    select(TeamMembership.sailor_id)
+                    select(TeamMembership.person_id)
                     .where(TeamMembership.team_id == registration)
-                    .order_by(TeamMembership.sailor_id)
+                    .order_by(TeamMembership.person_id)
                 )
             ).scalars()
         )
@@ -134,26 +134,26 @@ class TestTeamsPerClub:
                 if p["club"]["id"] == asvw:
                     teams[(event_id, p["number"])] = p["team_id"]
         squad = await _asvw_squad(ids)
-        sailor = squad[0]
+        person = squad[0]
 
-        async def line_up(event_id: int, number: int, sailor_ids: list[int]):
+        async def line_up(event_id: int, number: int, person_ids: list[int]):
             return await client.put(
                 f"/api/admin/events/{event_id}/crew",
                 headers=headers,
                 json={
                     "team_id": teams[(event_id, number)],
-                    "members": [{"sailor_id": s} for s in sailor_ids],
+                    "members": [{"person_id": s} for s in person_ids],
                 },
             )
 
-        first = await line_up(first_act, 1, [sailor])
+        first = await line_up(first_act, 1, [person])
         assert first.status_code == 200, first.text
-        second = await line_up(second_act, 2, [sailor])
+        second = await line_up(second_act, 2, [person])
         assert second.status_code == 200, second.text
         assert second.json()["team_id"] == teams[(second_act, 2)]
 
         # The same act, the club's other team: one boat at a time.
-        twice = await line_up(first_act, 2, [sailor])
+        twice = await line_up(first_act, 2, [person])
         assert twice.status_code == 409, twice.text
         # Team 2 draws from the same squad — another sailor of it is fine.
         other = await line_up(first_act, 2, [squad[1]])
@@ -206,11 +206,11 @@ class TestTeamsPerClub:
         entered = await _enter(client, headers, event_id, [asvw, asvw])
         team_ids = {p["number"]: p["team_id"] for p in entered.json() if p["club"]["id"] == asvw}
         squad = await _asvw_squad(ids)
-        for number, sailors in ((1, squad[:2]), (2, squad[2:4])):
+        for number, people in ((1, squad[:2]), (2, squad[2:4])):
             lined_up = await client.put(
                 f"/api/admin/events/{event_id}/crew",
                 headers=headers,
-                json={"team_id": team_ids[number], "members": [{"sailor_id": s} for s in sailors]},
+                json={"team_id": team_ids[number], "members": [{"person_id": s} for s in people]},
             )
             assert lined_up.status_code == 200, lined_up.text
 

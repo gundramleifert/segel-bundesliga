@@ -22,7 +22,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models import (
     Event,
-    Sailor,
+    Person,
     Series,
     Team,
     TeamMembership,
@@ -96,8 +96,8 @@ class WaiverStatus(StrEnum):
 
 
 @dataclass
-class SailorWaiver:
-    sailor_id: int
+class PersonWaiver:
+    person_id: int
     status: WaiverStatus
     required_version: int | None
     minor: bool | None
@@ -113,15 +113,15 @@ class SailorWaiver:
 
 def _judge(
     *,
-    sailor_id: int,
+    person_id: int,
     minor: bool | None,
     required: WaiverText | None,
     confirmations: list[WaiverConfirmation],
-) -> SailorWaiver:
+) -> PersonWaiver:
     if required is None:
-        return SailorWaiver(sailor_id, WaiverStatus.NOT_REQUIRED, None, minor)
+        return PersonWaiver(person_id, WaiverStatus.NOT_REQUIRED, None, minor)
 
-    base = dict(sailor_id=sailor_id, required_version=required.version, minor=minor)
+    base = dict(person_id=person_id, required_version=required.version, minor=minor)
 
     # The most recent confirmation of *any* version wins as "what they last did", but only
     # one of the current version can clear them.
@@ -130,7 +130,7 @@ def _judge(
 
     if not for_current:
         if latest is not None:
-            return SailorWaiver(
+            return PersonWaiver(
                 **base,
                 status=WaiverStatus.OUTDATED,
                 confirmed_version=latest.waiver_text.version,
@@ -140,7 +140,7 @@ def _judge(
                 guardian_name=latest.guardian_name,
                 scan_available=has_scan(latest.guardian_signature_ref),
             )
-        return SailorWaiver(**base, status=WaiverStatus.MISSING)
+        return PersonWaiver(**base, status=WaiverStatus.MISSING)
 
     chosen = max(for_current, key=lambda c: c.confirmed_at)
     seen = dict(
@@ -153,10 +153,10 @@ def _judge(
     )
 
     if minor is None:
-        return SailorWaiver(**base, **seen, status=WaiverStatus.BIRTH_DATE_UNKNOWN)
+        return PersonWaiver(**base, **seen, status=WaiverStatus.BIRTH_DATE_UNKNOWN)
     if minor and not any(c.is_guardian_signed for c in for_current):
-        return SailorWaiver(**base, **seen, status=WaiverStatus.GUARDIAN_UNSIGNED)
-    return SailorWaiver(**base, **seen, status=WaiverStatus.CLEARED)
+        return PersonWaiver(**base, **seen, status=WaiverStatus.GUARDIAN_UNSIGNED)
+    return PersonWaiver(**base, **seen, status=WaiverStatus.CLEARED)
 
 
 class _Unread:
@@ -169,10 +169,10 @@ UNREAD = _Unread()
 async def event_waiver_status(
     session: AsyncSession,
     event: Event,
-    sailor_ids: list[int],
+    person_ids: list[int],
     required: WaiverText | None | _Unread = UNREAD,
-) -> dict[int, SailorWaiver]:
-    """Clearance for each of ``sailor_ids`` for one event.
+) -> dict[int, PersonWaiver]:
+    """Clearance for each of ``person_ids`` for one event.
 
     A confirmation counts if it is scoped to this event, or to the event's series. Pass
     ``required`` when the caller has already read the waiver text in force — ``None``
@@ -180,30 +180,30 @@ async def event_waiver_status(
     """
     if isinstance(required, _Unread):
         required = await current_waiver_text(session)
-    if not sailor_ids:
+    if not person_ids:
         return {}
 
     ref = event_reference_date(event)
     ages = dict(
         (
             await session.execute(
-                select(Sailor.id, Sailor.birth_date).where(Sailor.id.in_(sailor_ids))
+                select(Person.id, Person.birth_date).where(Person.id.in_(person_ids))
             )
         ).all()
     )
 
-    by_sailor = await _confirmations(
-        session, sailor_ids, Competition.of_event(event).confirmation_filter()
+    by_person = await _confirmations(
+        session, person_ids, Competition.of_event(event).confirmation_filter()
     )
 
     return {
         sid: _judge(
-            sailor_id=sid,
+            person_id=sid,
             minor=is_minor(ages.get(sid), ref),
             required=required,
-            confirmations=by_sailor.get(sid, []),
+            confirmations=by_person.get(sid, []),
         )
-        for sid in sailor_ids
+        for sid in person_ids
     }
 
 
@@ -252,77 +252,77 @@ class Competition:
 
 class CompetitionWaiver(NamedTuple):
     competition: Competition
-    status: SailorWaiver
+    status: PersonWaiver
 
 
 async def _confirmations(
-    session: AsyncSession, sailor_ids: list[int], scope: ColumnElement[bool]
+    session: AsyncSession, person_ids: list[int], scope: ColumnElement[bool]
 ) -> dict[int, list[WaiverConfirmation]]:
     rows = (
         (
             await session.execute(
                 select(WaiverConfirmation)
                 .options(selectinload(WaiverConfirmation.waiver_text))
-                .where(WaiverConfirmation.sailor_id.in_(sailor_ids), scope)
+                .where(WaiverConfirmation.person_id.in_(person_ids), scope)
             )
         )
         .scalars()
         .all()
     )
-    by_sailor: dict[int, list[WaiverConfirmation]] = {}
+    by_person: dict[int, list[WaiverConfirmation]] = {}
     for row in rows:
-        by_sailor.setdefault(row.sailor_id, []).append(row)
-    return by_sailor
+        by_person.setdefault(row.person_id, []).append(row)
+    return by_person
 
 
 async def competition_status(
     session: AsyncSession,
     competition: Competition,
-    sailors: list[Sailor],
+    people: list[Person],
     required: WaiverText | None,
-) -> dict[int, SailorWaiver]:
+) -> dict[int, PersonWaiver]:
     """Clearance of many sailors for one competition, in one query.
 
     ``required`` is the waiver text in force, read once by the caller for the whole
     request (``None``: nothing published, nobody needs to sign). A series counts only its
     own confirmations; an event its own and its series'.
     """
-    if not sailors:
+    if not people:
         return {}
-    by_sailor = await _confirmations(
-        session, [s.id for s in sailors], competition.confirmation_filter()
+    by_person = await _confirmations(
+        session, [s.id for s in people], competition.confirmation_filter()
     )
     return {
-        sailor.id: _judge(
-            sailor_id=sailor.id,
-            minor=is_minor(sailor.birth_date, competition.reference_date),
+        person.id: _judge(
+            person_id=person.id,
+            minor=is_minor(person.birth_date, competition.reference_date),
             required=required,
-            confirmations=by_sailor.get(sailor.id, []),
+            confirmations=by_person.get(person.id, []),
         )
-        for sailor in sailors
+        for person in people
     }
 
 
-async def sailor_waivers(
-    session: AsyncSession, sailor: Sailor, required: WaiverText | None
+async def person_waivers(
+    session: AsyncSession, person: Person, required: WaiverText | None
 ) -> list[CompetitionWaiver]:
     """Every competition the sailor must sign for, with its status — the account page
     (S-1), a guardian's page (S-8) and "mine" (Z-8). One query for the competitions' rows
     and one for all of the sailor's confirmations, however many competitions."""
-    competitions = await sailor_competitions(session, sailor)
+    competitions = await person_competitions(session, person)
     if not competitions:
         return []
     rows = (
         await _confirmations(
-            session, [sailor.id], or_(*(c.confirmation_filter() for c in competitions))
+            session, [person.id], or_(*(c.confirmation_filter() for c in competitions))
         )
-    ).get(sailor.id, [])
+    ).get(person.id, [])
     return [
         CompetitionWaiver(
             competition,
             _judge(
-                sailor_id=sailor.id,
-                minor=is_minor(sailor.birth_date, competition.reference_date),
+                person_id=person.id,
+                minor=is_minor(person.birth_date, competition.reference_date),
                 required=required,
                 confirmations=[r for r in rows if competition.covers(r)],
             ),
@@ -331,7 +331,7 @@ async def sailor_waivers(
     ]
 
 
-async def sailor_competitions(session: AsyncSession, sailor: Sailor) -> list[Competition]:
+async def person_competitions(session: AsyncSession, person: Person) -> list[Competition]:
     """Every competition this sailor is entered in — the list on their account page.
 
     Series squads first (``Team.event_id`` empty, Story V-1), newest year first, then
@@ -342,7 +342,7 @@ async def sailor_competitions(session: AsyncSession, sailor: Sailor) -> list[Com
     memberships = (
         select(Team)
         .join(TeamMembership, TeamMembership.team_id == Team.id)
-        .where(TeamMembership.sailor_id == sailor.id, Team.status == TeamStatus.ACCEPTED)
+        .where(TeamMembership.person_id == person.id, Team.status == TeamStatus.ACCEPTED)
     )
     series_rows = (
         (

@@ -16,7 +16,7 @@ from app import authz
 from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
-from app.models import Event, EventCrew, Sailor, Team, TeamStatus
+from app.models import Event, EventCrew, Person, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
 from app.problems import Problem
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api/admin/events", tags=["administration"])
 
 
 class CrewMember(BaseModel):
-    sailor_id: int
+    person_id: int
     role: CrewRole = CrewRole.CREW
 
 
@@ -89,7 +89,7 @@ async def set_crew(
         session,
         event.id,
         team,
-        [LineupMember(member.sailor_id, member.role) for member in request.members],
+        [LineupMember(member.person_id, member.role) for member in request.members],
     )
 
     await session.commit()
@@ -135,13 +135,13 @@ def _check_permissions(acting: User, team: Team, event: Event) -> None:
 async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOut:
     rows = (
         await session.execute(
-            select(EventCrew, Sailor)
-            .join(Sailor, EventCrew.sailor_id == Sailor.id)
+            select(EventCrew, Person)
+            .join(Person, EventCrew.person_id == Person.id)
             .where(EventCrew.event_id == event.id, EventCrew.team_id == team_id)
         )
     ).all()
     members = sorted(
-        (MemberOut.of(sailor, crew.role) for crew, sailor in rows),
+        (MemberOut.of(person, crew.role) for crew, person in rows),
         key=MemberOut.announce_order,
     )
     return CrewOut(

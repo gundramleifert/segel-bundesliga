@@ -43,7 +43,7 @@ export type { EventStandingRow as StandingRow } from "./generated/model/eventSta
 export type { TeamCrewOut as TeamCrew } from "./generated/model/teamCrewOut";
 export type { PairingList } from "./generated/model/pairingList";
 export type { BoatOut } from "./generated/model/boatOut";
-export type { SailorDetail } from "./generated/model/sailorDetail";
+export type { PersonDetail } from "./generated/model/personDetail";
 /** Stories L-1, L-2: the live picture of an event — course, running race, every boat. */
 export type { LiveRaceOut as LiveRace } from "./generated/model/liveRaceOut";
 export type { LiveBoatOut as LiveBoat } from "./generated/model/liveBoatOut";
@@ -55,8 +55,8 @@ export type { MyContextOut as MyContext } from "./generated/model/myContextOut";
 export type { NeedOut as Need } from "./generated/model/needOut";
 
 /** Story S-2: a sailor's own profile — name, birthdate, and whether a photo exists. */
-export type { SailorMeOut as SailorMe } from "./generated/model/sailorMeOut";
-export type { SailorMeUpdate } from "./generated/model/sailorMeUpdate";
+export type { PersonMeOut as PersonMe } from "./generated/model/personMeOut";
+export type { PersonMeUpdate } from "./generated/model/personMeUpdate";
 
 // Administration
 export type { SeriesAdminOut as SeriesAdmin } from "./generated/model/seriesAdminOut";
@@ -69,11 +69,11 @@ export type { BoatSpec } from "./generated/model/boatSpec";
 export type { CatalogEntryOut as PairingCatalogEntry } from "./generated/model/catalogEntryOut";
 export type { PublishResult as PairingPublishResult } from "./generated/model/publishResult";
 export type { ParticipantOut as EventTeam } from "./generated/model/participantOut";
-export type { SailorAdminOut as SailorAdmin } from "./generated/model/sailorAdminOut";
+export type { PersonAdminOut as PersonAdmin } from "./generated/model/personAdminOut";
 /** One series registration of a person. There is one row per registration and somebody
  *  legitimately has several — sailing for more than one club is allowed (Story V-1). */
-export type { SailorRegistrationOut as SailorRegistration } from "./generated/model/sailorRegistrationOut";
-export type { SailorCreate } from "./generated/model/sailorCreate";
+export type { PersonRegistrationOut as PersonRegistration } from "./generated/model/personRegistrationOut";
+export type { PersonCreate } from "./generated/model/personCreate";
 export type { SquadOut as Squad } from "./generated/model/squadOut";
 export type { SquadMemberIn as SquadEntry } from "./generated/model/squadMemberIn";
 
@@ -98,7 +98,7 @@ export type { MyWaivers } from "./generated/model/myWaivers";
 export type { MyCompetitionWaiver } from "./generated/model/myCompetitionWaiver";
 export type { WaiverTextOut as WaiverText } from "./generated/model/waiverTextOut";
 export type { EventWaiverList } from "./generated/model/eventWaiverList";
-export type { SailorWaiverRow } from "./generated/model/sailorWaiverRow";
+export type { PersonWaiverRow } from "./generated/model/personWaiverRow";
 
 // Accounts and sign-in
 export type { UserOut as Account } from "./generated/model/userOut";

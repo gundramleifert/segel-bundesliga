@@ -409,7 +409,7 @@ async def delete_my_account(
     become a deactivation too, or gain a precondition ("no active registrations"). Revisit
     before real seasons depend on this data — don't just leave it as-is.
 
-    A ``Sailor`` is a separate record linked only by email, never by foreign key, so
+    A ``Person`` is a separate record linked only by email, never by foreign key, so
     deleting the account never touches squad, series, or event history — only the account
     row and the administrative records that point at it by id.
     """

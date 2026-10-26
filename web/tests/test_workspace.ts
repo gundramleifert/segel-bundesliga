@@ -127,7 +127,7 @@ describe("Story Z-10: the sections each person of §5 has", () => {
 
   test("the site admin: the league office complete", () => {
     expect(sectionsFor("office", [Relation.admin])).toEqual([
-      "overview", "clubs", "series", "events", "sailors", "accounts", "news", "media", "imports",
+      "overview", "clubs", "series", "events", "people", "accounts", "news", "media", "imports",
     ]);
     expect(sectionsFor("office", [Relation.race_officer])).toEqual(["overview", "events"]);
   });
@@ -398,7 +398,9 @@ describe("Story A-11: the league office (#32)", () => {
     expect(officeAddress("", "")).toBe("/office");
     expect(officeAddress("", "?tab=clubs")).toBe("/office/clubs");
     expect(officeAddress("", "?tab=nonsense")).toBe("/office");
-    expect(officeAddress("", "?tab=sailors&sort=-last_name&q=mann")).toBe("/office/sailors?sort=-last_name&q=mann");
+    // `sailors` is `people` since #42.
+    expect(officeAddress("", "?tab=sailors&sort=-last_name&q=mann")).toBe("/office/people?sort=-last_name&q=mann");
+    expect(officeAddress("sailors/new", "")).toBe("/office/people/new");
     expect(officeAddress("clubs/new", "")).toBe("/office/clubs/new");
     expect(officeAddress("events/new", "?series=3")).toBe("/office/events/new?series=3");
     expect(officeAddress("news/12", "")).toBe("/office/news/12");

@@ -196,7 +196,7 @@ const PEOPLE: Person[] = [
     row: "Site admin",
     who: "admin@sbl.example.com",
     // Complete, but for Imports, which has no screen (run from the command line).
-    office: ["overview", "clubs", "series", "events", "sailors", "accounts", "news", "media"],
+    office: ["overview", "clubs", "series", "events", "people", "accounts", "news", "media"],
     contexts: [],
   },
   {

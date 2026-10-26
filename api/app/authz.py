@@ -21,8 +21,8 @@ would not notice:
 What the in-process backend needs from its callers: the person's tuples are loaded with
 the ``User`` (one query), and an event is passed as the ``Event`` itself, because its two
 containers (``series``, ``host_club``) are foreign keys on the row — on an FGA server they
-would be tuples of their own — and a sailor as the ``Sailor``, which brings the clubs they
-sail for (``SailorClub``). Summary roles (``User.roles``) are for the navigation and
+would be tuples of their own — and a sailor as the ``Person``, which brings the clubs they
+sail for (``ClubMembership``). Summary roles (``User.roles``) are for the navigation and
 never answer a permission question.
 """
 
@@ -45,14 +45,14 @@ class RelationTuple(NamedTuple):
 
 
 #: What may name an object: a ref, ``"club:3"``, ``ObjectType.SITE``, or a loaded
-#: ``Club``/``Series``/``Event``/``Sailor`` (an event this way brings its containers).
+#: ``Club``/``Series``/``Event``/``Person`` (an event this way brings its containers).
 On = object
 
 _KIND = {
     "Club": ObjectType.CLUB,
     "Series": ObjectType.SERIES,
     "Event": ObjectType.EVENT,
-    "Sailor": ObjectType.SAILOR,
+    "Person": ObjectType.PERSON,
 }
 
 
@@ -85,7 +85,7 @@ def _edges(on: On) -> Edges:
             edges["series"] = (ObjectRef(ObjectType.SERIES, on.series_id),)  # type: ignore[attr-defined]
         if on.host_club_id is not None:  # type: ignore[attr-defined]
             edges["host_club"] = (ObjectRef(ObjectType.CLUB, on.host_club_id),)  # type: ignore[attr-defined]
-    elif kind == "Sailor":
+    elif kind == "Person":
         edges["club"] = tuple(ObjectRef(ObjectType.CLUB, c) for c in on.club_ids)  # type: ignore[attr-defined]
     return edges
 

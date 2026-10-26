@@ -12,7 +12,7 @@ import { PAGE_SIZE } from "../api/useApi";
  * throwing the work away.
  *
  *     const list = useListParams();
- *     const query = useListSailors(
+ *     const query = useListPeople(
  *       { ...list.request, q: list.q || undefined },
  *       { query: { placeholderData: keepPreviousData } },
  *     );

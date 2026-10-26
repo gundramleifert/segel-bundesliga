@@ -162,13 +162,13 @@ up. The endpoint must check when the squad is registered; a test maintains the i
 ## Person, Account and Club Membership
 
 Decided 2026-10-25 (#40, `docs/PLAN_PEOPLE.md`). **Until #43 the code still has the old
-model**: a `Sailor` with `SailorClub` rows for sailing, and a `member` tuple
+model**: a `Person` (named `Sailor` until #42) with `ClubMembership` rows for sailing — no status yet — and a `member` tuple
 (`user:member:club`, Story Z-5) on an account for membership — two records for one
 human, joined by email.
 
 **`Person`** — a human, once in the instance: name, date of birth, contact email,
 federation id, the profile switch (S-4). What squads, crews, waivers, results and
-guardians point at. Today's `Sailor`, renamed; there is no separate "member" record.
+guardians point at. `Sailor` until #42, renamed; there is no separate "member" record.
 
 **The account link** — `Person.user_id`, optional and unique. An account is what one
 signs in with (`User`, identities, password); **every account has exactly one person**,

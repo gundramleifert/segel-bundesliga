@@ -174,12 +174,12 @@ class EventCrew(Base, TimestampMixin):
     """
 
     __tablename__ = "event_crew"
-    __table_args__ = (UniqueConstraint("event_id", "sailor_id"),)
+    __table_args__ = (UniqueConstraint("event_id", "person_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), index=True)
     team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), index=True)
-    sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"), index=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("person.id"), index=True)
     role: Mapped[str] = mapped_column(String(16))
 
 

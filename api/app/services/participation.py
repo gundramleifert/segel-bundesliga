@@ -19,10 +19,10 @@ from sqlalchemy.orm import selectinload
 
 from app.models import (
     Club,
+    ClubMembership,
     Event,
+    Person,
     RaceEntry,
-    Sailor,
-    SailorClub,
     Team,
     TeamStatus,
 )
@@ -94,11 +94,11 @@ def team_name(club: Club, number: int = 1) -> str:
     return club.short_name if number == 1 else f"{club.short_name} {number}"
 
 
-def connect_sailor(sailor: Sailor, club_id: int) -> None:
+def connect_person(person: Person, club_id: int) -> None:
     """The sailor sails for this club from now on (Story V-4) — the ``club`` edge their
     permissions walk. Idempotent; who may do it is the caller's to check."""
-    if club_id not in sailor.club_ids:
-        sailor.club_links.append(SailorClub(club_id=club_id))
+    if club_id not in person.club_ids:
+        person.club_memberships.append(ClubMembership(club_id=club_id))
 
 
 async def squad_team(session: AsyncSession, team: Team) -> Team:

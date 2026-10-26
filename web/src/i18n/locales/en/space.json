@@ -334,7 +334,7 @@
         "clubs": "Clubs",
         "series": "Series",
         "events": "Events",
-        "sailors": "Sailors",
+        "people": "People",
         "accounts": "Accounts",
         "news": "News",
         "media": "Media",
@@ -388,13 +388,13 @@
     "search": {
       "label": "Search",
       "placeholder": "Find a context or a section",
-      "officePlaceholder": "Find a club, series, event or sailor",
+      "officePlaceholder": "Find a club, series, event or person",
       "sections": "Sections",
       "mine": "Mine",
       "clubs": "Clubs",
       "series": "Series",
       "events": "Events",
-      "sailors": "Sailors",
+      "sailors": "People",
       "searching": "Searching …",
       "empty": "Nothing found"
     }

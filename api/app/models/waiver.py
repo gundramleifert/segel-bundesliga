@@ -101,7 +101,7 @@ class WaiverConfirmation(Base, TimestampMixin):
         # distinct (same reason as the Team model).
         Index(
             "uq_waiver_conf_series",
-            "sailor_id",
+            "person_id",
             "series_id",
             "waiver_text_id",
             unique=True,
@@ -110,7 +110,7 @@ class WaiverConfirmation(Base, TimestampMixin):
         ),
         Index(
             "uq_waiver_conf_event",
-            "sailor_id",
+            "person_id",
             "event_id",
             "waiver_text_id",
             unique=True,
@@ -120,7 +120,7 @@ class WaiverConfirmation(Base, TimestampMixin):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"), index=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("person.id"), index=True)
     waiver_text_id: Mapped[int] = mapped_column(ForeignKey("waiver_text.id"), index=True)
 
     # Exactly one of these is set — the check constraint enforces it.

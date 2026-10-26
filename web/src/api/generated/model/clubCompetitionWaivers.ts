@@ -6,7 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClubCompetitionWaiversScope } from './clubCompetitionWaiversScope';
-import type { SailorWaiverRow } from './sailorWaiverRow';
+import type { PersonWaiverRow } from './personWaiverRow';
 
 /**
  * One competition of a club and its sailors' waivers — a series squad, or the
@@ -19,5 +19,5 @@ export interface ClubCompetitionWaivers {
   starts_on?: string | null;
   cleared: number;
   outstanding: number;
-  sailors: SailorWaiverRow[];
+  people: PersonWaiverRow[];
 }

@@ -7,11 +7,14 @@
  */
 
 /**
- * All fields are optional — only provided values are updated.
+ * A sailor's own view of their record — no email (that's account identity, handled
+ * by the sign-in flow, not this endpoint).
  */
-export interface SailorUpdate {
-  first_name?: string | null;
-  last_name?: string | null;
-  email?: string | null;
+export interface PersonMeOut {
+  id: number;
+  first_name: string;
+  last_name: string;
   birth_date?: string | null;
+  has_photo?: boolean;
+  profile_public?: boolean;
 }

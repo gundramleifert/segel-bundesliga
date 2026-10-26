@@ -3,7 +3,7 @@
  * The backend never sends a localized sentence as the contract. It sends a stable
  * `type` like `/errors/guardian-confirmation-needed`; this module maps the last segment
  * (the "code") to a key in the `errors` i18n namespace. Extension members on the body
- * (`required_version`, `sailor_id`, …) are passed to the translation as interpolation
+ * (`required_version`, `person_id`, …) are passed to the translation as interpolation
  * values, so `errors.json` can write `"{required_version}"`.
  *
  * See `docs/concepts.md` → "Errors".
@@ -39,7 +39,7 @@ const RESERVED = new Set(["type", "title", "status", "detail", "instance"]);
 
 /** An extension member as it can appear inside a sentence.
  *
- * A problem carries its facts as data — `sailors: ["Ada Lovelace", "Grace Hopper"]`,
+ * A problem carries its facts as data — `people: ["Ada Lovelace", "Grace Hopper"]`,
  * `selections: [{ sailor, event }]` — so that the sentence can be built in the reader's
  * language rather than shipped from the backend in one. i18next interpolates whatever it
  * is given, which turns an array of objects into "[object Object]"; this flattens them

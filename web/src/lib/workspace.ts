@@ -132,7 +132,7 @@ const OFFICE_GROUPS = [
       clubs: { for: [Relation.admin] },
       series: { for: [Relation.admin] },
       events: { for: [Relation.admin, Relation.race_officer] },
-      sailors: { for: [Relation.admin] },
+      people: { for: [Relation.admin] },
       accounts: { for: [Relation.admin] },
       news: { for: [Relation.admin, Relation.editor] },
       media: { for: [Relation.admin, Relation.editor] },
@@ -557,7 +557,7 @@ export const OFFICE_NEW_PAGES = {
   clubs: "clubs",
   series: "series",
   events: "events",
-  sailors: "sailors",
+  people: "people",
   news: "news",
 } as const satisfies Record<string, OfficeSection>;
 
@@ -604,7 +604,10 @@ export function mayCreate(area: OfficeArea, office: readonly string[], hasRole: 
  *  `/admin/`, `search` the query string with or without its `?`. */
 export function officeAddress(rest: string, search: string): string {
   const params = new URLSearchParams(search);
-  const segments = rest.split("/").filter(Boolean);
+  // `sailors` became `people` with #42 — one person, whether they sail or not.
+  const renamed = (area: string) => (area === "sailors" ? "people" : area);
+  const segments = rest.split("/").filter(Boolean).map(renamed);
+  if (params.get("tab")) params.set("tab", renamed(params.get("tab")!));
   let path = "/office";
   if (segments.length === 0) {
     const tab = params.get("tab");

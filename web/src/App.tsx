@@ -103,7 +103,9 @@ export default function App() {
         <Route path="live" element={<LiveNow />} />
         <Route path="clubs" element={<Clubs />} />
         <Route path="clubs/:id" element={<Club />} />
-        <Route path="sailors/:id" element={<Sailor />} />
+        <Route path="people/:id" element={<Sailor />} />
+        {/* A sailor's page before #42, when a sailor and a member became one person. */}
+        <Route path="sailors/:id" element={<LegacyRedirect to="/people/:id" />} />
         {/* Signed out: the sign-in page. Signed in, it forwards to /me/profile. */}
         <Route path="account" element={<Account />} />
         {/* Stories Z-8, S-7, Z-10: my space — the workspace. Each context has its sections
@@ -134,7 +136,9 @@ export default function App() {
         <Route path="office/clubs/new" element={<AdminClubNew />} />
         <Route path="office/series/new" element={<AdminSeriesNew />} />
         <Route path="office/events/new" element={<AdminEventNew />} />
-        <Route path="office/sailors/new" element={<AdminSailorNew />} />
+        <Route path="office/people/new" element={<AdminSailorNew />} />
+        <Route path="office/sailors" element={<Navigate to="/office/people" replace />} />
+        <Route path="office/sailors/new" element={<Navigate to="/office/people/new" replace />} />
         <Route path="office/news/new" element={<AdminPostPage />} />
         <Route path="office/news/:id" element={<AdminPostPage />} />
         {/* `/admin` before #32: every address of it redirects to its `/office` one. */}

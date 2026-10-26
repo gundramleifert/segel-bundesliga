@@ -69,7 +69,7 @@ export type SeededSailor = { id: number; email: string | null; birth_date: strin
  * the first league, teenagers the juniors. */
 export async function seededSailors(request: APIRequestContext, domain: string): Promise<SeededSailor[]> {
   const headers = await bearer(request, "admin@sbl.example.com");
-  const response = await request.get(`/api/admin/sailors?q=${domain}&limit=100`, { headers });
+  const response = await request.get(`/api/admin/people?q=${domain}&limit=100`, { headers });
   expect(response.ok(), await response.text()).toBeTruthy();
   return ((await response.json()) as { items: SeededSailor[] }).items.filter((s) => s.email);
 }

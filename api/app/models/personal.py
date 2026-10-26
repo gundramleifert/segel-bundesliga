@@ -1,6 +1,6 @@
 """A person's own space (Stories S-5, S-6): their documents and their bank account.
 
-Both hang off the **account**, not the sailor record: a helper or a jury member may never
+Both hang off the **account**, not the person record: a helper or a jury member may never
 have sailed in a result, and still has a boat licence and costs to be paid back.
 """
 

@@ -20,7 +20,7 @@ The response body is::
       "status": 422,
       "detail": "Toni Groth turns 18 after this event.",   # optional, instance-specific
       "instance": "/api/events/12/waiver",
-      "sailor_id": 42                                        # optional extension members
+      "person_id": 42                                        # optional extension members
     }
 
 No router raises a plain ``HTTPException`` (ruff's banned-api rule in ``pyproject.toml``
@@ -71,7 +71,7 @@ class Problem(Exception):
         # Optional English elaboration about this specific occurrence.
         self.detail = detail
         self.headers = headers
-        # Extension members merged into the body (e.g. sailor_id, required_version).
+        # Extension members merged into the body (e.g. person_id, required_version).
         self.extra = extra
         super().__init__(f"{code}: {title}")
 

@@ -2,13 +2,13 @@ import { Button } from "@heroui/react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getListSailorsQueryKey, useCreateSailor } from "../api/generated/sbl";
+import { getListPeopleQueryKey, useCreatePerson } from "../api/generated/sbl";
 import { useInvalidate } from "../api/useApi";
 import { Field, Message } from "../components/Form";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { AfterCreate, CancelButton, NewEntryPage } from "./AdminNewPage";
 
-/** `/office/sailors/new` — Story V-4: the person, independent of any club or competition.
+/** `/office/people/new` — Story V-4: the person, independent of any club or competition.
  *  Club membership and squads are separate steps on the club screen. */
 export function AdminSailorNew() {
   const { t } = useTranslation("admin");
@@ -17,10 +17,10 @@ export function AdminSailorNew() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
 
-  const create = useCreateSailor({
+  const create = useCreatePerson({
     // No params: the generated key is `["/api/admin/sailors"]`, which is a prefix of every
     // search variant, so one call clears them all.
-    mutation: { onSuccess: () => invalidate(getListSailorsQueryKey()) },
+    mutation: { onSuccess: () => invalidate(getListPeopleQueryKey()) },
   });
   const reset = () => {
     setFirstName("");
@@ -30,10 +30,10 @@ export function AdminSailorNew() {
   };
 
   return (
-    <NewEntryPage title={t("sailors.newButton")} area="sailors" testId="admin-sailors-new">
+    <NewEntryPage title={t("sailors.newButton")} area="people" testId="admin-people-new">
       {!create.isSuccess && (
         <form
-          data-testid="admin-sailors-create-form"
+          data-testid="admin-people-create-form"
           className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_1fr_1.4fr] sm:items-end"
           onSubmit={(e: FormEvent) => {
             e.preventDefault();
@@ -48,7 +48,7 @@ export function AdminSailorNew() {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
-              data-testid="admin-sailors-first-name-input"
+              data-testid="admin-people-first-name-input"
             />
           </Field>
           <Field label={t("sailors.lastNameLabel")}>
@@ -57,7 +57,7 @@ export function AdminSailorNew() {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
-              data-testid="admin-sailors-last-name-input"
+              data-testid="admin-people-last-name-input"
             />
           </Field>
           <Field label={t("sailors.emailLabel")}>
@@ -68,23 +68,23 @@ export function AdminSailorNew() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder={t("sailors.emailPlaceholder")}
-              data-testid="admin-sailors-email-input"
+              data-testid="admin-people-email-input"
             />
           </Field>
           <div className="flex flex-wrap items-center gap-3 sm:col-span-3">
             <Button
               type="submit"
               isDisabled={create.isPending || !firstName.trim() || !lastName.trim() || !email.trim()}
-              data-testid="admin-sailors-create-button"
+              data-testid="admin-people-create-button"
             >
               {create.isPending ? t("sailors.creatingButton") : t("sailors.createButton")}
             </Button>
-            <CancelButton section="sailors" testId="admin-sailors-cancel-button" />
+            <CancelButton section="people" testId="admin-people-cancel-button" />
           </div>
         </form>
       )}
       <Message
-        testId="admin-sailors-create-message"
+        testId="admin-people-create-message"
         error={create.isError ? errorText(create.error) : null}
         success={
           create.isSuccess
@@ -92,7 +92,7 @@ export function AdminSailorNew() {
             : null
         }
       />
-      {create.isSuccess && <AfterCreate section="sailors" onAnother={reset} testIdPrefix="admin-sailors" />}
+      {create.isSuccess && <AfterCreate section="people" onAnother={reset} testIdPrefix="admin-people" />}
     </NewEntryPage>
   );
 }

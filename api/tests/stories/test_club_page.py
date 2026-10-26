@@ -64,30 +64,30 @@ class TestClubPage:
 class TestSailorPage:
     """B-8: As a visitor, I want to see who someone is registered with and where they sail."""
 
-    async def _first_sailor(self, client) -> dict:
+    async def _first_person(self, client) -> dict:
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
         return club["teams"][0]["members"][0]
 
     async def test_page_names_club_and_series(self, client):
-        member = await self._first_sailor(client)
-        sailor = (await client.get(f"/api/sailors/{member['id']}")).json()
+        member = await self._first_person(client)
+        person = (await client.get(f"/api/people/{member['id']}")).json()
 
-        assert sailor["first_name"] == member["first_name"]
-        assert sailor["teams"], "Person should be registered for at least one series"
-        entry = sailor["teams"][0]
+        assert person["first_name"] == member["first_name"]
+        assert person["teams"], "Person should be registered for at least one series"
+        entry = person["teams"][0]
         assert entry["club"]["name"]
         assert "2026" in entry["series"]["name"]
         # No contact data on a public page.
-        assert "email" not in sailor
-        assert "birth_date" not in sailor
+        assert "email" not in person
+        assert "birth_date" not in person
 
     async def test_page_shows_matchdays_they_are_lined_up_for(self, client):
-        member = await self._first_sailor(client)
-        sailor = (await client.get(f"/api/sailors/{member['id']}")).json()
+        member = await self._first_person(client)
+        person = (await client.get(f"/api/people/{member['id']}")).json()
 
         # The helm sails all three matchdays.
-        assert len(sailor["events"]) == 3
-        for entry in sailor["events"]:
+        assert len(person["events"]) == 3
+        for entry in person["events"]:
             assert entry["event"]["title"]
             assert entry["role"] == "helm"
 
@@ -97,6 +97,6 @@ class TestSailorPage:
         substitutes = [m for m in club["teams"][0]["members"] if m["role"] == "substitute"]
         assert substitutes, "Seed should contain substitutes"
 
-        sailor = (await client.get(f"/api/sailors/{substitutes[0]['id']}")).json()
-        assert sailor["events"] == []
-        assert sailor["teams"], "Registered nonetheless"
+        person = (await client.get(f"/api/people/{substitutes[0]['id']}")).json()
+        assert person["events"] == []
+        assert person["teams"], "Registered nonetheless"

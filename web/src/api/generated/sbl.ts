@@ -88,7 +88,7 @@ import type {
   FromUrl,
   GetClubParams,
   GetLeagueSeasonParams,
-  GetSailorParams,
+  GetPersonParams,
   GuardianOut,
   Health200,
   ImportKeyCreate,
@@ -111,8 +111,8 @@ import type {
   ListLeagueMediaParams,
   ListMediaParams,
   ListPendingApplicationsParams,
+  ListPeopleParams,
   ListPostsParams,
-  ListSailorsParams,
   ListSeriesParams,
   ListUsersParams,
   LiveNowOut,
@@ -135,10 +135,10 @@ import type {
   PageClubOut,
   PageEventOut,
   PageMediaOut,
+  PagePersonAdminOut,
   PagePostAdminSummary,
   PagePostSummary,
   PagePublicPicture,
-  PageSailorAdminOut,
   PageSeriesAdminOut,
   PageUserOut,
   PairingImportRequest,
@@ -149,6 +149,13 @@ import type {
   PasswordLogin,
   PasswordSet,
   PayBody,
+  PersonAdminOut,
+  PersonCreate,
+  PersonDetail,
+  PersonGuardiansOut,
+  PersonMeOut,
+  PersonMeUpdate,
+  PersonUpdate,
   PersonalDocumentOut,
   PostAdminOut,
   PostCreate,
@@ -167,13 +174,6 @@ import type {
   Registration,
   RunCreate,
   RunOut,
-  SailorAdminOut,
-  SailorCreate,
-  SailorDetail,
-  SailorGuardiansOut,
-  SailorMeOut,
-  SailorMeUpdate,
-  SailorUpdate,
   SeriesAdminOut,
   SeriesAssignment,
   SeriesCreate,
@@ -222,12 +222,12 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getGetMySailorUrl = () => {
+export const getGetMyPersonUrl = () => {
 
 
 
 
-  return `/api/sailors/me`
+  return `/api/people/me`
 }
 
 /**
@@ -235,11 +235,11 @@ export const getGetMySailorUrl = () => {
  *
  * Not every account has a linked sailor — an admin-only account, for instance. That is
  * not an error, just nothing to show here (404, not a crash).
- * @summary My own sailor record
+ * @summary My own person record
  */
-export const getMySailor = async ( options?: RequestInit): Promise<SailorMeOut> => {
+export const getMyPerson = async ( options?: RequestInit): Promise<PersonMeOut> => {
 
-  return http<SailorMeOut>(getGetMySailorUrl(),
+  return http<PersonMeOut>(getGetMyPersonUrl(),
   {
     ...options,
     method: 'GET'
@@ -252,69 +252,69 @@ export const getMySailor = async ( options?: RequestInit): Promise<SailorMeOut> 
 
 
 
-export const getGetMySailorQueryKey = () => {
+export const getGetMyPersonQueryKey = () => {
     return [
-    `/api/sailors/me`
+    `/api/people/me`
     ] as const;
     }
 
 
-export const getGetMySailorQueryOptions = <TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>>, }
+export const getGetMyPersonQueryOptions = <TData = Awaited<ReturnType<typeof getMyPerson>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPerson>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetMySailorQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetMyPersonQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMySailor>>> = ({ signal }) => getMySailor({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyPerson>>> = ({ signal }) => getMyPerson({ signal });
 
 
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyPerson>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetMySailorQueryResult = NonNullable<Awaited<ReturnType<typeof getMySailor>>>
-export type GetMySailorQueryError = ErrorType<ProblemDetails>
+export type GetMyPersonQueryResult = NonNullable<Awaited<ReturnType<typeof getMyPerson>>>
+export type GetMyPersonQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>> & Pick<
+export function useGetMyPerson<TData = Awaited<ReturnType<typeof getMyPerson>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPerson>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getMySailor>>,
+          Awaited<ReturnType<typeof getMyPerson>>,
           TError,
-          Awaited<ReturnType<typeof getMySailor>>
+          Awaited<ReturnType<typeof getMyPerson>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>> & Pick<
+export function useGetMyPerson<TData = Awaited<ReturnType<typeof getMyPerson>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPerson>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getMySailor>>,
+          Awaited<ReturnType<typeof getMyPerson>>,
           TError,
-          Awaited<ReturnType<typeof getMySailor>>
+          Awaited<ReturnType<typeof getMyPerson>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>>, }
+export function useGetMyPerson<TData = Awaited<ReturnType<typeof getMyPerson>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPerson>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary My own sailor record
+ * @summary My own person record
  */
 
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>>, }
+export function useGetMyPerson<TData = Awaited<ReturnType<typeof getMyPerson>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyPerson>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetMySailorQueryOptions(options)
+  const queryOptions = getGetMyPersonQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -327,21 +327,21 @@ export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, 
 
 
 
-export const getUpdateMySailorUrl = () => {
+export const getUpdateMyPersonUrl = () => {
 
 
 
 
-  return `/api/sailors/me`
+  return `/api/people/me`
 }
 
 /**
  * A sailor corrects their own name or birthdate — the same fields a team manager or
- * admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
+ * admin can already set via `PATCH /api/admin/people/{id}`, just scoped to "my own
  * record" instead of requiring `_can_manage_master_data`.
- * @summary Edit my own sailor record
+ * @summary Edit my own person record
  */
-export const updateMySailor = async (sailorMeUpdate: SailorMeUpdate, options?: RequestInit): Promise<SailorMeOut> => {
+export const updateMyPerson = async (personMeUpdate: PersonMeUpdate, options?: RequestInit): Promise<PersonMeOut> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -357,12 +357,12 @@ export const updateMySailor = async (sailorMeUpdate: SailorMeUpdate, options?: R
     }
     return headers;
   };
-return http<SailorMeOut>(getUpdateMySailorUrl(),
+return http<PersonMeOut>(getUpdateMyPersonUrl(),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(sailorMeUpdate)
+    body: JSON.stringify(personMeUpdate)
   }
 );}
 
@@ -370,13 +370,13 @@ return http<SailorMeOut>(getUpdateMySailorUrl(),
 
 
 
-export const getUpdateMySailorMutationKey = () => ['updateMySailor'] as const;
+export const getUpdateMyPersonMutationKey = () => ['updateMyPerson'] as const;
 
-export const getUpdateMySailorMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMySailor>>, TError,UpdateMySailorMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateMySailor>>, TError,UpdateMySailorMutationVariables, TContext> => {
+export const getUpdateMyPersonMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyPerson>>, TError,UpdateMyPersonMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateMyPerson>>, TError,UpdateMyPersonMutationVariables, TContext> => {
 
-const mutationKey = getUpdateMySailorMutationKey();
+const mutationKey = getUpdateMyPersonMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -386,10 +386,10 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMySailor>>, UpdateMySailorMutationVariables> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMyPerson>>, UpdateMyPersonMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  updateMySailor(data,)
+          return  updateMyPerson(data,)
         }
 
 
@@ -399,23 +399,23 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type UpdateMySailorMutationResult = NonNullable<Awaited<ReturnType<typeof updateMySailor>>>
-    export type UpdateMySailorMutationBody = BodyType<SailorMeUpdate>
-    export type UpdateMySailorMutationError = ErrorType<ProblemDetails>
-    export type UpdateMySailorMutationVariables = {data: BodyType<SailorMeUpdate>}
+    export type UpdateMyPersonMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyPerson>>>
+    export type UpdateMyPersonMutationBody = BodyType<PersonMeUpdate>
+    export type UpdateMyPersonMutationError = ErrorType<ProblemDetails>
+    export type UpdateMyPersonMutationVariables = {data: BodyType<PersonMeUpdate>}
 
     /**
- * @summary Edit my own sailor record
+ * @summary Edit my own person record
  */
-export const useUpdateMySailor = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMySailor>>, TError,UpdateMySailorMutationVariables, TContext>, }
+export const useUpdateMyPerson = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMyPerson>>, TError,UpdateMyPersonMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateMySailor>>,
+        Awaited<ReturnType<typeof updateMyPerson>>,
         TError,
-        UpdateMySailorMutationVariables,
+        UpdateMyPersonMutationVariables,
         TContext
       > => {
-      return useMutation(getUpdateMySailorMutationOptions(options), queryClient);
+      return useMutation(getUpdateMyPersonMutationOptions(options), queryClient);
     }
 
 export const getUploadMyPhotoUrl = () => {
@@ -423,17 +423,17 @@ export const getUploadMyPhotoUrl = () => {
 
 
 
-  return `/api/sailors/me/photo`
+  return `/api/people/me/photo`
 }
 
 /**
  * @summary Upload or replace my photo
  */
-export const uploadMyPhoto = async (bodyUploadMyPhoto: BodyUploadMyPhoto, options?: RequestInit): Promise<SailorMeOut> => {
+export const uploadMyPhoto = async (bodyUploadMyPhoto: BodyUploadMyPhoto, options?: RequestInit): Promise<PersonMeOut> => {
     const formData = new FormData();
 formData.append(`file`, bodyUploadMyPhoto.file);
 
-  return http<SailorMeOut>(getUploadMyPhotoUrl(),
+  return http<PersonMeOut>(getUploadMyPhotoUrl(),
   {
     ...options,
     method: 'POST'
@@ -499,7 +499,7 @@ export const getDeleteMyPhotoUrl = () => {
 
 
 
-  return `/api/sailors/me/photo`
+  return `/api/people/me/photo`
 }
 
 /**
@@ -569,23 +569,23 @@ export const useDeleteMyPhoto = <TError = ErrorType<ProblemDetails>,
       return useMutation(getDeleteMyPhotoMutationOptions(options), queryClient);
     }
 
-export const getGetSailorPhotoUrl = (sailorId: number,) => {
+export const getGetPersonPhotoUrl = (personId: number,) => {
 
 
 
 
-  return `/api/sailors/${sailorId}/photo`
+  return `/api/people/${personId}/photo`
 }
 
 /**
  * Serves the stored photo — see `_save_photo` for the minors-visibility rule this
  * enforces. There is no placeholder here: the frontend already renders one when
  * `has_photo` is false, so a missing file is simply a 404.
- * @summary A sailor's photo
+ * @summary A person's photo
  */
-export const getSailorPhoto = async (sailorId: number, options?: RequestInit): Promise<unknown> => {
+export const getPersonPhoto = async (personId: number, options?: RequestInit): Promise<unknown> => {
 
-  return http<unknown>(getGetSailorPhotoUrl(sailorId),
+  return http<unknown>(getGetPersonPhotoUrl(personId),
   {
     ...options,
     method: 'GET'
@@ -598,69 +598,69 @@ export const getSailorPhoto = async (sailorId: number, options?: RequestInit): P
 
 
 
-export const getGetSailorPhotoQueryKey = (sailorId: number,) => {
+export const getGetPersonPhotoQueryKey = (personId: number,) => {
     return [
-    `/api/sailors/${sailorId}/photo`
+    `/api/people/${personId}/photo`
     ] as const;
     }
 
 
-export const getGetSailorPhotoQueryOptions = <TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>>, }
+export const getGetPersonPhotoQueryOptions = <TData = Awaited<ReturnType<typeof getPersonPhoto>>, TError = ErrorType<ProblemDetails>>(personId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPersonPhoto>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetSailorPhotoQueryKey(sailorId);
+  const queryKey =  queryOptions?.queryKey ?? getGetPersonPhotoQueryKey(personId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSailorPhoto>>> = ({ signal }) => getSailorPhoto(sailorId, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPersonPhoto>>> = ({ signal }) => getPersonPhoto(personId, { signal });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: sailorId !== null && sailorId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: personId !== null && personId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPersonPhoto>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetSailorPhotoQueryResult = NonNullable<Awaited<ReturnType<typeof getSailorPhoto>>>
-export type GetSailorPhotoQueryError = ErrorType<ProblemDetails>
+export type GetPersonPhotoQueryResult = NonNullable<Awaited<ReturnType<typeof getPersonPhoto>>>
+export type GetPersonPhotoQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>> & Pick<
+export function useGetPersonPhoto<TData = Awaited<ReturnType<typeof getPersonPhoto>>, TError = ErrorType<ProblemDetails>>(
+ personId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPersonPhoto>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getSailorPhoto>>,
+          Awaited<ReturnType<typeof getPersonPhoto>>,
           TError,
-          Awaited<ReturnType<typeof getSailorPhoto>>
+          Awaited<ReturnType<typeof getPersonPhoto>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>> & Pick<
+export function useGetPersonPhoto<TData = Awaited<ReturnType<typeof getPersonPhoto>>, TError = ErrorType<ProblemDetails>>(
+ personId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPersonPhoto>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getSailorPhoto>>,
+          Awaited<ReturnType<typeof getPersonPhoto>>,
           TError,
-          Awaited<ReturnType<typeof getSailorPhoto>>
+          Awaited<ReturnType<typeof getPersonPhoto>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>>, }
+export function useGetPersonPhoto<TData = Awaited<ReturnType<typeof getPersonPhoto>>, TError = ErrorType<ProblemDetails>>(
+ personId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPersonPhoto>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary A sailor's photo
+ * @summary A person's photo
  */
 
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>>, }
+export function useGetPersonPhoto<TData = Awaited<ReturnType<typeof getPersonPhoto>>, TError = ErrorType<ProblemDetails>>(
+ personId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPersonPhoto>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetSailorPhotoQueryOptions(sailorId,options)
+  const queryOptions = getGetPersonPhotoQueryOptions(personId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -1681,8 +1681,8 @@ export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, 
 
 
 
-export const getGetSailorUrl = (sailorId: number,
-    params?: GetSailorParams,) => {
+export const getGetPersonUrl = (personId: number,
+    params?: GetPersonParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -1694,7 +1694,7 @@ export const getGetSailorUrl = (sailorId: number,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/api/sailors/${sailorId}?${stringifiedParams}` : `/api/sailors/${sailorId}`
+  return stringifiedParams.length > 0 ? `/api/people/${personId}?${stringifiedParams}` : `/api/people/${personId}`
 }
 
 /**
@@ -1707,13 +1707,13 @@ export const getGetSailorUrl = (sailorId: number,
  *
  * A sailor who switched their page off (Story S-4) gets the **same** 404 as nobody at
  * all, so the page does not confirm to a guesser that the person exists; the people
- * connected to them (`connected_to_sailor`) still open it.
- * @summary Get Sailor
+ * connected to them (`connected_to_person`) still open it.
+ * @summary Get Person
  */
-export const getSailor = async (sailorId: number,
-    params?: GetSailorParams, options?: RequestInit): Promise<SailorDetail> => {
+export const getPerson = async (personId: number,
+    params?: GetPersonParams, options?: RequestInit): Promise<PersonDetail> => {
 
-  return http<SailorDetail>(getGetSailorUrl(sailorId,params),
+  return http<PersonDetail>(getGetPersonUrl(personId,params),
   {
     ...options,
     method: 'GET'
@@ -1726,75 +1726,75 @@ export const getSailor = async (sailorId: number,
 
 
 
-export const getGetSailorQueryKey = (sailorId: number,
-    params?: GetSailorParams,) => {
+export const getGetPersonQueryKey = (personId: number,
+    params?: GetPersonParams,) => {
     return [
-    `/api/sailors/${sailorId}`, ...(params ? [params] : [])
+    `/api/people/${personId}`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetSailorQueryOptions = <TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(sailorId: number,
-    params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>>, }
+export const getGetPersonQueryOptions = <TData = Awaited<ReturnType<typeof getPerson>>, TError = ErrorType<ProblemDetails>>(personId: number,
+    params?: GetPersonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPerson>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetSailorQueryKey(sailorId,params);
+  const queryKey =  queryOptions?.queryKey ?? getGetPersonQueryKey(personId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSailor>>> = ({ signal }) => getSailor(sailorId,params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPerson>>> = ({ signal }) => getPerson(personId,params, { signal });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: sailorId !== null && sailorId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: personId !== null && personId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPerson>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetSailorQueryResult = NonNullable<Awaited<ReturnType<typeof getSailor>>>
-export type GetSailorQueryError = ErrorType<ProblemDetails>
+export type GetPersonQueryResult = NonNullable<Awaited<ReturnType<typeof getPerson>>>
+export type GetPersonQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number,
-    params: undefined |  GetSailorParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>> & Pick<
+export function useGetPerson<TData = Awaited<ReturnType<typeof getPerson>>, TError = ErrorType<ProblemDetails>>(
+ personId: number,
+    params: undefined |  GetPersonParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPerson>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getSailor>>,
+          Awaited<ReturnType<typeof getPerson>>,
           TError,
-          Awaited<ReturnType<typeof getSailor>>
+          Awaited<ReturnType<typeof getPerson>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number,
-    params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>> & Pick<
+export function useGetPerson<TData = Awaited<ReturnType<typeof getPerson>>, TError = ErrorType<ProblemDetails>>(
+ personId: number,
+    params?: GetPersonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPerson>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getSailor>>,
+          Awaited<ReturnType<typeof getPerson>>,
           TError,
-          Awaited<ReturnType<typeof getSailor>>
+          Awaited<ReturnType<typeof getPerson>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number,
-    params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>>, }
+export function useGetPerson<TData = Awaited<ReturnType<typeof getPerson>>, TError = ErrorType<ProblemDetails>>(
+ personId: number,
+    params?: GetPersonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPerson>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get Sailor
+ * @summary Get Person
  */
 
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
- sailorId: number,
-    params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>>, }
+export function useGetPerson<TData = Awaited<ReturnType<typeof getPerson>>, TError = ErrorType<ProblemDetails>>(
+ personId: number,
+    params?: GetPersonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPerson>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetSailorQueryOptions(sailorId,params,options)
+  const queryOptions = getGetPersonQueryOptions(personId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -3520,7 +3520,7 @@ export const getDeleteMyAccountUrl = () => {
  * become a deactivation too, or gain a precondition ("no active registrations"). Revisit
  * before real seasons depend on this data — don't just leave it as-is.
  *
- * A ``Sailor`` is a separate record linked only by email, never by foreign key, so
+ * A ``Person`` is a separate record linked only by email, never by foreign key, so
  * deleting the account never touches squad, series, or event history — only the account
  * row and the administrative records that point at it by id.
  * @summary Delete my account
@@ -9517,7 +9517,7 @@ export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMem
 
 
 
-export const getListSailorsUrl = (params?: ListSailorsParams,) => {
+export const getListPeopleUrl = (params?: ListPeopleParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -9529,7 +9529,7 @@ export const getListSailorsUrl = (params?: ListSailorsParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/api/admin/sailors?${stringifiedParams}` : `/api/admin/sailors`
+  return stringifiedParams.length > 0 ? `/api/admin/people?${stringifiedParams}` : `/api/admin/people`
 }
 
 /**
@@ -9538,11 +9538,11 @@ export const getListSailorsUrl = (params?: ListSailorsParams,) => {
  * This used to answer with up to 500 rows and offer no way to ask for the 501st, so the
  * screen showed whatever the first 500 happened to be and the rest of the register was
  * reachable only by guessing a search term.
- * @summary Search sailors
+ * @summary Search people
  */
-export const listSailors = async (params?: ListSailorsParams, options?: RequestInit): Promise<PageSailorAdminOut> => {
+export const listPeople = async (params?: ListPeopleParams, options?: RequestInit): Promise<PagePersonAdminOut> => {
 
-  return http<PageSailorAdminOut>(getListSailorsUrl(params),
+  return http<PagePersonAdminOut>(getListPeopleUrl(params),
   {
     ...options,
     method: 'GET'
@@ -9555,69 +9555,69 @@ export const listSailors = async (params?: ListSailorsParams, options?: RequestI
 
 
 
-export const getListSailorsQueryKey = (params?: ListSailorsParams,) => {
+export const getListPeopleQueryKey = (params?: ListPeopleParams,) => {
     return [
-    `/api/admin/sailors`, ...(params ? [params] : [])
+    `/api/admin/people`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListSailorsQueryOptions = <TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>>, }
+export const getListPeopleQueryOptions = <TData = Awaited<ReturnType<typeof listPeople>>, TError = ErrorType<ProblemDetails>>(params?: ListPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeople>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListSailorsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getListPeopleQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSailors>>> = ({ signal }) => listSailors(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPeople>>> = ({ signal }) => listPeople(params, { signal });
 
 
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPeople>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type ListSailorsQueryResult = NonNullable<Awaited<ReturnType<typeof listSailors>>>
-export type ListSailorsQueryError = ErrorType<ProblemDetails>
+export type ListPeopleQueryResult = NonNullable<Awaited<ReturnType<typeof listPeople>>>
+export type ListPeopleQueryError = ErrorType<ProblemDetails>
 
 
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
- params: undefined |  ListSailorsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>> & Pick<
+export function useListPeople<TData = Awaited<ReturnType<typeof listPeople>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListPeopleParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeople>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listSailors>>,
+          Awaited<ReturnType<typeof listPeople>>,
           TError,
-          Awaited<ReturnType<typeof listSailors>>
+          Awaited<ReturnType<typeof listPeople>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
- params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>> & Pick<
+export function useListPeople<TData = Awaited<ReturnType<typeof listPeople>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeople>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listSailors>>,
+          Awaited<ReturnType<typeof listPeople>>,
           TError,
-          Awaited<ReturnType<typeof listSailors>>
+          Awaited<ReturnType<typeof listPeople>>
         > , 'initialData'
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
- params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>>, }
+export function useListPeople<TData = Awaited<ReturnType<typeof listPeople>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeople>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Search sailors
+ * @summary Search people
  */
 
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
- params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>>, }
+export function useListPeople<TData = Awaited<ReturnType<typeof listPeople>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPeople>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListSailorsQueryOptions(params,options)
+  const queryOptions = getListPeopleQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -9630,12 +9630,12 @@ export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, 
 
 
 
-export const getCreateSailorUrl = () => {
+export const getCreatePersonUrl = () => {
 
 
 
 
-  return `/api/admin/sailors`
+  return `/api/admin/people`
 }
 
 /**
@@ -9644,9 +9644,9 @@ export const getCreateSailorUrl = () => {
  * They don't belong to any competition yet — that comes with squad registration. A
  * club's organizer creates people for a club they organize; only the league office
  * creates someone who sails for no club yet.
- * @summary Create sailor
+ * @summary Create person
  */
-export const createSailor = async (sailorCreate: SailorCreate, options?: RequestInit): Promise<SailorAdminOut> => {
+export const createPerson = async (personCreate: PersonCreate, options?: RequestInit): Promise<PersonAdminOut> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -9662,12 +9662,12 @@ export const createSailor = async (sailorCreate: SailorCreate, options?: Request
     }
     return headers;
   };
-return http<SailorAdminOut>(getCreateSailorUrl(),
+return http<PersonAdminOut>(getCreatePersonUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(sailorCreate)
+    body: JSON.stringify(personCreate)
   }
 );}
 
@@ -9675,13 +9675,13 @@ return http<SailorAdminOut>(getCreateSailorUrl(),
 
 
 
-export const getCreateSailorMutationKey = () => ['createSailor'] as const;
+export const getCreatePersonMutationKey = () => ['createPerson'] as const;
 
-export const getCreateSailorMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSailor>>, TError,CreateSailorMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof createSailor>>, TError,CreateSailorMutationVariables, TContext> => {
+export const getCreatePersonMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPerson>>, TError,CreatePersonMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createPerson>>, TError,CreatePersonMutationVariables, TContext> => {
 
-const mutationKey = getCreateSailorMutationKey();
+const mutationKey = getCreatePersonMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -9691,10 +9691,10 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSailor>>, CreateSailorMutationVariables> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPerson>>, CreatePersonMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  createSailor(data,)
+          return  createPerson(data,)
         }
 
 
@@ -9704,38 +9704,38 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type CreateSailorMutationResult = NonNullable<Awaited<ReturnType<typeof createSailor>>>
-    export type CreateSailorMutationBody = BodyType<SailorCreate>
-    export type CreateSailorMutationError = ErrorType<ProblemDetails>
-    export type CreateSailorMutationVariables = {data: BodyType<SailorCreate>}
+    export type CreatePersonMutationResult = NonNullable<Awaited<ReturnType<typeof createPerson>>>
+    export type CreatePersonMutationBody = BodyType<PersonCreate>
+    export type CreatePersonMutationError = ErrorType<ProblemDetails>
+    export type CreatePersonMutationVariables = {data: BodyType<PersonCreate>}
 
     /**
- * @summary Create sailor
+ * @summary Create person
  */
-export const useCreateSailor = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSailor>>, TError,CreateSailorMutationVariables, TContext>, }
+export const useCreatePerson = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPerson>>, TError,CreatePersonMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof createSailor>>,
+        Awaited<ReturnType<typeof createPerson>>,
         TError,
-        CreateSailorMutationVariables,
+        CreatePersonMutationVariables,
         TContext
       > => {
-      return useMutation(getCreateSailorMutationOptions(options), queryClient);
+      return useMutation(getCreatePersonMutationOptions(options), queryClient);
     }
 
-export const getUpdateSailorUrl = (sailorId: number,) => {
+export const getUpdatePersonUrl = (personId: number,) => {
 
 
 
 
-  return `/api/admin/sailors/${sailorId}`
+  return `/api/admin/people/${personId}`
 }
 
 /**
- * @summary Update sailor
+ * @summary Update person
  */
-export const updateSailor = async (sailorId: number,
-    sailorUpdate: SailorUpdate, options?: RequestInit): Promise<SailorAdminOut> => {
+export const updatePerson = async (personId: number,
+    personUpdate: PersonUpdate, options?: RequestInit): Promise<PersonAdminOut> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -9751,12 +9751,12 @@ export const updateSailor = async (sailorId: number,
     }
     return headers;
   };
-return http<SailorAdminOut>(getUpdateSailorUrl(sailorId),
+return http<PersonAdminOut>(getUpdatePersonUrl(personId),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(sailorUpdate)
+    body: JSON.stringify(personUpdate)
   }
 );}
 
@@ -9764,13 +9764,13 @@ return http<SailorAdminOut>(getUpdateSailorUrl(sailorId),
 
 
 
-export const getUpdateSailorMutationKey = () => ['updateSailor'] as const;
+export const getUpdatePersonMutationKey = () => ['updatePerson'] as const;
 
-export const getUpdateSailorMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSailor>>, TError,UpdateSailorMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof updateSailor>>, TError,UpdateSailorMutationVariables, TContext> => {
+export const getUpdatePersonMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePerson>>, TError,UpdatePersonMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updatePerson>>, TError,UpdatePersonMutationVariables, TContext> => {
 
-const mutationKey = getUpdateSailorMutationKey();
+const mutationKey = getUpdatePersonMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -9780,10 +9780,10 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSailor>>, UpdateSailorMutationVariables> = (props) => {
-          const {sailorId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePerson>>, UpdatePersonMutationVariables> = (props) => {
+          const {personId,data} = props ?? {};
 
-          return  updateSailor(sailorId,data,)
+          return  updatePerson(personId,data,)
         }
 
 
@@ -9793,43 +9793,43 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type UpdateSailorMutationResult = NonNullable<Awaited<ReturnType<typeof updateSailor>>>
-    export type UpdateSailorMutationBody = BodyType<SailorUpdate>
-    export type UpdateSailorMutationError = ErrorType<ProblemDetails>
-    export type UpdateSailorMutationVariables = {sailorId: number;data: BodyType<SailorUpdate>}
+    export type UpdatePersonMutationResult = NonNullable<Awaited<ReturnType<typeof updatePerson>>>
+    export type UpdatePersonMutationBody = BodyType<PersonUpdate>
+    export type UpdatePersonMutationError = ErrorType<ProblemDetails>
+    export type UpdatePersonMutationVariables = {personId: number;data: BodyType<PersonUpdate>}
 
     /**
- * @summary Update sailor
+ * @summary Update person
  */
-export const useUpdateSailor = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSailor>>, TError,UpdateSailorMutationVariables, TContext>, }
+export const useUpdatePerson = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePerson>>, TError,UpdatePersonMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updateSailor>>,
+        Awaited<ReturnType<typeof updatePerson>>,
         TError,
-        UpdateSailorMutationVariables,
+        UpdatePersonMutationVariables,
         TContext
       > => {
-      return useMutation(getUpdateSailorMutationOptions(options), queryClient);
+      return useMutation(getUpdatePersonMutationOptions(options), queryClient);
     }
 
-export const getDisconnectSailorFromClubUrl = (sailorId: number,
+export const getDisconnectPersonFromClubUrl = (personId: number,
     clubId: number,) => {
 
 
 
 
-  return `/api/admin/sailors/${sailorId}/clubs/${clubId}`
+  return `/api/admin/people/${personId}/clubs/${clubId}`
 }
 
 /**
  * Story V-4: a club lets someone go — its own connection, never another club's. The
  * squads they are in stay as they are; the club just stops being theirs to change.
- * @summary The sailor no longer sails for this club
+ * @summary The person no longer sails for this club
  */
-export const disconnectSailorFromClub = async (sailorId: number,
-    clubId: number, options?: RequestInit): Promise<SailorAdminOut> => {
+export const disconnectPersonFromClub = async (personId: number,
+    clubId: number, options?: RequestInit): Promise<PersonAdminOut> => {
 
-  return http<SailorAdminOut>(getDisconnectSailorFromClubUrl(sailorId,clubId),
+  return http<PersonAdminOut>(getDisconnectPersonFromClubUrl(personId,clubId),
   {
     ...options,
     method: 'DELETE'
@@ -9842,13 +9842,13 @@ export const disconnectSailorFromClub = async (sailorId: number,
 
 
 
-export const getDisconnectSailorFromClubMutationKey = () => ['disconnectSailorFromClub'] as const;
+export const getDisconnectPersonFromClubMutationKey = () => ['disconnectPersonFromClub'] as const;
 
-export const getDisconnectSailorFromClubMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectSailorFromClub>>, TError,DisconnectSailorFromClubMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof disconnectSailorFromClub>>, TError,DisconnectSailorFromClubMutationVariables, TContext> => {
+export const getDisconnectPersonFromClubMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectPersonFromClub>>, TError,DisconnectPersonFromClubMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof disconnectPersonFromClub>>, TError,DisconnectPersonFromClubMutationVariables, TContext> => {
 
-const mutationKey = getDisconnectSailorFromClubMutationKey();
+const mutationKey = getDisconnectPersonFromClubMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -9858,10 +9858,10 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disconnectSailorFromClub>>, DisconnectSailorFromClubMutationVariables> = (props) => {
-          const {sailorId,clubId} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disconnectPersonFromClub>>, DisconnectPersonFromClubMutationVariables> = (props) => {
+          const {personId,clubId} = props ?? {};
 
-          return  disconnectSailorFromClub(sailorId,clubId,)
+          return  disconnectPersonFromClub(personId,clubId,)
         }
 
 
@@ -9871,23 +9871,23 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type DisconnectSailorFromClubMutationResult = NonNullable<Awaited<ReturnType<typeof disconnectSailorFromClub>>>
+    export type DisconnectPersonFromClubMutationResult = NonNullable<Awaited<ReturnType<typeof disconnectPersonFromClub>>>
 
-    export type DisconnectSailorFromClubMutationError = ErrorType<ProblemDetails>
-    export type DisconnectSailorFromClubMutationVariables = {sailorId: number;clubId: number}
+    export type DisconnectPersonFromClubMutationError = ErrorType<ProblemDetails>
+    export type DisconnectPersonFromClubMutationVariables = {personId: number;clubId: number}
 
     /**
- * @summary The sailor no longer sails for this club
+ * @summary The person no longer sails for this club
  */
-export const useDisconnectSailorFromClub = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectSailorFromClub>>, TError,DisconnectSailorFromClubMutationVariables, TContext>, }
+export const useDisconnectPersonFromClub = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectPersonFromClub>>, TError,DisconnectPersonFromClubMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof disconnectSailorFromClub>>,
+        Awaited<ReturnType<typeof disconnectPersonFromClub>>,
         TError,
-        DisconnectSailorFromClubMutationVariables,
+        DisconnectPersonFromClubMutationVariables,
         TContext
       > => {
-      return useMutation(getDisconnectSailorFromClubMutationOptions(options), queryClient);
+      return useMutation(getDisconnectPersonFromClubMutationOptions(options), queryClient);
     }
 
 export const getGetSquadUrl = (teamId: number,) => {
@@ -10210,7 +10210,7 @@ export const getMyWaiversUrl = () => {
 /**
  * Story S-1: the account page's list — one row per series the sailor is registered
  * in and per stand-alone event they are entered in, each with the same status the
- * organizer's list would show. 404 `no-linked-sailor-record` when the account has no
+ * organizer's list would show. 404 `no-linked-person-record` when the account has no
  * sailor, exactly as the profile does.
  * @summary What I have to sign, and where I stand
  */
@@ -10909,7 +10909,7 @@ export const uploadSeriesWaiverScan = async (seriesId: number,
     bodyUploadSeriesWaiverScan: BodyUploadSeriesWaiverScan, options?: RequestInit): Promise<WaiverConfirmationOut> => {
     const formData = new FormData();
 formData.append(`file`, bodyUploadSeriesWaiverScan.file);
-formData.append(`sailor_id`, bodyUploadSeriesWaiverScan.sailor_id.toString())
+formData.append(`person_id`, bodyUploadSeriesWaiverScan.person_id.toString())
 if(bodyUploadSeriesWaiverScan.guardian_name !== undefined && bodyUploadSeriesWaiverScan.guardian_name !== null) {
  formData.append(`guardian_name`, bodyUploadSeriesWaiverScan.guardian_name);
  }
@@ -10993,7 +10993,7 @@ export const uploadEventWaiverScan = async (eventId: number,
     bodyUploadEventWaiverScan: BodyUploadEventWaiverScan, options?: RequestInit): Promise<WaiverConfirmationOut> => {
     const formData = new FormData();
 formData.append(`file`, bodyUploadEventWaiverScan.file);
-formData.append(`sailor_id`, bodyUploadEventWaiverScan.sailor_id.toString())
+formData.append(`person_id`, bodyUploadEventWaiverScan.person_id.toString())
 if(bodyUploadEventWaiverScan.guardian_name !== undefined && bodyUploadEventWaiverScan.guardian_name !== null) {
  formData.append(`guardian_name`, bodyUploadEventWaiverScan.guardian_name);
  }
@@ -11389,11 +11389,11 @@ export const getListClubGuardiansUrl = (clubId: number,) => {
 /**
  * Story V-13: for the club's manager or admin — every sailor who sails for the club,
  * with the guardians linked to them.
- * @summary The club's sailors and their guardians
+ * @summary The club's people and their guardians
  */
-export const listClubGuardians = async (clubId: number, options?: RequestInit): Promise<SailorGuardiansOut[]> => {
+export const listClubGuardians = async (clubId: number, options?: RequestInit): Promise<PersonGuardiansOut[]> => {
 
-  return http<SailorGuardiansOut[]>(getListClubGuardiansUrl(clubId),
+  return http<PersonGuardiansOut[]>(getListClubGuardiansUrl(clubId),
   {
     ...options,
     method: 'GET'
@@ -11460,7 +11460,7 @@ export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubG
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary The club's sailors and their guardians
+ * @summary The club's people and their guardians
  */
 
 export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<ProblemDetails>>(
@@ -11481,19 +11481,19 @@ export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubG
 
 
 
-export const getLinkGuardianUrl = (sailorId: number,) => {
+export const getLinkGuardianUrl = (personId: number,) => {
 
 
 
 
-  return `/api/sailors/${sailorId}/guardians`
+  return `/api/people/${personId}/guardians`
 }
 
 /**
  * Story V-13: writes `user:guardian:sailor` for an existing account, by email.
- * @summary Link a parent to a sailor
+ * @summary Link a parent to a person
  */
-export const linkGuardian = async (sailorId: number,
+export const linkGuardian = async (personId: number,
     linkGuardianBody: LinkGuardian, options?: RequestInit): Promise<GuardianOut> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
@@ -11510,7 +11510,7 @@ export const linkGuardian = async (sailorId: number,
     }
     return headers;
   };
-return http<GuardianOut>(getLinkGuardianUrl(sailorId),
+return http<GuardianOut>(getLinkGuardianUrl(personId),
   {
     ...options,
     method: 'POST',
@@ -11540,9 +11540,9 @@ const {mutation: mutationOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof linkGuardian>>, LinkGuardianMutationVariables> = (props) => {
-          const {sailorId,data} = props ?? {};
+          const {personId,data} = props ?? {};
 
-          return  linkGuardian(sailorId,data,)
+          return  linkGuardian(personId,data,)
         }
 
 
@@ -11555,10 +11555,10 @@ const {mutation: mutationOptions} = options ?
     export type LinkGuardianMutationResult = NonNullable<Awaited<ReturnType<typeof linkGuardian>>>
     export type LinkGuardianMutationBody = BodyType<LinkGuardian>
     export type LinkGuardianMutationError = ErrorType<ProblemDetails>
-    export type LinkGuardianMutationVariables = {sailorId: number;data: BodyType<LinkGuardian>}
+    export type LinkGuardianMutationVariables = {personId: number;data: BodyType<LinkGuardian>}
 
     /**
- * @summary Link a parent to a sailor
+ * @summary Link a parent to a person
  */
 export const useLinkGuardian = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkGuardian>>, TError,LinkGuardianMutationVariables, TContext>, }
@@ -11571,22 +11571,22 @@ export const useLinkGuardian = <TError = ErrorType<ProblemDetails>,
       return useMutation(getLinkGuardianMutationOptions(options), queryClient);
     }
 
-export const getUnlinkGuardianUrl = (sailorId: number,
+export const getUnlinkGuardianUrl = (personId: number,
     tupleId: number,) => {
 
 
 
 
-  return `/api/sailors/${sailorId}/guardians/${tupleId}`
+  return `/api/people/${personId}/guardians/${tupleId}`
 }
 
 /**
- * @summary Unlink a parent from a sailor
+ * @summary Unlink a parent from a person
  */
-export const unlinkGuardian = async (sailorId: number,
+export const unlinkGuardian = async (personId: number,
     tupleId: number, options?: RequestInit): Promise<void> => {
 
-  return http<void>(getUnlinkGuardianUrl(sailorId,tupleId),
+  return http<void>(getUnlinkGuardianUrl(personId,tupleId),
   {
     ...options,
     method: 'DELETE'
@@ -11616,9 +11616,9 @@ const {mutation: mutationOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkGuardian>>, UnlinkGuardianMutationVariables> = (props) => {
-          const {sailorId,tupleId} = props ?? {};
+          const {personId,tupleId} = props ?? {};
 
-          return  unlinkGuardian(sailorId,tupleId,)
+          return  unlinkGuardian(personId,tupleId,)
         }
 
 
@@ -11631,10 +11631,10 @@ const {mutation: mutationOptions} = options ?
     export type UnlinkGuardianMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkGuardian>>>
 
     export type UnlinkGuardianMutationError = ErrorType<ProblemDetails>
-    export type UnlinkGuardianMutationVariables = {sailorId: number;tupleId: number}
+    export type UnlinkGuardianMutationVariables = {personId: number;tupleId: number}
 
     /**
- * @summary Unlink a parent from a sailor
+ * @summary Unlink a parent from a person
  */
 export const useUnlinkGuardian = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkGuardian>>, TError,UnlinkGuardianMutationVariables, TContext>, }

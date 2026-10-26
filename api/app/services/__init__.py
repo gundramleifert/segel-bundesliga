@@ -33,7 +33,7 @@ from app.services.standings import (
     series_standings,
 )
 from app.services.waivers import (
-    SailorWaiver,
+    PersonWaiver,
     current_waiver_text,
     event_waiver_status,
     is_minor,
@@ -45,7 +45,7 @@ __all__ = [
     "FrozenConfiguration",
     "ParticipationError",
     "ReadinessReason",
-    "SailorWaiver",
+    "PersonWaiver",
     "SeriesRow",
     "adopt_series_registrations",
     "candidate_clubs",

@@ -8,6 +8,6 @@
 import type { CrewRole } from './crewRole';
 
 export interface CrewMember {
-  sailor_id: number;
+  person_id: number;
   role?: CrewRole;
 }

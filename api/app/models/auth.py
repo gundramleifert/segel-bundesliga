@@ -33,7 +33,7 @@ from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.competition import Event, Series
-    from app.models.org import Club, Sailor
+    from app.models.org import Club, Person
 
 
 class Relation(StrEnum):
@@ -63,7 +63,7 @@ class Relation(StrEnum):
     """Club: belongs to it. Implies nothing else, and nothing implies it."""
 
     GUARDIAN = "guardian"
-    """Sailor: a parent or legal guardian, linked by the child's club (Story V-13) — may
+    """Person: a parent or legal guardian, linked by the child's club (Story V-13) — may
     accept the liability waiver for the child while the child is a minor (Story S-8)."""
 
     HELPER = "helper"
@@ -82,7 +82,7 @@ class ObjectType(StrEnum):
     CLUB = "club"
     SERIES = "series"
     EVENT = "event"
-    SAILOR = "sailor"
+    PERSON = "person"
 
 
 class ObjectRef(NamedTuple):
@@ -136,7 +136,7 @@ SITE = ObjectRef(ObjectType.SITE)
 #: events' costs, so the club's treasurer is that of every event it hosts (Story F-1).
 #: ``helper`` works one event's day and holds no power on it (Story VA-12). A sailor's
 #: ``manager`` is the organizer of a club they sail for (``club`` — every club a
-#: ``SailorClub`` row names, Story V-4): who puts them in a squad, changes them, signs
+#: ``ClubMembership`` row names, Story V-4): who puts them in a squad, changes them, signs
 #: their waiver forms and links their parents.
 MODEL = """
 model
@@ -177,7 +177,7 @@ type event
     define treasurer: [user] or admin or treasurer from host_club
     define editor: [user] or admin or editor from series or editor from site
 
-type sailor
+type person
   relations
     define admin: admin from site
     define manager: admin or manager from club
@@ -244,7 +244,7 @@ GRANT_COLUMN = {
     ObjectType.CLUB: "club_id",
     ObjectType.SERIES: "series_id",
     ObjectType.EVENT: "event_id",
-    ObjectType.SAILOR: "sailor_id",
+    ObjectType.PERSON: "person_id",
 }
 
 
@@ -353,10 +353,10 @@ class Grant(Base, TimestampMixin):
 
     __tablename__ = "access_grant"
     __table_args__ = (
-        UniqueConstraint("user_id", "relation", "club_id", "series_id", "event_id", "sailor_id"),
+        UniqueConstraint("user_id", "relation", "club_id", "series_id", "event_id", "person_id"),
         CheckConstraint(
             "(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL)"
-            " + (sailor_id IS NOT NULL) <= 1",
+            " + (person_id IS NOT NULL) <= 1",
             name="one_object",
         ),
     )
@@ -367,8 +367,8 @@ class Grant(Base, TimestampMixin):
     club_id: Mapped[int | None] = mapped_column(ForeignKey("club.id"), default=None, index=True)
     series_id: Mapped[int | None] = mapped_column(ForeignKey("series.id"), default=None, index=True)
     event_id: Mapped[int | None] = mapped_column(ForeignKey("event.id"), default=None, index=True)
-    sailor_id: Mapped[int | None] = mapped_column(
-        ForeignKey("sailor.id", ondelete="CASCADE"), default=None, index=True
+    person_id: Mapped[int | None] = mapped_column(
+        ForeignKey("person.id", ondelete="CASCADE"), default=None, index=True
     )
 
     user: Mapped[User] = relationship(back_populates="grants")
@@ -378,7 +378,7 @@ class Grant(Base, TimestampMixin):
     club: Mapped[Club | None] = relationship(lazy="raise")
     series: Mapped[Series | None] = relationship(lazy="raise")
     event: Mapped[Event | None] = relationship(lazy="raise")
-    sailor: Mapped[Sailor | None] = relationship(lazy="raise")
+    person: Mapped[Person | None] = relationship(lazy="raise")
 
     @property
     def object_type(self) -> ObjectType:
@@ -389,7 +389,7 @@ class Grant(Base, TimestampMixin):
 
     @property
     def object_id(self) -> int | None:
-        return self.club_id or self.series_id or self.event_id or self.sailor_id
+        return self.club_id or self.series_id or self.event_id or self.person_id
 
     @property
     def ref(self) -> ObjectRef:
@@ -415,7 +415,7 @@ _NAME_FIELD = {
     ObjectType.CLUB: "name",
     ObjectType.SERIES: "name",
     ObjectType.EVENT: "title",
-    ObjectType.SAILOR: "full_name",
+    ObjectType.PERSON: "full_name",
 }
 
 
@@ -426,7 +426,7 @@ def grant_names() -> tuple:
         selectinload(Grant.club),
         selectinload(Grant.series),
         selectinload(Grant.event),
-        selectinload(Grant.sailor),
+        selectinload(Grant.person),
     )
 
 

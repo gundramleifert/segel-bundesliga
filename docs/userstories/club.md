@@ -121,7 +121,7 @@ Acceptance criteria:
 - Birth date is captured as a **complete date**, not just a year — age-category eligibility
   (e.g. a youth series) needs the exact date. It stays optional and is never shown publicly.
 - **A person sails for clubs, and that is in the permission model** (decided 2026-10-25):
-  `SailorClub` rows are the `club` edge of a sailor, and a sailor's `manager` is
+  `ClubMembership` rows (`SailorClub` until #42) are the `club` edge of a person, and a sailor's `manager` is
   `manager from club` (`app/models/auth.py`). Whoever is that `manager` puts the person in
   a squad, changes them, signs their waiver forms (S-1, S-3) and links their parents
   (V-13). Until 2026-10-25 putting someone in a squad was what made them a club's — and
@@ -132,7 +132,7 @@ Acceptance criteria:
     403). The league office may create someone who sails for no club yet (an import
     does too).
   - **A squad takes only its own club's people** — or someone who sails for no club yet,
-    who then sails for this one. Anyone else is `squad-sailor-of-another-club` (403,
+    who then sails for this one. Anyone else is `squad-person-of-another-club` (403,
     naming them); the squad screen greys them out with that reason, and lets the
     organizer create a new person for the club right there.
   - **A second club only through the league office** (decided 2026-10-25): a club's
@@ -180,8 +180,8 @@ and the date of birth set right on the row of a sailor who has none (the club's
 `sailor_without_birth_date` to-do). The squad screen keeps its own *New person* for the
 squad it is on.
 
-Endpoints: `GET /api/admin/sailors`, `POST /api/admin/sailors`,
-`PATCH /api/admin/sailors/{id}`, `DELETE /api/admin/sailors/{id}/clubs/{club_id}`
+Endpoints: `GET /api/admin/people`, `POST /api/admin/people`,
+`PATCH /api/admin/people/{id}`, `DELETE /api/admin/people/{id}/clubs/{club_id}`
 
 **After #40** (not built yet):
 - A sailor is a **person** (`Sailor` → `Person`, `/api/people`, public `/sailors/:id`
@@ -320,7 +320,7 @@ Acceptance criteria:
 - A registration replaces the previous one **completely** — it is the squad, not a supplement.
 - **The same person may be registered in multiple clubs**, but **within a series only once** —
   otherwise they would start against themselves. A squad takes only people who sail for
-  its club, or for no club yet (V-4): `squad-sailor-of-another-club`.
+  its club, or for no club yet (V-4): `squad-person-of-another-club`.
 - No one appears twice in the same squad.
 - **Who is lined up for a matchday does not fall out of the squad.** Otherwise, a lineup would
   exist with no squad. Change the lineup first, then the squad.
@@ -331,8 +331,8 @@ Acceptance criteria:
   reader's language. A team manager who adds someone who already sails for another club in
   the same series gets that sentence, with both names in it — not a 422 whose body is an
   English string chosen by the backend.
-  - `squad-duplicate-sailor` — the same person twice in one submission.
-  - `squad-sailor-in-another-club` — already registered for this series elsewhere, and by
+  - `squad-duplicate-person` — the same person twice in one submission.
+  - `squad-person-in-another-club` — already registered for this series elsewhere, and by
     whom.
   - `squad-member-is-lined-up` — cannot be dropped while lined up for a matchday, and for
     which one.
@@ -363,7 +363,7 @@ Acceptance criteria:
   club they sail for**, instead of being addable and refused on save. The rule is the
   oldest one in this story — once per series, whichever club — and it is the one a club
   manager is most likely to walk into, because the person is genuinely a member of their
-  club too. The endpoint keeps refusing it (`squad-sailor-in-another-club`): the list is
+  club too. The endpoint keeps refusing it (`squad-person-in-another-club`): the list is
   a courtesy, not the enforcement.
 - **A rejected registration takes no squad** (`squad-registration-rejected`) and holds
   nobody; at an event outside a series the squad is the club's **first** team's
@@ -542,8 +542,8 @@ by an **account** — accepting a waiver online is signing in — and that accou
 need not be in any club. *Minors & guardians* stays a section and is also *People*
 filtered by *Minor*.
 
-Endpoints: `GET /api/clubs/{club_id}/guardians`, `POST /api/sailors/{sailor_id}/guardians`,
-`DELETE /api/sailors/{sailor_id}/guardians/{tuple_id}`
+Endpoints: `GET /api/clubs/{club_id}/guardians`, `POST /api/people/{person_id}/guardians`,
+`DELETE /api/people/{person_id}/guardians/{tuple_id}`
 
 Tests: `api/tests/stories/test_guardians.py::TestLinkingAGuardian`, `e2e/guardians.spec.ts`
 

@@ -173,7 +173,7 @@ class _Setting:
         entry = next(e for e in club["events"] if e["event_id"] == self.event_id)
         self.entry_team, self.squad_team = entry["team_id"], entry["squad_team_id"]
 
-    async def sailors(self, *births: str | None) -> list[tuple[int, dict[str, str]]]:
+    async def people(self, *births: str | None) -> list[tuple[int, dict[str, str]]]:
         """The club's sailors (Story V-4, by the team manager), each with an account."""
         out = []
         for n, birth in enumerate(births):
@@ -186,39 +186,39 @@ class _Setting:
             }
             if birth is not None:
                 body["birth_date"] = birth
-            created = await self.client.post("/api/admin/sailors", headers=self.manager, json=body)
+            created = await self.client.post("/api/admin/people", headers=self.manager, json=body)
             assert created.status_code == 201, created.text
             out.append((created.json()["id"], await _signed_in(self.client, self.caplog, email)))
         return out
 
-    async def register_squad(self, sailors: list[tuple[int, dict]]) -> dict:
-        roles = ["helm"] + ["crew"] * (len(sailors) - 1)
+    async def register_squad(self, people: list[tuple[int, dict]]) -> dict:
+        roles = ["helm"] + ["crew"] * (len(people) - 1)
         response = await self.client.put(
             f"/api/admin/teams/{self.squad_team}/members",
             headers=self.manager,
             json={
                 "members": [
-                    {"sailor_id": s, "role": r} for (s, _), r in zip(sailors, roles, strict=True)
+                    {"person_id": s, "role": r} for (s, _), r in zip(people, roles, strict=True)
                 ]
             },
         )
         assert response.status_code == 200, response.text
         return response.json()
 
-    async def name_crew(self, sailors: list[tuple[int, dict]]) -> None:
-        roles = ["helm"] + ["crew"] * (len(sailors) - 1)
+    async def name_crew(self, people: list[tuple[int, dict]]) -> None:
+        roles = ["helm"] + ["crew"] * (len(people) - 1)
         response = await self.client.put(
             f"/api/admin/events/{self.event_id}/crew",
             headers=self.manager,
             json={
                 "team_id": self.entry_team,
                 "members": [
-                    {"sailor_id": s, "role": r} for (s, _), r in zip(sailors, roles, strict=True)
+                    {"person_id": s, "role": r} for (s, _), r in zip(people, roles, strict=True)
                 ],
             },
         )
         assert response.status_code == 200, response.text
-        assert {m["id"] for m in response.json()["members"]} == {s for s, _ in sailors}
+        assert {m["id"] for m in response.json()["members"]} == {s for s, _ in people}
 
     @property
     def scope(self) -> tuple[str, int]:
@@ -256,7 +256,7 @@ class TestACrewIsClearedForAMatchday:
         """Journey J-5 — the series squad, a crew from it, every adult confirms online."""
         the = _Setting(client, caplog)
         await the.series_matchday()
-        squad = await the.sailors(ADULT, ADULT, ADULT, ADULT, ADULT)
+        squad = await the.people(ADULT, ADULT, ADULT, ADULT, ADULT)
 
         step("J-5.1", "team manager registers the squad for the series")
         saved = await the.register_squad(squad)
@@ -278,9 +278,9 @@ class TestACrewIsClearedForAMatchday:
         assert "crew_waiver_missing" in await _needs(client, the.manager, "club", the.club_id)
 
         step("J-5.8", "each adult reads the waiver and confirms it online")
-        for sailor_id, headers in squad:
+        for person_id, headers in squad:
             confirmed = await client.post(
-                the.waiver_url, headers=headers, json={"sailor_id": sailor_id, "locale_shown": "de"}
+                the.waiver_url, headers=headers, json={"person_id": person_id, "locale_shown": "de"}
             )
             assert confirmed.status_code == 201, confirmed.text
             assert confirmed.json()["method"] == "online" and confirmed.json()["cleared"] is True
@@ -289,16 +289,16 @@ class TestACrewIsClearedForAMatchday:
         step("J-5.14", "the event organizer's check-in list shows everyone cleared")
         assert "crew_waiver_missing" not in await _needs(client, the.manager, "club", the.club_id)
         listing = await the.check_in()
-        assert {row["sailor_id"] for row in listing["sailors"]} == {s for s, _ in squad}
+        assert {row["person_id"] for row in listing["people"]} == {s for s, _ in squad}
         assert listing["outstanding"] == 0
-        assert {row["status"] for row in listing["sailors"]} == {"cleared"}
+        assert {row["status"] for row in listing["people"]} == {"cleared"}
 
     async def test_minor_crew_with_a_guardian(self, client, caplog):
         """Journey J-5 — a squad short of the minimum at first, a missing date of birth,
         and the guardian's signature on paper, uploaded by the sailor and by the club."""
         the = _Setting(client, caplog)
         await the.series_matchday()
-        squad = await the.sailors(MINOR, MINOR, None, MINOR)
+        squad = await the.people(MINOR, MINOR, None, MINOR)
 
         step("J-5.1", "team manager registers the first three sailors for the series")
         saved = await the.register_squad(squad[:3])
@@ -327,7 +327,7 @@ class TestACrewIsClearedForAMatchday:
         mine = (await client.get("/api/waiver/me", headers=undated)).json()
         assert mine["birth_date_known"] is False
         assert (await the.my_waiver(undated))["minor"] is None
-        refused = await client.post(the.waiver_url, headers=undated, json={"sailor_id": undated_id})
+        refused = await client.post(the.waiver_url, headers=undated, json={"person_id": undated_id})
         assert refused.status_code == 422
         assert refused.json()["type"] == "/errors/waiver-birth-date-required"
 
@@ -336,15 +336,15 @@ class TestACrewIsClearedForAMatchday:
         assert "crew_waiver_missing" in await _needs(client, the.manager, "club", the.club_id)
 
         step("J-5.7", "the sailor without a date of birth enters it")
-        patched = await client.patch("/api/sailors/me", headers=undated, json={"birth_date": MINOR})
+        patched = await client.patch("/api/people/me", headers=undated, json={"birth_date": MINOR})
         assert patched.status_code == 200, patched.text
         row = await the.my_waiver(undated)
         assert (row["status"], row["minor"]) == ("missing", True)
 
         step("J-5.9", "each minor downloads the guardian form — an own click is not enough")
-        for sailor_id, headers in squad:
+        for person_id, headers in squad:
             refused = await client.post(
-                the.waiver_url, headers=headers, json={"sailor_id": sailor_id, "method": "online"}
+                the.waiver_url, headers=headers, json={"person_id": person_id, "method": "online"}
             )
             assert refused.status_code == 422
             assert refused.json()["type"] == "/errors/guardian-confirmation-needed"
@@ -354,7 +354,7 @@ class TestACrewIsClearedForAMatchday:
                 params={
                     "scope": "series",
                     "scope_id": the.series_id,
-                    "sailor_id": sailor_id,
+                    "person_id": person_id,
                     "locale": "de",
                 },
             )
@@ -364,16 +364,16 @@ class TestACrewIsClearedForAMatchday:
 
         # J-5.10 / J-5.11 happen on paper, between the sailor and their guardian.
 
-        def scan(sailor_id: int) -> dict:
+        def scan(person_id: int) -> dict:
             return dict(
                 files={"file": ("signed.png", _png(), "image/png")},
-                data={"sailor_id": str(sailor_id), "guardian_name": f"Parent of {sailor_id}"},
+                data={"person_id": str(person_id), "guardian_name": f"Parent of {person_id}"},
             )
 
         step("J-5.12", "three sailors upload the signed scan themselves")
-        for sailor_id, headers in squad[:3]:
+        for person_id, headers in squad[:3]:
             uploaded = await client.post(
-                f"{the.waiver_url}/scan", headers=headers, **scan(sailor_id)
+                f"{the.waiver_url}/scan", headers=headers, **scan(person_id)
             )
             assert uploaded.status_code == 201, uploaded.text
             assert uploaded.json()["method"] == "guardian" and uploaded.json()["cleared"] is True
@@ -390,7 +390,7 @@ class TestACrewIsClearedForAMatchday:
         assert listing["outstanding"] == 0
         assert all(
             row["status"] == "cleared" and row["minor"] and row["scan_available"]
-            for row in listing["sailors"]
+            for row in listing["people"]
         )
 
     async def test_stand_alone_event(self, client, caplog):
@@ -398,7 +398,7 @@ class TestACrewIsClearedForAMatchday:
         waiver. Until 2026-10-17 the squad could not be saved there (V-1)."""
         the = _Setting(client, caplog)
         await the.stand_alone_event()
-        squad = await the.sailors(ADULT, ADULT, ADULT, ADULT)
+        squad = await the.people(ADULT, ADULT, ADULT, ADULT)
         assert the.squad_team == the.entry_team  # the entry carries the squad
 
         step("J-5.4", "team manager registers the squad on the event entry")
@@ -418,9 +418,9 @@ class TestACrewIsClearedForAMatchday:
         assert "crew_waiver_missing" in await _needs(client, the.manager, "club", the.club_id)
 
         step("J-5.8", "each adult confirms the event's waiver online")
-        for sailor_id, headers in squad:
+        for person_id, headers in squad:
             confirmed = await client.post(
-                the.waiver_url, headers=headers, json={"sailor_id": sailor_id}
+                the.waiver_url, headers=headers, json={"person_id": person_id}
             )
             assert confirmed.status_code == 201, confirmed.text
             assert confirmed.json()["scope"] == "event"
@@ -428,14 +428,14 @@ class TestACrewIsClearedForAMatchday:
         step("J-5.14", "the event organizer's check-in list shows everyone cleared")
         assert "crew_waiver_missing" not in await _needs(client, the.manager, "club", the.club_id)
         listing = await the.check_in()
-        assert listing["outstanding"] == 0 and len(listing["sailors"]) == 4
+        assert listing["outstanding"] == 0 and len(listing["people"]) == 4
 
     async def test_minor_crew_with_a_linked_guardian(self, client, caplog):
         """Journey J-5 — minors whose parents the club linked: each parent accepts the
         waiver for their child online, no form, no scan (Stories V-13, S-8)."""
         the = _Setting(client, caplog)
         await the.series_matchday()
-        squad = await the.sailors(MINOR, MINOR, MINOR, MINOR)
+        squad = await the.people(MINOR, MINOR, MINOR, MINOR)
 
         step("J-5.1", "team manager registers the squad for the series")
         assert len((await the.register_squad(squad))["members"]) == 4
@@ -455,18 +455,18 @@ class TestACrewIsClearedForAMatchday:
 
         step("J-5.15", "team manager links each child's parent as guardian")
         parents = []
-        for n, (sailor_id, _) in enumerate(squad):
+        for n, (person_id, _) in enumerate(squad):
             email = f"j5-parent-{n}-{the.tag}@example.com"
             parents.append(await _signed_in(client, caplog, email))
             linked = await client.post(
-                f"/api/sailors/{sailor_id}/guardians", headers=the.manager, json={"email": email}
+                f"/api/people/{person_id}/guardians", headers=the.manager, json={"email": email}
             )
             assert linked.status_code == 201, linked.text
 
         step("J-5.16", "each parent reads the waiver and accepts it for the child online")
-        for (sailor_id, _), parent in zip(squad, parents, strict=True):
+        for (person_id, _), parent in zip(squad, parents, strict=True):
             confirmed = await client.post(
-                the.waiver_url, headers=parent, json={"sailor_id": sailor_id}
+                the.waiver_url, headers=parent, json={"person_id": person_id}
             )
             assert confirmed.status_code == 201, confirmed.text
             assert (confirmed.json()["method"], confirmed.json()["cleared"]) == (
@@ -478,4 +478,4 @@ class TestACrewIsClearedForAMatchday:
         assert "crew_waiver_missing" not in await _needs(client, the.manager, "club", the.club_id)
         listing = await the.check_in()
         assert listing["outstanding"] == 0
-        assert all(row["status"] == "cleared" for row in listing["sailors"])
+        assert all(row["status"] == "cleared" for row in listing["people"])

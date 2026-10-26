@@ -112,9 +112,9 @@ describeStory("B-18: as anyone signed in I find the help for what I do", () => {
       data: { email: parent, display_name: "Pat Parent" },
     });
     expect(created.ok(), await created.text()).toBeTruthy();
-    const sailors = await request.get("/api/admin/sailors?q=asvw.example.com&limit=1", { headers: admin });
+    const sailors = await request.get("/api/admin/people?q=asvw.example.com&limit=1", { headers: admin });
     const child = ((await sailors.json()) as { items: { id: number }[] }).items[0]!;
-    const linked = await request.post(`/api/sailors/${child.id}/guardians`, {
+    const linked = await request.post(`/api/people/${child.id}/guardians`, {
       headers: admin,
       data: { email: parent },
     });

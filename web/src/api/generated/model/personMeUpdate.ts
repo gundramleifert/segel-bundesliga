@@ -8,10 +8,10 @@
 
 /**
  * Self-service edit. No `email` field: identity is out of scope here — it changes
- * via the account, not the sailor record, and a sailor may never grant themselves
+ * via the account, not the person record, and a sailor may never grant themselves
  * someone else's record by re-pointing the email that links the two.
  */
-export interface SailorMeUpdate {
+export interface PersonMeUpdate {
   first_name?: string | null;
   last_name?: string | null;
   birth_date?: string | null;

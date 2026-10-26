@@ -28,10 +28,10 @@ class TestOncePerCompetition:
         async with SessionLocal() as session:
             duplicates = (
                 await session.execute(
-                    select(Team.series_id, TeamMembership.sailor_id, func.count())
+                    select(Team.series_id, TeamMembership.person_id, func.count())
                     .join(Team, TeamMembership.team_id == Team.id)
                     .where(Team.event_id.is_(None))
-                    .group_by(Team.series_id, TeamMembership.sailor_id)
+                    .group_by(Team.series_id, TeamMembership.person_id)
                     .having(func.count() > 1)
                 )
             ).all()
@@ -53,7 +53,7 @@ class TestOncePerCompetition:
                 EventCrew(
                     event_id=crew.event_id,
                     team_id=other_team,
-                    sailor_id=crew.sailor_id,
+                    person_id=crew.person_id,
                     role=CrewRole.CREW,
                 )
             )

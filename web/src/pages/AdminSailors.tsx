@@ -6,9 +6,9 @@ import { useTranslation } from "react-i18next";
 
 import {
   useListAllSeries,
-  useListSailors,
+  useListPeople,
 } from "../api/generated/sbl";
-import type { SailorAdmin, SeriesAdmin } from "../api/types";
+import type { PersonAdmin, SeriesAdmin } from "../api/types";
 import { WHOLE_LIST, useAsync, useAsyncRows } from "../api/useApi";
 import { DataTable } from "../components/DataTable";
 import { TABLE_FEATURES } from "../lib/table";
@@ -44,7 +44,7 @@ function Sailors() {
   // searched on the server, with all three in the URL (Story A-13).
   const list = useListParams();
   const results = useAsync(
-    useListSailors(
+    useListPeople(
       { ...list.request, q: list.q || undefined, sort: list.sort ?? undefined },
       { query: { placeholderData: keepPreviousData } },
     ),
@@ -53,8 +53,8 @@ function Sailors() {
   return (
     <Section
       title={t("sailors.title")}
-      testId="admin-sailors-section"
-      action={<AddButton label={t("sailors.newButton")} to="/office/sailors/new" testId="admin-sailors-new-button" />}
+      testId="admin-people-section"
+      action={<AddButton label={t("sailors.newButton")} to="/office/people/new" testId="admin-people-new-button" />}
     >
       <Field label={t("sailors.searchLabel")} hint={t("sailors.searchHint")}>
         <input
@@ -62,18 +62,18 @@ function Sailors() {
           value={list.q}
           onChange={(e) => list.setQuery(e.target.value)}
           placeholder={t("sailors.searchPlaceholder")}
-          data-testid="admin-sailors-search-input"
+          data-testid="admin-people-search-input"
         />
       </Field>
 
-      {results.loading && <Loading text={t("sailors.loadingText")} testId="admin-sailors-loading" />}
-      {results.error && <ErrorMessage text={results.error} testId="admin-sailors-error" />}
+      {results.loading && <Loading text={t("sailors.loadingText")} testId="admin-people-loading" />}
+      {results.error && <ErrorMessage text={results.error} testId="admin-people-error" />}
       {results.data && <SailorList page={results.data} params={list} />}
     </Section>
   );
 }
 
-const sailorColumn = createColumnHelper<typeof TABLE_FEATURES, SailorAdmin>();
+const sailorColumn = createColumnHelper<typeof TABLE_FEATURES, PersonAdmin>();
 
 function SailorList({ page, params }: { page: SailorPage; params: ListParams }) {
   const { t } = useTranslation("admin");
@@ -89,8 +89,8 @@ function SailorList({ page, params }: { page: SailorPage; params: ListParams }) 
           enableSorting: true,
           cell: ({ row }) => (
             <Link
-              to={`/sailors/${row.original.id}`}
-              data-testid={`admin-sailors-link-${row.original.id}`}
+              to={`/people/${row.original.id}`}
+              data-testid={`admin-people-link-${row.original.id}`}
               className="font-medium underline-offset-2 hover:underline"
             >
               {row.original.first_name} {row.original.last_name}
@@ -124,14 +124,14 @@ function SailorList({ page, params }: { page: SailorPage; params: ListParams }) 
       columns={columns}
       page={page}
       params={params}
-      testId="admin-sailors"
+      testId="admin-people"
       empty={t("sailors.emptyText")}
       rowTestId={(sailor) => sailor.id}
     />
   );
 }
 
-type SailorPage = { items: SailorAdmin[]; total: number; limit: number; offset: number };
+type SailorPage = { items: PersonAdmin[]; total: number; limit: number; offset: number };
 
 // ------------------------------------------------------------------------- Squad
 

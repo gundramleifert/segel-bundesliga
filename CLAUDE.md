@@ -217,7 +217,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   members and organizers and to the site's `admin` (`GET /api/clubs/{id}/members`, Story
   V-10). Never widen
   the roster to guests, and never gate a squad or a lineup behind a login.
-  A person may additionally switch off their own **profile page** (`Sailor.profile_public`, `Person` after #40,
+  A person may additionally switch off their own **profile page** (`Person.profile_public`, `Person` after #40,
   Story S-4) — that hides the collection (photo, club and matchday history, the page
   itself), while the **name** stays on every competition record, as plain text instead of a
   link. So: a name in a result is never hidden, and a profile page is never forced.
@@ -349,7 +349,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
   A club's organizer creates people for their own club; a second club takes consent
   (invited/requested, accepted by the other side), and a person in another club without
   an account only the league office adds — no club can simply take anyone. Until #43 the
-  code has `Sailor` + `SailorClub` beside the `member` tuple, linked by email.
+  code has `Person` + `ClubMembership` (no status yet) beside the `member` tuple, linked
+  by email.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   and organizing (`manager` or `admin` on it) are both per
   club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which

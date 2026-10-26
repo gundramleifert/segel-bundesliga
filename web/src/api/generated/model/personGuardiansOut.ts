@@ -6,13 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { GuardianOut } from './guardianOut';
-import type { GuardianSailorOut } from './guardianSailorOut';
+import type { GuardianPersonOut } from './guardianPersonOut';
 
 /**
  * One of the club's sailors and the guardians linked to them.
  */
-export interface SailorGuardiansOut {
-  sailor: GuardianSailorOut;
+export interface PersonGuardiansOut {
+  person: GuardianPersonOut;
   minor: boolean | null;
   guardians: GuardianOut[];
 }

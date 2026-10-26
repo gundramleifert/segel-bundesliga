@@ -46,7 +46,7 @@ const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/events", "events-list"],
   ["/clubs", "clubs-list"],
   ["/clubs/1", "club-header"],
-  ["/sailors/1", "sailor-registrations-section"],
+  ["/people/1", "sailor-registrations-section"],
   // The handbook is internal (Story B-18): a guest gets the sign-in prompt.
   ["/help", "help-sign-in"],
   ["/legal-notice", "legal-notice-last-updated"],
@@ -716,7 +716,9 @@ describeStory("B-16: old addresses lead to the new pages", () => {
 
 describeStory("A-12: the account menu and the page's name", () => {
   test("outside the leagues a breadcrumb names the page", async ({ page }) => {
+    // A sailor's page before #42 is a person's page now; the old address still leads there.
     await page.goto("/sailors/1");
+    await expect(page).toHaveURL(/\/people\/1$/);
     await expect(page.getByTestId("sailor-registrations-section")).toBeVisible();
     // The page states its name once, and that place is the breadcrumb's last crumb.
     const name = page.getByTestId("layout-breadcrumb").getByRole("heading", { level: 1 });

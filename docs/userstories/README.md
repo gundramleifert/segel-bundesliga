@@ -56,7 +56,7 @@ Sensible next areas:
   uploads: the scan of the consent (S-1), member photo (S-2), and club crest (V-3). S-2
   and V-3 use a local directory (`api/uploads/sailors/{id}.jpg`,
   `api/uploads/clubs/{id}.png`; deterministic path, no database column, access control per
-  request in `app/routers/sailors.py` and `app/routers/clubs.py`) — see their sections
+  request in `app/routers/people.py` and `app/routers/clubs.py`) — see their sections
   above for the reasoning, including why a crest keeps its alpha channel where a photo does
   not. S-1 uses the same local directory (`api/uploads/waivers/`) but a **random file
   name** known only to the confirmation row, one serving endpoint that checks access and

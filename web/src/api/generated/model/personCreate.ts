@@ -6,8 +6,21 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface GuardianSailorOut {
-  id: number;
+/**
+ * First and last name are sufficient for creation.
+ */
+export interface PersonCreate {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
   first_name: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
   last_name: string;
+  email: string;
+  birth_date?: string | null;
+  club_id?: number | null;
 }

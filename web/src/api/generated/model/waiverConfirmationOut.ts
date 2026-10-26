@@ -10,7 +10,7 @@ import type { WaiverMethod } from './waiverMethod';
 
 export interface WaiverConfirmationOut {
   id: number;
-  sailor_id: number;
+  person_id: number;
   version: number;
   scope: WaiverConfirmationOutScope;
   scope_id: number;

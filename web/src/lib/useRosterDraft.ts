@@ -14,7 +14,7 @@ const ORDER: Record<RosterRole, number> = {
 };
 
 /** One person on the list, as the endpoints take it. */
-export type RosterEntry = { sailor_id: number; role: RosterRole };
+export type RosterEntry = { person_id: number; role: RosterRole };
 
 /** The edited copy of a saved roster — the right pane of `SquadPanel` and `LineupPanel`
  *  until Save.
@@ -33,7 +33,7 @@ export function useRosterDraft(saved: readonly { id: number; role: RosterRole }[
     ? null
     : edit && edit.on === saved
       ? edit.entries
-      : saved.map((m) => ({ sailor_id: m.id, role: m.role }));
+      : saved.map((m) => ({ person_id: m.id, role: m.role }));
 
   const change = (entries: RosterEntry[]) => setEdit({ on: saved, entries });
   const current = draft ?? [];
@@ -44,13 +44,13 @@ export function useRosterDraft(saved: readonly { id: number; role: RosterRole }[
     dirty:
       saved !== null &&
       (current.length !== saved.length ||
-        current.some((d) => saved.find((m) => m.id === d.sailor_id)?.role !== d.role)),
-    roleOf: (id: number): RosterRole => current.find((d) => d.sailor_id === id)?.role ?? CrewRole.crew,
+        current.some((d) => saved.find((m) => m.id === d.person_id)?.role !== d.role)),
+    roleOf: (id: number): RosterRole => current.find((d) => d.person_id === id)?.role ?? CrewRole.crew,
     /** The draft's people in display order, helm first. */
     ordered: () => [...current].sort((a, b) => ORDER[a.role] - ORDER[b.role]),
-    add: (sailorId: number, role: RosterRole) => change([...current, { sailor_id: sailorId, role }]),
-    remove: (sailorId: number) => change(current.filter((d) => d.sailor_id !== sailorId)),
+    add: (sailorId: number, role: RosterRole) => change([...current, { person_id: sailorId, role }]),
+    remove: (sailorId: number) => change(current.filter((d) => d.person_id !== sailorId)),
     setRole: (sailorId: number, role: RosterRole) =>
-      change(current.map((d) => (d.sailor_id === sailorId ? { ...d, role } : d))),
+      change(current.map((d) => (d.person_id === sailorId ? { ...d, role } : d))),
   };
 }

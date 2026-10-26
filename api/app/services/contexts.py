@@ -34,6 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import authz
 from app.models import (
     Club,
+    ClubMembership,
     Event,
     EventCrew,
     Flight,
@@ -41,11 +42,10 @@ from app.models import (
     ImportRun,
     Payment,
     PaymentRun,
+    Person,
     PersonalDocument,
     Race,
     RaceEntry,
-    Sailor,
-    SailorClub,
     Series,
     Team,
     TeamMembership,
@@ -64,7 +64,7 @@ from app.services.waivers import (
     current_waiver_text,
     event_waiver_status,
     is_minor,
-    sailor_waivers,
+    person_waivers,
 )
 
 
@@ -100,7 +100,7 @@ class NeedCode(StrEnum):
     CREW_MISSING = "crew_missing"
     CREW_WAIVER_MISSING = "crew_waiver_missing"
     MINOR_WITHOUT_GUARDIAN = "minor_without_guardian"
-    SAILOR_WITHOUT_BIRTH_DATE = "sailor_without_birth_date"
+    PERSON_WITHOUT_BIRTH_DATE = "person_without_birth_date"
     PAYMENT_RUN_OPEN = "payment_run_open"
     EVENT_NOT_READY = "event_not_ready"
     EVENT_UNPUBLISHED = "event_unpublished"
@@ -188,7 +188,7 @@ SECTION_OF: dict[tuple[str, NeedCode], Section] = {
     ("club", NeedCode.CREW_MISSING): Section.CREWS,
     ("club", NeedCode.CREW_WAIVER_MISSING): Section.WAIVERS,
     ("club", NeedCode.MINOR_WITHOUT_GUARDIAN): Section.MINORS,
-    ("club", NeedCode.SAILOR_WITHOUT_BIRTH_DATE): Section.SAILORS,
+    ("club", NeedCode.PERSON_WITHOUT_BIRTH_DATE): Section.SAILORS,
     ("club", NeedCode.PAYMENT_RUN_OPEN): Section.PAYMENT_RUNS,
     ("event", NeedCode.EVENT_NOT_READY): Section.OVERVIEW,
     ("event", NeedCode.EVENT_UNPUBLISHED): Section.PUBLICATION,
@@ -212,7 +212,7 @@ WAITED_ON = {
     NeedCode.CLAIMS,
     NeedCode.SQUAD_BELOW_MIN,
     NeedCode.MINOR_WITHOUT_GUARDIAN,
-    NeedCode.SAILOR_WITHOUT_BIRTH_DATE,
+    NeedCode.PERSON_WITHOUT_BIRTH_DATE,
     NeedCode.REGISTRATIONS_OPEN,
     NeedCode.IMPORTS_FAILED,
 }
@@ -379,18 +379,18 @@ ContextKey = tuple[str, int]
 Contexts = dict[ContextKey, Context]
 
 
-async def linked_sailor(session: AsyncSession, user: User) -> Sailor | None:
-    """The sailor record under this account's **verified** address — without a 404:
-    having no sailor record is a normal answer here."""
+async def linked_person(session: AsyncSession, user: User) -> Person | None:
+    """The person record under this account's **verified** address — without a 404:
+    having no person record is a normal answer here."""
     if not user.email_verified:
         return None
     return (
-        await session.execute(select(Sailor).where(Sailor.email == user.email.lower()))
+        await session.execute(select(Person).where(Person.email == user.email.lower()))
     ).scalar_one_or_none()
 
 
-async def require_linked_sailor(session: AsyncSession, user: User) -> Sailor:
-    """:func:`linked_sailor`, for a page about *my* sailor record — the profile, my
+async def require_linked_person(session: AsyncSession, user: User) -> Person:
+    """:func:`linked_person`, for a page about *my* person record — the profile, my
     waivers — where having none is a 404.
 
     Requires the address to be **verified**: an account that merely claims an email
@@ -399,18 +399,18 @@ async def require_linked_sailor(session: AsyncSession, user: User) -> Sailor:
     reason is "no verified email at all" or "no sailor row uses this email" — a caller has
     no legitimate use for telling those apart.
     """
-    sailor = await linked_sailor(session, user)
-    if sailor is None:
+    person = await linked_person(session, user)
+    if person is None:
         raise Problem(
             404,
-            "no-linked-sailor-record",
-            "No sailor record is linked to this account yet.",
+            "no-linked-person-record",
+            "No person record is linked to this account yet.",
             detail=(
-                "An administrator or your club's leadership can create your sailor "
+                "An administrator or your club's leadership can create your person "
                 "record and link it to this email address."
             ),
         )
-    return sailor
+    return person
 
 
 async def my_space(session: AsyncSession, user: User) -> MySpace:
@@ -432,10 +432,10 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
 
     # Read once for the whole page: every waiver question below is judged against it.
     required = await current_waiver_text(session)
-    sailor = await linked_sailor(session, user)
-    if sailor is not None:
-        await _sailing(session, sailor, at)
-        await _waivers(session, sailor, required, at)
+    person = await linked_person(session, user)
+    if person is not None:
+        await _sailing(session, person, at)
+        await _waivers(session, person, required, at)
 
     loaded = await _fill(session, contexts)
     echoed = _series_waiver_on_events(contexts)
@@ -471,7 +471,7 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     # Things to do, each once: a series' waiver asked again on its events is one signature.
     total = sum(needs.total for _, needs in cards) - echoed
     return MySpace(
-        name=sailor.full_name if sailor is not None else user.display_name,
+        name=person.full_name if person is not None else user.display_name,
         needs=me.ordered,
         contexts=ordered,
         total=total,
@@ -529,14 +529,14 @@ async def reached_context(
     return contexts[(kind, object_id)]
 
 
-async def _sailing(session: AsyncSession, sailor: Sailor, at) -> None:
+async def _sailing(session: AsyncSession, person: Person, at) -> None:
     """A squad is a series registration (no event), a crew an event entry (Story V-1)."""
     rows = (
         await session.execute(
             select(Team.id, Team.series_id, Team.event_id, Club.id, Club.name)
             .join(TeamMembership, TeamMembership.team_id == Team.id)
             .join(Club, Team.club_id == Club.id)
-            .where(TeamMembership.sailor_id == sailor.id, Team.status == TeamStatus.ACCEPTED)
+            .where(TeamMembership.person_id == person.id, Team.status == TeamStatus.ACCEPTED)
             .order_by(Club.name)
         )
     ).all()
@@ -547,7 +547,7 @@ async def _sailing(session: AsyncSession, sailor: Sailor, at) -> None:
             select(Team.id, Team.series_id, EventCrew.event_id, Club.id, Club.name)
             .join(EventCrew, EventCrew.team_id == Team.id)
             .join(Club, Team.club_id == Club.id)
-            .where(EventCrew.sailor_id == sailor.id)
+            .where(EventCrew.person_id == person.id)
             .order_by(Club.name)
         )
     ).all()
@@ -558,10 +558,10 @@ async def _sailing(session: AsyncSession, sailor: Sailor, at) -> None:
             context.teams.append(TeamRef(team_id, club_id, club_name))
 
 
-async def _waivers(session: AsyncSession, sailor: Sailor, required: WaiverText | None, at) -> None:
+async def _waivers(session: AsyncSession, person: Person, required: WaiverText | None, at) -> None:
     """Where the signature is given — the series, or an event in no series (S-1). The
     series' events I sail in ask for it too (`_series_waiver_on_events`)."""
-    for competition, judged in await sailor_waivers(session, sailor, required):
+    for competition, judged in await person_waivers(session, person, required):
         if judged.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED):
             at(competition.scope, competition.scope_id).need(NeedCode.WAIVER)
 
@@ -732,7 +732,7 @@ async def _organizer(
     # but the organizer is told, once per upcoming matchday with someone not cleared.
     crews = (
         await session.execute(
-            select(Event, Team.club_id, EventCrew.sailor_id)
+            select(Event, Team.club_id, EventCrew.person_id)
             .join(EventCrew, EventCrew.event_id == Event.id)
             .join(Team, EventCrew.team_id == Team.id)
             .where(
@@ -743,18 +743,18 @@ async def _organizer(
         )
     ).all()
     by_event: dict[tuple[int, int], tuple[Event, list[int]]] = {}
-    for event, club_id, sailor_id in crews:
-        by_event.setdefault((event.id, club_id), (event, []))[1].append(sailor_id)
-    for (_, club_id), (event, sailor_ids) in by_event.items():
-        if await _not_cleared(session, event, sailor_ids, required):
+    for event, club_id, person_id in crews:
+        by_event.setdefault((event.id, club_id), (event, []))[1].append(person_id)
+    for (_, club_id), (event, person_ids) in by_event.items():
+        if await _not_cleared(session, event, person_ids, required):
             contexts[("club", club_id)].need(NeedCode.CREW_WAIVER_MISSING, due=event.starts_on)
 
 
 async def _not_cleared(
-    session: AsyncSession, event: Event, sailor_ids: list[int], required: WaiverText | None
+    session: AsyncSession, event: Event, person_ids: list[int], required: WaiverText | None
 ) -> int:
     """How many of these sailors are not cleared to sail this event (Story VA-5)."""
-    judged = await event_waiver_status(session, event, sailor_ids, required)
+    judged = await event_waiver_status(session, event, person_ids, required)
     return sum(
         j.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED) for j in judged.values()
     )
@@ -767,20 +767,20 @@ async def _club_people(session: AsyncSession, user: User, contexts: Contexts) ->
     if not clubs:
         return
     today = date.today()
-    guarded = select(Grant.sailor_id).where(
-        Grant.relation == Relation.GUARDIAN, Grant.sailor_id.is_not(None)
+    guarded = select(Grant.person_id).where(
+        Grant.relation == Relation.GUARDIAN, Grant.person_id.is_not(None)
     )
     rows = (
         await session.execute(
-            select(SailorClub.club_id, Sailor.birth_date)
-            .join(Sailor, SailorClub.sailor_id == Sailor.id)
-            .where(SailorClub.club_id.in_(clubs))
-            .where(Sailor.birth_date.is_(None) | Sailor.id.not_in(guarded))
+            select(ClubMembership.club_id, Person.birth_date)
+            .join(Person, ClubMembership.person_id == Person.id)
+            .where(ClubMembership.club_id.in_(clubs))
+            .where(Person.birth_date.is_(None) | Person.id.not_in(guarded))
         )
     ).all()
     for club_id, birth_date in rows:
         if birth_date is None:
-            contexts[("club", club_id)].need(NeedCode.SAILOR_WITHOUT_BIRTH_DATE)
+            contexts[("club", club_id)].need(NeedCode.PERSON_WITHOUT_BIRTH_DATE)
         elif is_minor(birth_date, today):
             contexts[("club", club_id)].need(NeedCode.MINOR_WITHOUT_GUARDIAN)
 
@@ -837,7 +837,7 @@ async def _events(
         if committee and open_ and (live or (race_week and ongoing)):
             crew = (
                 await session.execute(
-                    select(EventCrew.sailor_id).where(EventCrew.event_id == event.id).distinct()
+                    select(EventCrew.person_id).where(EventCrew.event_id == event.id).distinct()
                 )
             ).scalars()
             context.need(
@@ -917,13 +917,13 @@ async def _ward_waivers(session: AsyncSession, user: User, required: WaiverText 
     """Story S-8: the competitions of the sailors I am guardian of whose waiver is not
     cleared yet and which I can sign — the child is a minor there (or of unknown age,
     which the club has to fix: the page says so)."""
-    ward_ids = authz.list_objects(user, Relation.GUARDIAN, ObjectType.SAILOR)
+    ward_ids = authz.list_objects(user, Relation.GUARDIAN, ObjectType.PERSON)
     if not ward_ids:
         return 0
     count = 0
-    wards = (await session.execute(select(Sailor).where(Sailor.id.in_(ward_ids)))).scalars()
+    wards = (await session.execute(select(Person).where(Person.id.in_(ward_ids)))).scalars()
     for ward in wards:
-        for _, judged in await sailor_waivers(session, ward, required):
+        for _, judged in await person_waivers(session, ward, required):
             if (
                 judged.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED)
                 and judged.minor is not False

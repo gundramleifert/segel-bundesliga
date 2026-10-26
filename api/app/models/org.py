@@ -69,8 +69,8 @@ class Club(Base, TimestampMixin):
     teams: Mapped[list[Team]] = relationship(back_populates="club")
 
 
-class Sailor(Base, TimestampMixin):
-    __tablename__ = "sailor"
+class Person(Base, TimestampMixin):
+    __tablename__ = "person"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     first_name: Mapped[str] = mapped_column(String(80))
@@ -85,20 +85,20 @@ class Sailor(Base, TimestampMixin):
     # Story S-4: the sailor's own choice whether their profile page is public. Empty means
     # "never chosen" — then the default follows age (`profile_public`), so a minor's page
     # starts hidden and opens by itself on the eighteenth birthday unless they decided.
-    # Only the sailor's own account writes this (`PATCH /api/sailors/me`).
+    # Only the sailor's own account writes this (`PATCH /api/people/me`).
     profile_public_choice: Mapped[bool | None] = mapped_column(default=None)
 
-    memberships: Mapped[list[TeamMembership]] = relationship(back_populates="sailor")
+    squad_places: Mapped[list[TeamMembership]] = relationship(back_populates="person")
     # The clubs this person sails for — the ``club`` edge of a sailor in the permission
     # model (``manager from club``, `app/models/auth.py`). Loaded with the sailor, as an
     # event brings its host club: every check on a sailor walks it.
-    club_links: Mapped[list[SailorClub]] = relationship(
-        back_populates="sailor", cascade="all, delete-orphan", lazy="selectin"
+    club_memberships: Mapped[list[ClubMembership]] = relationship(
+        back_populates="person", cascade="all, delete-orphan", lazy="selectin"
     )
 
     @property
     def club_ids(self) -> list[int]:
-        return sorted(link.club_id for link in self.club_links)
+        return sorted(link.club_id for link in self.club_memberships)
 
     @property
     def full_name(self) -> str:
@@ -203,8 +203,8 @@ class Team(Base, TimestampMixin):
         return self.event_id is None
 
 
-class SailorClub(Base, TimestampMixin):
-    """A sailor sails for this club (Story V-4) — the tuple ``club:3 club sailor:7`` an
+class ClubMembership(Base, TimestampMixin):
+    """A sailor sails for this club (Story V-4) — the tuple ``club:3 club person:7`` an
     FGA server would hold, kept as a row because its subject is a club, not a user.
 
     It is what makes a person a club's to put in a squad, to change, to sign a waiver for
@@ -214,28 +214,28 @@ class SailorClub(Base, TimestampMixin):
     anyone).
     """
 
-    __tablename__ = "sailor_club"
-    __table_args__ = (UniqueConstraint("sailor_id", "club_id"),)
+    __tablename__ = "club_membership"
+    __table_args__ = (UniqueConstraint("person_id", "club_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id", ondelete="CASCADE"), index=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("person.id", ondelete="CASCADE"), index=True)
     club_id: Mapped[int] = mapped_column(ForeignKey("club.id", ondelete="CASCADE"), index=True)
 
-    sailor: Mapped[Sailor] = relationship(back_populates="club_links")
+    person: Mapped[Person] = relationship(back_populates="club_memberships")
 
 
 class TeamMembership(Base, TimestampMixin):
     __tablename__ = "team_membership"
     # A person is on a squad once — the router says so politely
-    # (`squad-duplicate-sailor`), this makes it true for every other writer too.
-    __table_args__ = (UniqueConstraint("team_id", "sailor_id"),)
+    # (`squad-duplicate-person`), this makes it true for every other writer too.
+    __table_args__ = (UniqueConstraint("team_id", "person_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), index=True)
-    sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"), index=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("person.id"), index=True)
     role: Mapped[str] = mapped_column(String(16), default=CrewRole.CREW)
     valid_from: Mapped[date | None] = mapped_column(Date, default=None)
     valid_to: Mapped[date | None] = mapped_column(Date, default=None)
 
     team: Mapped[Team] = relationship(back_populates="memberships")
-    sailor: Mapped[Sailor] = relationship(back_populates="memberships")
+    person: Mapped[Person] = relationship(back_populates="squad_places")

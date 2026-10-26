@@ -514,7 +514,7 @@ Acceptance criteria:
   had `/admin`'s *Series* or *Events* tab; that work is now in their own context (Z-10).
 - **Creating is a page of its own per area**, reached from the "＋" of its section and
   leading back to it: `/office/clubs/new`, `/office/series/new`, `/office/events/new`,
-  `/office/sailors/new`, `/office/news/new` and a post's `/office/news/:id`. Each is the
+  `/office/people/new`, `/office/news/new` and a post's `/office/news/:id`. Each is the
   office's when its section is mine.
 - **Creating an event is also an organizer's** (Stories VA-6, A-6): a series' manager adds
   its acts, a club's organizer a stand-alone event their club hosts. Theirs is
@@ -546,7 +546,7 @@ scrolling past all of them**.
 
 Every list screen had grown its own arrangement: a `<ul>` of rows here, a table there,
 a search box on two of them and not the others, and each one fetching the whole table.
-`GET /api/sailors` answered with up to 500 people in one response and the screen showed
+`GET /api/people` answered with up to 500 people in one response and the screen showed
 all of them; `GET /api/auth/users` had no limit at all. The two habits reinforce each
 other — a list with no paging needs no page control, and a screen with no page control
 has no reason to ask for less than everything.

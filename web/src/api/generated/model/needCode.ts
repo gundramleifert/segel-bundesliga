@@ -22,7 +22,7 @@ export const NeedCode = {
   crew_missing: 'crew_missing',
   crew_waiver_missing: 'crew_waiver_missing',
   minor_without_guardian: 'minor_without_guardian',
-  sailor_without_birth_date: 'sailor_without_birth_date',
+  person_without_birth_date: 'person_without_birth_date',
   payment_run_open: 'payment_run_open',
   event_not_ready: 'event_not_ready',
   event_unpublished: 'event_unpublished',

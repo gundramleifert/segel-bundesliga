@@ -124,7 +124,7 @@
     "createNotAllowed": "Sie organisieren keine Serie und keinen Verein — hier gibt es keine Veranstaltung, die Sie anlegen könnten. Die Geschäftsstelle oder die Organisation einer Serie legt sie an."
   },
   "sailors": {
-    "title": "Segler",
+    "title": "Personen",
     "firstNameLabel": "Vorname",
     "lastNameLabel": "Nachname",
     "emailLabel": "E-Mail",
@@ -140,7 +140,7 @@
     "nameHeader": "Name",
     "emailHeader": "E-Mail",
     "squadsHeader": "Meldungen",
-    "newButton": "Neuer Segler",
+    "newButton": "Neue Person",
     "registrationsLabel": "{count, plural, one {# Meldung} other {# Meldungen}}"
   },
   "squad": {

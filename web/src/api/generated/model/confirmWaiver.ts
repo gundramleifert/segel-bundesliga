@@ -9,7 +9,7 @@ import type { ConfirmWaiverLocaleShown } from './confirmWaiverLocaleShown';
 import type { WaiverMethod } from './waiverMethod';
 
 export interface ConfirmWaiver {
-  sailor_id: number;
+  person_id: number;
   /** Which language of the text the sailor was shown. */
   locale_shown?: ConfirmWaiverLocaleShown;
   /** Left empty, an adult is recorded as 'online' and a minor must be 'guardian'. Passing 'online' for a minor is rejected. */

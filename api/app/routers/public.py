@@ -41,9 +41,9 @@ from app.models import (
     EventStatus,
     Flight,
     League,
+    Person,
     Race,
     RaceEntry,
-    Sailor,
     Series,
     Team,
     TeamMembership,
@@ -59,7 +59,7 @@ from app.pagination import (
 )
 from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
 from app.problems import Problem
-from app.routers.sailors import connected_to_sailor
+from app.routers.people import connected_to_person
 from app.schemas.public import (
     AnnouncementOut,
     BoatOut,
@@ -84,9 +84,9 @@ from app.schemas.public import (
     MyTeamOut,
     PairingList,
     PairingRow,
-    SailorDetail,
-    SailorEventOut,
-    SailorTeamOut,
+    PersonDetail,
+    PersonEventOut,
+    PersonTeamOut,
     SeasonSeriesOut,
     SeriesOut,
     SeriesStandingRow,
@@ -692,13 +692,13 @@ async def get_club_logo(club_id: int) -> FileResponse:
 # ----------------------------------------------------------------------- Sailors
 
 
-@router.get("/sailors/{sailor_id}", response_model=SailorDetail)
-async def get_sailor(
-    sailor_id: int,
+@router.get("/people/{person_id}", response_model=PersonDetail)
+async def get_person(
+    person_id: int,
     year: int | None = Query(default=None, description="Year; otherwise the current one"),
     session: AsyncSession = Depends(get_session),
     acting: User | None = Depends(optional_user),
-) -> SailorDetail:
+) -> PersonDetail:
     """The sailor page: which club and series someone is registered with, where they compete.
 
     Two levels: the **series registration** (squad) and the **lineup for a single event**.
@@ -708,19 +708,19 @@ async def get_sailor(
 
     A sailor who switched their page off (Story S-4) gets the **same** 404 as nobody at
     all, so the page does not confirm to a guesser that the person exists; the people
-    connected to them (`connected_to_sailor`) still open it.
+    connected to them (`connected_to_person`) still open it.
     """
-    sailor = (
-        await session.execute(select(Sailor).where(Sailor.id == sailor_id))
+    person = (
+        await session.execute(select(Person).where(Person.id == person_id))
     ).scalar_one_or_none()
-    if sailor is None or (
-        not sailor.profile_public and not await connected_to_sailor(session, acting, sailor)
+    if person is None or (
+        not person.profile_public and not await connected_to_person(session, acting, person)
     ):
-        raise Problem(404, "sailor-not-found", "This person is not registered.", id=sailor_id)
+        raise Problem(404, "person-not-found", "This person is not registered.", id=person_id)
 
     effective_year = year if year is not None else await current_year(session, published_only=True)
-    teams: list[SailorTeamOut] = []
-    events: list[SailorEventOut] = []
+    teams: list[PersonTeamOut] = []
+    events: list[PersonEventOut] = []
 
     if effective_year is not None:
         rows = (
@@ -730,7 +730,7 @@ async def get_sailor(
                 .join(Club, Team.club_id == Club.id)
                 .join(Series, Team.series_id == Series.id)
                 .where(
-                    TeamMembership.sailor_id == sailor.id,
+                    TeamMembership.person_id == person.id,
                     Team.event_id.is_(None),
                     Series.year == effective_year,
                     Series.published.is_(True),
@@ -740,7 +740,7 @@ async def get_sailor(
             )
         ).all()
         teams = [
-            SailorTeamOut(
+            PersonTeamOut(
                 team_id=team.id,
                 role=membership.role,
                 club=ClubOut.model_validate(club),
@@ -755,21 +755,21 @@ async def get_sailor(
                     select(EventCrew, Event)
                     .join(Event, EventCrew.event_id == Event.id)
                     .options(*_EVENT_LOAD)
-                    .where(EventCrew.sailor_id == sailor.id)
+                    .where(EventCrew.person_id == person.id)
                     .order_by(Event.starts_on)
                 )
             )
         ).all()
         events = [
-            SailorEventOut(event=_event_out(event), team_id=crew.team_id, role=crew.role)
+            PersonEventOut(event=_event_out(event), team_id=crew.team_id, role=crew.role)
             for crew, event in lineups
         ]
 
-    return SailorDetail(
-        id=sailor.id,
-        first_name=sailor.first_name,
-        last_name=sailor.last_name,
-        profile_public=sailor.profile_public,
+    return PersonDetail(
+        id=person.id,
+        first_name=person.first_name,
+        last_name=person.last_name,
+        profile_public=person.profile_public,
         teams=teams,
         events=events,
     )
@@ -906,15 +906,15 @@ async def get_event_crew(
 
     rows = (
         await session.execute(
-            select(EventCrew, Sailor)
-            .join(Sailor, EventCrew.sailor_id == Sailor.id)
+            select(EventCrew, Person)
+            .join(Person, EventCrew.person_id == Person.id)
             .where(EventCrew.event_id == event.id)
         )
     ).all()
 
     crew_by_team: dict[int, list[MemberOut]] = {}
-    for crew, sailor in rows:
-        crew_by_team.setdefault(crew.team_id, []).append(MemberOut.of(sailor, crew.role))
+    for crew, person in rows:
+        crew_by_team.setdefault(crew.team_id, []).append(MemberOut.of(person, crew.role))
     for members in crew_by_team.values():
         members.sort(key=MemberOut.announce_order)
 
@@ -1180,15 +1180,15 @@ async def _squad(session: AsyncSession, team_ids: list[int]) -> dict[int, list[M
 
     rows = (
         await session.execute(
-            select(TeamMembership, Sailor)
-            .join(Sailor, TeamMembership.sailor_id == Sailor.id)
+            select(TeamMembership, Person)
+            .join(Person, TeamMembership.person_id == Person.id)
             .where(TeamMembership.team_id.in_(team_ids))
         )
     ).all()
 
     by_team: dict[int, list[MemberOut]] = {}
-    for membership, sailor in rows:
-        by_team.setdefault(membership.team_id, []).append(MemberOut.of(sailor, membership.role))
+    for membership, person in rows:
+        by_team.setdefault(membership.team_id, []).append(MemberOut.of(person, membership.role))
     for members in by_team.values():
         members.sort(key=MemberOut.announce_order)
     return by_team
@@ -1227,8 +1227,8 @@ async def _events_by_team(
 
     lineups = (
         await session.execute(
-            select(EventCrew, Sailor, Team)
-            .join(Sailor, EventCrew.sailor_id == Sailor.id)
+            select(EventCrew, Person, Team)
+            .join(Person, EventCrew.person_id == Person.id)
             .join(Team, EventCrew.team_id == Team.id)
             .where(Team.club_id == club_id)
             .order_by(Team.number)
@@ -1238,10 +1238,10 @@ async def _events_by_team(
     # One crew per team the club entered (Story VA-13) — a club's second team is its own
     # crew, never merged into the first's.
     crews_by_event: dict[int, dict[int, ClubCrewOut]] = {}
-    for crew, sailor, team in lineups:
+    for crew, person, team in lineups:
         crews = crews_by_event.setdefault(crew.event_id, {})
         crews.setdefault(team.id, ClubCrewOut(team_id=team.id, team_name=team.name)).members.append(
-            MemberOut.of(sailor, crew.role)
+            MemberOut.of(person, crew.role)
         )
     for crews in crews_by_event.values():
         for entry in crews.values():

@@ -6,7 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type GetSailorParams = {
+export type GetPersonParams = {
 /**
  * Year; otherwise the current one
  */

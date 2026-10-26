@@ -21,6 +21,7 @@ from app.db import SessionLocal
 from app.models import (
     Boat,
     Club,
+    ClubMembership,
     CrewRole,
     Event,
     EventCrew,
@@ -30,13 +31,12 @@ from app.models import (
     Flight,
     ImportRun,
     League,
+    Person,
     Post,
     Race,
     RaceEntry,
     RaceStatus,
     ResultCode,
-    Sailor,
-    SailorClub,
     Series,
     SeriesStanding,
     Team,
@@ -347,7 +347,7 @@ async def seed() -> None:
             for series in (first_league, second_league)
         }
 
-        squads: dict[int, list[Sailor]] = {}
+        squads: dict[int, list[Person]] = {}
         counter = 0
         for _series, club, team in teams:
             squads[team.id] = []
@@ -355,7 +355,7 @@ async def seed() -> None:
                 first_name = rng.choice(FIRST_NAMES)
                 last_name = rng.choice(LAST_NAMES)
                 counter += 1
-                sailor = Sailor(
+                person = Person(
                     first_name=first_name,
                     last_name=last_name,
                     # Unique via a sequential counter — names repeat
@@ -371,14 +371,14 @@ async def seed() -> None:
                         rng.randint(1, 28),
                     ),
                 )
-                session.add(sailor)
+                session.add(person)
                 await session.flush()
-                squads[team.id].append(sailor)
-                session.add(SailorClub(sailor_id=sailor.id, club_id=club.id))
+                squads[team.id].append(person)
+                session.add(ClubMembership(person_id=person.id, club_id=club.id))
                 session.add(
                     TeamMembership(
                         team_id=team.id,
-                        sailor_id=sailor.id,
+                        person_id=person.id,
                         role=(
                             CrewRole.HELM
                             if position == 0
@@ -442,12 +442,12 @@ async def seed() -> None:
 
             # Lineup for the matchday: the first four from the roster sail.
             for registration, entry in zip(roster, entries, strict=True):
-                for position, sailor in enumerate(squads[registration.id][:CREW]):
+                for position, person in enumerate(squads[registration.id][:CREW]):
                     session.add(
                         EventCrew(
                             event_id=event.id,
                             team_id=entry.id,
-                            sailor_id=sailor.id,
+                            person_id=person.id,
                             role=CrewRole.HELM if position == 0 else CrewRole.CREW,
                         )
                     )
@@ -602,7 +602,7 @@ async def _junior_squads(session, juniors: Series) -> None:
     for counter, (team, club) in enumerate(registrations):
         for position in range(SQUAD_SIZE):
             first_name, last_name = rng.choice(FIRST_NAMES), rng.choice(LAST_NAMES)
-            sailor = Sailor(
+            person = Person(
                 first_name=first_name,
                 last_name=last_name,
                 email=f"{slugify(first_name)}.{slugify(last_name)}.j{counter}x{position}"
@@ -610,13 +610,13 @@ async def _junior_squads(session, juniors: Series) -> None:
                 # Teenagers: several are minors on a 2026 matchday (Story S-2).
                 birth_date=date(rng.randint(2009, 2011), rng.randint(1, 12), rng.randint(1, 28)),
             )
-            session.add(sailor)
+            session.add(person)
             await session.flush()
-            session.add(SailorClub(sailor_id=sailor.id, club_id=club.id))
+            session.add(ClubMembership(person_id=person.id, club_id=club.id))
             session.add(
                 TeamMembership(
                     team_id=team.id,
-                    sailor_id=sailor.id,
+                    person_id=person.id,
                     role=(
                         CrewRole.HELM
                         if position == 0
@@ -646,8 +646,8 @@ async def _wipe(session) -> None:
         TeamMembership,
         Team,
         Event,
-        SailorClub,
-        Sailor,
+        ClubMembership,
+        Person,
         Club,
         Venue,
         Series,

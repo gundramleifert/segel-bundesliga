@@ -11,7 +11,7 @@ from app.db import SessionLocal
 from app.models import (
     AuditLog,
     Club,
-    Sailor,
+    Person,
     WaiverConfirmation,
     WaiverText,
 )
@@ -313,18 +313,18 @@ class TestDeleteMyAccount:
         token = await login_as(client, "del-recorder@example.org", caplog)
 
         async with SessionLocal() as session:
-            sailor = Sailor(
+            person = Person(
                 first_name="Del",
                 last_name="Tester",
                 email="del-tester-sailor@example.com",
             )
-            session.add(sailor)
+            session.add(person)
             await session.flush()
             waiver = (
                 await session.execute(select(WaiverText).where(WaiverText.version == 1))
             ).scalar_one()
             confirmation = WaiverConfirmation(
-                sailor_id=sailor.id,
+                person_id=person.id,
                 waiver_text_id=waiver.id,
                 series_id=ids.series("dsbl-1-2026"),
                 method="online",

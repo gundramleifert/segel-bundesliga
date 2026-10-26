@@ -5,16 +5,17 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { PersonEventOut } from './personEventOut';
+import type { PersonTeamOut } from './personTeamOut';
 
 /**
- * A sailor's own view of their record — no email (that's account identity, handled
- * by the sign-in flow, not this endpoint).
+ * The sailor page: who the person is, who they register for, where they sail.
  */
-export interface SailorMeOut {
+export interface PersonDetail {
   id: number;
   first_name: string;
   last_name: string;
-  birth_date?: string | null;
-  has_photo?: boolean;
   profile_public?: boolean;
+  teams?: PersonTeamOut[];
+  events?: PersonEventOut[];
 }

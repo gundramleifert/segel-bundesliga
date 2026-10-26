@@ -310,25 +310,25 @@ or birthdate**, so that **people see who sails for the club, and my data is righ
 
 Acceptance criteria:
 - Voluntary. Without a photo everything remains usable; the frontend renders a neutral
-  placeholder itself (`GET /api/sailors/{id}/photo` only serves the file — a missing one
+  placeholder itself (`GET /api/people/{id}/photo` only serves the file — a missing one
   is a plain 404, not this endpoint's job).
-- The person uploads it themselves (`POST /api/sailors/me/photo`) and can remove it
-  anytime (`DELETE /api/sailors/me/photo` — removing an absent photo is a no-op, not an
+- The person uploads it themselves (`POST /api/people/me/photo`) and can remove it
+  anytime (`DELETE /api/people/me/photo` — removing an absent photo is a no-op, not an
   error).
 - Cropped and scaled down; mobile format works: every upload is EXIF-rotated upright,
   center-cropped to a square, and downsized to a fixed 512×512 JPEG regardless of the
   source aspect ratio or camera format. Rejected with a typed error if it's not a
   readable image, or over ~5&nbsp;MB.
 - The sailor can also view and correct their own `first_name`/`last_name`/`birth_date`
-  (`GET`/`PATCH /api/sailors/me`) — previously only a team manager or admin could. Not
+  (`GET`/`PATCH /api/people/me`) — previously only a team manager or admin could. Not
   `email`: that's account identity, out of scope here. Resolved via the account's
-  **verified** email matching `Sailor.email` — the same link Story S-1's waiver
+  **verified** email matching `Person.email` — the same link Story S-1's waiver
   confirmation already relies on — so there is no id parameter to point at anyone else's
   record. An account with no matching sailor row (e.g. an admin-only account) gets a
   clear 404, not a crash.
 
 **Storage** (resolves the "not yet decided" note below, for this story only): a
-deterministic local path, `api/uploads/sailors/{sailor_id}.jpg` — the file's existence
+deterministic local path, `api/uploads/sailors/{person_id}.jpg` — the file's existence
 *is* the "has a photo" state, so no database column was needed. Not versioned (see
 `.gitignore`); an S3-compatible store remains a later option once this needs to survive
 redeploys of the API's disk, or multiple instances.
@@ -359,12 +359,12 @@ matchday they were in a lineup for, in one place, under one URL. That collection
 part a person should be able to decline.
 
 Acceptance criteria:
-- One switch on the sailor's own profile (`PATCH /api/sailors/me`, a `profile_public`
-  boolean on `Sailor`). **The sailor owns this choice**: a team manager or an
+- One switch on the sailor's own profile (`PATCH /api/people/me`, a `profile_public`
+  boolean on `Person`). **The sailor owns this choice**: a team manager or an
   `admin` can see the setting but cannot flip it for someone else — this is the one field
   on the sailor record that management does not maintain (contrast V-4, where they
   maintain all of it).
-- **Off means the profile page is not public**: `GET /api/sailors/{id}` answers 404 for a
+- **Off means the profile page is not public**: `GET /api/people/{id}` answers 404 for a
   guest, so the page does not confirm that the person exists to whoever guesses an id.
   Signed in it still opens for the people already connected to that record — the sailor
   themselves, `admin`, and a manager of a club they are registered with (until 2026-10-24
@@ -391,13 +391,13 @@ Open: whether a guardian can set this for a minor. Today only the sailor's own l
 account can, exactly as with the photo (S-2) — noted there as out of scope for the same
 reason.
 
-**How it is stored:** `Sailor.profile_public_choice` is the sailor's own answer and stays
-empty until they give one; `Sailor.profile_public` reads the choice, else the age default.
+**How it is stored:** `Person.profile_public_choice` is the sailor's own answer and stays
+empty until they give one; `Person.profile_public` reads the choice, else the age default.
 So a minor who never touched the switch gets a public page on their eighteenth birthday by
 itself, while one who decided keeps that decision. The squad and lineup outputs
 (`MemberOut`) carry the effective `profile_public`, and the frontend's `SailorName` renders
 the name as a link or as plain text from it. The photo follows the page: a hidden
-profile's `GET /api/sailors/{id}/photo` answers the same 404 as a sailor without one, for
+profile's `GET /api/people/{id}/photo` answers the same 404 as a sailor without one, for
 everyone outside the circle above (a minor's photo keeps S-2's 403 first).
 
 **After #40** (not built yet): the switch is on the **person** (`Person.profile_public`),
@@ -416,7 +416,7 @@ so that **cleaning up a test account doesn't need administration**.
 Deliberately different from Z-6: this is a **testing-phase convenience**, not the
 permanent answer. While accounts are still mostly test data, self-service cleanup matters
 more than an audit trail — a real delete is safe because nothing in season history points
-at a `User` by foreign key today (`Sailor` is linked only by email). **Once accounts are
+at a `User` by foreign key today (`Person` is linked only by email). **Once accounts are
 reachable from real registrations, results, or waiver confirmations other people rely on,
 this stops being safe** and should become a deactivation too, or gain a precondition —
 revisit before real seasons depend on this data.
@@ -627,7 +627,7 @@ Acceptance criteria:
   - **Only what I can act on**, decided by the model (Z-2) on an object already mine — a
     to-do appears for whoever holds the section it links to:
     - `minor_without_guardian` — club `minors`, the club's organizers: sailors of the club
-      (`SailorClub`) who are minors today and have no guardian linked;
+      (`ClubMembership`) who are minors today and have no guardian linked;
     - `sailor_without_birth_date` — club `sailors`, the club's organizers: no waiver can be
       confirmed for them (S-3);
     - `payment_run_open` — club `payment-runs`, organizers and `treasurer`: a run with a

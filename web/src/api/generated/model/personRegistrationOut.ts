@@ -16,7 +16,7 @@ import type { SquadSeriesOut } from './squadSeriesOut';
  * and a person legitimately has several: sailing for more than one club is allowed, and
  * only doing it twice *within a series* is not.
  */
-export interface SailorRegistrationOut {
+export interface PersonRegistrationOut {
   team_id: number;
   club: SquadClubOut;
   series: SquadSeriesOut;

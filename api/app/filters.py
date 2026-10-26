@@ -22,14 +22,14 @@ from sqlalchemy import Select, or_, select
 from app.listing import ListFilter
 from app.models import (
     Club,
+    ClubMembership,
     Event,
     EventStatus,
     League,
     MediaItem,
+    Person,
     Post,
     PostKind,
-    Sailor,
-    SailorClub,
     Series,
     Venue,
 )
@@ -163,25 +163,26 @@ class ClubFilter(ListFilter):
         search_columns: ClassVar = (Club.name, Club.short_name, Club.city)
 
 
-class SailorFilter(ListFilter):
+class PersonFilter(ListFilter):
     q: str | None = Field(default=None, description="Search in first name, last name, and email")
     club_id: int | None = Field(default=None, description="Only those who sail for this club")
     order_by: list[str] | None = SORT
 
     class Constants(ListFilter.Constants):
-        model = Sailor
+        model = Person
         sortable: ClassVar = {
-            "last_name": Sailor.last_name,
-            "first_name": Sailor.first_name,
-            "email": Sailor.email,
-            "birth_date": Sailor.birth_date,
+            "last_name": Person.last_name,
+            "first_name": Person.first_name,
+            "email": Person.email,
+            "birth_date": Person.birth_date,
         }
-        default_order: ClassVar = (Sailor.last_name, Sailor.first_name, Sailor.id)
-        search_columns: ClassVar = (Sailor.first_name, Sailor.last_name, Sailor.email)
+        default_order: ClassVar = (Person.last_name, Person.first_name, Person.id)
+        search_columns: ClassVar = (Person.first_name, Person.last_name, Person.email)
 
     def where_club_id(self, club_id: int):
-        # Sailing for a club is a row of `SailorClub` (Story V-4), not a column.
-        return Sailor.id.in_(select(SailorClub.sailor_id).where(SailorClub.club_id == club_id))
+        # Sailing for a club is a row of `ClubMembership` (Story V-4), not a column.
+        members = select(ClubMembership.person_id).where(ClubMembership.club_id == club_id)
+        return Person.id.in_(members)
 
 
 class UserFilter(ListFilter):

@@ -21,7 +21,7 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 
-from app.models import Sailor, WaiverText
+from app.models import Person, WaiverText
 
 _PAGE_W, _PAGE_H = A4
 _MARGIN = 20 * mm
@@ -123,7 +123,7 @@ class _Page:
 def render_waiver_form(
     *,
     text: WaiverText,
-    sailor: Sailor,
+    person: Person,
     competition: str,
     locale: str,
     minor: bool,
@@ -147,8 +147,8 @@ def render_waiver_form(
     page.gap(6 * mm)
 
     page.text(f"{labels['for_']}: {competition}", _BOLD)
-    page.text(f"{labels['sailor']}: {sailor.first_name} {sailor.last_name}", _BOLD)
-    page.text(f"{labels['born']}: {_date(sailor.birth_date, lang)}", _BOLD)
+    page.text(f"{labels['sailor']}: {person.first_name} {person.last_name}", _BOLD)
+    page.text(f"{labels['born']}: {_date(person.birth_date, lang)}", _BOLD)
     page.gap(6 * mm)
 
     for paragraph in text.body(lang).split("\n"):

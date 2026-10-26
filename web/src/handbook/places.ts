@@ -87,7 +87,7 @@ export const PLACES = {
   "admin.clubs": { path: "/office", section: "clubs" },
   "admin.series": { path: "/office", section: "series" },
   "admin.events": { path: "/office", section: "events" },
-  "admin.sailors": { path: "/office", section: "sailors" },
+  "admin.sailors": { path: "/office", section: "people" },
   "admin.news": { path: "/office", section: "news" },
   "admin.media": { path: "/office", section: "media" },
   "admin.accounts": { path: "/office", section: "accounts" },

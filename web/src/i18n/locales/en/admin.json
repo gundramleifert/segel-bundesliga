@@ -124,7 +124,7 @@
     "createNotAllowed": "You organize no series and no club, so there is no event you could create here. The league office or a series' organizer creates it."
   },
   "sailors": {
-    "title": "Sailors",
+    "title": "People",
     "firstNameLabel": "First name",
     "lastNameLabel": "Last name",
     "emailLabel": "Email",
@@ -140,7 +140,7 @@
     "nameHeader": "Name",
     "emailHeader": "Email",
     "squadsHeader": "Registrations",
-    "newButton": "New sailor",
+    "newButton": "New person",
     "registrationsLabel": "{count, plural, one {# registration} other {# registrations}}"
   },
   "squad": {

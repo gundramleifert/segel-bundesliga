@@ -26,7 +26,7 @@ export function WaiverChecklist({ eventId }: { eventId: number }) {
         testId={`admin-manage-event-waivers-list-${eventId}`}
         loadingText={t("manage.waiversLoadingText")}
         empty={t("manage.waiversEmpty")}
-        isEmpty={(data) => data.sailors.length === 0}
+        isEmpty={(data) => data.people.length === 0}
       >
         {(data) => (
           <>
@@ -49,11 +49,11 @@ export function WaiverChecklist({ eventId }: { eventId: number }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.sailors.map((row) => (
+                  {data.people.map((row) => (
                     <tr
-                      key={row.sailor_id}
+                      key={row.person_id}
                       className="border-t border-separator"
-                      data-testid={`admin-manage-event-waiver-row-${eventId}-${row.sailor_id}`}
+                      data-testid={`admin-manage-event-waiver-row-${eventId}-${row.person_id}`}
                       data-status={row.status}
                     >
                       <td className="px-3 py-2">
@@ -72,7 +72,7 @@ export function WaiverChecklist({ eventId }: { eventId: number }) {
                                 setScanError(errorText(err)),
                               );
                             }}
-                            data-testid={`admin-manage-event-waiver-scan-${eventId}-${row.sailor_id}`}
+                            data-testid={`admin-manage-event-waiver-scan-${eventId}-${row.person_id}`}
                           >
                             {t("manage.waiverOpenScan")}
                           </button>

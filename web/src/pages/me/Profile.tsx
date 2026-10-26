@@ -11,15 +11,15 @@ import { useTranslation } from "react-i18next";
 import {
   deleteMyAccount,
   deleteMyPhoto,
-  getGetSailorPhotoUrl,
-  getMySailor,
+  getGetPersonPhotoUrl,
+  getMyPerson,
   removeMyPassword,
   setMyPassword,
-  updateMySailor,
+  updateMyPerson,
   uploadMyPhoto,
 } from "../../api/generated/sbl";
 import { ApiError } from "../../api/http";
-import type { Account as AccountData, SailorMe } from "../../api/types";
+import type { Account as AccountData, PersonMe } from "../../api/types";
 import { getToken, setToken } from "../../api/session";
 import { ErrorMessage, Loading } from "../../components/Blocks";
 import { ConfirmButton } from "../../components/ConfirmButton";
@@ -195,7 +195,7 @@ export function SignInMethods({ account, onChanged }: { account: AccountData; on
  */
 export function SailorProfile() {
   const { t } = useTranslation("account");
-  const [sailor, setSailor] = useState<SailorMe | null>(null);
+  const [sailor, setSailor] = useState<PersonMe | null>(null);
   const [noRecord, setNoRecord] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -214,7 +214,7 @@ export function SailorProfile() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    getMySailor()
+    getMyPerson()
       .then((data) => {
         if (!active) return;
         setSailor(data);
@@ -240,7 +240,7 @@ export function SailorProfile() {
 
   // The photo itself needs the bearer token — a plain `<img src>` never sends it, and a
   // minor's photo is only ever served to a signed-in, connected account (see
-  // `app/routers/sailors.py::connected_to_sailor`). Fetching it here and turning it
+  // `app/routers/sailors.py::connected_to_person`). Fetching it here and turning it
   // into an object URL works for that case exactly as it does for a public, adult photo.
   useEffect(() => {
     if (!sailor?.has_photo) {
@@ -250,7 +250,7 @@ export function SailorProfile() {
     let active = true;
     let localUrl: string | null = null;
     const token = getToken();
-    fetch(getGetSailorPhotoUrl(sailor.id), {
+    fetch(getGetPersonPhotoUrl(sailor.id), {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((response) => (response.ok ? response.blob() : Promise.reject(response)))
@@ -271,7 +271,7 @@ export function SailorProfile() {
     setSaving(true);
     setError(null);
     try {
-      const updated = await updateMySailor({
+      const updated = await updateMyPerson({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         birth_date: birthDate || null,
@@ -305,7 +305,7 @@ export function SailorProfile() {
     setVisibilityBusy(true);
     setError(null);
     try {
-      setSailor(await updateMySailor({ profile_public: profilePublic }));
+      setSailor(await updateMyPerson({ profile_public: profilePublic }));
     } catch (err) {
       setError(errorText(err));
     } finally {

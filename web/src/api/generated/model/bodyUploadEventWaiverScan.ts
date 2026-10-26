@@ -9,7 +9,7 @@ import type { BodyUploadEventWaiverScanLocaleShown } from './bodyUploadEventWaiv
 
 export interface BodyUploadEventWaiverScan {
   file: Blob;
-  sailor_id: number;
+  person_id: number;
   guardian_name?: string | null;
   locale_shown?: BodyUploadEventWaiverScanLocaleShown;
 }

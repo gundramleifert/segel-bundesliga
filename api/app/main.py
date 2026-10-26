@@ -36,10 +36,10 @@ from app.routers import (
     me,
     media,
     payments,
+    people,
     personal,
     posts,
     public,
-    sailors,
     series,
     tracking,
     waivers,
@@ -124,10 +124,10 @@ async def _validation_error(request: Request, exc: RequestValidationError) -> JS
     )
 
 
-# sailors.me_router before public.router: both define a route under /api/sailors, and
-# Starlette matches by registration order — "/api/sailors/me" must be tried before
-# public.router's "/api/sailors/{sailor_id}", or "me" would be parsed as a sailor id.
-app.include_router(sailors.me_router)
+# sailors.me_router before public.router: both define a route under /api/people, and
+# Starlette matches by registration order — "/api/people/me" must be tried before
+# public.router's "/api/people/{person_id}", or "me" would be parsed as a sailor id.
+app.include_router(people.me_router)
 app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
@@ -141,7 +141,7 @@ app.include_router(announcements.router)
 app.include_router(series.router)
 app.include_router(applications.router)
 app.include_router(club_members.router)
-app.include_router(sailors.router)
+app.include_router(people.router)
 app.include_router(waivers.router)
 app.include_router(guardians.router)
 app.include_router(personal.router)

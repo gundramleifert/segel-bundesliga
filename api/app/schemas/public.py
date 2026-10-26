@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from app.crests import crest_url
 from app.models.auth import Relation
 from app.models.competition import AnnouncementIssuer, EventDocumentKind, EventStatus
-from app.models.org import CrewRole, Sailor
+from app.models.org import CrewRole, Person
 from app.models.racing import PreparatoryFlag, RaceStatus
 
 
@@ -154,14 +154,14 @@ class MemberOut(BaseModel):
     profile_public: bool = True
 
     @classmethod
-    def of(cls, sailor: Sailor, role: CrewRole | str) -> MemberOut:
+    def of(cls, person: Person, role: CrewRole | str) -> MemberOut:
         """A sailor as a squad or lineup names them: the name, the role, nothing personal."""
         return cls(
-            id=sailor.id,
-            first_name=sailor.first_name,
-            last_name=sailor.last_name,
+            id=person.id,
+            first_name=person.first_name,
+            last_name=person.last_name,
             role=role,
-            profile_public=sailor.profile_public,
+            profile_public=person.profile_public,
         )
 
     def announce_order(self) -> AnnounceOrder:
@@ -475,7 +475,7 @@ class PairingList(BaseModel):
     pdf_available: bool = False
 
 
-class SailorTeamOut(BaseModel):
+class PersonTeamOut(BaseModel):
     """Which club and which series a person is registered for in a season."""
 
     team_id: int
@@ -484,7 +484,7 @@ class SailorTeamOut(BaseModel):
     series: SeriesOut
 
 
-class SailorEventOut(BaseModel):
+class PersonEventOut(BaseModel):
     """A matchday for which the person is lined up."""
 
     event: EventOut
@@ -492,7 +492,7 @@ class SailorEventOut(BaseModel):
     role: CrewRole
 
 
-class SailorDetail(BaseModel):
+class PersonDetail(BaseModel):
     """The sailor page: who the person is, who they register for, where they sail."""
 
     id: int
@@ -501,8 +501,8 @@ class SailorDetail(BaseModel):
     # Story S-4: false when only a connected viewer (the sailor, admin/editor, their club's
     # manager) gets to see this page — the page says so to them.
     profile_public: bool = True
-    teams: list[SailorTeamOut] = Field(default_factory=list)
-    events: list[SailorEventOut] = Field(default_factory=list)
+    teams: list[PersonTeamOut] = Field(default_factory=list)
+    events: list[PersonEventOut] = Field(default_factory=list)
 
 
 class MySeriesOut(BaseModel):

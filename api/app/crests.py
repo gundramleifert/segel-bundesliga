@@ -1,6 +1,6 @@
 """Storage for uploaded club crests ("Stander", the club burgee) — Story V-3.
 
-Storage follows the sailor-photo pattern (`app/routers/sailors.py::_save_photo`): a
+Storage follows the person-photo pattern (`app/routers/people.py::_save_photo`): a
 deterministic path under `settings.uploads_dir`, so **the file's existence is the state**
 — no `has_crest` column, nothing to keep in sync, and a lost uploads directory degrades
 to "no crest" instead of to a broken link.

@@ -46,7 +46,7 @@ async def first_team() -> tuple[int, int, list[int]]:
         squad = list(
             (
                 await session.execute(
-                    select(TeamMembership.sailor_id)
+                    select(TeamMembership.person_id)
                     .where(TeamMembership.team_id == team.id)
                     .order_by(TeamMembership.id)
                 )
@@ -55,12 +55,12 @@ async def first_team() -> tuple[int, int, list[int]]:
         return team.id, team.club_id, squad
 
 
-async def other_sailor(except_team: int) -> int:
+async def other_person(except_team: int) -> int:
     """Someone registered in a different team."""
     async with SessionLocal() as session:
         return (
             await session.execute(
-                select(TeamMembership.sailor_id)
+                select(TeamMembership.person_id)
                 .where(TeamMembership.team_id != except_team)
                 .limit(1)
             )
@@ -88,8 +88,8 @@ class TestLineup:
             json={
                 "team_id": team_id,
                 "members": [
-                    {"sailor_id": squad[0], "role": "helm"},
-                    *({"sailor_id": s, "role": "crew"} for s in squad[1:4]),
+                    {"person_id": squad[0], "role": "helm"},
+                    *({"person_id": s, "role": "crew"} for s in squad[1:4]),
                 ],
             },
         )
@@ -105,7 +105,7 @@ class TestLineup:
             headers=headers,
             json={
                 "team_id": team_id,
-                "members": [{"sailor_id": s, "role": "crew"} for s in squad[:3]],
+                "members": [{"person_id": s, "role": "crew"} for s in squad[:3]],
             },
         )
         assert three.status_code == 200, three.text
@@ -120,7 +120,7 @@ class TestLineup:
     async def test_unregistered_sailors_cannot_be_lined_up(self, client, caplog):
         """The core rule — enforced at the endpoint, not just in the UI."""
         team_id, club_id, squad = await first_team()
-        external = await other_sailor(team_id)
+        external = await other_person(team_id)
         headers = await club_leadership(client, caplog, "au2@example.com", club_id)
 
         response = await client.put(
@@ -129,10 +129,10 @@ class TestLineup:
             json={
                 "team_id": team_id,
                 "members": [
-                    {"sailor_id": squad[0], "role": "helm"},
-                    {"sailor_id": squad[1], "role": "crew"},
-                    {"sailor_id": squad[2], "role": "crew"},
-                    {"sailor_id": external, "role": "crew"},
+                    {"person_id": squad[0], "role": "helm"},
+                    {"person_id": squad[1], "role": "crew"},
+                    {"person_id": squad[2], "role": "crew"},
+                    {"person_id": external, "role": "crew"},
                 ],
             },
         )
@@ -149,15 +149,15 @@ class TestLineup:
             json={
                 "team_id": team_id,
                 "members": [
-                    {"sailor_id": squad[0], "role": "helm"},
-                    {"sailor_id": squad[0], "role": "crew"},
-                    {"sailor_id": squad[1], "role": "crew"},
-                    {"sailor_id": squad[2], "role": "crew"},
+                    {"person_id": squad[0], "role": "helm"},
+                    {"person_id": squad[0], "role": "crew"},
+                    {"person_id": squad[1], "role": "crew"},
+                    {"person_id": squad[2], "role": "crew"},
                 ],
             },
         )
         assert response.status_code == 422
-        assert response.json()["type"] == "/errors/lineup-duplicate-sailor"
+        assert response.json()["type"] == "/errors/lineup-duplicate-person"
 
     async def test_cannot_line_up_another_clubs_team(self, client, caplog):
         team_id, club_id, squad = await first_team()
@@ -169,7 +169,7 @@ class TestLineup:
             headers=headers,
             json={
                 "team_id": team_id,
-                "members": [{"sailor_id": s, "role": "crew"} for s in squad[:4]],
+                "members": [{"person_id": s, "role": "crew"} for s in squad[:4]],
             },
         )
         assert response.status_code == 403
@@ -185,7 +185,7 @@ class TestLineup:
             headers=headers,
             json={
                 "team_id": team_id,
-                "members": [{"sailor_id": s, "role": "crew"} for s in squad[4:8]],
+                "members": [{"person_id": s, "role": "crew"} for s in squad[4:8]],
             },
         )
         assert response.status_code == 200

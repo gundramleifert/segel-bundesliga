@@ -33,7 +33,7 @@ function uniqueTitle(prefix: string): string {
   return `${prefix} ${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
-type OfficeSection = "clubs" | "series" | "events" | "sailors" | "accounts";
+type OfficeSection = "clubs" | "series" | "events" | "people" | "accounts";
 
 /** The element that proves a section of the league office has finished loading, per
  *  section (Story A-11).
@@ -48,7 +48,7 @@ const SECTION_READY: Record<OfficeSection, string> = {
   // The section is the list and the wizard is its own page behind the "＋" top-right, so
   // the button is the section's own ready signal; `createEvent` waits for the wizard's catalog select.
   events: "admin-events-new-button",
-  sailors: "admin-sailors-table",
+  people: "admin-people-table",
   accounts: "admin-accounts-table",
 };
 
@@ -456,7 +456,7 @@ describeStory("A-11/Z-10: the league office, a section per area", () => {
     // The point of the split: the other areas are not on the page at all. This is also
     // what makes it cheap — an unmounted panel issues none of its queries.
     await expect(page.getByTestId("admin-manage-events-list")).toHaveCount(0);
-    await expect(page.getByTestId("admin-sailors-table")).toHaveCount(0);
+    await expect(page.getByTestId("admin-people-table")).toHaveCount(0);
 
     // Opening a section is a navigation, so the URL follows...
     await openSection(page, "office", "events");
@@ -479,7 +479,7 @@ describeStory("A-11/Z-10: the league office, a section per area", () => {
       "clubs",
       "series",
       "events",
-      "sailors",
+      "people",
       "accounts",
       "news",
       "media",
@@ -499,8 +499,8 @@ describeStory("A-11/Z-10: the league office, a section per area", () => {
     await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
 
     await page.goto("/admin?tab=sailors&sort=-last_name");
-    await expect(page).toHaveURL(/\/office\/sailors\?sort=-last_name$/);
-    await expect(page.getByTestId("admin-sailors-table")).toBeVisible();
+    await expect(page).toHaveURL(/\/office\/people\?sort=-last_name$/);
+    await expect(page.getByTestId("admin-people-table")).toBeVisible();
 
     await page.goto("/admin?tab=nonsense");
     await expect(page).toHaveURL(/\/office$/);
@@ -544,20 +544,20 @@ describeStory("A-13: every long list pages, sorts and searches — in the URL", 
     page,
   }, testInfo) => {
     await signIn(page, ADMIN);
-    await openOffice(page, testInfo, "sailors");
+    await openOffice(page, testInfo, "people");
 
-    const table = page.getByTestId("admin-sailors-table");
+    const table = page.getByTestId("admin-people-table");
     // The name cell, not the whole row: the row also carries the email and the number of
     // registrations, and reading a name out of all three is how this test first searched
     // the sailor list for the word "registration".
     const firstName = () => table.locator("tbody tr").first().locator("td").first();
 
     // The seed registers a couple of hundred sailors, so there is a second page at all.
-    await expect(page.getByTestId("admin-sailors-pager")).toBeVisible();
+    await expect(page.getByTestId("admin-people-pager")).toBeVisible();
     const firstOnPageOne = await firstName().textContent();
 
     // Paging is a URL change, so the page someone is on can be sent to someone else.
-    await page.getByTestId("admin-sailors-pager-next").click();
+    await page.getByTestId("admin-people-pager-next").click();
     await expect(page).toHaveURL(/[?&]page=2/);
     await expect(firstName()).not.toHaveText(firstOnPageOne ?? "");
 
@@ -569,7 +569,7 @@ describeStory("A-13: every long list pages, sorts and searches — in the URL", 
     await expect(firstName()).toHaveText(onPageTwo ?? "");
 
     // Sorting is the server's, announced to a screen reader, and lands in the URL too.
-    await page.getByTestId("admin-sailors-sort-last_name").click();
+    await page.getByTestId("admin-people-sort-last_name").click();
     await expect(page).toHaveURL(/[?&]sort=last_name/);
     // A new sort goes back to the first page: page two of the old order means nothing.
     await expect(page).not.toHaveURL(/[?&]page=2/);
@@ -578,19 +578,19 @@ describeStory("A-13: every long list pages, sorts and searches — in the URL", 
     ).toHaveAttribute("aria-sort", "ascending");
 
     // Clicking the same column again turns it around rather than clearing it.
-    await page.getByTestId("admin-sailors-sort-last_name").click();
+    await page.getByTestId("admin-people-sort-last_name").click();
     await expect(page).toHaveURL(/[?&]sort=-last_name/);
 
     // Searching is the server's as well — the result may be a single row out of hundreds,
     // which a client-side filter over one page could never find.
     const someone = (await firstName().textContent())?.trim().split(/\s+/).pop() ?? "";
-    await page.getByTestId("admin-sailors-search-input").fill(someone);
+    await page.getByTestId("admin-people-search-input").fill(someone);
     await expect(page).toHaveURL(new RegExp(`[?&]q=${encodeURIComponent(someone)}`));
     await expect(firstName()).toContainText(someone);
 
     // A deep link carries all three at once — the state this story exists for.
-    await page.goto(`/office/sailors?sort=-last_name&q=${encodeURIComponent(someone)}`);
-    await expect(page.getByTestId("admin-sailors-search-input")).toHaveValue(someone);
+    await page.goto(`/office/people?sort=-last_name&q=${encodeURIComponent(someone)}`);
+    await expect(page.getByTestId("admin-people-search-input")).toHaveValue(someone);
     await expect(firstName()).toContainText(someone);
 
     await expectNoSidewaysScroll(page, testInfo);

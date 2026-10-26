@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
-import { useListAllClubs, useListAllEvents, useListAllSeries, useListSailors } from "../../api/generated/sbl";
+import { useListAllClubs, useListAllEvents, useListAllSeries, useListPeople } from "../../api/generated/sbl";
 import { Relation, type Need } from "../../api/types";
 import { setPageCrumbs, type Crumb } from "../../components/breadcrumb";
 import { INPUT_CLASS } from "../../lib/admin";
@@ -422,7 +422,7 @@ function SwitcherSearch({
   const clubs = useListAllClubs(page, options);
   const series = useListAllSeries(page, options);
   const events = useListAllEvents(page, options);
-  const sailors = useListSailors(page, options);
+  const sailors = useListPeople(page, options);
 
   if (!show) return <>{children}</>;
 

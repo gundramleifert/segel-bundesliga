@@ -29,9 +29,9 @@ from app.models.finance import (
 )
 from app.models.org import (
     Club,
+    ClubMembership,
     CrewRole,
-    Sailor,
-    SailorClub,
+    Person,
     Team,
     TeamMembership,
     TeamStatus,
@@ -110,8 +110,8 @@ __all__ = [
     "ObjectType",
     "Relation",
     "Role",
-    "Sailor",
-    "SailorClub",
+    "Person",
+    "ClubMembership",
     "Series",
     "SeriesStanding",
     "Source",

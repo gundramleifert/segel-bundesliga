@@ -116,27 +116,43 @@ describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday fr
       expect(added.status(), await added.text()).toBe(409);
       expect(await added.text()).toContain("tuple-exists");
     }
+    // Undone at the end: a spec after this one counts this person's clubs (§5 of
+    // PLAN_NAVIGATION) and would find KYC among them.
+    try {
+      await inBothClubs();
+    } finally {
+      const rows = (await (await request.get(`/api/auth/tuples?object=club:${second.id}`, { headers: admin })).json()) as {
+        id: number;
+        user: string;
+        relation: string;
+      }[];
+      for (const row of rows.filter((r) => r.user === manager.email && r.relation === "member")) {
+        await request.delete(`/api/auth/tuples/${row.id}`, { headers: admin });
+      }
+    }
 
-    await signIn(page, manager.email);
-    // Both clubs are in the switcher (Story Z-10) — a member of the second, the
-    // organizer of the first. Which club is open is the URL's business, nothing else.
-    await page.goto("/me");
-    const own = await managedClub(request, manager.email);
-    await openSwitcher(page);
-    await expect(page.getByTestId(`workspace-switcher-club-${own}-relations-admin`)).toBeVisible();
-    const entry = page.getByTestId(`workspace-switcher-club-${second.id}`);
-    await expect(entry.getByTestId(`workspace-switcher-club-${second.id}-relations-member`)).toBeVisible();
-    await expect(entry.getByTestId(`workspace-switcher-club-${second.id}-relations-admin`)).toHaveCount(0);
-    await entry.click();
-    await expect(page).toHaveURL(new RegExp(`/me/club/${second.id}`));
+    async function inBothClubs() {
+      await signIn(page, manager.email);
+      // Both clubs are in the switcher (Story Z-10) — a member of the second, the
+      // organizer of the first. Which club is open is the URL's business, nothing else.
+      await page.goto("/me");
+      const own = await managedClub(request, manager.email);
+      await openSwitcher(page);
+      await expect(page.getByTestId(`workspace-switcher-club-${own}-relations-admin`)).toBeVisible();
+      const entry = page.getByTestId(`workspace-switcher-club-${second.id}`);
+      await expect(entry.getByTestId(`workspace-switcher-club-${second.id}-relations-member`)).toBeVisible();
+      await expect(entry.getByTestId(`workspace-switcher-club-${second.id}-relations-admin`)).toHaveCount(0);
+      await entry.click();
+      await expect(page).toHaveURL(new RegExp(`/me/club/${second.id}`));
 
-    // A member, not an organizer, of the second club: the squad is shown read-only, and
-    // the club's money is not theirs to see.
-    await openSection(page, "club", "squads");
-    await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
-    await expect(page.getByTestId("admin-squad-management")).toBeVisible();
-    await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
-    await expect(page.getByTestId("workspace-section-club-decide-claims")).toHaveCount(0);
+      // A member, not an organizer, of the second club: the squad is shown read-only, and
+      // the club's money is not theirs to see.
+      await openSection(page, "club", "squads");
+      await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
+      await expect(page.getByTestId("admin-squad-management")).toBeVisible();
+      await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
+      await expect(page.getByTestId("workspace-section-club-decide-claims")).toHaveCount(0);
+    }
   });
 });
 

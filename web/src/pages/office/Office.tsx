@@ -29,7 +29,8 @@ import { WorkspaceFrame, type WorkspaceSection } from "../me/Workspace";
 export function OfficePage({ section: fixed }: { section?: string } = {}) {
   const { t } = useTranslation("space");
   const ta = useTranslation("admin").t;
-  const section = fixed ?? useParams().section;
+  const params = useParams();
+  const section = fixed ?? params.section;
   const { account, loading } = useAccount();
   const { space } = useMySpace();
 
@@ -61,7 +62,7 @@ export function OfficePage({ section: fixed }: { section?: string } = {}) {
     { key: "clubs", label: ta("clubs.title"), render: () => <Clubs /> },
     { key: "series", label: ta("series.title"), render: () => <SeriesList mayCreate={mayCreateIn("series", office.relations)} /> },
     { key: "events", label: ta("events.title"), render: () => <EventsAdmin /> },
-    { key: "sailors", label: ta("sailors.title"), render: () => <SailorsAdmin /> },
+    { key: "people", label: ta("sailors.title"), render: () => <SailorsAdmin /> },
     { key: "accounts", label: ta("accounts.title"), render: () => <AccountsAdmin /> },
     { key: "news", label: ta("posts.title"), render: () => <PostsAdmin /> },
     { key: "media", label: ta("media.title"), render: () => <MediaAdmin /> },

@@ -34,7 +34,7 @@ from app.models import (
     Club,
     Event,
     EventStatus,
-    Sailor,
+    Person,
     Series,
     Team,
     TeamMembership,
@@ -47,17 +47,17 @@ from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
 from app.services.audit import EntityType, audit
-from app.services.contexts import require_linked_sailor
+from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
     Competition,
-    SailorWaiver,
+    PersonWaiver,
     WaiverStatus,
     competition_status,
     discard_scan,
     event_reference_date,
-    sailor_waivers,
+    person_waivers,
     scan_media_type,
     scan_path,
     series_reference_date,
@@ -95,7 +95,7 @@ class WaiverTextCreate(BaseModel):
 
 
 class ConfirmWaiver(BaseModel):
-    sailor_id: int
+    person_id: int
     locale_shown: Locale = Field(
         default="en", description="Which language of the text the sailor was shown."
     )
@@ -116,7 +116,7 @@ class ConfirmWaiver(BaseModel):
 
 class WaiverConfirmationOut(BaseModel):
     id: int
-    sailor_id: int
+    person_id: int
     version: int
     scope: Scope
     scope_id: int
@@ -128,8 +128,8 @@ class WaiverConfirmationOut(BaseModel):
     cleared: bool
 
 
-class SailorWaiverRow(BaseModel):
-    sailor_id: int
+class PersonWaiverRow(BaseModel):
+    person_id: int
     first_name: str
     last_name: str
     club: str | None = None
@@ -150,7 +150,7 @@ class EventWaiverList(BaseModel):
     required_version: int | None
     cleared: int
     outstanding: int
-    sailors: list[SailorWaiverRow]
+    people: list[PersonWaiverRow]
 
 
 class ClubCompetitionWaivers(BaseModel):
@@ -163,7 +163,7 @@ class ClubCompetitionWaivers(BaseModel):
     starts_on: date | None = None
     cleared: int
     outstanding: int
-    sailors: list[SailorWaiverRow]
+    people: list[PersonWaiverRow]
 
 
 class ClubWaiverList(BaseModel):
@@ -179,7 +179,7 @@ class MyCompetitionWaiver(BaseModel):
     scope_id: int
     name: str
     reference_date: date
-    sailor_id: int
+    person_id: int
     status: WaiverStatus
     minor: bool | None = None
     required_version: int | None = None
@@ -194,7 +194,7 @@ class MyCompetitionWaiver(BaseModel):
 
 
 class MyWaivers(BaseModel):
-    sailor_id: int
+    person_id: int
     first_name: str
     last_name: str
     # Without it no status can be judged — the page then points at the profile form.
@@ -230,10 +230,10 @@ async def my_waivers(
 ) -> MyWaivers:
     """Story S-1: the account page's list — one row per series the sailor is registered
     in and per stand-alone event they are entered in, each with the same status the
-    organizer's list would show. 404 `no-linked-sailor-record` when the account has no
+    organizer's list would show. 404 `no-linked-person-record` when the account has no
     sailor, exactly as the profile does."""
-    sailor = await require_linked_sailor(session, acting)
-    return await _waivers_of(session, sailor, await current_waiver_text(session))
+    person = await require_linked_person(session, acting)
+    return await _waivers_of(session, person, await current_waiver_text(session))
 
 
 @router.get(
@@ -247,14 +247,14 @@ async def ward_waivers(
 ) -> list[MyWaivers]:
     """Story S-8: one entry per sailor the child's club linked me to as guardian (Story
     V-13), each exactly as that sailor's own page shows it (S-1) — the same function."""
-    ward_ids = authz.list_objects(acting, Relation.GUARDIAN, ObjectType.SAILOR)
+    ward_ids = authz.list_objects(acting, Relation.GUARDIAN, ObjectType.PERSON)
     if not ward_ids:
         return []
     wards = (
         await session.execute(
-            select(Sailor)
-            .where(Sailor.id.in_(ward_ids))
-            .order_by(Sailor.first_name, Sailor.last_name)
+            select(Person)
+            .where(Person.id.in_(ward_ids))
+            .order_by(Person.first_name, Person.last_name)
         )
     ).scalars()
     required = await current_waiver_text(session)
@@ -262,12 +262,12 @@ async def ward_waivers(
 
 
 async def _waivers_of(
-    session: AsyncSession, sailor: Sailor, required: WaiverText | None
+    session: AsyncSession, person: Person, required: WaiverText | None
 ) -> MyWaivers:
     """A sailor's competitions with their waiver status — for the sailor (S-1) and for
     their guardian (S-8). ``required`` is read once per request by the caller."""
     rows: list[MyCompetitionWaiver] = []
-    for competition, judged in await sailor_waivers(session, sailor, required):
+    for competition, judged in await person_waivers(session, person, required):
         rows.append(
             MyCompetitionWaiver(
                 scope=competition.scope,  # type: ignore[arg-type]
@@ -278,10 +278,10 @@ async def _waivers_of(
             )
         )
     return MyWaivers(
-        sailor_id=sailor.id,
-        first_name=sailor.first_name,
-        last_name=sailor.last_name,
-        birth_date_known=sailor.birth_date is not None,
+        person_id=person.id,
+        first_name=person.first_name,
+        last_name=person.last_name,
+        birth_date_known=person.birth_date is not None,
         required_version=required.version if required else None,
         competitions=rows,
     )
@@ -291,7 +291,7 @@ async def _waivers_of(
 async def waiver_form(
     scope: Scope = Query(...),
     scope_id: int = Query(...),
-    sailor_id: int = Query(...),
+    person_id: int = Query(...),
     locale: Locale = Query("en"),
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
@@ -300,8 +300,8 @@ async def waiver_form(
     competition, and signature lines. Anyone who may record a confirmation for the sailor
     may print their form. An adult gets the same sheet with their own signature line, for
     whoever prefers paper."""
-    sailor = await _sailor(session, sailor_id)
-    await _may_confirm_for(session, acting, sailor)
+    person = await _person(session, person_id)
+    await _may_confirm_for(session, acting, person)
     required = await current_waiver_text(session)
     if required is None:
         raise Problem(404, "no-waiver-published", "No liability waiver has been published yet.")
@@ -311,12 +311,12 @@ async def waiver_form(
     pdf = await asyncio.to_thread(
         render_waiver_form,
         text=required,
-        sailor=sailor,
+        person=person,
         competition=name,
         locale=locale,
-        minor=is_minor(sailor.birth_date, reference_date) is not False,
+        minor=is_minor(person.birth_date, reference_date) is not False,
     )
-    filename = f"waiver-v{required.version}-{scope}-{scope_id}-sailor-{sailor.id}.pdf"
+    filename = f"waiver-v{required.version}-{scope}-{scope_id}-sailor-{person.id}.pdf"
     return Response(
         content=pdf,
         media_type="application/pdf",
@@ -436,7 +436,7 @@ async def confirm_for_event(
 async def upload_series_waiver_scan(
     series_id: int,
     file: UploadFile = File(...),
-    sailor_id: int = Form(...),
+    person_id: int = Form(...),
     guardian_name: str | None = Form(default=None, max_length=160),
     locale_shown: Locale = Form("en"),
     session: AsyncSession = Depends(get_session),
@@ -450,7 +450,7 @@ async def upload_series_waiver_scan(
         session,
         acting=acting,
         file=file,
-        sailor_id=sailor_id,
+        person_id=person_id,
         guardian_name=guardian_name,
         locale_shown=locale_shown,
         scope="series",
@@ -468,7 +468,7 @@ async def upload_series_waiver_scan(
 async def upload_event_waiver_scan(
     event_id: int,
     file: UploadFile = File(...),
-    sailor_id: int = Form(...),
+    person_id: int = Form(...),
     guardian_name: str | None = Form(default=None, max_length=160),
     locale_shown: Locale = Form("en"),
     session: AsyncSession = Depends(get_session),
@@ -479,7 +479,7 @@ async def upload_event_waiver_scan(
         session,
         acting=acting,
         file=file,
-        sailor_id=sailor_id,
+        person_id=person_id,
         guardian_name=guardian_name,
         locale_shown=locale_shown,
         scope="event",
@@ -508,8 +508,8 @@ async def get_waiver_scan(
     ).scalar_one_or_none()
     if row is None or scan_path(row.guardian_signature_ref) is None:
         raise Problem(404, "waiver-scan-not-found", "No scan is on file for this confirmation.")
-    sailor = await _sailor(session, row.sailor_id)
-    if not await _may_view_scan(session, acting, row, sailor):
+    person = await _person(session, row.person_id)
+    if not await _may_view_scan(session, acting, row, person):
         raise Problem(
             403,
             "waiver-scan-forbidden",
@@ -524,7 +524,7 @@ async def get_waiver_scan(
         row.id,
         "viewed",
         acting,
-        sailor_id=sailor.id,
+        person_id=person.id,
     )
     await session.commit()
     return FileResponse(
@@ -635,20 +635,20 @@ async def club_waivers(
             .order_by(Event.starts_on, Event.title)
         )
     ).all()
-    members = await _team_sailors(session, [team_id for team_id, _ in [*squads, *entries]])
+    members = await _team_people(session, [team_id for team_id, _ in [*squads, *entries]])
 
     competitions: list[ClubCompetitionWaivers] = []
     for team_id, series in squads:
-        sailors = members.get(team_id, [])
-        judged = await competition_status(session, Competition.of_series(series), sailors, required)
+        people = members.get(team_id, [])
+        judged = await competition_status(session, Competition.of_series(series), people, required)
         competitions.append(
-            _competition("series", series.id, series.name, series.starts_on, sailors, judged)
+            _competition("series", series.id, series.name, series.starts_on, people, judged)
         )
     for team_id, event in entries:
-        sailors = members.get(team_id, [])
-        judged = await competition_status(session, Competition.of_event(event), sailors, required)
+        people = members.get(team_id, [])
+        judged = await competition_status(session, Competition.of_event(event), people, required)
         competitions.append(
-            _competition("event", event.id, event.title, event.starts_on, sailors, judged)
+            _competition("event", event.id, event.title, event.starts_on, people, judged)
         )
     return ClubWaiverList(
         club_id=club_id,
@@ -670,9 +670,9 @@ async def _confirm(
     scope_id: int,
     reference_date: date,
 ) -> WaiverConfirmationOut:
-    sailor = await get_or_404(session, Sailor, request.sailor_id)
+    person = await get_or_404(session, Person, request.person_id)
 
-    capacity = await _may_confirm_for(session, acting, sailor)
+    capacity = await _may_confirm_for(session, acting, person)
 
     required = await current_waiver_text(session)
     if required is None:
@@ -683,20 +683,20 @@ async def _confirm(
             detail="There is nothing to confirm.",
         )
 
-    minor = is_minor(sailor.birth_date, reference_date)
+    minor = is_minor(person.birth_date, reference_date)
     if minor is None:
         raise Problem(
             422,
             "waiver-birth-date-required",
             "The sailor's date of birth is required to confirm the waiver.",
-            sailor_id=sailor.id,
+            person_id=person.id,
         )
     if (
         minor
         and capacity == STAFF
         and request.method != WaiverMethod.GUARDIAN
         and not (request.guardian_signature_ref or "").strip()
-        and authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.SAILOR, sailor.id))
+        and authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.PERSON, person.id))
     ):
         # Story S-8: in a small club the team manager is often a sailor's parent. Linked
         # as guardian, their own click is the parent's online acceptance; the club's paper
@@ -710,7 +710,7 @@ async def _confirm(
             "waiver-ward-is-adult",
             "This sailor is an adult on the competition's reference date and confirms "
             "the waiver themselves.",
-            sailor_id=sailor.id,
+            person_id=person.id,
         )
 
     guardian_name = (request.guardian_name or "").strip() or None
@@ -724,7 +724,7 @@ async def _confirm(
     existing = (
         await session.execute(
             select(WaiverConfirmation).where(
-                WaiverConfirmation.sailor_id == sailor.id,
+                WaiverConfirmation.person_id == person.id,
                 WaiverConfirmation.waiver_text_id == required.id,
                 where_scope,
             )
@@ -766,7 +766,7 @@ async def _confirm(
                 "guardian-confirmation-needed",
                 "A sailor under 18 needs a legal guardian to sign; an online "
                 "confirmation alone is not enough.",
-                sailor_id=sailor.id,
+                person_id=person.id,
             )
         method = WaiverMethod.GUARDIAN
     else:
@@ -780,7 +780,7 @@ async def _confirm(
         )
 
     confirmation = WaiverConfirmation(
-        sailor_id=sailor.id,
+        person_id=person.id,
         waiver_text_id=required.id,
         series_id=scope_id if scope == "series" else None,
         event_id=scope_id if scope == "event" else None,
@@ -797,9 +797,9 @@ async def _confirm(
     return _out(confirmation, scope, scope_id, required.version, cleared=cleared)
 
 
-async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
-    sailor = await get_or_404(session, Sailor, sailor_id)
-    return sailor
+async def _person(session: AsyncSession, person_id: int) -> Person:
+    person = await get_or_404(session, Person, person_id)
+    return person
 
 
 async def _scope(session: AsyncSession, scope: Scope, scope_id: int) -> tuple[str, date]:
@@ -811,9 +811,9 @@ async def _scope(session: AsyncSession, scope: Scope, scope_id: int) -> tuple[st
     return event.title, event_reference_date(event)
 
 
-def _status_fields(judged: SailorWaiver) -> dict:
+def _status_fields(judged: PersonWaiver) -> dict:
     return dict(
-        sailor_id=judged.sailor_id,
+        person_id=judged.person_id,
         status=judged.status,
         minor=judged.minor,
         required_version=judged.required_version,
@@ -837,15 +837,15 @@ async def _attach_scan(
     *,
     acting: User,
     file: UploadFile,
-    sailor_id: int,
+    person_id: int,
     guardian_name: str | None,
     locale_shown: Locale,
     scope: Scope,
     scope_id: int,
     reference_date: date,
 ) -> WaiverConfirmationOut:
-    sailor = await _sailor(session, sailor_id)
-    await _may_confirm_for(session, acting, sailor)
+    person = await _person(session, person_id)
+    await _may_confirm_for(session, acting, person)
 
     required = await current_waiver_text(session)
     if required is None:
@@ -855,13 +855,13 @@ async def _attach_scan(
             "No liability waiver has been published yet.",
             detail="There is nothing to confirm.",
         )
-    minor = is_minor(sailor.birth_date, reference_date)
+    minor = is_minor(person.birth_date, reference_date)
     if minor is None:
         raise Problem(
             422,
             "waiver-birth-date-required",
             "The sailor's date of birth is required to confirm the waiver.",
-            sailor_id=sailor.id,
+            person_id=person.id,
         )
     if not minor:
         # An adult's own click is their statement (Story S-1). The scan path stays what it
@@ -872,7 +872,7 @@ async def _attach_scan(
             "waiver-scan-not-needed",
             "An adult confirms the waiver online; a signed form is only needed for a "
             "sailor under 18.",
-            sailor_id=sailor.id,
+            person_id=person.id,
         )
 
     raw = await file.read()
@@ -887,7 +887,7 @@ async def _attach_scan(
     row = (
         await session.execute(
             select(WaiverConfirmation).where(
-                WaiverConfirmation.sailor_id == sailor.id,
+                WaiverConfirmation.person_id == person.id,
                 WaiverConfirmation.waiver_text_id == required.id,
                 where_scope,
             )
@@ -902,7 +902,7 @@ async def _attach_scan(
     if row is None:
         action = "uploaded"
         row = WaiverConfirmation(
-            sailor_id=sailor.id,
+            person_id=person.id,
             waiver_text_id=required.id,
             series_id=scope_id if scope == "series" else None,
             event_id=scope_id if scope == "event" else None,
@@ -930,7 +930,7 @@ async def _attach_scan(
         row.id,
         action,
         acting,
-        sailor_id=sailor.id,
+        person_id=person.id,
         scope=scope,
         scope_id=scope_id,
         media_type=media_type,
@@ -941,7 +941,7 @@ async def _attach_scan(
 
 
 async def _may_view_scan(
-    session: AsyncSession, acting: User, row: WaiverConfirmation, sailor: Sailor
+    session: AsyncSession, acting: User, row: WaiverConfirmation, person: Person
 ) -> bool:
     """Who is connected closely enough to see a minor's signed form (Story S-1)."""
     # The league office; an event's organizer or race committee — held on the event, its
@@ -956,18 +956,18 @@ async def _may_view_scan(
             return True
     if (
         acting.email_verified
-        and sailor.email is not None
-        and sailor.email.lower() == acting.email.lower()
+        and person.email is not None
+        and person.email.lower() == acting.email.lower()
     ):
         return True
-    return authz.check(acting, Relation.MANAGER, on=sailor)
+    return authz.check(acting, Relation.MANAGER, on=person)
 
 
 #: In which capacity someone may confirm for a sailor (`_may_confirm_for`).
 OWN, STAFF, GUARDIAN = "own", "staff", "guardian"
 
 
-async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) -> str:
+async def _may_confirm_for(session: AsyncSession, acting: User, person: Person) -> str:
     """The sailor's own (verified) account; the league office or the manager of a club
     the sailor sails for (the model's ``manager`` on the sailor) — they collect their club's
     paper forms (Stories S-1,
@@ -976,14 +976,14 @@ async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) 
     sailor on the site. Returns which of the three it is — the first that applies."""
     own = (
         acting.email_verified
-        and sailor.email is not None
-        and sailor.email.lower() == acting.email.lower()
+        and person.email is not None
+        and person.email.lower() == acting.email.lower()
     )
     if own:
         return OWN
-    if authz.check(acting, Relation.MANAGER, on=sailor):
+    if authz.check(acting, Relation.MANAGER, on=person):
         return STAFF
-    if authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.SAILOR, sailor.id)):
+    if authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.PERSON, person.id)):
         return GUARDIAN
     raise Problem(
         403,
@@ -997,7 +997,7 @@ def _out(
 ) -> WaiverConfirmationOut:
     return WaiverConfirmationOut(
         id=row.id,
-        sailor_id=row.sailor_id,
+        person_id=row.person_id,
         version=version,
         scope=scope,
         scope_id=scope_id,
@@ -1010,17 +1010,17 @@ def _out(
 
 
 def _row(
-    first: str, last: str, judged: SailorWaiver, *, club: str | None = None
-) -> SailorWaiverRow:
-    return SailorWaiverRow(first_name=first, last_name=last, club=club, **_status_fields(judged))
+    first: str, last: str, judged: PersonWaiver, *, club: str | None = None
+) -> PersonWaiverRow:
+    return PersonWaiverRow(first_name=first, last_name=last, club=club, **_status_fields(judged))
 
 
-def _tally(rows: list[SailorWaiverRow]) -> dict:
+def _tally(rows: list[PersonWaiverRow]) -> dict:
     """The rows with who still has to sign at the top — that is what someone opens the
     list for — and the two counts above them."""
     rows.sort(key=lambda r: (r.status == WaiverStatus.CLEARED, r.last_name, r.first_name))
     cleared = sum(1 for r in rows if r.status == WaiverStatus.CLEARED)
-    return dict(cleared=cleared, outstanding=len(rows) - cleared, sailors=rows)
+    return dict(cleared=cleared, outstanding=len(rows) - cleared, people=rows)
 
 
 def _competition(
@@ -1028,32 +1028,32 @@ def _competition(
     scope_id: int,
     name: str,
     starts_on: date | None,
-    sailors: list[Sailor],
-    judged: dict[int, SailorWaiver],
+    people: list[Person],
+    judged: dict[int, PersonWaiver],
 ) -> ClubCompetitionWaivers:
-    rows = [_row(s.first_name, s.last_name, judged[s.id]) for s in sailors]
+    rows = [_row(s.first_name, s.last_name, judged[s.id]) for s in people]
     return ClubCompetitionWaivers(
         scope=scope, scope_id=scope_id, name=name, starts_on=starts_on, **_tally(rows)
     )
 
 
-async def _team_sailors(session: AsyncSession, team_ids: list[int]) -> dict[int, list[Sailor]]:
+async def _team_people(session: AsyncSession, team_ids: list[int]) -> dict[int, list[Person]]:
     """The members of each of these teams, in one query."""
-    out: dict[int, list[Sailor]] = {}
+    out: dict[int, list[Person]] = {}
     rows = await session.execute(
-        select(TeamMembership.team_id, Sailor)
-        .join(Sailor, TeamMembership.sailor_id == Sailor.id)
+        select(TeamMembership.team_id, Person)
+        .join(Person, TeamMembership.person_id == Person.id)
         .where(TeamMembership.team_id.in_(team_ids))
     )
-    for team_id, sailor in rows:
-        out.setdefault(team_id, []).append(sailor)
+    for team_id, person in rows:
+        out.setdefault(team_id, []).append(person)
     return out
 
 
 async def _squad_people(
     session: AsyncSession, event: Event
 ) -> list[tuple[int, str, str, str | None]]:
-    """(sailor_id, first, last, club short name) for everyone in this event's squads.
+    """(person_id, first, last, club short name) for everyone in this event's squads.
 
     For a series event, the squad hangs off each club's series registration; for a
     standalone event, off the event entry itself (same rule as the lineup).
@@ -1080,8 +1080,8 @@ async def _squad_people(
 
     rows = (
         await session.execute(
-            select(Sailor.id, Sailor.first_name, Sailor.last_name, Club.short_name)
-            .join(TeamMembership, TeamMembership.sailor_id == Sailor.id)
+            select(Person.id, Person.first_name, Person.last_name, Club.short_name)
+            .join(TeamMembership, TeamMembership.person_id == Person.id)
             .join(Team, TeamMembership.team_id == Team.id)
             .join(Club, Team.club_id == Club.id)
             .where(Team.id.in_(squad_teams))

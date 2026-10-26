@@ -11,6 +11,6 @@ import type { WaiverFormScope } from './waiverFormScope';
 export type WaiverFormParams = {
 scope: WaiverFormScope;
 scope_id: number;
-sailor_id: number;
+person_id: number;
 locale?: WaiverFormLocale;
 };
