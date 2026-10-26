@@ -274,7 +274,7 @@ describeStory("B-18: a click path in the help opens that place, for the reader w
     await expect(place).not.toHaveAttribute("href", /./);
     // The same sailor is a member, so the Members tab of their club is theirs to open.
     await page.goto("/help/club-members");
-    await expect(page.getByTestId("help-place-club.members").first()).toHaveAttribute("data-reachable", "true");
+    await expect(page.getByTestId("help-place-club.people").first()).toHaveAttribute("data-reachable", "true");
   });
 });
 

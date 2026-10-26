@@ -30,7 +30,7 @@ describeStory("Z-10: the club's sections follow what I hold on the club", () => 
     await page.goto(`/me/club/${club}`);
     const sections = await listedSections(page, "club");
     for (const section of [
-      "members", "sailors", "minors", "waivers", // People
+      "people", "minors", "waivers", // People
       "squads", "crews", "hosting", // Racing
       "decide-claims", "payment-runs", "bank-account", // Money
     ]) {
@@ -43,10 +43,13 @@ describeStory("Z-10: the club's sections follow what I hold on the club", () => 
     await page.goto(`/me/club/${club}/club-page`);
     await expect(page.getByTestId("workspace-content-club-overview")).toBeVisible();
 
-    // *Sailors*: the club's people, and the way to add one.
-    await openSection(page, "club", "sailors");
-    await expect(page.getByTestId(`my-club-sailors-${club}`)).toBeVisible();
-    await expect(page.getByTestId("my-club-sailors-new-person")).toBeVisible();
+    // *People*: the club's people, and the way to add one (#45).
+    await openSection(page, "club", "people");
+    await expect(page.getByTestId("my-club-people-table")).toBeVisible();
+    await expect(page.getByTestId(`my-club-access-${club}-open`)).toBeVisible();
+    // The old addresses of *Members* and *Sailors* lead there.
+    await page.goto(`/me/club/${club}/sailors?no_birth_date=true`);
+    await expect(page).toHaveURL(new RegExp(`/me/club/${club}/people\\?no_birth_date=true$`));
   });
 
   test("the club's admin opens Minors & guardians and Payment runs", async ({ page, request }) => {

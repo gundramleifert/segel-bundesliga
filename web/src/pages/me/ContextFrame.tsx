@@ -6,7 +6,7 @@ import type { MyContext } from "../../api/types";
 import { useReachedContext } from "../../api/generated/sbl";
 import { ErrorMessage, Loading, PageHeader, StatusBadge } from "../../components/Blocks";
 import { eventDates } from "../../lib/format";
-import { LEGACY_TAB_SECTION } from "../../lib/workspace";
+import { LEGACY_TAB_SECTION, RENAMED_SECTIONS } from "../../lib/workspace";
 import { Waivers } from "./Waivers";
 import { RelationChips } from "./Chips";
 import { TodoList } from "./Todos";
@@ -101,6 +101,11 @@ export function ContextFrame({
 
   const legacy = legacyTarget(`/me/${kind}/${id}`, LEGACY_TAB_SECTION[kind], params);
   if (legacy) return <Navigate to={legacy} replace />;
+  const renamed = section && RENAMED_SECTIONS[kind]?.[section];
+  if (renamed) {
+    const query = params.toString();
+    return <Navigate to={`/me/${kind}/${id}/${renamed}${query ? `?${query}` : ""}`} replace />;
+  }
   if (accountLoading) return <Loading testId="me-context-loading" />;
   if (!account) return <Navigate to="/account" replace />;
   if (space.error) return <ErrorMessage text={space.error} testId="me-context-error" />;

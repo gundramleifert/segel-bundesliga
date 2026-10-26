@@ -52,8 +52,8 @@ const CLUB_GROUPS = [
   {
     key: "people",
     sections: {
-      members: { for: [Relation.member, ...ORGANIZERS] },
-      sailors: { for: ORGANIZERS },
+      // One list of the club's people (#45): the organizers' whole list, a member's roster.
+      people: { for: [Relation.member, ...ORGANIZERS] },
       minors: { for: ORGANIZERS },
       waivers: { for: ORGANIZERS },
     },
@@ -302,6 +302,25 @@ function compareTuples(a: number[], b: number[]): number {
 /** Where a section of a context lives (§7): `/me` is *Me › Overview*, my own sections are
  *  under `/me/profile/`, a club's, series' or event's under `/me/<kind>/:id/`, its
  *  overview being the bare address; the league office's under `/office/`. */
+/** Sections that took another's place: *Members* and *Sailors* are the club's *People*
+ *  since #45. Their old addresses lead there. */
+export const RENAMED_SECTIONS: Partial<Record<WorkspaceKind, Record<string, string>>> = {
+  club: { members: "people", sailors: "people" },
+};
+
+/** A to-do that clears in a list lands on that list already narrowed to it (§4): the
+ *  people without a date of birth, the requests waiting. */
+export const NEED_FILTER: Record<string, string> = {
+  person_without_birth_date: "no_birth_date=true",
+  membership_requested: "status=requested",
+};
+
+/** Where a to-do is cleared: its section, narrowed when the section is a list. */
+export function needPath(ref: ContextRef, need: { code: string; section: string }): string {
+  const filter = NEED_FILTER[need.code];
+  return `${sectionPath(ref, need.section)}${filter ? `?${filter}` : ""}`;
+}
+
 export function sectionPath(ref: ContextRef, section = "overview"): string {
   if (!("id" in ref)) {
     if (ref.kind === "office") return section === "overview" ? "/office" : `/office/${section}`;
@@ -527,7 +546,7 @@ export function rememberVisit(visit: Visit, storage: Pick<Storage, "getItem" | "
 export const LEGACY_TAB_SECTION = {
   profile: { account: "account", documents: "documents", bank: "bank", waivers: "waivers", claims: "claims" },
   club: {
-    members: "members",
+    members: "people",
     events: "crews",
     series: "squads",
     waivers: "waivers",

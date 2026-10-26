@@ -21,8 +21,6 @@ export const Section = {
   documents: 'documents',
   bank: 'bank',
   children: 'children',
-  members: 'members',
-  sailors: 'sailors',
   minors: 'minors',
   squads: 'squads',
   crews: 'crews',

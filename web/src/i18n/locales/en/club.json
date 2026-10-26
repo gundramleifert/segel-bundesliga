@@ -14,8 +14,6 @@
   "clubDescription": "{short_name} · {city}",
   "members": {
     "title": "Members",
-    "listTitle": "{count, plural, one {# member} other {# members}}",
-    "empty": "Nobody is a member yet.",
     "you": "you",
     "relations": {
       "admin": "admin",
@@ -32,8 +30,6 @@
     "leaveCancel": "Stay",
     "addHint": "By the email address of their account — they are in at once, no acceptance needed. Whoever has no account registers first.",
     "crestHint": "The club's crest — on the club's page, the standings and the results. Tap it to replace it.",
-    "newButton": "Member",
-    "newTitle": "Add to the club",
     "revoke": "Remove",
     "accept": "Accept",
     "statusInvited": "invited",
@@ -105,6 +101,37 @@
       "active": "Member",
       "invited": "Invited",
       "requested": "Asked"
+    }
+  },
+  "people": {
+    "count": "{count, plural, one {# person} other {# people}}",
+    "newButton": "Person",
+    "newTitle": "Add a person",
+    "mode": {
+      "new": "A new person",
+      "email": "Someone on record, by email"
+    },
+    "search": "Search name or email",
+    "name": "Name",
+    "roles": "In the club",
+    "account": "Account",
+    "birthDate": "Date of birth",
+    "empty": "Nobody matches.",
+    "filters": {
+      "role": "Any role",
+      "account": "Account?",
+      "accountYes": "With account",
+      "accountNo": "Without account",
+      "in_squad": "In a squad?",
+      "in_squadYes": "In a squad this year",
+      "in_squadNo": "In no squad this year",
+      "minor": "Age?",
+      "minorYes": "Under 18",
+      "minorNo": "18 or older",
+      "no_birth_date": "Date of birth?",
+      "no_birth_dateYes": "No date of birth",
+      "no_birth_dateNo": "Date of birth given",
+      "status": "Any status"
     }
   }
 }

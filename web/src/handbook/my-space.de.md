@@ -44,7 +44,7 @@ Jeder Kontext öffnet mit seiner *Übersicht*: was wartet, Termine, Stand.
 | Kontext | Als Segler oder Mitglied |
 |---|---|
 | *Ich* | [*Konto*](place:profile.account), [*Haftungsausschlüsse*](place:profile.waivers), [*Abrechnungen*](place:profile.claims), [*Dokumente*](place:profile.documents), [*Bankverbindung*](place:profile.bank) – siehe [Profil](#profile-sailor) |
-| Ihr Verein | [*Mitglieder*](place:club.members); *Segeln* › [*Kader*](place:club.series) und [*Veranstaltungen & Crews*](place:club.events), nur zum Lesen; [*Meine Abrechnungen*](place:club.claims) |
+| Ihr Verein | [*Mitglieder*](place:club.people); *Segeln* › [*Kader*](place:club.series) und [*Veranstaltungen & Crews*](place:club.events), nur zum Lesen; [*Meine Abrechnungen*](place:club.claims) |
 | eine Serie | [*Mein Team*](place:series.team): der Verein, für den Sie segeln; [*Veranstaltungen*](place:series.events); *Tabelle* |
 | eine Veranstaltung | [*Meine Crew*](place:event.crew); ist die Veranstaltung veröffentlicht, ein Link zu ihren Crews und ihrer Pairing-Liste |
 
@@ -57,7 +57,7 @@ dort als Hinweis über jedem Bereich ([Haftungsausschluss](#waiver-adult)).
 Der Admin des Vereins nimmt Sie über die E-Mail-Adresse Ihres Kontos auf – ohne Antrag,
 ohne Bestätigung. Zuerst brauchen Sie ein [Konto](#account-register).
 
-- [*Ihr Verein* › *Mitglieder*](place:club.members): jedes Mitglied mit Anzeigenamen, mit
+- [*Ihr Verein* › *Mitglieder*](place:club.people): jedes Mitglied mit Anzeigenamen, mit
   Kennzeichen wie *Organisator:in*; sichtbar nur für Mitglieder, Organisation und den
   Admin der Geschäftsstelle.
 - *Kader*, *Veranstaltungen & Crews*: nur zum Lesen; die Organisation des Vereins
@@ -67,7 +67,7 @@ ohne Bestätigung. Zuerst brauchen Sie ein [Konto](#account-register).
 
 ### Einen Verein verlassen {#my-space-leave}
 
-[*Ihr Verein* › *Mitglieder*](place:club.members) → *Verein verlassen*, dann bestätigen. Nur die Mitgliedschaft
+[*Ihr Verein* › *Mitglieder*](place:club.people) → *Verein verlassen*, dann bestätigen. Nur die Mitgliedschaft
 endet: andere Rollen im Verein bleiben, Kaderplätze, bis der Verein sie ändert. Zurück
 kommen Sie, wenn der Admin des Vereins Sie wieder aufnimmt.
 

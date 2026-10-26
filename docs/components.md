@@ -29,7 +29,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `Steps.tsx` | `Steps` — where you are in a short, ordered sequence (Story VA-6) |
 | `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, leading to its `/office/<area>/new` page |
 | `AddDialog.tsx` | `AddDialog` — the same "＋", opening a dialog, for an entry with no page of its own (a member, a person named to a role) |
-| `GrantForm.tsx` | `GrantForm` — name one person (by their account's email) to one relation on an object; inside an `AddDialog` |
+| `GrantForm.tsx` | `GrantForm` — name one person (by their account's email) to one or more relations on an object, and with `addMember` to a club; inside an `AddDialog` |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and the club's page in my space (`/me/club/:id`) |
 | `Select.tsx` | `Select` — **the** dropdown: a native `<select>` that sets its own colours, sized `field` / `inline` / `row` / `touch`; `oxlint` refuses a bare `<select>` |
@@ -292,17 +292,18 @@ so nobody has to find out where a screen hides its "new".
 ### `AddDialog` — the "＋" for an entry with no page of its own
 
 ```tsx
-<AddDialog label={t("members.newButton")} title={t("members.newTitle")} testId="my-club-access-7">
-  {(close) => <GrantForm object="club:7" testId="my-club-access-7" onWritten={refresh} onDone={close} />}
+<AddDialog label={t("access.newButton")} title={t("access.newTitle")} testId="event-access-7">
+  {(close) => <GrantForm object="event:7" testId="event-access-7" onWritten={refresh} onDone={close} />}
 </AddDialog>
 ```
 
 The same "＋" in the same corner as `AddButton`, opening a dialog (HeroUI `Modal`) instead
 of a page — for what is only an entry in the list it is added to: a member, a person named
-to one or more roles at once (`GrantForm`, which `AccessPanel` uses too). A thing with a page of its own (an
-event, a series, a club, a sailor) still gets `AddButton`. **Never a form written out
-under the list**: on a club's *Members* that showed the same people in two tables, and
-asked for input before anyone wanted to add anyone. Test ids: `${testId}-open`, the
+to one or more roles at once (`GrantForm`, which `AccessPanel` and a club's *People*
+use; there `addMember` puts *Member* first — a membership, not a tuple). A thing with a
+page of its own (an event, a series, a club) still gets `AddButton`. **Never a form
+written out under the list**: on a club's *Members* that showed the same people in two
+tables, and asked for input before anyone wanted to add anyone. Test ids: `${testId}-open`, the
 dialog `${testId}-dialog`.
 
 ### `Pager` — one page of a long list

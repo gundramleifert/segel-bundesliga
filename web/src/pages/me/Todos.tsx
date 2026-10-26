@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { Need } from "../../api/types";
-import { refKey, sectionPath, type ContextRef } from "../../lib/workspace";
+import { needPath, refKey, type ContextRef } from "../../lib/workspace";
 
 /** Story Z-10 (§4): what waits for me in one context, each line a link to the section
  *  that clears it — never to a page that merely explains. Worded by the page from the
@@ -21,7 +21,7 @@ export function TodoList({ context, needs, testId }: { context: ContextRef; need
             ●
           </span>
           <Link
-            to={sectionPath(context, need.section)}
+            to={needPath(context, need)}
             data-testid={`${testId}-${need.code}`}
             data-severity={need.severity}
             className="text-foreground underline-offset-2 hover:underline"

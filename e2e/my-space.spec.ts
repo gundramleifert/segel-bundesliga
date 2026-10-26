@@ -111,7 +111,7 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     // An organizer who is a member, in the sidebar (Story Z-10): the club's people, its
     // racing, their own claims to it, its money, and — its admin — the club's page.
     expect(await listedSections(page, "club")).toEqual([
-      "overview", "members", "sailors", "minors", "waivers", "squads", "crews", "hosting",
+      "overview", "people", "minors", "waivers", "squads", "crews", "hosting",
       "my-claims", "decide-claims", "payment-runs", "bank-account", "club-page",
     ]);
     await page.keyboard.press("Escape");
@@ -205,7 +205,7 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
     )!;
     await signIn(page, member.email);
     await page.goto(`/me/club/${clubId}/members`);
-    await expect(page.getByTestId("my-club-members")).toBeVisible();
+    await expect(page.getByTestId("my-club-people")).toBeVisible();
     // Not theirs: the section is not listed, and its address leads to the overview.
     await expect(page.getByTestId("workspace-section-club-club-page")).toHaveCount(0);
     await page.goto(`/me/club/${clubId}/club-page`);

@@ -12,7 +12,7 @@ title: "Mitglieder, Organisation und Stander"
 
 ## Mitglieder, Organisation und Stander
 
-Die Mitgliedschaft liegt in [*Ihr Verein* › *Mitglieder*](place:club.members): Jedes Mitglied sieht die
+Die Mitgliedschaft liegt in [*Ihr Verein* › *Mitglieder*](place:club.people): Jedes Mitglied sieht die
 Mitgliederliste. Die Vereinsverwaltung nimmt mit *＋ Mitglied* oben rechts Personen auf und entfernt eine Rolle mit dem ✕ daran.
 Eltern werden unter *Minderjährige & Erziehungsberechtigte* verknüpft, der Stander
 steht unter *Vereinsseite*.

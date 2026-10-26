@@ -14,8 +14,6 @@
   "clubDescription": "{short_name} · {city}",
   "members": {
     "title": "Mitglieder",
-    "listTitle": "{count, plural, one {# Mitglied} other {# Mitglieder}}",
-    "empty": "Noch niemand ist Mitglied.",
     "you": "du",
     "relations": {
       "admin": "Admin",
@@ -32,8 +30,6 @@
     "leaveCancel": "Bleiben",
     "addHint": "Über die E-Mail-Adresse des Kontos — sofort aufgenommen, ohne Bestätigung. Wer kein Konto hat, registriert sich zuerst.",
     "crestHint": "Der Stander des Vereins — auf der Vereinsseite, in der Tabelle und den Ergebnissen. Zum Ersetzen antippen.",
-    "newButton": "Mitglied",
-    "newTitle": "In den Verein aufnehmen",
     "revoke": "Entfernen",
     "accept": "Aufnehmen",
     "statusInvited": "eingeladen",
@@ -105,6 +101,37 @@
       "active": "Mitglied",
       "invited": "Eingeladen",
       "requested": "Angefragt"
+    }
+  },
+  "people": {
+    "count": "{count, plural, one {# Person} other {# Personen}}",
+    "newButton": "Person",
+    "newTitle": "Person hinzufügen",
+    "mode": {
+      "new": "Eine neue Person",
+      "email": "Jemand Bekanntes, per E-Mail"
+    },
+    "search": "Name oder E-Mail suchen",
+    "name": "Name",
+    "roles": "Im Verein",
+    "account": "Konto",
+    "birthDate": "Geburtsdatum",
+    "empty": "Niemand passt.",
+    "filters": {
+      "role": "Jede Rolle",
+      "account": "Konto?",
+      "accountYes": "Mit Konto",
+      "accountNo": "Ohne Konto",
+      "in_squad": "Im Kader?",
+      "in_squadYes": "In einem Kader dieses Jahr",
+      "in_squadNo": "In keinem Kader dieses Jahr",
+      "minor": "Alter?",
+      "minorYes": "Unter 18",
+      "minorNo": "18 oder älter",
+      "no_birth_date": "Geburtsdatum?",
+      "no_birth_dateYes": "Ohne Geburtsdatum",
+      "no_birth_dateNo": "Mit Geburtsdatum",
+      "status": "Jeder Stand"
     }
   }
 }

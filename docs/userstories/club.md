@@ -51,36 +51,32 @@ As a **club admin** I want to **decide who is in our club**, so that **not every
 join** — and so that nobody has to wait for a decision.
 
 Acceptance criteria:
-- The club's admin sees the club's people in the *Members* section: the roster, and the
-  People panel with every tuple on the club — who is member, manager, admin, race officer.
-- Adding is by **email** of an existing account (V-9); removing is deleting the tuple.
-  There are no requests and no invitations awaiting anyone (Z-5).
-- A manager sees the roster like any member and cannot change who is in the club.
-- Every write and delete is logged.
+- The club's people are **one list**, the *People* section (`/me/club/:id/people`, #45),
+  where *Members* and *Sailors* were two — everyone with a `ClubMembership` on the club,
+  and for the organizers also whoever's account holds a role there without being a
+  member (organizers often never sail), with their roles, whether they have an account,
+  and their date of birth. Narrowed on the server (`ClubPersonFilter`, A-13): search over
+  name and email; filters role, account yes/no, minor, no date of birth, in a squad this
+  year, status (active, invited, requested); sorted by name or date of birth; a page at a
+  time, every filter in the address. The old addresses redirect.
+- *＋ Person* (top right, a dialog) creates a new person for the club — the organizers;
+  the club's admin also adds someone on record by email, with roles at once (V-9).
+- The club's admin removes a role or a membership with its ✕ — the roles are separate
+  tuples and go on their own — and accepts or declines a request; someone already in
+  another club is invited, not taken
+  ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
+- A manager sees the whole list and adds new people, but cannot change who is in the
+  club. A plain member reads the roster (V-10).
+- Every change is logged.
 
-Endpoints: `GET /api/auth/tuples?object=club:<id>`, `POST /api/auth/tuples`,
-`DELETE /api/auth/tuples/{id}` (Story Z-2)
+Endpoints: `GET /api/clubs/{id}/people`, `POST`/`DELETE /api/clubs/{id}/members`,
+`POST /api/clubs/{id}/members/{person_id}/accept`, `POST /api/auth/tuples` and
+`DELETE /api/auth/tuples/{id}` for the roles (Story Z-2)
 
-Screen: the *Members* section of the club's page in my space, `/me/club/:id/members`
-(Stories V-12, S-7, Z-10).
+Screen: the *People* section of the club's page in my space, `/me/club/:id/people`
+(Stories V-12, S-7, Z-10); `…/members` and `…/sailors` lead there.
 
-**After #40** (not built yet):
-- The club's people are **one list**, the *People* section (`/me/club/:id/people`),
-  replacing *Members* and *Sailors* — everyone with a `ClubMembership` on the club, with
-  their roles, whether they have an account, and their date of birth or age for the
-  organizers. Narrowed on the server (`PersonFilter`, A-13): search over name and email;
-  filters role, account yes/no, minor, no date of birth, in a squad this year, status
-  (active, invited, requested); sorted by name or date of birth. The old addresses
-  redirect.
-- *＋ Person* (top right, a dialog) creates a new person for the club or adds an existing
-  one by email (V-9). Row actions follow what the reader may do: the club's admin changes
-  roles and membership, the organizers a person's details (V-4).
-- Removing someone deletes their membership; their roles on the club are separate tuples
-  and are removed on their own. Requests and invitations exist only for a person already
-  in another club ([V-15](#v-15--join-a-second-club-with-consent-either-way-round));
-  a `requested` row is the club's `membership_requested` to-do.
-
-Tests: `api/tests/stories/test_club_members.py::TestMembers`
+Tests: `api/tests/stories/test_club_people.py::TestClubPeople`, `api/tests/stories/test_club_members.py::TestMembers`, `e2e/club.spec.ts`
 
 ### V-9 ● Add someone by email
 As a **club admin** I want to **add a person by their email address**, so that I **can
@@ -172,16 +168,16 @@ via the address.
 address to a person who has none; changing one would hand the person's waivers and profile
 to another account.
 
-**Screen** (Story Z-10, #32): the club's *Sailors* section, `/me/club/:id/sailors`, for its
-organizers — everyone who sails for the club, *+ New person* creating someone for this club,
-and the date of birth set right on the row of a sailor who has none (the club's
-`sailor_without_birth_date` to-do). The squad screen keeps its own *New person* for the
-squad it is on.
+**Screen** (Story Z-10, #45): the club's *People* section, `/me/club/:id/people`, for its
+organizers — everyone in the club, *＋ Person* creating someone for this club, and the date
+of birth set right on the row of a person who has none (the club's
+`person_without_birth_date` to-do lands on the list filtered to them). The squad screen
+keeps its own *New person* for the squad it is on.
 
 Endpoints: `GET /api/admin/people`, `POST /api/admin/people`,
 `PATCH /api/admin/people/{id}`, `DELETE /api/admin/people/{id}/clubs/{club_id}`
 
-**After #40** (not built yet):
+**Since #40** (built in #42–#45):
 - A sailor is a **person** (`Sailor` → `Person`, `/api/people`, public `/sailors/:id`
   redirects to `/people/:id`), and "sails for a club" is an `active` `ClubMembership` —
   the same row that makes them a member. The permission edges stay: a person's `manager`
@@ -195,8 +191,8 @@ Endpoints: `GET /api/admin/people`, `POST /api/admin/people`,
   ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)). A person in another
   club without an account still goes through the league office — nobody could accept.
 - The squad rule stays: a squad takes only people with an active membership in its club.
-- The *Sailors* section goes; its work is in *People* (V-8), filtered by *No date of
-  birth* for the `sailor_without_birth_date` to-do.
+- The *Sailors* section went; its work is in *People* (V-8), filtered by *No date of
+  birth* for the `person_without_birth_date` to-do.
 
 Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`,
 `api/tests/stories/test_sailors_and_squads.py::TestASailorSailsForTheirClub`,
@@ -234,8 +230,8 @@ Acceptance criteria:
 Endpoints: `POST /api/clubs/{id}/members` (invites), `POST
 /api/clubs/{id}/members/{person_id}/accept`, `GET`/`POST /api/me/memberships`, `POST
 /api/me/memberships/{club_id}/accept`, `DELETE /api/me/memberships/{club_id}`, and
-`DELETE /api/clubs/{id}/members/{person_id}` for the club's side. Until #45 the club's
-requests wait in its *Members* section (*People* after it).
+`DELETE /api/clubs/{id}/members/{person_id}` for the club's side. The club's requests
+wait in its *People* section; the to-do lands on it filtered by status.
 
 Tests: `api/tests/stories/test_join_with_consent.py::TestTheClubInvites`,
 `api/tests/stories/test_join_with_consent.py::TestThePersonAsks`,
@@ -500,8 +496,8 @@ own. Squads and crews come from `GET /api/clubs/mine`, which answers "mine": a c
 league office opens without being in it has every other section, and those two are left
 out rather than drawn empty.
 
-**After #40** (not built yet): *Members* and *Sailors* become one **People** section
-(V-8), the *People* group being People, Minors & guardians and Waivers. Joining stays the
+**Since #45**: *Members* and *Sailors* are one **People** section (V-8), the *People*
+group being People, Minors & guardians and Waivers. Joining stays the
 club's doing for a person in no club; a person **already in another club**, signed in,
 may *Ask to join* from the public club page or *Me › My clubs*, and the club's admin
 accepts ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)) — the one way

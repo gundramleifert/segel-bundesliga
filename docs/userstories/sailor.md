@@ -92,16 +92,18 @@ Acceptance criteria:
   it carries every account's tuples — who is in which club — and was open to every
   club's organizer.
 
-Endpoints: `GET /api/clubs/{id}/members`
+Endpoints: `GET /api/clubs/{id}/people` (the section), `GET /api/clubs/{id}/members`
+(the public club page)
 
-Screen: the *Members* section, `/me/club/:id/members` (Stories V-12, S-7, Z-10); the roster stays on the public club
-page for a signed-in member as well.
+Screen: the *People* section, `/me/club/:id/people` (Stories V-12, S-7, Z-10, #45),
+read-only for a plain member; the roster stays on the public club page for a signed-in
+member as well.
 
-**After #40** (not built yet): the roster is the club's **active** members — people, with
-or without an account — with their roles on the club; still names only, no email and no
-date of birth. A plain member sees it read-only in the *People* section, which for the
-organizers is the full list (V-8). An `invited` or `requested` person is not on it and
-does not see it.
+The roster is the club's **active** members — people, with or without an account — with
+their roles on the club; names only, no email and no date of birth, and no filter that
+would tell either (`club-people-filter-forbidden`). For the organizers the same section
+is the full list (V-8). An `invited` or `requested` person is not on it and does not see
+it.
 Tests: `api/tests/stories/test_club_members.py::TestMemberRoster`,
 `api/tests/stories/test_club_members.py::TestOrganizers::test_a_clubs_organizer_lists_no_accounts`
 
@@ -631,7 +633,8 @@ Acceptance criteria:
     to-do appears for whoever holds the section it links to:
     - `minor_without_guardian` — club `minors`, the club's organizers: sailors of the club
       (`ClubMembership`) who are minors today and have no guardian linked;
-    - `sailor_without_birth_date` — club `sailors`, the club's organizers: no waiver can be
+    - `person_without_birth_date` — club `people`, filtered *No date of birth*, the club's
+      organizers: no waiver can be
       confirmed for them (S-3);
     - `payment_run_open` — club `payment-runs`, organizers and `treasurer`: a run with a
       payment still `issued`, not booked (F-7); `info`;
@@ -722,9 +725,10 @@ manager opens the event from the series and gets *Set up* as its own manager wou
   row links to the event's context.
 
 **A club's and a series' own work** (#32, the club and series part — built 2026-10-25):
-- **Club** — *People*: **Members** (the roster, leaving, and for the club's `admin` the
-  People panel), **Sailors** (everyone who sails for the club, *+ New person* for this
-  club, a missing date of birth set on the row — V-4), **Minors & guardians** (V-13),
+- **Club** — *People*: **People** (one list of everyone in the club, filtered and sorted
+  on the server; *＋ Person*; a missing date of birth set on the row; for the club's
+  `admin` roles, memberships, requests — V-8, V-4, V-15; #45 — where **Members** and
+  **Sailors** were two until 2026-10-26), **Minors & guardians** (V-13),
   **Waivers** (V-14); *Racing*: **Squads** (one row per series registration and per
   stand-alone event, each opening its squad — V-1), **Events & crews** (one row per team
   the club enters, each opening its crew — V-2, VA-13), **Hosting** (the events the club
@@ -734,14 +738,11 @@ manager opens the event from the series and gets *Set up* as its own manager wou
   page** (the crest, for the club's `admin` alone, with name, short name, city and
   website shown — the league office changes those). The crest, the guardians and the
   people's panel all stood on *Members* before.
-- **After #40** (not built yet; [`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md) §4): the club's
-  *People* group is **People** (one list of every person with a membership, filtered and
-  sorted on the server, *＋ Person* — V-8), **Minors & guardians** and **Waivers**;
-  *Members* and *Sailors* are gone and their addresses redirect to *People*. The section
-  key `people` replaces `members` and `sailors`; `sailor_without_birth_date` lands on
-  *People* filtered by *No date of birth*, and `membership_requested` (V-15) on *People*
-  filtered by status. *Me* gains the section `clubs` (*My clubs*,
-  `membership_invited`).
+- Since #44/#45 ([`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md) §4): the section key `people`
+  replaced `members` and `sailors`, whose addresses redirect; `person_without_birth_date`
+  lands on *People* filtered by *No date of birth* and `membership_requested` (V-15) on
+  *People* filtered by status (`NEED_FILTER` in `lib/workspace.ts`). *Me* has the section
+  `clubs` (*My clubs*, `membership_invited`).
 - A club opened by someone who is not in it — the site's admin, reached through the
   league office — has every section the model gives them there except *Squads* and
   *Events & crews*: those read `GET /api/clubs/mine`, which answers "mine".
@@ -754,7 +755,7 @@ manager opens the event from the series and gets *Set up* as its own manager wou
   *Officials*: **Race committee & jury** (the series' tuples, Z-2). *News & pictures* for
   the series' editors is declared and not built — the declaration hides it.
 - Every to-do code of a club or a series lands on a built section: `minor_without_guardian`
-  → *Minors & guardians*, `sailor_without_birth_date` → *Sailors*, `payment_run_open` →
+  → *Minors & guardians*, `person_without_birth_date` → *People*, `payment_run_open` →
   *Payment runs*, `claims` → *Decide claims*, `squad_below_min` → *Squads*, `crew_missing`
   → *Events & crews*, `crew_waiver_missing` → *Waivers*; `registrations_open` → *Clubs &
   registrations*, `event_unpublished` → *Dates & publication*.

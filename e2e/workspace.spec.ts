@@ -68,14 +68,15 @@ describeStory("Z-10: the switcher's search — my sections by their words, anyth
       await expect(page.getByTestId("workspace-switcher-search-empty")).toBeVisible();
 
       // By keyboard: the first hit is marked, Enter opens it.
-      await search.fill("members");
-      await expect(page.getByTestId(`workspace-switcher-search-hit-club-${clubId}-members`)).toHaveAttribute(
+      // "Hosting" — a word only the club's section has (an event of ASVW's also has *People*).
+      await search.fill("hosting");
+      await expect(page.getByTestId(`workspace-switcher-search-hit-club-${clubId}-hosting`)).toHaveAttribute(
         "aria-selected",
         "true",
       );
       await search.press("Enter");
-      await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}/members$`));
-      await expect(page.getByTestId("workspace-content-club-members")).toBeVisible();
+      await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}/hosting$`));
+      await expect(page.getByTestId("workspace-content-club-hosting")).toBeVisible();
       await expect(page.getByTestId("workspace-switcher-panel")).toHaveCount(0);
 
       // Escape closes the list.

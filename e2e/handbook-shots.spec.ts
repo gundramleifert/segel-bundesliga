@@ -148,18 +148,19 @@ const SHOTS: Shot[] = [
   {
     id: "help-club-members",
     as: () => CLUB_ADMIN,
-    path: (d) => `/me/club/${d.clubId}/members`,
-    waitFor: () => tid("my-club-members-list"),
-    clip: () => ({ from: tid("my-club-members"), maxHeight: 640 }),
+    path: (d) => `/me/club/${d.clubId}/people`,
+    waitFor: () => tid("my-club-people-table"),
+    clip: () => ({ from: tid("my-club-people"), maxHeight: 640 }),
     phone: false,
   },
   {
-    // The dialog of *＋ Member*: whom, as what, Add.
+    // The dialog of *＋ Person*, someone on record by email: whom, as what, Add.
     id: "help-club-people",
     as: () => CLUB_ADMIN,
-    path: (d) => `/me/club/${d.clubId}/members`,
+    path: (d) => `/me/club/${d.clubId}/people`,
     open: async (page, d) => {
       await page.getByTestId(`my-club-access-${d.clubId}-open`).click();
+      await page.getByTestId(`my-club-access-${d.clubId}-mode-email`).check();
     },
     waitFor: (d) => tid(`my-club-access-${d.clubId}-relation-member`),
     clip: (d) => ({ from: tid(`my-club-access-${d.clubId}-dialog`), pad: 8 }),

@@ -9,6 +9,7 @@ import {
   groupTodos,
   mayCreate,
   mayCreateIn,
+  needPath,
   officeAddress,
   hasSection,
   isLive,
@@ -45,7 +46,7 @@ function context(kind: MyContext["kind"], id: number, name: string, extra: Parti
 
 describe("Story Z-10: the sections each person of §5 has", () => {
   test("an adult sailor of ASVW: the club read, their team, their crew", () => {
-    expect(sectionsFor("club", [Relation.member])).toEqual(["overview", "members", "squads", "crews", "my-claims"]);
+    expect(sectionsFor("club", [Relation.member])).toEqual(["overview", "people", "squads", "crews", "my-claims"]);
     expect(sectionsFor("series", [SAILOR])).toEqual(["overview", "team", "events", "standings"]);
     expect(sectionsFor("event", [SAILOR])).toEqual(["overview", "crew"]);
   });
@@ -63,7 +64,7 @@ describe("Story Z-10: the sections each person of §5 has", () => {
   test("the team manager of ASVW: everything of the club but its page", () => {
     const sections = sectionsFor("club", [Relation.member, Relation.manager]);
     expect(sections).toEqual([
-      "overview", "members", "sailors", "minors", "waivers", "squads", "crews", "hosting",
+      "overview", "people", "minors", "waivers", "squads", "crews", "hosting",
       "my-claims", "decide-claims", "payment-runs", "bank-account",
     ]);
     expect(sections).not.toContain("club-page");
@@ -246,10 +247,10 @@ describe("Story Z-10: addresses and the sections a screen has", () => {
   });
 
   test("a declared section without a panel is not listed, and a group left with one loses its heading", () => {
-    const groups = sidebar("club", [Relation.member, Relation.manager], { only: ["overview", "members", "squads", "crews"] });
+    const groups = sidebar("club", [Relation.member, Relation.manager], { only: ["overview", "people", "squads", "crews"] });
     expect(groups.map((g) => [g.key, g.sections, g.heading])).toEqual([
       [null, ["overview"], false],
-      ["people", ["members"], false],
+      ["people", ["people"], false],
       ["racing", ["squads", "crews"], true],
     ]);
   });
@@ -432,5 +433,19 @@ describe("Story A-11: the league office (#32)", () => {
       { key: "/office/events/new", to: "/office/events/new" },
     ]);
     expect(resolvePlace(PLACES["admin.new-series"], roles(Role.series_manager), [], [])).toEqual([]);
+  });
+});
+
+describe("#45: the club's People — one list, where the to-dos land filtered", () => {
+  test("Members and Sailors are People; a to-do opens the list narrowed to it", () => {
+    expect(sectionsFor("club", [Relation.admin])).toContain("people");
+    expect(sectionsFor("club", [Relation.admin])).not.toContain("members");
+    expect(sectionsFor("club", [Relation.admin])).not.toContain("sailors");
+    const club = { kind: "club", id: 7 } as const;
+    expect(needPath(club, { code: "person_without_birth_date", section: "people" })).toBe(
+      "/me/club/7/people?no_birth_date=true",
+    );
+    expect(needPath(club, { code: "membership_requested", section: "people" })).toBe("/me/club/7/people?status=requested");
+    expect(needPath(club, { code: "claims", section: "decide-claims" })).toBe("/me/club/7/decide-claims");
   });
 });

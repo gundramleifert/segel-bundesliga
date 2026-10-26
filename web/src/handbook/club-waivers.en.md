@@ -31,7 +31,7 @@ the name.
 | *Missing* | nothing confirmed for this competition | an adult confirms on their own profile; for a minor, see below |
 | *Outdated version* | confirmed an earlier wording | confirm the new one |
 | *Guardian's form missing* | under 18, the guardian's signature is not in yet | the guardian accepts online, or the signed form is uploaded |
-| *Date of birth unknown* | the age cannot be judged | the sailor enters it in their profile ([how](#waiver-birth-date)), or you set it in [*your club* › *Sailors*](place:club.sailors) |
+| *Date of birth unknown* | the age cannot be judged | the sailor enters it in their profile ([how](#waiver-birth-date)), or you set it in [*your club* › *Sailors*](place:club.people) |
 | *Not required* | no waiver is published yet | — |
 
 The sailor, and the event's organizer on the check-in list, see the same status.

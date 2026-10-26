@@ -5,17 +5,16 @@ import { useMyClubs } from "../../api/generated/sbl";
 import { Relation } from "../../api/types";
 import { useAccount } from "../../api/useApi";
 import { Loading } from "../../components/Blocks";
-import { ClubMembersPanel } from "../../components/ClubMembersPanel";
 import { GuardiansPanel } from "../../components/GuardiansPanel";
 import { ClubEvents, ClubHosting, ClubTeams, ClubWaivers } from "./ClubSections";
-import { ClubPageSection, ClubSailors } from "./ClubPeople";
+import { ClubPageSection, ClubPeopleSection } from "./ClubPeople";
 import { ClubBankAccount, ClubDecideClaims, ClubPaymentRuns } from "./Money";
 import { ClaimsTab } from "./Papers";
 import { type WorkspaceSection } from "./Workspace";
 import { ContextFrame } from "./ContextFrame";
 
 /** `/me/club/:id` — Story Z-10: the club's sections, as `lib/workspace.ts` declares them —
- * People (members, sailors, minors & guardians, waivers), Racing (squads, events & crews,
+ * People (people, minors & guardians, waivers), Racing (squads, events & crews,
  * hosting), Money (my claims, decide claims, payment runs, bank account) and the club page.
  *
  * Who sees what is the frame's business, from the relations the model gives me on the club
@@ -60,16 +59,18 @@ export function ClubPage() {
           : [];
         return [
           {
-            key: "members",
-            label: t("clubSections.members"),
-            needs: ["membership_requested"],
-            render: () => <ClubMembersPanel clubId={c.id} mayAdmin={mayAdmin} onLeft={() => navigate("/me")} />,
-          },
-          {
-            key: "sailors",
-            label: t("clubSections.sailors"),
-            needs: ["sailor_without_birth_date"],
-            render: () => <ClubSailors clubId={c.id} />,
+            // One list where *Members* and *Sailors* were two (#45).
+            key: "people",
+            label: t("clubSections.people"),
+            needs: ["person_without_birth_date", "membership_requested"],
+            render: () => (
+              <ClubPeopleSection
+                clubId={c.id}
+                mayAdmin={mayAdmin}
+                mayOrganize={mayAdmin || c.relations.includes(Relation.manager)}
+                onLeft={() => navigate("/me")}
+              />
+            ),
           },
           {
             // Whose parent may accept a young sailor's waiver (Story V-13).

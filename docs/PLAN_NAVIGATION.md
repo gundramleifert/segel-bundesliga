@@ -111,9 +111,8 @@ site's race committee, as the model says).
 | Club | **Club page** — name, crest, address | club `admin` |
 
 *People* replaces *Members* and *Sailors* (decided 2026-10-25, #40, `docs/PLAN_PEOPLE.md`
-§4): members and sailors are one `Person`, membership one `ClubMembership`. Until #45
-builds it, the club has *Members* and *Sailors* as before; their addresses then redirect
-to *People*.
+§4, built in #45): members and sailors are one `Person`, membership one
+`ClubMembership`. The addresses of *Members* and *Sailors* redirect to *People*.
 
 **Series and event are the two objects; "matchday" is not a third.** A matchday is an
 event's number within its series (`Event.matchday`, "Matchday 2 · Kiel"); a stand-alone
@@ -232,7 +231,7 @@ built** (decided), the new ones one by one:
 | `crew_missing` | club › Events & crews | organizers | exists |
 | `crew_waiver_missing` | club › Waivers | organizers | exists |
 | `minor_without_guardian` | club › Minors & guardians | organizers | new |
-| `sailor_without_birth_date` | club › People, filtered *No date of birth* (no waiver possible without it; *Sailors* until #40) | organizers | new |
+| `person_without_birth_date` | club › People, filtered *No date of birth* (no waiver possible without it; *Sailors* until #45) | organizers | new |
 | `membership_requested` | club › People, filtered by status *requested* (V-15) | club `admin` | after #40 |
 | `membership_invited` | Me › My clubs (V-15) | the person | after #40 |
 | `payment_run_open` | club › Payment runs (issued, not booked) | organizers, `treasurer` | new |

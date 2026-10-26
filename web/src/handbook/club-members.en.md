@@ -12,7 +12,7 @@ title: "Members, organizers and the crest"
 
 ## Members, organizers and the crest
 
-Membership lives in [*your club* › *Members*](place:club.members): every member sees the member list. The
+Membership lives in [*your club* › *Members*](place:club.people): every member sees the member list. The
 club admin adds people with *＋ Member* top-right and removes a role with the ✕ on it. Parents are linked in *Minors &
 guardians*, the crest is on *Club page*.
 

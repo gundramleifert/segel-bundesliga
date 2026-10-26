@@ -43,7 +43,7 @@ Each context opens on its *Overview*: what waits, dates, status.
 | Context | As a sailor or member |
 |---|---|
 | *Me* | [*Account*](place:profile.account), [*Waivers*](place:profile.waivers), [*Claims*](place:profile.claims), [*Documents*](place:profile.documents), [*Bank account*](place:profile.bank) — see [profile](#profile-sailor) |
-| your club | [*Members*](place:club.members); *Racing* › [*Squads*](place:club.series) and [*Events & crews*](place:club.events), read only; [*My claims*](place:club.claims) |
+| your club | [*Members*](place:club.people); *Racing* › [*Squads*](place:club.series) and [*Events & crews*](place:club.events), read only; [*My claims*](place:club.claims) |
 | a series | [*My team*](place:series.team): the club you sail for; [*Events*](place:series.events); *Standings* |
 | an event | [*My crew*](place:event.crew); once the event is published, a link to its crews and pairing list |
 
@@ -56,14 +56,14 @@ in its crew. An unsigned waiver is a notice above every section there
 The club's admin adds you by your account's email address — no request, no acceptance.
 You need an [account](#account-register) first.
 
-- [*your club* › *Members*](place:club.members): every member by display name, marked e.g. *organizer*;
+- [*your club* › *Members*](place:club.people): every member by display name, marked e.g. *organizer*;
   seen only by members, organizers and the league office's admin.
 - *Squads*, *Events & crews*: read only; the club's organizer edits them.
 - [*My claims*](place:club.claims): claims to the club ([file a claim](#file-a-claim-where)).
 
 ### Leave a club {#my-space-leave}
 
-[*your club* › *Members*](place:club.members) → *Leave the club*, and confirm. Only the membership ends: other roles
+[*your club* › *Members*](place:club.people) → *Leave the club*, and confirm. Only the membership ends: other roles
 in the club stay, and squad places until the club changes them. To return, the club's
 admin adds you again.
 

@@ -30,7 +30,7 @@ noch für keinen Verein segelt — der segelt dann für Ihren. Wer für einen an
 segelt, ist ausgegraut: Eine Person darf für mehrere Vereine segeln, einem zweiten
 Verein ordnet sie aber nur die Geschäftsstelle zu. Fehlt jemand? *Neue Person für
 unseren Verein …* legt sie mit ihrer Anmeldeadresse an und nimmt sie in den Kader;
-*+ Neue Person* unter [*Ihr Verein* › *Segler*](place:club.sailors) legt sie für Ihren Verein an, noch in keinem Kader.
+*+ Neue Person* unter [*Ihr Verein* › *Segler*](place:club.people) legt sie für Ihren Verein an, noch in keinem Kader.
 
 ### Den Kader melden {#squad-and-lineup-squad}
 

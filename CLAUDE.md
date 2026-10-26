@@ -360,7 +360,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   club a screen shows is the URL's business (`/me/club/:id`), the account remembers
   nothing; several clubs are several cards in my space, not a choice in the navigation.
   The club's page there is where its people are managed (V-8, Z-5, A-8; one *People*
-  section after #40, *Members* and *Sailors* until then), squads registered
+  section, #45), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
   `GET /api/clubs/mine`, never through an admin-only list.
 - **A list is narrowed on the server, never in the browser** (Story A-13, decided

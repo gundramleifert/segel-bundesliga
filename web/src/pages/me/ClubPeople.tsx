@@ -1,155 +1,471 @@
 import { Button } from "@heroui/react";
-import { useState } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
+import { createColumnHelper } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import {
+  addClubMember,
+  getListMyMembershipsQueryKey,
   getListPeopleQueryKey,
+  getReadTuplesQueryKey,
+  useAcceptClubMember,
   useCreatePerson,
+  useDeleteTuple,
+  useEndMyMembership,
   useGetClub,
-  useListClubGuardians,
+  useListClubPeople,
+  useListMyMemberships,
+  useReadTuples,
+  useRemoveClubMember,
   useUpdatePerson,
 } from "../../api/generated/sbl";
-import type { PersonGuardiansOut } from "../../api/generated/model/personGuardiansOut";
-import { useAsync, useInvalidate } from "../../api/useApi";
+import type { ClubPersonOut } from "../../api/generated/model/clubPersonOut";
+import type { MembershipStatus } from "../../api/generated/model/membershipStatus";
+import type { TupleOut } from "../../api/generated/model/tupleOut";
+import { Relation } from "../../api/types";
+import { useAccount, useAsync, useInvalidate } from "../../api/useApi";
+import { AddDialog } from "../../components/AddDialog";
 import { Async } from "../../components/Async";
 import { Badge, ErrorMessage } from "../../components/Blocks";
+import { ConfirmButton } from "../../components/ConfirmButton";
 import { CrestEditor } from "../../components/CrestEditor";
-import { Message } from "../../components/Form";
+import { DataTable } from "../../components/DataTable";
+import { GrantForm } from "../../components/GrantForm";
+import { Select } from "../../components/Select";
 import { NewPerson } from "../../components/SquadPanel";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
+import { useListParams, type ListParams } from "../../lib/listParams";
+import { TABLE_FEATURES } from "../../lib/table";
 
-/** Story Z-10: the club's *Sailors* and its *Club page* — two sections that were parts of
- * the Members tab, or of the league office's lists, before #32.
- */
+/** Story Z-10: the club's *People* and its *Club page*. */
 
-/** The club's sailors (Story V-4): everyone who sails for it (`SailorClub`), and
- * *+ New person*, created for this club — the one way a club's organizer adds someone to
- * the register. A sailor without a date of birth can confirm no waiver (S-3), so the date
- * is set right on the row; that clears the club's `sailor_without_birth_date` to-do.
+/** *Club › People* (#45, Stories V-8, V-10, V-15; `docs/PLAN_PEOPLE.md` §4) — one list of
+ * the club's people where *Members* and *Sailors* were two: a page at a time, searched,
+ * filtered and sorted on the server (`GET /api/clubs/{id}/people`, A-13), with the
+ * filters in the address so a to-do can land on its rows.
  *
- * Read from the guardians list (`GET /api/clubs/{id}/guardians`): it is exactly the
- * club's sailors, for exactly the club's organizers — a second endpoint would be a copy.
+ * Who reads it decides how much it offers. A plain member reads the roster — names,
+ * accounts and roles — and may leave. The club's organizers see everyone with a row,
+ * the dates of birth (a missing one is set right on the row, which clears the club's
+ * `person_without_birth_date`), and add people with *＋ Person*: a new person, created
+ * for the club. The club's admin also adds someone on record by email, with roles at
+ * once — someone in another club is invited (V-15) — accepts or declines requests, and
+ * removes a role or a membership with its ✕.
  */
-export function ClubSailors({ clubId }: { clubId: number }) {
-  const { t } = useTranslation("space");
+export function ClubPeopleSection({
+  clubId,
+  mayAdmin,
+  mayOrganize,
+  onLeft,
+}: {
+  clubId: number;
+  /** The club's `admin` — who is in the club, and the roles. */
+  mayAdmin: boolean;
+  /** `admin` or `manager` — the whole list, dates of birth, new people. */
+  mayOrganize: boolean;
+  onLeft?: () => void;
+}) {
+  const { t } = useTranslation("club");
   const invalidate = useInvalidate();
-  const rows = useAsync(useListClubGuardians(clubId));
-  const [creating, setCreating] = useState(false);
-  const refresh = () => invalidate(`/api/clubs/${clubId}/guardians`, getListPeopleQueryKey(), "/api/me/contexts");
-  const create = useCreatePerson({ mutation: { onSuccess: refresh } });
-  const id = `my-club-sailors-${clubId}`;
+  const list = useListParams();
+  const flag = (key: string) => (list.filter(key) === "" ? undefined : list.filter(key) === "true");
+  const people = useAsync(
+    useListClubPeople(
+      clubId,
+      {
+        ...list.request,
+        q: list.q || undefined,
+        sort: list.sort ?? undefined,
+        role: (list.filter("role") || undefined) as Relation | undefined,
+        account: flag("account"),
+        in_squad: flag("in_squad"),
+        ...(mayOrganize
+          ? {
+              minor: flag("minor"),
+              no_birth_date: flag("no_birth_date"),
+              status: (list.filter("status") || undefined) as MembershipStatus | undefined,
+            }
+          : {}),
+      },
+      { query: { placeholderData: keepPreviousData } },
+    ),
+  );
+  const tuples = useReadTuples({ object: `club:${clubId}` }, { query: { enabled: mayAdmin } });
+  const refresh = () => {
+    invalidate(
+      `/api/clubs/${clubId}`,
+      getReadTuplesQueryKey({ object: `club:${clubId}` }),
+      "/api/clubs/mine",
+      "/api/me",
+      "/api/auth/me",
+      getListPeopleQueryKey(),
+    );
+  };
+  const id = `my-club-people`;
 
   return (
     <section data-testid={id} className="grid grid-cols-[minmax(0,1fr)] gap-4">
-      <p className="text-sm text-muted">{t("clubSections.sailorsHint")}</p>
-      {creating ? (
-        <NewPerson
-          testIdPrefix="my-club-sailors-new"
-          pending={create.isPending}
-          error={create.isError ? errorText(create.error) : null}
-          onCancel={() => {
-            setCreating(false);
-            create.reset();
-          }}
-          onCreate={(person) =>
-            create.mutate({ data: { ...person, club_id: clubId } }, { onSuccess: () => setCreating(false) })
-          }
-        />
-      ) : (
-        <div>
-          <Button
-            size="sm"
-            variant="outline"
-            onPress={() => {
-              create.reset();
-              setCreating(true);
-            }}
-            data-testid="my-club-sailors-new-person"
-          >
-            {t("clubSections.newPerson")}
-          </Button>
-        </div>
-      )}
-      <Message
-        testId="my-club-sailors-created"
-        success={
-          create.isSuccess && !creating
-            ? t("clubSections.personCreated", { name: `${create.data.first_name} ${create.data.last_name}` })
-            : null
-        }
-      />
-      <Async state={rows} testId="my-club-sailors" empty={t("clubSections.noSailors")}>
-        {(data) => (
-          <ul
-            className="divide-y divide-separator rounded-lg border border-separator bg-surface"
-            data-testid="my-club-sailors-list"
-          >
-            {byName(data).map((row) => (
-              <SailorRow key={row.person.id} row={row} onChanged={refresh} />
-            ))}
-          </ul>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="font-medium" data-testid={`${id}-count`}>
+          {t("people.count", { count: people.data?.total ?? 0 })}
+        </h3>
+        {mayOrganize && <AddPerson clubId={clubId} mayAdmin={mayAdmin} onAdded={refresh} />}
+      </div>
+      <Filters list={list} mayOrganize={mayOrganize} />
+      <Async state={people} testId={id}>
+        {(page) => (
+          <PeopleTable
+            clubId={clubId}
+            page={page}
+            list={list}
+            mayAdmin={mayAdmin}
+            mayOrganize={mayOrganize}
+            tuples={tuples.data ?? []}
+            onChanged={refresh}
+          />
         )}
       </Async>
+      <Leave clubId={clubId} onLeft={onLeft} />
     </section>
   );
 }
 
-function byName(rows: PersonGuardiansOut[]): PersonGuardiansOut[] {
-  return [...rows].sort(
-    (a, b) => a.person.last_name.localeCompare(b.person.last_name) || a.person.first_name.localeCompare(b.person.first_name),
+/** *＋ Person*: a new person for the club — or, for the club's admin, someone on record by
+ *  email, with roles at once. */
+function AddPerson({ clubId, mayAdmin, onAdded }: { clubId: number; mayAdmin: boolean; onAdded: () => void }) {
+  const { t } = useTranslation("club");
+  const [mode, setMode] = useState<"new" | "email">("new");
+  const create = useCreatePerson({ mutation: { onSuccess: onAdded } });
+  const testId = `my-club-access-${clubId}`;
+  return (
+    <AddDialog label={t("people.newButton")} title={t("people.newTitle")} testId={testId}>
+      {(close) => (
+        <div className="flex flex-col gap-3">
+          {mayAdmin && (
+            <div className="flex flex-wrap gap-4 text-sm" role="radiogroup" data-testid={`${testId}-mode`}>
+              {(["new", "email"] as const).map((m) => (
+                <label key={m} className="flex items-center gap-2">
+                  <input type="radio" name={`${testId}-mode`} checked={mode === m} onChange={() => setMode(m)} data-testid={`${testId}-mode-${m}`} />
+                  {t(`people.mode.${m}`)}
+                </label>
+              ))}
+            </div>
+          )}
+          {mode === "new" ? (
+            <NewPerson
+              testIdPrefix="my-club-people-new"
+              pending={create.isPending}
+              error={create.isError ? errorText(create.error) : null}
+              onCancel={close}
+              onCreate={(person) => create.mutate({ data: { ...person, club_id: clubId } }, { onSuccess: close })}
+            />
+          ) : (
+            <>
+              <p className="text-sm text-muted">{t("members.addHint")}</p>
+              <GrantForm
+                object={`club:${clubId}`}
+                testId={testId}
+                addMember={(email) => addClubMember(clubId, { email })}
+                onWritten={onAdded}
+                onDone={close}
+              />
+            </>
+          )}
+        </div>
+      )}
+    </AddDialog>
   );
 }
 
-/** One sailor: the name, under 18 or not, and — without a date of birth — the date. */
-function SailorRow({ row, onChanged }: { row: PersonGuardiansOut; onChanged: () => void }) {
-  const { t } = useTranslation("space");
-  const { t: tc } = useTranslation("club");
-  const id = row.person.id;
-  const [birthDate, setBirthDate] = useState("");
-  const save = useUpdatePerson({ mutation: { onSuccess: onChanged } });
-  // `minor` is null exactly when the date of birth is missing (the endpoint's contract).
-  const noBirthDate = row.minor == null;
+/** The filters, each a query parameter of the list — a member gets those that reveal
+ *  nothing personal. */
+function Filters({ list, mayOrganize }: { list: ListParams; mayOrganize: boolean }) {
+  const { t } = useTranslation("club");
+  const yesNo = (key: string) => (
+    <Select value={list.filter(key)} onChange={(e) => list.setFilter(key, e.target.value)} testId={`my-club-people-filter-${key}`}>
+      <option value="">{t(`people.filters.${key}`)}</option>
+      <option value="true">{t(`people.filters.${key}Yes`)}</option>
+      <option value="false">{t(`people.filters.${key}No`)}</option>
+    </Select>
+  );
+  return (
+    <div className="flex flex-wrap items-end gap-2" data-testid="my-club-people-filters">
+      <input
+        className={`${INPUT_CLASS} max-w-xs`}
+        value={list.q}
+        onChange={(e) => list.setQuery(e.target.value)}
+        placeholder={t("people.search")}
+        aria-label={t("people.search")}
+        data-testid="my-club-people-search"
+      />
+      <Select value={list.filter("role")} onChange={(e) => list.setFilter("role", e.target.value)} testId="my-club-people-filter-role">
+        <option value="">{t("people.filters.role")}</option>
+        {[Relation.admin, Relation.manager, Relation.treasurer].map((r) => (
+          <option key={r} value={r}>
+            {t(`members.relations.${r}`)}
+          </option>
+        ))}
+      </Select>
+      {yesNo("account")}
+      {yesNo("in_squad")}
+      {mayOrganize && (
+        <>
+          {yesNo("minor")}
+          {yesNo("no_birth_date")}
+          <Select value={list.filter("status")} onChange={(e) => list.setFilter("status", e.target.value)} testId="my-club-people-filter-status">
+            <option value="">{t("people.filters.status")}</option>
+            {["active", "invited", "requested"].map((s) => (
+              <option key={s} value={s}>
+                {t(`join.status.${s}`)}
+              </option>
+            ))}
+          </Select>
+        </>
+      )}
+    </div>
+  );
+}
+
+const column = createColumnHelper<typeof TABLE_FEATURES, ClubPersonOut>();
+
+function PeopleTable({
+  clubId,
+  page,
+  list,
+  mayAdmin,
+  mayOrganize,
+  tuples,
+  onChanged,
+}: {
+  clubId: number;
+  page: { items: ClubPersonOut[]; total: number; limit: number; offset: number };
+  list: ListParams;
+  mayAdmin: boolean;
+  mayOrganize: boolean;
+  tuples: TupleOut[];
+  onChanged: () => void;
+}) {
+  const { t } = useTranslation("club");
+  const { account } = useAccount();
+  const revoke = useDeleteTuple({ mutation: { onSuccess: onChanged } });
+  const remove = useRemoveClubMember({ mutation: { onSuccess: onChanged } });
+  const accept = useAcceptClubMember({ mutation: { onSuccess: onChanged } });
+  const failed = revoke.error ?? remove.error ?? accept.error;
+  // The tuple behind each role chip, so the club's admin can take that one away.
+  const tupleOf = useMemo(() => {
+    const ids = new Map<string, number>();
+    for (const row of tuples) ids.set(`${row.user_id}:${row.relation}`, row.id);
+    return ids;
+  }, [tuples]);
+
+  const columns = useMemo(
+    () =>
+      column.columns([
+        column.accessor("last_name", {
+          header: t("people.name"),
+          enableSorting: true,
+          cell: ({ row }) => (
+            <span className="flex flex-wrap items-center gap-2">
+              <Link to={`/people/${row.original.person_id}`} className="font-medium underline-offset-2 hover:underline">
+                {[row.original.first_name, row.original.last_name].filter(Boolean).join(" ")}
+              </Link>
+              {row.original.user_id != null && row.original.user_id === account?.id && (
+                <span className="text-xs text-muted">{t("members.you")}</span>
+              )}
+            </span>
+          ),
+        }),
+        column.accessor("roles", {
+          header: t("people.roles"),
+          enableSorting: false,
+          cell: ({ row }) => {
+            const p = row.original;
+            const key = p.user_id ?? `person-${p.person_id}`;
+            return (
+              <span className="flex flex-wrap items-center gap-1">
+                {p.status === "active" && (
+                  <Chip
+                    testId={`my-club-member-relation-${key}-member`}
+                    label={t("members.relations.member")}
+                    onDrop={mayAdmin ? () => remove.mutate({ clubId, personId: p.person_id }) : undefined}
+                    dropTestId={`my-club-member-revoke-member-${p.person_id}`}
+                    dropLabel={t("members.revoke")}
+                  />
+                )}
+                {(p.status === "invited" || p.status === "requested") && (
+                  <>
+                    <Chip
+                      tone="warning"
+                      testId={`my-club-member-pending-${key}`}
+                      label={p.status === "requested" ? t("members.statusRequested") : t("members.statusInvited")}
+                      onDrop={mayAdmin ? () => remove.mutate({ clubId, personId: p.person_id }) : undefined}
+                      dropTestId={`my-club-member-decline-${p.person_id}`}
+                      dropLabel={t("members.decline")}
+                    />
+                    {p.status === "requested" && mayAdmin && (
+                      <Button size="sm" onPress={() => accept.mutate({ clubId, personId: p.person_id })} data-testid={`my-club-member-accept-${p.person_id}`}>
+                        {t("members.accept")}
+                      </Button>
+                    )}
+                  </>
+                )}
+                {(p.roles ?? []).map((relation) => {
+                  const tupleId = p.user_id != null ? tupleOf.get(`${p.user_id}:${relation}`) : undefined;
+                  return (
+                    <Chip
+                      key={relation}
+                      testId={`my-club-member-relation-${key}-${relation}`}
+                      label={t(`members.relations.${relation}`, { defaultValue: relation })}
+                      onDrop={mayAdmin && tupleId !== undefined ? () => revoke.mutate({ tupleId }) : undefined}
+                      dropTestId={`my-club-member-revoke-${tupleId}`}
+                      dropLabel={t("members.revoke")}
+                    />
+                  );
+                })}
+              </span>
+            );
+          },
+        }),
+        column.accessor("user_id", {
+          header: t("people.account"),
+          enableSorting: false,
+          cell: ({ row }) => <span className="text-muted">{row.original.user_id != null ? "✓" : "—"}</span>,
+        }),
+        ...(mayOrganize
+          ? [
+              column.accessor("birth_date", {
+                header: t("people.birthDate"),
+                enableSorting: true,
+                cell: ({ row }) => <BirthDate person={row.original} onChanged={onChanged} />,
+              }),
+            ]
+          : []),
+      ]),
+    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, remove, accept, revoke, onChanged],
+  );
 
   return (
-    <li data-testid={`my-club-sailor-${id}`} className="grid grid-cols-[minmax(0,1fr)] gap-2 px-4 py-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="min-w-0 flex-1 font-medium">
-          {row.person.first_name} {row.person.last_name}
-        </span>
-        {row.minor === true && <Badge tone="warning">{tc("guardians.minor")}</Badge>}
-        {noBirthDate && (
-          <Badge tone="caution" testId={`my-club-sailor-no-birth-date-${id}`}>
-            {t("clubSections.noBirthDate")}
-          </Badge>
-        )}
-      </div>
-      {noBirthDate && (
-        <form
-          className="flex flex-wrap items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            save.mutate({ personId: id, data: { birth_date: birthDate } });
-          }}
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+      <DataTable
+        columns={columns}
+        page={page}
+        params={list}
+        testId="my-club-people"
+        empty={t("people.empty")}
+        rowTestId={(p) => p.person_id}
+      />
+      {failed && <ErrorMessage text={errorText(failed)} testId="my-club-member-revoke-error" />}
+    </div>
+  );
+}
+
+/** A role or a membership on a row — with its ✕ where the reader may take it away. */
+function Chip({
+  label,
+  testId,
+  tone = "brand",
+  onDrop,
+  dropTestId,
+  dropLabel,
+}: {
+  label: string;
+  testId: string;
+  tone?: "brand" | "warning";
+  onDrop?: () => void;
+  dropTestId: string;
+  dropLabel: string;
+}) {
+  return (
+    <Badge tone={tone} testId={testId}>
+      {label}
+      {onDrop && (
+        <button
+          type="button"
+          className="ml-1 text-faint hover:text-danger"
+          aria-label={`${dropLabel}: ${label}`}
+          title={dropLabel}
+          onClick={onDrop}
+          data-testid={dropTestId}
         >
-          {/* A wrapper sets the width: a class appended to INPUT_CLASS may lose to its own. */}
-          <div className="w-44">
-            <input
-              type="date"
-              required
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              aria-label={t("clubSections.birthDateLabel")}
-              className={INPUT_CLASS}
-              data-testid={`my-club-sailor-birth-date-${id}`}
-            />
-          </div>
-          <Button size="sm" type="submit" isDisabled={save.isPending || !birthDate} data-testid={`my-club-sailor-birth-date-save-${id}`}>
-            {t("clubSections.saveBirthDate")}
-          </Button>
-          {save.isError && <ErrorMessage text={errorText(save.error)} testId={`my-club-sailor-birth-date-error-${id}`} />}
-        </form>
+          ✕
+        </button>
       )}
-    </li>
+    </Badge>
+  );
+}
+
+/** The date of birth — or, without one, the field to set it (S-3: no waiver without it). */
+function BirthDate({ person, onChanged }: { person: ClubPersonOut; onChanged: () => void }) {
+  const { t } = useTranslation("space");
+  const { t: tc } = useTranslation("club");
+  const id = person.person_id;
+  const [birthDate, setBirthDate] = useState("");
+  const save = useUpdatePerson({ mutation: { onSuccess: onChanged } });
+  if (person.birth_date) {
+    return (
+      <span className="flex flex-wrap items-center gap-2">
+        {person.birth_date}
+        {person.minor && <Badge tone="warning">{tc("guardians.minor")}</Badge>}
+      </span>
+    );
+  }
+  return (
+    <form
+      className="flex flex-wrap items-center gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        save.mutate({ personId: id, data: { birth_date: birthDate } });
+      }}
+    >
+      <div className="w-40">
+        <input
+          type="date"
+          required
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+          aria-label={t("clubSections.birthDateLabel")}
+          className={INPUT_CLASS}
+          data-testid={`my-club-sailor-birth-date-${id}`}
+        />
+      </div>
+      <Button size="sm" type="submit" isDisabled={save.isPending || !birthDate} data-testid={`my-club-sailor-birth-date-save-${id}`}>
+        {t("clubSections.saveBirthDate")}
+      </Button>
+      {save.isError && <ErrorMessage text={errorText(save.error)} testId={`my-club-sailor-birth-date-error-${id}`} />}
+    </form>
+  );
+}
+
+/** *Leave the club* — for whoever is an active member here (Story Z-5). */
+function Leave({ clubId, onLeft }: { clubId: number; onLeft?: () => void }) {
+  const { t } = useTranslation("club");
+  const invalidate = useInvalidate();
+  const mine = useListMyMemberships();
+  const leave = useEndMyMembership({
+    mutation: {
+      onSuccess: () => {
+        invalidate(getListMyMembershipsQueryKey(), "/api/clubs/mine", "/api/me", `/api/clubs/${clubId}`);
+        onLeft?.();
+      },
+    },
+  });
+  if (!mine.data?.some((m) => m.club_id === clubId && m.status === "active")) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <ConfirmButton
+        size="sm"
+        label={t("members.leave")}
+        prompt={t("members.leaveConfirm")}
+        confirmLabel={t("members.leave")}
+        cancelLabel={t("members.leaveCancel")}
+        busy={leave.isPending}
+        onConfirm={() => leave.mutate({ clubId })}
+        testId="my-club-leave"
+      />
+      {leave.isError && <ErrorMessage text={errorText(leave.error)} />}
+    </div>
   );
 }
 

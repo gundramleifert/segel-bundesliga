@@ -371,9 +371,10 @@ Acceptance criteria:
 - Administration creates the account (name, email) and makes it the club's **admin** —
   the first account of a club can only come from administration: who has no one cannot
   name anyone.
-- **The club's admin names more organizers for their own club.** The People panel in
-  the club's *Members* section (Story Z-10) writes `admin`, `manager`, `race_officer` or `member` on this club for
-  any account, by email — an organizer need not be a member. **A person may organize
+- **The club's admin names more organizers for their own club.** *＋ Person* in the
+  club's *People* section (Story Z-10, #45) writes `admin`, `manager` or `treasurer` on
+  this club for any account, by email — an organizer need not be a member, and is listed
+  there all the same. **A person may organize
   multiple clubs** — a second club no longer fails because they already organize a
   different one; it fails only if they already hold *this* relation on *this* one.
 - Revoking for one club is allowed too — but **at least one organizer (admin or manager)

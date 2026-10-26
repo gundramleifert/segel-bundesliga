@@ -72,7 +72,7 @@ const PEOPLE: Person[] = [
     row: "Sailor, adult (ASVW, 2. Liga)",
     who: anAdultSailor,
     contexts: [
-      { ref: ASVW, relations: ["member"], sections: ["overview", "members", "squads", "crews", "my-claims"] },
+      { ref: ASVW, relations: ["member"], sections: ["overview", "people", "squads", "crews", "my-claims"] },
       { ref: LIGA2, relations: ["sailor"], sections: ["overview", "team", "events", "standings"] },
       { ref: ACT1, relations: ["sailor"], sections: ["overview", "crew"] },
       { ref: ACT2, relations: ["sailor"], sections: ["overview", "crew"] },
@@ -88,7 +88,7 @@ const PEOPLE: Person[] = [
         relations: ["member", "manager"],
         // Everything but the club's page, which is its admin's.
         sections: [
-          "overview", "members", "sailors", "minors", "waivers", "squads", "crews", "hosting",
+          "overview", "people", "minors", "waivers", "squads", "crews", "hosting",
           "my-claims", "decide-claims", "payment-runs", "bank-account",
         ],
       },
@@ -102,7 +102,7 @@ const PEOPLE: Person[] = [
         ref: ASVW,
         relations: ["member", "admin"],
         sections: [
-          "overview", "members", "sailors", "minors", "waivers", "squads", "crews", "hosting",
+          "overview", "people", "minors", "waivers", "squads", "crews", "hosting",
           "my-claims", "decide-claims", "payment-runs", "bank-account", "club-page",
         ],
       },
@@ -116,7 +116,7 @@ const PEOPLE: Person[] = [
         ref: ASVW,
         relations: ["member", "treasurer"],
         // A member's reading, and the Money group — none of the people's sections.
-        sections: ["overview", "members", "squads", "crews", "my-claims", "decide-claims", "payment-runs", "bank-account"],
+        sections: ["overview", "people", "squads", "crews", "my-claims", "decide-claims", "payment-runs", "bank-account"],
       },
     ],
   },

@@ -125,9 +125,7 @@ class Section(StrEnum):
     DOCUMENTS = "documents"
     BANK = "bank"
     CHILDREN = "children"
-    # Club
-    MEMBERS = "members"
-    SAILORS = "sailors"
+    # Club (its `people` is the event's key too, below)
     MINORS = "minors"
     SQUADS = "squads"
     CREWS = "crews"
@@ -190,7 +188,7 @@ SECTION_OF: dict[tuple[str, NeedCode], Section] = {
     ("club", NeedCode.CREW_MISSING): Section.CREWS,
     ("club", NeedCode.CREW_WAIVER_MISSING): Section.WAIVERS,
     ("club", NeedCode.MINOR_WITHOUT_GUARDIAN): Section.MINORS,
-    ("club", NeedCode.PERSON_WITHOUT_BIRTH_DATE): Section.SAILORS,
+    ("club", NeedCode.PERSON_WITHOUT_BIRTH_DATE): Section.PEOPLE,
     ("club", NeedCode.PAYMENT_RUN_OPEN): Section.PAYMENT_RUNS,
     ("event", NeedCode.EVENT_NOT_READY): Section.OVERVIEW,
     ("event", NeedCode.EVENT_UNPUBLISHED): Section.PUBLICATION,
@@ -202,7 +200,7 @@ SECTION_OF: dict[tuple[str, NeedCode], Section] = {
     ("office", NeedCode.CLUBS_WITHOUT_LEAGUE): Section.CLUBS,
     ("office", NeedCode.IMPORTS_FAILED): Section.IMPORTS,
     ("me", NeedCode.MEMBERSHIP_INVITED): Section.CLUBS,
-    ("club", NeedCode.MEMBERSHIP_REQUESTED): Section.MEMBERS,
+    ("club", NeedCode.MEMBERSHIP_REQUESTED): Section.PEOPLE,
 }
 
 #: Race day itself: the check-in and the results are always *now*.

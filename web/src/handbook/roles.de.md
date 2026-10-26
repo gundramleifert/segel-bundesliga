@@ -100,7 +100,7 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
   anlegen* an; weder Ihr Verein noch die Geschäftsstelle kann das für Sie tun.
 - **Rollen der Geschäftsstelle:** vergibt deren Verwaltung unter [*Konten*](place:admin.accounts).
 - **Verein:** Die Vereinsverwaltung trägt Personen unter [*der Verein* ›
-  *Mitglieder*](place:club.members) ein, mit der E-Mail-Adresse eines bestehenden Kontos.
+  *Mitglieder*](place:club.people) ein, mit der E-Mail-Adresse eines bestehenden Kontos.
   Eine *Verwaltung* muss immer bleiben.
 - **Serie, Veranstaltung:** deren Verwaltung oder die Geschäftsstelle — unter *die Serie* ›
   *Wettfahrtleitung & Jury*, unter *die Veranstaltung* › [*Personen*](place:event.people).

@@ -42,13 +42,15 @@ describeStory("V-15: a second club takes someone in only with consent, either wa
 
     // ASVW's admin adds them by email: they are in another club, so it is an invitation.
     await signIn(page, BOARD);
-    await page.goto(`/me/club/${asvw}/members`);
+    await page.goto(`/me/club/${asvw}/people`);
     const panel = `my-club-access-${asvw}`;
     await page.getByTestId(`${panel}-open`).click();
+    await page.getByTestId(`${panel}-mode-email`).check();
     await page.getByTestId(`${panel}-email`).fill(email);
     await page.getByTestId(`${panel}-add`).click();
     await expect(page.getByTestId(`${panel}-dialog`)).toHaveCount(0);
     const person = (await roster(request, asvw)).find((m) => m.status === "invited" && m.user_id !== null)!;
+    await page.getByTestId("my-club-people-search").fill(email);
     await expect(page.getByTestId(`my-club-member-pending-${person.user_id}`)).toBeVisible();
 
     // They find it in Me › My clubs — a to-do — and accept.
@@ -61,7 +63,7 @@ describeStory("V-15: a second club takes someone in only with consent, either wa
 
     // Back as the admin: a member now, no longer waiting.
     await signIn(page, BOARD);
-    await page.goto(`/me/club/${asvw}/members`);
+    await page.goto(`/me/club/${asvw}/people?q=${encodeURIComponent(email)}`);
     await expect(page.getByTestId(`my-club-member-relation-${person.user_id}-member`)).toBeVisible();
     await expect(page.getByTestId(`my-club-member-pending-${person.user_id}`)).toHaveCount(0);
 
@@ -79,10 +81,16 @@ describeStory("V-15: a second club takes someone in only with consent, either wa
     await expect(page.getByTestId("club-ask-to-join-requested")).toBeVisible();
 
     const asked = (await roster(request, asvw)).find((m) => m.status === "requested")!;
+    // The request is the club's to-do, and it lands on the list narrowed to requests.
     await signIn(page, BOARD);
-    await page.goto(`/me/club/${asvw}/members`);
+    await page.goto(`/me/club/${asvw}`);
+    await page.getByTestId(`me-context-club-${asvw}-todo-membership_requested`).click();
+    await expect(page).toHaveURL(/\/people\?status=requested$/);
     await expect(page.getByTestId(`my-club-member-pending-${asked.user_id}`)).toBeVisible();
     await page.getByTestId(`my-club-member-accept-${asked.person_id}`).click();
+    // A member now: gone from the requests, on the list of members.
+    await expect(page.getByTestId(`my-club-member-pending-${asked.user_id}`)).toHaveCount(0);
+    await page.goto(`/me/club/${asvw}/people?q=${encodeURIComponent(GUEST)}`);
     await expect(page.getByTestId(`my-club-member-relation-${asked.user_id}-member`)).toBeVisible();
 
     await clear(request, asvw, GUEST);

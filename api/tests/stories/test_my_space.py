@@ -383,7 +383,7 @@ class TestTodos:
         minors = _need(mine, "minor_without_guardian")
         assert (minors["count"], minors["section"]) == (1, "minors")
         undated = _need(mine, "person_without_birth_date")
-        assert (undated["count"], undated["section"]) == (1, "sailors")
+        assert (undated["count"], undated["section"]) == (1, "people")
 
         member = await login(
             client,

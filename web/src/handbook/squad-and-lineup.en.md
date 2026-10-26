@@ -28,7 +28,7 @@ squad takes the people who sail for your club, and anyone who sails for no club 
 they then sail for yours. Someone who sails for another club is greyed out: a person may
 sail for several clubs, but only the league office adds them to a second one.
 Someone missing? *New person for our club …* creates them with their sign-in address and
-puts them in the squad; *+ New person* in [*your club* › *Sailors*](place:club.sailors) creates them for your club, in no squad yet.
+puts them in the squad; *+ New person* in [*your club* › *Sailors*](place:club.people) creates them for your club, in no squad yet.
 
 ### Register the squad {#squad-and-lineup-squad}
 

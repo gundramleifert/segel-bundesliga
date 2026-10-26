@@ -14,9 +14,10 @@ Filters are named for what they narrow to (``series_id``, ``host_club_id``, ``st
 
 from __future__ import annotations
 
+from datetime import date
 from typing import ClassVar
 
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from sqlalchemy import Select, or_, select
 
 from app.listing import ListFilter
@@ -32,9 +33,11 @@ from app.models import (
     Post,
     PostKind,
     Series,
+    Team,
+    TeamMembership,
     Venue,
 )
-from app.models.auth import User
+from app.models.auth import Grant, Relation, User
 from app.pagination import apply_search
 
 #: The ``league`` filter's value for the association's own posts.
@@ -186,6 +189,83 @@ class PersonFilter(ListFilter):
             ClubMembership.club_id == club_id, ClubMembership.status == MembershipStatus.ACTIVE
         )
         return Person.id.in_(members)
+
+
+def _adult_since(today: date) -> date:
+    """Born on or before this day: 18 today. 29 February counts as 28 February."""
+    try:
+        return today.replace(year=today.year - 18)
+    except ValueError:
+        return today.replace(year=today.year - 18, day=28)
+
+
+class ClubPersonFilter(ListFilter):
+    """*Club › People* (#45, `docs/PLAN_PEOPLE.md` §4): the club's people, each filter a
+    question an organizer asks of them. The route names the club (:meth:`for_club`) and
+    joins its memberships, so ``status`` is the row's."""
+
+    q: str | None = Field(default=None, description="Search in first name, last name, and email")
+    role: Relation | None = Field(
+        default=None, description="Whose account holds this role on the club"
+    )
+    account: bool | None = Field(default=None, description="With an account to sign in, or without")
+    minor: bool | None = Field(default=None, description="Under 18 today, or of age")
+    no_birth_date: bool | None = Field(default=None, description="Without a date of birth")
+    in_squad: bool | None = Field(
+        default=None, description="In one of the club's squads this year, or in none"
+    )
+    status: MembershipStatus | None = Field(
+        default=None, description="Active, invited or requested (Story V-15)"
+    )
+    order_by: list[str] | None = SORT
+    _club_id: int = PrivateAttr(default=0)
+
+    class Constants(ListFilter.Constants):
+        model = Person
+        sortable: ClassVar = {
+            "last_name": Person.last_name,
+            "first_name": Person.first_name,
+            "birth_date": Person.birth_date,
+        }
+        default_order: ClassVar = (Person.last_name, Person.first_name, Person.id)
+        search_columns: ClassVar = (Person.first_name, Person.last_name, Person.email)
+
+    def for_club(self, club_id: int) -> ClubPersonFilter:
+        self._club_id = club_id
+        return self
+
+    def where_role(self, role: Relation):
+        holders = select(Grant.user_id).where(
+            Grant.club_id == self._club_id, Grant.relation == role
+        )
+        return Person.user_id.in_(holders)
+
+    def where_account(self, account: bool):
+        return Person.user_id.is_not(None) if account else Person.user_id.is_(None)
+
+    def where_minor(self, minor: bool):
+        since = _adult_since(date.today())
+        return Person.birth_date > since if minor else Person.birth_date <= since
+
+    def where_no_birth_date(self, missing: bool):
+        return Person.birth_date.is_(None) if missing else Person.birth_date.is_not(None)
+
+    def where_in_squad(self, in_squad: bool):
+        # A squad is the club's series registration (`event_id` empty), of this year.
+        squads = (
+            select(TeamMembership.person_id)
+            .join(Team, TeamMembership.team_id == Team.id)
+            .join(Series, Team.series_id == Series.id)
+            .where(
+                Team.club_id == self._club_id,
+                Team.event_id.is_(None),
+                Series.year == date.today().year,
+            )
+        )
+        return Person.id.in_(squads) if in_squad else Person.id.not_in(squads)
+
+    def where_status(self, status: MembershipStatus):
+        return ClubMembership.status == status
 
 
 class UserFilter(ListFilter):

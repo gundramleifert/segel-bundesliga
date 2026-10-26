@@ -107,6 +107,7 @@ import type {
   ListAllEventsParams,
   ListAllPostsParams,
   ListAllSeriesParams,
+  ListClubPeopleParams,
   ListClubsParams,
   ListEventsParams,
   ListLeagueMediaParams,
@@ -136,6 +137,7 @@ import type {
   OidcLogin,
   PageClubAdminOut,
   PageClubOut,
+  PageClubPersonOut,
   PageEventOut,
   PageMediaOut,
   PagePersonAdminOut,
@@ -9616,6 +9618,131 @@ export const useAddClubMember = <TError = ErrorType<ProblemDetails>,
       > => {
       return useMutation(getAddClubMemberMutationOptions(options), queryClient);
     }
+
+export const getListClubPeopleUrl = (clubId: number,
+    params?: ListClubPeopleParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/clubs/${clubId}/people?${stringifiedParams}` : `/api/clubs/${clubId}/people`
+}
+
+/**
+ * *Club › People* (#45, `docs/PLAN_PEOPLE.md` §4): one page of the club's people,
+ * searched, filtered and sorted on the server (Story A-13).
+ *
+ * The club's organizers — and the site's admin — see everyone with a row here, the
+ * invitations and requests too, and everyone whose account holds a role on the club
+ * without being a member (``status`` empty: organizers often never sail), with address
+ * and date of birth. A plain member sees
+ * the roster (Story V-10): the active members, by name, account and role — no address,
+ * no date of birth, and so no filter on either (`club-people-filter-forbidden`).
+ * @summary The club's people
+ */
+export const listClubPeople = async (clubId: number,
+    params?: ListClubPeopleParams, options?: RequestInit): Promise<PageClubPersonOut> => {
+
+  return http<PageClubPersonOut>(getListClubPeopleUrl(clubId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListClubPeopleQueryKey = (clubId: number,
+    params?: ListClubPeopleParams,) => {
+    return [
+    `/api/clubs/${clubId}/people`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListClubPeopleQueryOptions = <TData = Awaited<ReturnType<typeof listClubPeople>>, TError = ErrorType<ProblemDetails>>(clubId: number,
+    params?: ListClubPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubPeople>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClubPeopleQueryKey(clubId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClubPeople>>> = ({ signal }) => listClubPeople(clubId,params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: clubId !== null && clubId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClubPeople>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListClubPeopleQueryResult = NonNullable<Awaited<ReturnType<typeof listClubPeople>>>
+export type ListClubPeopleQueryError = ErrorType<ProblemDetails>
+
+
+export function useListClubPeople<TData = Awaited<ReturnType<typeof listClubPeople>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number,
+    params: undefined |  ListClubPeopleParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubPeople>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listClubPeople>>,
+          TError,
+          Awaited<ReturnType<typeof listClubPeople>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListClubPeople<TData = Awaited<ReturnType<typeof listClubPeople>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number,
+    params?: ListClubPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubPeople>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listClubPeople>>,
+          TError,
+          Awaited<ReturnType<typeof listClubPeople>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListClubPeople<TData = Awaited<ReturnType<typeof listClubPeople>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number,
+    params?: ListClubPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubPeople>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The club's people
+ */
+
+export function useListClubPeople<TData = Awaited<ReturnType<typeof listClubPeople>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number,
+    params?: ListClubPeopleParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubPeople>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListClubPeopleQueryOptions(clubId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getAcceptClubMemberUrl = (clubId: number,
     personId: number,) => {

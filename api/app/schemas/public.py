@@ -206,6 +206,26 @@ class ClubMemberOut(BaseModel):
     admin: bool = False
 
 
+class ClubPersonOut(BaseModel):
+    """One row of *Club › People* (#45). For a plain member the row is the roster's —
+    name, account and roles; the address and the date of birth are the organizers'
+    (Story V-10), left empty for everyone else."""
+
+    person_id: int
+    user_id: int | None = None
+    first_name: str
+    last_name: str
+    status: MembershipStatus | None = Field(
+        default=None, description="Empty for an organizer who is no member"
+    )
+    roles: list[Relation] = Field(
+        default_factory=list, description="What their account is to the club besides"
+    )
+    email: str | None = None
+    birth_date: date | None = None
+    minor: bool | None = Field(default=None, description="Empty without a date of birth")
+
+
 class ClubMemberIn(BaseModel):
     """Who the club's admin adds (Story Z-5): a person, by their address or their
     account's."""

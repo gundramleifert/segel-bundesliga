@@ -15,24 +15,30 @@ Two halves: the club's (`/api/clubs/{id}/members`) and the person's
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import authz
 from app.auth import current_user
 from app.db import get_session
+from app.filters import ClubPersonFilter
+from app.listing import ListDepends
 from app.models import Club, ClubMembership, MembershipStatus, Person
-from app.models.auth import ObjectType, Relation, User
+from app.models.auth import Grant, ObjectType, Relation, User
+from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
-from app.schemas.public import ClubMemberIn, ClubMemberOut
+from app.schemas.public import ClubMemberIn, ClubMemberOut, ClubPersonOut
 from app.services import grants, people
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
 from app.services.participation import connect_person
+from app.services.waivers import is_minor
 
 router = APIRouter(tags=["clubs"])
 
@@ -100,6 +106,84 @@ async def list_club_members(
             "Only members and organizers of this club, or staff, can see its member list.",
         )
     return await _roster(session, club, pending=authz.check(acting, Relation.ADMIN, on=club))
+
+
+@router.get(
+    "/api/clubs/{club_id}/people",
+    response_model=Page[ClubPersonOut],
+    summary="The club's people",
+)
+async def list_club_people(
+    club_id: int,
+    filters: ClubPersonFilter = ListDepends(ClubPersonFilter),
+    params: PageParams = PageInput,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> Page[ClubPersonOut]:
+    """*Club › People* (#45, `docs/PLAN_PEOPLE.md` §4): one page of the club's people,
+    searched, filtered and sorted on the server (Story A-13).
+
+    The club's organizers — and the site's admin — see everyone with a row here, the
+    invitations and requests too, and everyone whose account holds a role on the club
+    without being a member (``status`` empty: organizers often never sail), with address
+    and date of birth. A plain member sees
+    the roster (Story V-10): the active members, by name, account and role — no address,
+    no date of birth, and so no filter on either (`club-people-filter-forbidden`).
+    """
+    club = await get_or_404(session, Club, club_id)
+    organizer = authz.check(acting, Relation.ADMIN, Relation.MANAGER, on=club)
+    if not organizer and not authz.check(acting, Relation.MEMBER, on=club):
+        raise Problem(
+            403,
+            "club-members-restricted-to-members",
+            "Only members and organizers of this club, or staff, can see its people.",
+        )
+    if not organizer and (
+        filters.minor is not None
+        or filters.no_birth_date is not None
+        or filters.status not in (None, MembershipStatus.ACTIVE)
+    ):
+        raise Problem(
+            403,
+            "club-people-filter-forbidden",
+            "Dates of birth and waiting rows are the club's organizers' to filter by.",
+        )
+    holders = select(Grant.user_id).where(Grant.club_id == club.id)
+    stmt = select(Person).outerjoin(
+        ClubMembership,
+        and_(ClubMembership.person_id == Person.id, ClubMembership.club_id == club.id),
+    )
+    if organizer:
+        stmt = stmt.where(or_(ClubMembership.id.is_not(None), Person.user_id.in_(holders)))
+    else:
+        stmt = stmt.where(ClubMembership.status == MembershipStatus.ACTIVE)
+    filters.for_club(club.id)
+    persons, total = await paginate(session, filters.sort(filters.filter(stmt)), params)
+    roles: dict[int, list[str]] = {}
+    for grant in await grants.grants_on(session, ObjectType.CLUB, club.id):
+        roles.setdefault(grant.user_id, []).append(grant.relation)
+    order = list(Relation).index
+    today = date.today()
+    return page_of(
+        [
+            ClubPersonOut(
+                person_id=person.id,
+                user_id=person.user_id,
+                first_name=person.first_name,
+                last_name=person.last_name,
+                status=row.status if (row := _row(person, club.id)) else None,
+                roles=sorted(roles.get(person.user_id, []), key=order)
+                if person.user_id is not None
+                else [],
+                email=person.email if organizer else None,
+                birth_date=person.birth_date if organizer else None,
+                minor=is_minor(person.birth_date, today) if organizer else None,
+            )
+            for person in persons
+        ],
+        total,
+        params,
+    )
 
 
 @router.post(
