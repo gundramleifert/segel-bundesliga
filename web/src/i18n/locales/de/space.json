@@ -221,7 +221,9 @@
     "results_missing": "{count, plural, one {1 beendete Wettfahrt hat keine Ergebnisse} other {# beendete Wettfahrten haben keine Ergebnisse}}",
     "registrations_open": "{count, plural, one {1 Bewerbung wartet auf Ihre Entscheidung} other {# Bewerbungen warten auf Ihre Entscheidung}}",
     "clubs_without_league": "{count, plural, one {1 Verein ist noch in keiner Liga} other {# Vereine sind noch in keiner Liga}}",
-    "imports_failed": "{count, plural, one {1 Import ist fehlgeschlagen} other {# Importe sind fehlgeschlagen}}"
+    "imports_failed": "{count, plural, one {1 Import ist fehlgeschlagen} other {# Importe sind fehlgeschlagen}}",
+    "membership_invited": "{count, plural, one {Ein Verein lädt dich ein} other {# Vereine laden dich ein}}",
+    "membership_requested": "{count, plural, one {1 Person möchte aufgenommen werden} other {# Personen möchten aufgenommen werden}}"
   },
   "overview": {
     "me": "Ich",
@@ -321,6 +323,7 @@
       "me": {
         "overview": "Übersicht",
         "account": "Profil & Konto",
+        "clubs": "Meine Vereine",
         "waivers": "Meine Haftungsausschlüsse",
         "claims": "Meine Abrechnungen",
         "documents": "Dokumente",

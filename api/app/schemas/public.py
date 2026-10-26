@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from app.crests import crest_url
 from app.models.auth import Relation
 from app.models.competition import AnnouncementIssuer, EventDocumentKind, EventStatus
-from app.models.org import CrewRole, Person
+from app.models.org import CrewRole, MembershipStatus, Person
 from app.models.racing import PreparatoryFlag, RaceStatus
 
 
@@ -195,6 +195,10 @@ class ClubMemberOut(BaseModel):
         default=None, description="The person's account — none for a child, for instance."
     )
     display_name: str
+    status: MembershipStatus = Field(
+        default=MembershipStatus.ACTIVE,
+        description="Only the club's admin sees `invited` and `requested` (Story V-15).",
+    )
     relations: list[Relation] = Field(
         default_factory=list, description="What this person is to the club: member, manager, …"
     )

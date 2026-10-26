@@ -27,6 +27,7 @@ from app.models import (
     EventStatus,
     League,
     MediaItem,
+    MembershipStatus,
     Person,
     Post,
     PostKind,
@@ -180,8 +181,10 @@ class PersonFilter(ListFilter):
         search_columns: ClassVar = (Person.first_name, Person.last_name, Person.email)
 
     def where_club_id(self, club_id: int):
-        # Sailing for a club is a row of `ClubMembership` (Story V-4), not a column.
-        members = select(ClubMembership.person_id).where(ClubMembership.club_id == club_id)
+        # Being in a club is an active `ClubMembership` (Story V-4, #40), not a column.
+        members = select(ClubMembership.person_id).where(
+            ClubMembership.club_id == club_id, ClubMembership.status == MembershipStatus.ACTIVE
+        )
         return Person.id.in_(members)
 
 

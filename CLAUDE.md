@@ -130,9 +130,9 @@ account creation when logging in with an unknown address.
 #40, `docs/PLAN_PEOPLE.md`; Stories Z-5, V-15). The club's admin adds a person in no club at
 once — the club knows who is in it (2026-09-24); a person **already in another club** joins
 only with consent, invited by the club or asking themselves, the other side accepting. A
-member leaves by ending their own membership (`POST`/`DELETE /api/clubs/{id}/members`).
-Until #44 there are no requests or invitations: the league office adds someone to a
-second club.
+member leaves by ending their own membership. The club's half is
+`/api/clubs/{id}/members`, the person's `/api/me/memberships` (*Me › My clubs*, *Ask to
+join* on the club page); either side deletes a waiting row to decline or withdraw.
 
 `SBL_DEV_LOGIN=true` enables `/api/dev`: there you can list test accounts and issue access tokens
 **without verification**. A role switcher then appears in the UI (bottom right). Deliberately a
@@ -352,8 +352,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
   (invited/requested, accepted by the other side), and a person in another club without
   an account only the league office adds — no club can simply take anyone. The link is
   made in `app/services/people.py` (registration, enrollment, every sign-in); deleting an
-  account keeps its person and clears `user_id`. Until #44 a second club is the league
-  office's to add.
+  account keeps its person and clears `user_id`. An `invited` or `requested` row grants
+  nothing — only `active` rows are the edge and the `member`.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   and organizing (`manager` or `admin` on it) are both per
   club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which
@@ -493,7 +493,7 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Pairing lists, accounts | `admin` |
 | See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
-| Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club must accept (#40; until #44 only the site's `admin` adds them) |
+| Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club is invited and accepts, or asks and the club's admin accepts (V-15); one without an account only the site's `admin` adds |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
 | Create and maintain people (sailors) | `admin`; a club's `manager` for their own club (changing one: its active members, or people in no club; an address once set: `admin` only) |
 | Put a person in a squad | the `manager` of a club they are an active member of (`manager from club`), or of any club while they are in none; site `admin` |

@@ -54,7 +54,7 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.models.competition import EventStatus
 from app.models.finance import PaymentStatus
-from app.models.org import TeamStatus
+from app.models.org import MembershipStatus, TeamStatus
 from app.models.racing import RaceStatus
 from app.problems import Problem
 from app.services import expenses
@@ -109,6 +109,8 @@ class NeedCode(StrEnum):
     REGISTRATIONS_OPEN = "registrations_open"
     CLUBS_WITHOUT_LEAGUE = "clubs_without_league"
     IMPORTS_FAILED = "imports_failed"
+    MEMBERSHIP_INVITED = "membership_invited"
+    MEMBERSHIP_REQUESTED = "membership_requested"
 
 
 class Section(StrEnum):
@@ -199,6 +201,8 @@ SECTION_OF: dict[tuple[str, NeedCode], Section] = {
     ("event", NeedCode.REGISTRATIONS_OPEN): Section.CLUBS,
     ("office", NeedCode.CLUBS_WITHOUT_LEAGUE): Section.CLUBS,
     ("office", NeedCode.IMPORTS_FAILED): Section.IMPORTS,
+    ("me", NeedCode.MEMBERSHIP_INVITED): Section.CLUBS,
+    ("club", NeedCode.MEMBERSHIP_REQUESTED): Section.MEMBERS,
 }
 
 #: Race day itself: the check-in and the results are always *now*.
@@ -215,6 +219,8 @@ WAITED_ON = {
     NeedCode.PERSON_WITHOUT_BIRTH_DATE,
     NeedCode.REGISTRATIONS_OPEN,
     NeedCode.IMPORTS_FAILED,
+    NeedCode.MEMBERSHIP_INVITED,
+    NeedCode.MEMBERSHIP_REQUESTED,
 }
 #: A race day this close makes what it needs *now*; this close, *soon*.
 NOW_WITHIN = timedelta(days=7)
@@ -441,6 +447,7 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     rejected = _rejected(await expenses.rejected_of(session, user), contexts)
     await _organizer(session, user, required, contexts)
     await _club_people(session, user, contexts)
+    await _membership_requests(session, user, contexts)
     await _payment_runs(session, user, contexts)
     await _events(session, user, required, contexts, loaded)
     await _series(session, user, contexts, loaded)
@@ -449,6 +456,12 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     me.add(NeedCode.CLAIM_REJECTED, rejected)
     me.add(NeedCode.DOCUMENTS_EXPIRED, await _expired_documents(session, user))
     me.add(NeedCode.WARD_WAIVER, await _ward_waivers(session, user, required))
+    if person is not None:
+        # Story V-15: a club invited me — mine to accept or decline in *My clubs*.
+        me.add(
+            NeedCode.MEMBERSHIP_INVITED,
+            sum(m.status == MembershipStatus.INVITED for m in person.club_memberships),
+        )
 
     office = None
     if site_relations:
@@ -520,6 +533,7 @@ async def reached_context(
     # the list uses, so a reached event says what a listed one would.
     await _organizer(session, user, required, contexts)
     await _club_people(session, user, contexts)
+    await _membership_requests(session, user, contexts)
     await _payment_runs(session, user, contexts)
     await _events(session, user, required, contexts, loaded)
     await _series(session, user, contexts, loaded)
@@ -772,6 +786,7 @@ async def _club_people(session: AsyncSession, user: User, contexts: Contexts) ->
             select(ClubMembership.club_id, Person.birth_date)
             .join(Person, ClubMembership.person_id == Person.id)
             .where(ClubMembership.club_id.in_(clubs))
+            .where(ClubMembership.status == MembershipStatus.ACTIVE)
             .where(Person.birth_date.is_(None) | Person.id.not_in(guarded))
         )
     ).all()
@@ -780,6 +795,23 @@ async def _club_people(session: AsyncSession, user: User, contexts: Contexts) ->
             contexts[("club", club_id)].need(NeedCode.PERSON_WITHOUT_BIRTH_DATE)
         elif is_minor(birth_date, today):
             contexts[("club", club_id)].need(NeedCode.MINOR_WITHOUT_GUARDIAN)
+
+
+async def _membership_requests(session: AsyncSession, user: User, contexts: Contexts) -> None:
+    """Story V-15, for a club's admin: people who asked to join, waiting for an answer."""
+    clubs = _my_clubs(user, Relation.ADMIN, contexts)
+    if not clubs:
+        return
+    rows = (
+        await session.execute(
+            select(ClubMembership.club_id).where(
+                ClubMembership.club_id.in_(clubs),
+                ClubMembership.status == MembershipStatus.REQUESTED,
+            )
+        )
+    ).scalars()
+    for club_id in rows:
+        contexts[("club", club_id)].need(NeedCode.MEMBERSHIP_REQUESTED)
 
 
 async def _payment_runs(session: AsyncSession, user: User, contexts: Contexts) -> None:

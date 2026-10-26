@@ -1049,7 +1049,7 @@
  },
  "V-15": {
   "title": "Join a second club, with consent either way round",
-  "status": "○",
+  "status": "●",
   "role": "Club: its admin and its team manager",
   "phase": "Members",
   "file": "docs/userstories/club.md",

@@ -123,9 +123,11 @@ import type {
   MediaDetail,
   MediaFields,
   MediaIds,
+  MembershipAsk,
   ModelOut,
   MyClubOut,
   MyContextOut,
+  MyMembershipOut,
   MySpaceOut,
   MyWaivers,
   NetworkProbeOut,
@@ -9427,7 +9429,8 @@ export const getListClubMembersUrl = (clubId: number,) => {
  * Every active member, with what else they are to the club, so the organizers are
  * recognizable. Display name only — contact data is the club admin's business (the
  * People panel). Open to the club's own members and organizers and to staff; a
- * stranger, or a member of a *different* club, gets 403.
+ * stranger, or a member of a *different* club, gets 403. The club's admin also sees
+ * the invitations and requests waiting (Story V-15), each with its ``status``.
  * @summary Who belongs to this club
  */
 export const listClubMembers = async (clubId: number, options?: RequestInit): Promise<ClubMemberOut[]> => {
@@ -9530,9 +9533,10 @@ export const getAddClubMemberUrl = (clubId: number,) => {
 
 /**
  * Story Z-5: the club's admin adds a person — by the address on their record or on
- * their account — and they are a member at once, nobody has to accept: the club knows
- * who is in it. A person already in another club only the league office adds, until
- * they can be asked (step 4 of `docs/PLAN_PEOPLE.md`).
+ * their account. Someone in no club is a member at once, nobody has to accept: the club
+ * knows who is in it. Someone **already in another club** is invited (Story V-15) and
+ * becomes a member when they accept — or at once if they had asked to join. Someone in
+ * another club without an account could not accept: the league office adds them.
  * @summary Add a person to the club
  */
 export const addClubMember = async (clubId: number,
@@ -9613,6 +9617,83 @@ export const useAddClubMember = <TError = ErrorType<ProblemDetails>,
       return useMutation(getAddClubMemberMutationOptions(options), queryClient);
     }
 
+export const getAcceptClubMemberUrl = (clubId: number,
+    personId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/members/${personId}/accept`
+}
+
+/**
+ * Story V-15: the club's admin accepts a person's request — a member now.
+ * @summary Accept a request to join
+ */
+export const acceptClubMember = async (clubId: number,
+    personId: number, options?: RequestInit): Promise<ClubMemberOut> => {
+
+  return http<ClubMemberOut>(getAcceptClubMemberUrl(clubId,personId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcceptClubMemberMutationKey = () => ['acceptClubMember'] as const;
+
+export const getAcceptClubMemberMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptClubMember>>, TError,AcceptClubMemberMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof acceptClubMember>>, TError,AcceptClubMemberMutationVariables, TContext> => {
+
+const mutationKey = getAcceptClubMemberMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptClubMember>>, AcceptClubMemberMutationVariables> = (props) => {
+          const {clubId,personId} = props ?? {};
+
+          return  acceptClubMember(clubId,personId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptClubMemberMutationResult = NonNullable<Awaited<ReturnType<typeof acceptClubMember>>>
+
+    export type AcceptClubMemberMutationError = ErrorType<ProblemDetails>
+    export type AcceptClubMemberMutationVariables = {clubId: number;personId: number}
+
+    /**
+ * @summary Accept a request to join
+ */
+export const useAcceptClubMember = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptClubMember>>, TError,AcceptClubMemberMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptClubMember>>,
+        TError,
+        AcceptClubMemberMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcceptClubMemberMutationOptions(options), queryClient);
+    }
+
 export const getRemoveClubMemberUrl = (clubId: number,
     personId: number,) => {
 
@@ -9624,8 +9705,9 @@ export const getRemoveClubMemberUrl = (clubId: number,
 
 /**
  * Story Z-5: a member leaves — their own account ends their own membership — or the
- * club's admin removes one. The roles their account holds on the club are tuples and
- * stay; whoever removes a member removes those one by one.
+ * club's admin removes one; the same for an invitation or a request (V-15): withdrawn
+ * or declined by either side, the row is gone. The roles their account holds on the
+ * club are tuples and stay; whoever removes a member removes those one by one.
  * @summary End a membership
  */
 export const removeClubMember = async (clubId: number,
@@ -9690,6 +9772,351 @@ export const useRemoveClubMember = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getRemoveClubMemberMutationOptions(options), queryClient);
+    }
+
+export const getListMyMembershipsUrl = () => {
+
+
+
+
+  return `/api/me/memberships`
+}
+
+/**
+ * Story V-15: my memberships, the invitations to answer and my open requests —
+ * *Me › My clubs*.
+ * @summary My clubs
+ */
+export const listMyMemberships = async ( options?: RequestInit): Promise<MyMembershipOut[]> => {
+
+  return http<MyMembershipOut[]>(getListMyMembershipsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMyMembershipsQueryKey = () => {
+    return [
+    `/api/me/memberships`
+    ] as const;
+    }
+
+
+export const getListMyMembershipsQueryOptions = <TData = Awaited<ReturnType<typeof listMyMemberships>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyMemberships>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMyMembershipsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMyMemberships>>> = ({ signal }) => listMyMemberships({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMyMemberships>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMyMembershipsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyMemberships>>>
+export type ListMyMembershipsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListMyMemberships<TData = Awaited<ReturnType<typeof listMyMemberships>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyMemberships>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyMemberships>>,
+          TError,
+          Awaited<ReturnType<typeof listMyMemberships>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyMemberships<TData = Awaited<ReturnType<typeof listMyMemberships>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyMemberships>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMyMemberships>>,
+          TError,
+          Awaited<ReturnType<typeof listMyMemberships>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMyMemberships<TData = Awaited<ReturnType<typeof listMyMemberships>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyMemberships>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary My clubs
+ */
+
+export function useListMyMemberships<TData = Awaited<ReturnType<typeof listMyMemberships>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyMemberships>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMyMembershipsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAskToJoinUrl = () => {
+
+
+
+
+  return `/api/me/memberships`
+}
+
+/**
+ * Story V-15: I ask to join a club; its admin accepts or declines. Asking where I am
+ * invited accepts the invitation. Only from a verified address (Story Z-4): an address
+ * merely typed at registration proves nobody.
+ * @summary Ask to join a club
+ */
+export const askToJoin = async (membershipAsk: MembershipAsk, options?: RequestInit): Promise<MyMembershipOut[]> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<MyMembershipOut[]>(getAskToJoinUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(membershipAsk)
+  }
+);}
+
+
+
+
+
+export const getAskToJoinMutationKey = () => ['askToJoin'] as const;
+
+export const getAskToJoinMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askToJoin>>, TError,AskToJoinMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof askToJoin>>, TError,AskToJoinMutationVariables, TContext> => {
+
+const mutationKey = getAskToJoinMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askToJoin>>, AskToJoinMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  askToJoin(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskToJoinMutationResult = NonNullable<Awaited<ReturnType<typeof askToJoin>>>
+    export type AskToJoinMutationBody = BodyType<MembershipAsk>
+    export type AskToJoinMutationError = ErrorType<ProblemDetails>
+    export type AskToJoinMutationVariables = {data: BodyType<MembershipAsk>}
+
+    /**
+ * @summary Ask to join a club
+ */
+export const useAskToJoin = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askToJoin>>, TError,AskToJoinMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof askToJoin>>,
+        TError,
+        AskToJoinMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAskToJoinMutationOptions(options), queryClient);
+    }
+
+export const getAcceptInvitationUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/me/memberships/${clubId}/accept`
+}
+
+/**
+ * Story V-15: I accept a club's invitation — a member now.
+ * @summary Accept an invitation
+ */
+export const acceptInvitation = async (clubId: number, options?: RequestInit): Promise<MyMembershipOut[]> => {
+
+  return http<MyMembershipOut[]>(getAcceptInvitationUrl(clubId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcceptInvitationMutationKey = () => ['acceptInvitation'] as const;
+
+export const getAcceptInvitationMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptInvitation>>, TError,AcceptInvitationMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof acceptInvitation>>, TError,AcceptInvitationMutationVariables, TContext> => {
+
+const mutationKey = getAcceptInvitationMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptInvitation>>, AcceptInvitationMutationVariables> = (props) => {
+          const {clubId} = props ?? {};
+
+          return  acceptInvitation(clubId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptInvitation>>>
+
+    export type AcceptInvitationMutationError = ErrorType<ProblemDetails>
+    export type AcceptInvitationMutationVariables = {clubId: number}
+
+    /**
+ * @summary Accept an invitation
+ */
+export const useAcceptInvitation = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptInvitation>>, TError,AcceptInvitationMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptInvitation>>,
+        TError,
+        AcceptInvitationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcceptInvitationMutationOptions(options), queryClient);
+    }
+
+export const getEndMyMembershipUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/me/memberships/${clubId}`
+}
+
+/**
+ * Story V-15: I leave a club, decline its invitation or withdraw my request — the
+ * row is gone either way.
+ * @summary Leave, decline or withdraw
+ */
+export const endMyMembership = async (clubId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getEndMyMembershipUrl(clubId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getEndMyMembershipMutationKey = () => ['endMyMembership'] as const;
+
+export const getEndMyMembershipMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endMyMembership>>, TError,EndMyMembershipMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof endMyMembership>>, TError,EndMyMembershipMutationVariables, TContext> => {
+
+const mutationKey = getEndMyMembershipMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof endMyMembership>>, EndMyMembershipMutationVariables> = (props) => {
+          const {clubId} = props ?? {};
+
+          return  endMyMembership(clubId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EndMyMembershipMutationResult = NonNullable<Awaited<ReturnType<typeof endMyMembership>>>
+
+    export type EndMyMembershipMutationError = ErrorType<ProblemDetails>
+    export type EndMyMembershipMutationVariables = {clubId: number}
+
+    /**
+ * @summary Leave, decline or withdraw
+ */
+export const useEndMyMembership = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endMyMembership>>, TError,EndMyMembershipMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof endMyMembership>>,
+        TError,
+        EndMyMembershipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getEndMyMembershipMutationOptions(options), queryClient);
     }
 
 export const getListPeopleUrl = (params?: ListPeopleParams,) => {

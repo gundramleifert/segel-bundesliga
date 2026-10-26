@@ -62,6 +62,7 @@ export function ClubPage() {
           {
             key: "members",
             label: t("clubSections.members"),
+            needs: ["membership_requested"],
             render: () => <ClubMembersPanel clubId={c.id} mayAdmin={mayAdmin} onLeft={() => navigate("/me")} />,
           },
           {

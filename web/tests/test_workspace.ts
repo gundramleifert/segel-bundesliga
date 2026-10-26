@@ -52,7 +52,7 @@ describe("Story Z-10: the sections each person of §5 has", () => {
 
   test("a parent with no club: Me with My children, and nothing else in the switcher", () => {
     expect(sectionsFor("me", [Relation.guardian])).toEqual([
-      "overview", "account", "waivers", "claims", "documents", "bank", "children",
+      "overview", "account", "clubs", "waivers", "claims", "documents", "bank", "children",
     ]);
     expect(sectionsFor("me", [])).not.toContain("children");
     const s = switcherEntries({ contexts: [], today: TODAY });

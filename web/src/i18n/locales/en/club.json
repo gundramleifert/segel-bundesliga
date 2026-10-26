@@ -34,7 +34,11 @@
     "crestHint": "The club's crest — on the club's page, the standings and the results. Tap it to replace it.",
     "newButton": "Member",
     "newTitle": "Add to the club",
-    "revoke": "Remove"
+    "revoke": "Remove",
+    "accept": "Accept",
+    "statusInvited": "invited",
+    "statusRequested": "asks to join",
+    "decline": "Decline"
   },
   "organizer": "Organizer",
   "mine": {
@@ -86,5 +90,21 @@
     "link": "Link",
     "emailPlaceholder": "The parent's email address",
     "remove": "Remove {name} as guardian"
+  },
+  "join": {
+    "ask": "Ask to join",
+    "acceptInvitation": "Accept the invitation",
+    "requested": "You asked to join — the club's admin answers.",
+    "none": "You are in no club yet.",
+    "askTitle": "Ask a club to take you in",
+    "searchLabel": "Find a club by name",
+    "accept": "Accept",
+    "decline": "Decline",
+    "withdraw": "Withdraw",
+    "status": {
+      "active": "Member",
+      "invited": "Invited",
+      "requested": "Asked"
+    }
   }
 }

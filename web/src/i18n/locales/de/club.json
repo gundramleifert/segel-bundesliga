@@ -34,7 +34,11 @@
     "crestHint": "Der Stander des Vereins — auf der Vereinsseite, in der Tabelle und den Ergebnissen. Zum Ersetzen antippen.",
     "newButton": "Mitglied",
     "newTitle": "In den Verein aufnehmen",
-    "revoke": "Entfernen"
+    "revoke": "Entfernen",
+    "accept": "Aufnehmen",
+    "statusInvited": "eingeladen",
+    "statusRequested": "möchte aufgenommen werden",
+    "decline": "Ablehnen"
   },
   "organizer": "Organisator:in",
   "mine": {
@@ -86,5 +90,21 @@
     "link": "Verknüpfen",
     "emailPlaceholder": "E-Mail-Adresse des Elternteils",
     "remove": "{name} als Erziehungsberechtigte(n) entfernen"
+  },
+  "join": {
+    "ask": "Aufnahme anfragen",
+    "acceptInvitation": "Einladung annehmen",
+    "requested": "Du hast angefragt — der Admin des Vereins antwortet.",
+    "none": "Du bist noch in keinem Verein.",
+    "askTitle": "Einen Verein um Aufnahme bitten",
+    "searchLabel": "Verein nach Namen finden",
+    "accept": "Annehmen",
+    "decline": "Ablehnen",
+    "withdraw": "Zurückziehen",
+    "status": {
+      "active": "Mitglied",
+      "invited": "Eingeladen",
+      "requested": "Angefragt"
+    }
   }
 }

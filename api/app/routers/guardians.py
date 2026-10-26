@@ -27,7 +27,7 @@ from app import authz
 from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
-from app.models import Club, ClubMembership, Person
+from app.models import Club, ClubMembership, MembershipStatus, Person
 from app.models.auth import Grant, ObjectType, Relation, User
 from app.problems import Problem
 from app.services import grants
@@ -167,7 +167,10 @@ async def _club_people(session: AsyncSession, club_id: int) -> list[Person]:
             await session.execute(
                 select(Person)
                 .join(ClubMembership, ClubMembership.person_id == Person.id)
-                .where(ClubMembership.club_id == club_id)
+                .where(
+                    ClubMembership.club_id == club_id,
+                    ClubMembership.status == MembershipStatus.ACTIVE,
+                )
                 .order_by(Person.last_name, Person.first_name, Person.id)
             )
         ).scalars()

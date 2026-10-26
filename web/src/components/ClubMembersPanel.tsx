@@ -1,3 +1,4 @@
+import { Button } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -5,6 +6,7 @@ import {
   getReadTuplesQueryKey,
   useDeleteTuple,
   useListClubMembers,
+  useAcceptClubMember,
   useReadTuples,
   useRemoveClubMember,
 } from "../api/generated/sbl";
@@ -32,9 +34,11 @@ import { PersonDocuments } from "./PersonDocuments";
  * - A **member**: "Leave the club", which ends their own membership — the one change a
  *   person may make on themselves.
  * - The club's **admin**: *＋ Member* top-right, a dialog adding someone by email and
- *   naming them to any of the club's relations at once (V-8, V-9), and a ✕ on each of a
- *   person's relations — on *member*, ending the membership. **One list, not two**: the
- *   roster joined with the club's tuples, so an organizer who is no member is listed too.
+ *   naming them to any of the club's relations at once (V-8, V-9) — someone in another
+ *   club is invited (V-15) — and a ✕ on each of a person's relations, on *member*
+ *   ending the membership. Invitations and requests wait in the list too, a request
+ *   with *Accept*. **One list, not two**: the roster joined with the club's tuples, so an
+ *   organizer who is no member is listed too.
  *
  * Until #45 replaces it with the club's *People* table.
  */
@@ -72,7 +76,9 @@ export function ClubMembersPanel({
   };
   const revoke = useDeleteTuple({ mutation: { onSuccess: refreshAll } });
   const remove = useRemoveClubMember({ mutation: { onSuccess: refreshAll } });
-  const failed = revoke.error ?? remove.error;
+  const accept = useAcceptClubMember({ mutation: { onSuccess: refreshAll } });
+  const failed = revoke.error ?? remove.error ?? accept.error;
+  const active = roster.data?.filter((m) => m.status === "active");
 
   return (
     <div data-testid="my-club-members" className="grid grid-cols-[minmax(0,1fr)] gap-6">
@@ -80,7 +86,7 @@ export function ClubMembersPanel({
         {/* No `empty`: the heading, with its count, stays over an empty roster too. */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-medium" data-testid="my-club-members-count">
-            {t("members.listTitle", { count: roster.data?.length ?? 0 })}
+            {t("members.listTitle", { count: active?.length ?? 0 })}
           </h3>
           {mayAdmin && (
             <AddDialog label={t("members.newButton")} title={t("members.newTitle")} testId={`my-club-access-${clubId}`}>
@@ -107,6 +113,7 @@ export function ClubMembersPanel({
                 me={account?.id}
                 onRevoke={(id) => revoke.mutate({ tupleId: id })}
                 onRemove={(personId) => remove.mutate({ clubId, personId })}
+                onAccept={(personId) => accept.mutate({ clubId, personId })}
               />
             )}
           </Async>
@@ -143,6 +150,8 @@ type Person = {
   key: string;
   userId?: number | null;
   personId?: number;
+  /** An invitation or a request, waiting (V-15); none for an active member. */
+  pending?: "invited" | "requested";
   name: string;
   relations: { relation: Relation; tupleId?: number }[];
 };
@@ -155,13 +164,17 @@ function joined(members: ClubMemberOut[], rows: TupleOut[]): Person[] {
   const keyOf = (userId: number | null | undefined, personId?: number) =>
     userId != null ? String(userId) : `person-${personId}`;
   for (const m of members) {
-    const relations = rows.length
-      ? [{ relation: Relation.member }]
-      : (m.relations ?? []).map((relation) => ({ relation }));
+    const waiting = m.status === "invited" || m.status === "requested" ? m.status : undefined;
+    const relations = waiting
+      ? []
+      : rows.length
+        ? [{ relation: Relation.member }]
+        : (m.relations ?? []).map((relation) => ({ relation }));
     people.set(keyOf(m.user_id, m.person_id), {
       key: keyOf(m.user_id, m.person_id),
       userId: m.user_id,
       personId: m.person_id,
+      pending: waiting,
       name: m.display_name,
       relations,
     });
@@ -183,11 +196,13 @@ function People({
   me,
   onRevoke,
   onRemove,
+  onAccept,
 }: {
   people: Person[];
   me?: number;
   onRevoke?: (tupleId: number) => void;
   onRemove?: (personId: number) => void;
+  onAccept?: (personId: number) => void;
 }) {
   const { t } = useTranslation("club");
   if (!people.length) return <Empty testId="my-club-members-empty">{t("members.empty")}</Empty>;
@@ -199,6 +214,9 @@ function People({
       {people.map((person) => (
         <li key={person.key} data-testid={`my-club-member-${person.key}`} className="flex flex-wrap items-center gap-2 py-2">
           <span className="min-w-0 flex-1 truncate">{person.name}</span>
+          {person.pending && person.personId !== undefined && (
+            <Pending person={person} personId={person.personId} onAccept={onAccept} onRemove={onRemove} />
+          )}
           {person.relations.map(({ relation, tupleId }) => {
             const label = t(`members.relations.${relation}`, { defaultValue: relation });
             const drop =
@@ -233,5 +251,46 @@ function People({
         </li>
       ))}
     </ul>
+  );
+}
+
+/** An invitation or a request on the admin's list (Story V-15): which it is, *Accept* for
+ *  a request, and ✕ — withdrawing the invitation, declining the request. */
+function Pending({
+  person,
+  personId,
+  onAccept,
+  onRemove,
+}: {
+  person: Person;
+  personId: number;
+  onAccept?: (personId: number) => void;
+  onRemove?: (personId: number) => void;
+}) {
+  const { t } = useTranslation("club");
+  const label = person.pending === "requested" ? t("members.statusRequested") : t("members.statusInvited");
+  return (
+    <>
+      <Badge tone="warning" testId={`my-club-member-pending-${person.key}`}>
+        {label}
+        {onRemove && (
+          <button
+            type="button"
+            className="ml-1 text-faint hover:text-danger"
+            aria-label={`${t("members.decline")}: ${label}`}
+            title={t("members.decline")}
+            onClick={() => onRemove(personId)}
+            data-testid={`my-club-member-decline-${personId}`}
+          >
+            ✕
+          </button>
+        )}
+      </Badge>
+      {person.pending === "requested" && onAccept && (
+        <Button size="sm" onPress={() => onAccept(personId)} data-testid={`my-club-member-accept-${personId}`}>
+          {t("members.accept")}
+        </Button>
+      )}
+    </>
   );
 }

@@ -221,7 +221,9 @@
     "results_missing": "{count, plural, one {1 finished race has no results} other {# finished races have no results}}",
     "registrations_open": "{count, plural, one {1 application waits for your decision} other {# applications wait for your decision}}",
     "clubs_without_league": "{count, plural, one {1 club is in no league yet} other {# clubs are in no league yet}}",
-    "imports_failed": "{count, plural, one {1 import failed} other {# imports failed}}"
+    "imports_failed": "{count, plural, one {1 import failed} other {# imports failed}}",
+    "membership_invited": "{count, plural, one {A club invites you to join} other {# clubs invite you to join}}",
+    "membership_requested": "{count, plural, one {1 person asks to join} other {# people ask to join}}"
   },
   "overview": {
     "me": "Me",
@@ -321,6 +323,7 @@
       "me": {
         "overview": "Overview",
         "account": "Profile & account",
+        "clubs": "My clubs",
         "waivers": "My waivers",
         "claims": "My claims",
         "documents": "Documents",

@@ -45,7 +45,8 @@ Acceptance criteria:
   their account's — `POST /api/clubs/{id}/members` with `{email}` — from *＋ Member* on
   the club's Members section; they are a member at once. Nobody else can, and `member` is
   not a tuple anyone writes (`tuple-relation-invalid`). A person already in another club
-  only the site's admin adds, until they can be asked (#44, `membership-needs-consent`).
+  is invited and becomes a member when they accept
+  ([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)).
 - A member **leaves** by ending their own membership
   (`DELETE /api/clubs/{id}/members/{person_id}`, the one change a person may make on
   themselves); the club's admin removes a member the same way. Everything else the
@@ -62,10 +63,10 @@ account is linked to exactly one **person** (`Person.user_id`), who is also the 
 V-4 — one record, whether they sail, sign in, or both. Being a member is an `active` row;
 `check(user, member, club)` still answers it, from the account's person.
 
-**After #44** (not built yet): a person **already in another club** joins only with
-consent, either way round — the club invites or the person asks, the other side accepts
+Since #44 a person **already in another club** joins only with consent, either way round
+— the club invites or the person asks, the other side accepts
 ([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)). This revises the
-decision of 2026-09-24 for the one case it did not foresee. Leaving moves to *Me › My
+decision of 2026-09-24 for the one case it did not foresee. Leaving is also in *Me › My
 clubs*.
 
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
@@ -487,8 +488,8 @@ Acceptance criteria:
 Screen: `/me`.
 
 A club is mine through my person's **active** `ClubMembership` (relation *member*, #43);
-*sailor* stays what it is — a squad or a crew, no row of its own. **After #44** (not
-built yet): an `invited` membership is a to-do on *Me*
+*sailor* stays what it is — a squad or a crew, no row of its own. An `invited`
+membership is a to-do on *Me*
 (`membership_invited`, section `clubs`), not a club card, until I accept it
 ([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)).
 

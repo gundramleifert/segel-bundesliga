@@ -31,4 +31,6 @@ export const NeedCode = {
   registrations_open: 'registrations_open',
   clubs_without_league: 'clubs_without_league',
   imports_failed: 'imports_failed',
+  membership_invited: 'membership_invited',
+  membership_requested: 'membership_requested',
 } as const;

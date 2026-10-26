@@ -6,6 +6,7 @@ import { useGetClub, useListClubMembers } from "../api/generated/sbl";
 import type { ClubDetail, ClubMemberSummary, Member } from "../api/types";
 import { useAsync, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
+import { AskToJoin } from "../components/AskToJoin";
 import { Crest } from "../components/Crest";
 import { SailorName } from "../components/SailorName";
 import { locationText, roleText, eventDates } from "../lib/format";
@@ -47,6 +48,8 @@ export function Club() {
             </a>
           )}
         </div>
+        {/* Story V-15: signed in and not in it, I may ask; nothing for a guest. */}
+        <AskToJoin clubId={data.id} testId="club-ask-to-join" />
       </header>
 
       {data.description && (
@@ -115,7 +118,10 @@ function Members({ clubId }: { clubId: number }) {
   const { t } = useTranslation("club");
   const { data, error, loading } = useAsync(useListClubMembers(clubId));
 
-  if (loading || error || !data?.length) return null;
+  // The club's admin also gets the invitations and requests waiting; this page shows the
+  // members only (Story V-15).
+  const members = data?.filter((member) => member.status === "active");
+  if (loading || error || !members?.length) return null;
 
   return (
     <section data-testid="club-members-section" className="mt-8">
@@ -123,10 +129,10 @@ function Members({ clubId }: { clubId: number }) {
       <Card>
         <Card.Content>
           <ul className="divide-y divide-separator text-sm">
-            {data.map((member: ClubMemberSummary) => (
+            {members.map((member: ClubMemberSummary) => (
               <li
-                key={member.user_id}
-                data-testid={`club-member-row-${member.user_id}`}
+                key={member.person_id}
+                data-testid={`club-member-row-${member.user_id ?? `person-${member.person_id}`}`}
                 className="flex items-center justify-between gap-3 py-2"
               >
                 <span>{member.display_name}</span>

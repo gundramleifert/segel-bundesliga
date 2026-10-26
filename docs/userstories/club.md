@@ -41,8 +41,8 @@ Acceptance criteria:
   one. Every change to who is in a club is logged.
 - Since #43 it is an `active` `ClubMembership` of a **person**, not a tuple. An account
   is linked to exactly one person (`Person.user_id`), so making an account a member makes
-  *its person* one. **After #44** (not built yet): a person already in another club joins
-  only with consent ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
+  *its person* one. A person already in another club joins only with consent
+  ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
 
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
@@ -202,7 +202,7 @@ Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`,
 `api/tests/stories/test_sailors_and_squads.py::TestASailorSailsForTheirClub`,
 `e2e/lifecycle.spec.ts::V-12/V-4/VA-6: a team manager manages their own squad`
 
-### V-15 ○ Join a second club, with consent either way round
+### V-15 ● Join a second club, with consent either way round
 As a **person already in one club** I want **a second club to take me in only when I
 agree** — and as a **club admin** I want **to take in someone from another club only when
 they agree**, so that **no club can simply take anyone**.
@@ -231,7 +231,17 @@ Acceptance criteria:
 - *Me › My clubs* lists my memberships with their status, the invitations to answer and
   my open requests, and *Leave* for each active one.
 
-Tests: none yet.
+Endpoints: `POST /api/clubs/{id}/members` (invites), `POST
+/api/clubs/{id}/members/{person_id}/accept`, `GET`/`POST /api/me/memberships`, `POST
+/api/me/memberships/{club_id}/accept`, `DELETE /api/me/memberships/{club_id}`, and
+`DELETE /api/clubs/{id}/members/{person_id}` for the club's side. Until #45 the club's
+requests wait in its *Members* section (*People* after it).
+
+Tests: `api/tests/stories/test_join_with_consent.py::TestTheClubInvites`,
+`api/tests/stories/test_join_with_consent.py::TestThePersonAsks`,
+`api/tests/stories/test_join_with_consent.py::TestEveryChangeIsLogged`,
+`api/tests/stories/test_club_members.py::TestMembers::test_someone_in_another_club_is_invited_or_added_by_the_league_office`,
+`e2e/join-consent.spec.ts`
 
 ## Entering competitions
 

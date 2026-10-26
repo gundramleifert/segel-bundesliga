@@ -166,30 +166,27 @@ class TestMembers:
         assert response.status_code == 404, response.text
         assert _problem_code(response) == "membership-address-unknown"
 
-    async def test_someone_in_another_club_takes_the_league_office(self, client, caplog):
-        """#40: a second club's organizers would see and change the person, so a club does
-        not simply take someone another club has — the league office does (until they can
-        be asked, step 4 of `docs/PLAN_PEOPLE.md`)."""
+    async def test_someone_in_another_club_is_invited_or_added_by_the_league_office(
+        self, client, caplog
+    ):
+        """#40, Story V-15: a second club's organizers would see and change the person, so a
+        club does not simply take someone another club has — it invites them; the league
+        office adds them at once."""
         first, first_admin = await _club_with_admin(client, caplog, "cm-admin-a@example.org")
         second, second_admin = await _club_with_admin(client, caplog, "cm-admin-b@example.org")
         await make_user("cm-zwei@example.org")
         await _headers(client, caplog, "cm-zwei@example.org")
         await _add(client, first_admin, "cm-zwei@example.org", first)
 
-        refused = await client.post(
-            f"/api/clubs/{second}/members",
-            headers=second_admin,
-            json={"email": "cm-zwei@example.org"},
-        )
-        assert refused.status_code == 409, refused.text
-        assert _problem_code(refused) == "membership-needs-consent"
+        invited = await _add(client, second_admin, "cm-zwei@example.org", second)
+        assert invited["status"] == "invited"
 
+        third = await _fresh_club()
         site = await _admin_headers(client, caplog, "cm-site-zwei@example.org")
-        await _add(client, site, "cm-zwei@example.org", second)
+        assert (await _add(client, site, "cm-zwei@example.org", third))["status"] == "active"
         zwei = await _headers(client, caplog, "cm-zwei@example.org")
-        assert {first, second} <= {
-            i for i, e in (await _mine(client, zwei)).items() if e["is_member"]
-        }
+        members_of = {i for i, e in (await _mine(client, zwei)).items() if e["is_member"]}
+        assert members_of == {first, third}
 
     async def test_a_member_leaves_by_ending_their_own_membership(self, client, caplog):
         """Story Z-5: the one change a person may make on themselves."""

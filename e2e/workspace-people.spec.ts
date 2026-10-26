@@ -47,7 +47,7 @@ type Person = {
   contexts: { ref: Ref; relations: string[]; sections: string[] }[];
 };
 
-const ME = ["overview", "account", "waivers", "claims", "documents", "bank"];
+const ME = ["overview", "account", "clubs", "waivers", "claims", "documents", "bank"];
 const ASVW: Ref = "club:asvw";
 const LIGA2: Ref = "series:dsbl-2-2026";
 const ACT1: Ref = "event:dsbl-2-2026-act-1";

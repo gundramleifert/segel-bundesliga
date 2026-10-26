@@ -7,6 +7,7 @@ import { Loading } from "../../components/Blocks";
 import { Stack } from "../../components/Layouts";
 import { LEGACY_TAB_SECTION } from "../../lib/workspace";
 import { AccountInfo, DeleteAccount, SailorProfile, SignInMethods } from "./Profile";
+import { MyClubs } from "./MyClubs";
 import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
 import { Wards, Waivers } from "./Waivers";
 import { useMySpace } from "./shared";
@@ -58,6 +59,13 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
           <DeleteAccount />
         </Stack>
       ),
+    },
+    // Story V-15: my memberships, invitations and requests, and asking a club.
+    {
+      key: "clubs",
+      label: t("workspace.sectionLabels.me.clubs"),
+      needs: ["membership_invited"],
+      render: () => <MyClubs />,
     },
     { key: "documents", label: t("tabs.documents"), needs: ["documents_expired"], render: () => <DocumentsTab /> },
     { key: "bank", label: t("tabs.bank"), render: () => <BankTab /> },
