@@ -60,14 +60,17 @@ class TestClubPeople:
         club, admin, _, member_email, adult, child = await _club_of_four(client, caplog)
 
         everyone = await _people(client, admin, club, sort="last_name")
-        assert [p["last_name"] for p in everyone[:2]] == ["Alt", "Kind"]
+        # Case does not order: the admin's name is the lowercase part of an address.
+        names = [p["last_name"] for p in everyone]
+        assert names == sorted(names, key=str.lower)
+        arne, kai = (next(p for p in everyone if p["person_id"] == i) for i in (adult, child))
         mia = next(p for p in everyone if p["email"] == member_email)
         assert (mia["roles"], mia["status"]) == (["manager"], "active")
         # The club's admin is no member, and listed all the same: organizers often never sail.
         (board,) = [p for p in everyone if p["roles"] == ["admin"]]
         assert board["status"] is None
-        assert everyone[0]["birth_date"] == "1980-05-01" and everyone[0]["minor"] is False
-        assert everyone[1]["birth_date"] is None and everyone[1]["minor"] is None
+        assert arne["birth_date"] == "1980-05-01" and arne["minor"] is False
+        assert kai["birth_date"] is None and kai["minor"] is None
 
         assert [p["person_id"] for p in await _people(client, admin, club, q="kind")] == [child]
         assert [p["email"] for p in await _people(client, admin, club, role="manager")] == [

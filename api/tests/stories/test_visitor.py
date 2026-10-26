@@ -291,4 +291,7 @@ class TestClubs:
 
     async def test_events_are_sorted_chronologically(self, client):
         events = await all_items(client, "/api/events")
-        assert [e["starts_on"] for e in events] == sorted(e["starts_on"] for e in events)
+        dates = [e["starts_on"] for e in events]
+        dated = [d for d in dates if d is not None]
+        # An event with no date yet comes after every dated one.
+        assert dates == sorted(dated) + [None] * (len(dates) - len(dated))

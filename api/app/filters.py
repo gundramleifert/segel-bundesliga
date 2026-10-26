@@ -129,7 +129,9 @@ class PublicEventFilter(_EventSearch):
             "starts_on": Event.starts_on,
             "matchday": Event.matchday,
         }
-        default_order: ClassVar = (Event.starts_on, Event.id)
+        #: Undated last: SQLite puts NULL first, and an event with no date yet is the
+        #: calendar's end, not its start (#47).
+        default_order: ClassVar = (Event.starts_on.asc().nulls_last(), Event.id)
 
 
 # ---------------------------------------------------------------- series, clubs, sailors, accounts
