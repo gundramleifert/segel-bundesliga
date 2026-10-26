@@ -65,8 +65,9 @@ Acceptance criteria:
   none for an organizer who is not a member), and the roles stand beside it as plain
   marks.
 - **Every change to a row sits behind the row's "⋯"**, the club's admin's alone: accept or
-  decline a request, withdraw an invitation, remove a role (the roles are separate tuples
-  and go on their own), end a membership. One's own membership is not ended there. That
+  decline a request, withdraw an invitation, give or remove a role (the roles are
+  separate tuples on the account, so only someone with an account holds one, and each goes
+  on its own), end a membership. One's own membership is not ended there. That
   is *Leave*, with its confirmation. Someone already in another club is invited, not
   taken ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
 - A manager sees the whole list and adds new people, but cannot change who is in the

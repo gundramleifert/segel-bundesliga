@@ -222,6 +222,10 @@ class ClubPersonOut(BaseModel):
         default_factory=list, description="What their account is to the club besides"
     )
     email: str | None = None
+    account_email: str | None = Field(
+        default=None,
+        description="The account's address, which roles are written to — the organizers'",
+    )
     birth_date: date | None = None
     minor: bool | None = Field(default=None, description="Empty without a date of birth")
     in_squad: bool = Field(default=False, description="In one of the club's squads this year")

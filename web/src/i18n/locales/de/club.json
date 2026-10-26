@@ -37,7 +37,8 @@
     "decline": "Ablehnen",
     "withdrawInvitation": "Einladung zurückziehen",
     "revokeRole": "Als {role} entfernen",
-    "endMembership": "Mitgliedschaft beenden"
+    "endMembership": "Mitgliedschaft beenden",
+    "grantRole": "Als {role} hinzufügen"
   },
   "organizer": "Organisator:in",
   "mine": {

@@ -66,6 +66,8 @@ class TestClubPeople:
         arne, kai = (next(p for p in everyone if p["person_id"] == i) for i in (adult, child))
         mia = next(p for p in everyone if p["email"] == member_email)
         assert (mia["roles"], mia["status"]) == (["manager"], "active")
+        # The account's address — what a role is written to from the row's menu.
+        assert mia["account_email"] == member_email
         # The club's admin is no member, and listed all the same: organizers often never sail.
         (board,) = [p for p in everyone if p["roles"] == ["admin"]]
         assert board["status"] is None
@@ -124,7 +126,10 @@ class TestTheRoster:
 
         seen = await _people(client, member, club)
         assert {p["person_id"] for p in seen} >= {adult, child}
-        assert all(p["email"] is None and p["birth_date"] is None for p in seen)
+        assert all(
+            p["email"] is None and p["account_email"] is None and p["birth_date"] is None
+            for p in seen
+        )
         for forbidden in ({"minor": "true"}, {"no_birth_date": "true"}, {"status": "requested"}):
             response = await client.get(
                 f"/api/clubs/{club}/people", headers=member, params=forbidden

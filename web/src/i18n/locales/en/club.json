@@ -37,7 +37,8 @@
     "decline": "Decline",
     "withdrawInvitation": "Withdraw invitation",
     "revokeRole": "Remove as {role}",
-    "endMembership": "End membership"
+    "endMembership": "End membership",
+    "grantRole": "Add as {role}"
   },
   "organizer": "Organizer",
   "mine": {

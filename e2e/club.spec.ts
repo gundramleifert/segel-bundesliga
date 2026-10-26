@@ -204,6 +204,13 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await page.locator('[data-testid^="my-club-member-actions-"]').click();
     await page.locator('[data-testid^="my-club-member-revoke-treasurer-"]').click();
     await expect(treasurer).toHaveCount(0);
+    // The same menu gives a role back — no second trip through *＋ Person*.
+    await page.locator('[data-testid^="my-club-member-actions-"]').click();
+    await page.locator('[data-testid^="my-club-member-grant-treasurer-"]').click();
+    await expect(treasurer).toBeVisible();
+    await page.locator('[data-testid^="my-club-member-actions-"]').click();
+    await page.locator('[data-testid^="my-club-member-revoke-treasurer-"]').click();
+    await expect(treasurer).toHaveCount(0);
     await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toBeVisible();
 
     // Membership is no role to take away from oneself: the admin's own row ends no

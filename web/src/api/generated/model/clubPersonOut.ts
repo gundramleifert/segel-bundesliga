@@ -23,6 +23,8 @@ export interface ClubPersonOut {
   /** What their account is to the club besides */
   roles?: Relation[];
   email?: string | null;
+  /** The account's address, which roles are written to — the organizers' */
+  account_email?: string | null;
   birth_date?: string | null;
   /** Empty without a date of birth */
   minor?: boolean | null;

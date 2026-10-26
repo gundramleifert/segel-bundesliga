@@ -30,7 +30,8 @@ Drücken Sie *＋ Person* oben rechts:
 
 ![*Person hinzufügen*, *Jemand Bekanntes, per E-Mail*: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
 
-Jede Änderung an einer Zeile steckt hinter ihrem *⋯*: *Als … entfernen* für eine Rolle,
+Jede Änderung an einer Zeile steckt hinter ihrem *⋯*: *Als … hinzufügen* oder *Als …
+entfernen* für eine Rolle (wer ein Konto hat),
 *Mitgliedschaft beenden*. Die eigene Mitgliedschaft beenden Sie stattdessen mit *Verein verlassen*.
 
 ### Einladungen und Anfragen {#club-members-requests}

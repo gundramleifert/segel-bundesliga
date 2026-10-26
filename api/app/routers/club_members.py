@@ -188,6 +188,21 @@ async def list_club_people(
             )
         ).scalars()
     )
+    # The accounts' addresses, for the organizers: a role is written to the account, whose
+    # address need not be the person record's.
+    accounts = (
+        dict(
+            (
+                await session.execute(
+                    select(User.id, User.email).where(
+                        User.id.in_([p.user_id for p in persons if p.user_id is not None])
+                    )
+                )
+            ).all()
+        )
+        if organizer
+        else {}
+    )
     return page_of(
         [
             ClubPersonOut(
@@ -200,6 +215,7 @@ async def list_club_people(
                 if person.user_id is not None
                 else [],
                 email=person.email if organizer else None,
+                account_email=accounts.get(person.user_id),
                 birth_date=person.birth_date if organizer else None,
                 minor=is_minor(person.birth_date, today) if organizer else None,
                 in_squad=person.id in in_squad,

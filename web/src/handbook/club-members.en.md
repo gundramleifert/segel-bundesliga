@@ -28,7 +28,8 @@ Press *＋ Person*, top-right:
 
 ![*Add a person*, *Someone on record, by email*: address ①, *As* ②, *Add* ③](shot:help-club-people)
 
-Every change to a row is behind its *⋯*: *Remove as …* for a role, *End membership*.
+Every change to a row is behind its *⋯*: *Add as …* or *Remove as …* for a role
+(someone with an account), *End membership*.
 You end your own membership with *Leave the club* instead.
 
 ### Invitations and requests {#club-members-requests}

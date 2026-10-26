@@ -21,6 +21,7 @@ import {
   useRemoveClubMember,
   useUpdateClub,
   useUpdatePerson,
+  useWriteTuple,
 } from "../../api/generated/sbl";
 import type { ClubPersonOut } from "../../api/generated/model/clubPersonOut";
 import type { MembershipStatus } from "../../api/generated/model/membershipStatus";
@@ -198,7 +199,7 @@ function useFilters(mayOrganize: boolean) {
       {
         param: "role",
         label: t("people.filters.role"),
-        options: [Relation.admin, Relation.manager, Relation.treasurer].map((r) => ({
+        options: CLUB_ROLES.map((r) => ({
           value: r,
           label: t(`members.relations.${r}`),
         })),
@@ -242,9 +243,10 @@ function PeopleTable({
   const { t } = useTranslation("club");
   const { account } = useAccount();
   const revoke = useDeleteTuple({ mutation: { onSuccess: onChanged } });
+  const grant = useWriteTuple({ mutation: { onSuccess: onChanged } });
   const remove = useRemoveClubMember({ mutation: { onSuccess: onChanged } });
   const accept = useAcceptClubMember({ mutation: { onSuccess: onChanged } });
-  const failed = revoke.error ?? remove.error ?? accept.error;
+  const failed = revoke.error ?? grant.error ?? remove.error ?? accept.error;
   const filters = useFilters(mayOrganize);
   // The tuple behind each role chip, so the club's admin can take that one away.
   const tupleOf = useMemo(() => {
@@ -353,13 +355,14 @@ function PeopleTable({
                     onAccept={() => accept.mutate({ clubId, personId: row.original.person_id })}
                     onEnd={() => remove.mutate({ clubId, personId: row.original.person_id })}
                     onRevoke={(tupleId) => revoke.mutate({ tupleId })}
+                    onGrant={(user, relation) => grant.mutate({ data: { user, relation, object: `club:${clubId}` } })}
                   />
                 ),
               }),
             ]
           : []),
       ]),
-    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, remove, accept, revoke, onChanged, filters],
+    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, remove, accept, revoke, grant, onChanged, filters],
   );
 
   return (
@@ -378,8 +381,12 @@ function PeopleTable({
   );
 }
 
+/** The roles a club's admin hands out from a row — what `members.relations` names. */
+const CLUB_ROLES = [Relation.admin, Relation.manager, Relation.treasurer] as const;
+
 /** Every change to a row, behind one "⋯" (the club's admin's): accept or decline a
- * request, withdraw an invitation, take a role away, end a membership. Ending one's own
+ * request, withdraw an invitation, give or take a role (an account's — a person without
+ * one holds none), end a membership. Ending one's own
  * membership is not offered here — that is *Leave*, with its own confirmation — and the
  * server keeps the club's last admin (Story A-8). */
 function RowActions({
@@ -389,6 +396,7 @@ function RowActions({
   onAccept,
   onEnd,
   onRevoke,
+  onGrant,
 }: {
   person: ClubPersonOut;
   self: boolean;
@@ -396,6 +404,7 @@ function RowActions({
   onAccept: () => void;
   onEnd: () => void;
   onRevoke: (tupleId: number) => void;
+  onGrant: (user: string, relation: Relation) => void;
 }) {
   const { t } = useTranslation("club");
   const id = person.person_id;
@@ -417,6 +426,17 @@ function RowActions({
       danger: true,
       run: () => onRevoke(tupleId),
     });
+  }
+  const account = person.account_email;
+  if (account) {
+    for (const relation of CLUB_ROLES.filter((r) => !(person.roles ?? []).includes(r))) {
+      items.push({
+        key: `grant-${relation}`,
+        label: t("members.grantRole", { role: t(`members.relations.${relation}`) }),
+        testId: `my-club-member-grant-${relation}-${id}`,
+        run: () => onGrant(account, relation),
+      });
+    }
   }
   if (person.status === "active" && !self) {
     items.push({ key: "end", label: t("members.endMembership"), testId: `my-club-member-revoke-member-${id}`, danger: true, run: onEnd });
