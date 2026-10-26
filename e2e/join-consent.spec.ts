@@ -87,6 +87,7 @@ describeStory("V-15: a second club takes someone in only with consent, either wa
     await page.getByTestId(`me-context-club-${asvw}-todo-membership_requested`).click();
     await expect(page).toHaveURL(/\/people\?status=requested$/);
     await expect(page.getByTestId(`my-club-member-pending-${asked.user_id}`)).toBeVisible();
+    await page.getByTestId(`my-club-member-actions-${asked.person_id}`).click();
     await page.getByTestId(`my-club-member-accept-${asked.person_id}`).click();
     // A member now: gone from the requests, on the list of members.
     await expect(page.getByTestId(`my-club-member-pending-${asked.user_id}`)).toHaveCount(0);

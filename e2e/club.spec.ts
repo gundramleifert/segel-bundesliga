@@ -197,16 +197,26 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await page.getByTestId(`${panel}-add`).click();
     await expect(page.getByTestId(`${panel}-dialog`)).toHaveCount(0);
     // A member at once — no acceptance step, they are in no other club — so the list shows
-    // them straight away, with both roles; the ✕ on one takes that one away.
+    // them straight away, with both roles; the row's "⋯" takes one away.
     await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toBeVisible();
     const treasurer = page.getByTestId(`my-club-member-relation-${guestId}-treasurer`);
     await expect(treasurer).toBeVisible();
-    await treasurer.locator('[data-testid^="my-club-member-revoke-"]').click();
+    await page.locator('[data-testid^="my-club-member-actions-"]').click();
+    await page.locator('[data-testid^="my-club-member-revoke-treasurer-"]').click();
     await expect(treasurer).toHaveCount(0);
     await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toBeVisible();
 
+    // Membership is no role to take away from oneself: the admin's own row ends no
+    // membership — that is *Leave*.
+    await page.getByTestId("my-club-people-search-input").fill(clubAdmin.email);
+    await expect(page.getByTestId(`my-club-member-relation-${clubAdmin.id}-admin`)).toBeVisible();
+    await page.locator('[data-testid^="my-club-member-actions-"]').click();
+    await expect(page.locator('[data-testid^="my-club-member-revoke-admin-"]')).toBeVisible();
+    await expect(page.locator('[data-testid^="my-club-member-revoke-member-"]')).toHaveCount(0);
+    await page.keyboard.press("Escape");
+
     // The guest now has the club: the roster, themselves and its admin in it, and the
-    // way out — but neither *＋ Person* nor a ✕, which are the organizers'.
+    // way out — but neither *＋ Person* nor a row's "⋯", which are the organizers'.
     await signIn(page, guest);
     await openMyClub(page, club.id, "people");
     await expect(page.getByTestId("my-club-people-table")).toBeVisible();
@@ -215,7 +225,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await page.getByTestId("my-club-people-search-input").fill(clubAdmin.email);
     await expect(page.getByTestId(`my-club-member-relation-${clubAdmin.id}-admin`)).toBeVisible();
     await expect(page.getByTestId(`${panel}-open`)).toHaveCount(0);
-    await expect(page.locator('[data-testid^="my-club-member-revoke-"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid^="my-club-member-actions-"]')).toHaveCount(0);
     await page.getByTestId("my-club-leave").click();
     await page.getByTestId("my-club-leave-confirm").click();
     // The club is no longer theirs: back on my space, without it.

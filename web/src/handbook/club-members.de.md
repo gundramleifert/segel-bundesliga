@@ -30,13 +30,14 @@ Drücken Sie *＋ Person* oben rechts:
 
 ![*Person hinzufügen*, *Jemand Bekanntes, per E-Mail*: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
 
-Das ✕ an einem Chip entfernt diese Rolle oder, an *Mitglied*, die Mitgliedschaft.
+Jede Änderung an einer Zeile steckt hinter ihrem *⋯*: *Als … entfernen* für eine Rolle,
+*Mitgliedschaft beenden*. Die eigene Mitgliedschaft beenden Sie stattdessen mit *Verein verlassen*.
 
 ### Einladungen und Anfragen {#club-members-requests}
 
 Wer schon in einem anderen Verein ist, kommt nur mit Zustimmung dazu: *eingeladen*, bis
 die Person unter [*Ich* › *Meine Vereine*](place:profile.clubs) annimmt; *möchte
-aufgenommen werden*, bis die Vereinsverwaltung *Aufnehmen* oder ✕ (*Ablehnen*) drückt.
+aufgenommen werden*, bis die Vereinsverwaltung im *⋯* der Zeile *Aufnehmen* oder *Ablehnen* wählt.
 Ohne Konto trägt die Geschäftsstelle die Person ein.
 
 ### Die Organisation benennen {#club-members-organizers}

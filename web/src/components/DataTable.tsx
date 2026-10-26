@@ -99,90 +99,96 @@ export function DataTable<TData extends RowData>({
           data-testid={`${testId}-search-input`}
         />
       )}
-      <TableFrame testId={`${testId}-frame`}>
-        <table
-          data-testid={`${testId}-table`}
-          className="data-table w-full border-collapse text-left text-sm"
-        >
-          <thead>
-            {table.getHeaderGroups().map((group) => (
-              <tr key={group.id} className="border-b border-separator bg-surface-secondary">
-                {group.headers.map((header) => {
-                  const column = header.column;
-                  const sorted = column.getIsSorted();
-                  const filters = (column.columnDef.meta as TableColumnMeta | undefined)?.filters;
-                  return (
-                    <th
-                      key={header.id}
-                      scope="col"
-                      // Only a column that is actually sorted claims a direction; "none"
-                      // on every other header is noise in a screen reader.
-                      aria-sort={
-                        sorted ? (sorted === "desc" ? "descending" : "ascending") : undefined
-                      }
-                      className="font-medium text-muted"
-                    >
-                      <span className="flex items-center gap-1">
-                      {header.isPlaceholder ? null : column.getCanSort() ? (
-                        <button
-                          type="button"
-                          onClick={column.getToggleSortingHandler()}
-                          data-testid={`${testId}-sort-${column.id}`}
-                          className="flex items-center gap-1 font-medium underline-offset-2 hover:underline"
-                        >
+      {/* Its own sideways scroller: a table wider than a phone scrolls inside it, never the
+          page (Story A-10) — the page that did slid a dialog half off the screen.
+          `relative`, or an absolutely placed child (a header's `sr-only` label) escapes the
+          scroller and widens the page anyway. */}
+      <div className="panel-scroll relative">
+        <TableFrame testId={`${testId}-frame`}>
+          <table
+            data-testid={`${testId}-table`}
+            className="data-table w-full border-collapse text-left text-sm"
+          >
+            <thead>
+              {table.getHeaderGroups().map((group) => (
+                <tr key={group.id} className="border-b border-separator bg-surface-secondary">
+                  {group.headers.map((header) => {
+                    const column = header.column;
+                    const sorted = column.getIsSorted();
+                    const filters = (column.columnDef.meta as TableColumnMeta | undefined)?.filters;
+                    return (
+                      <th
+                        key={header.id}
+                        scope="col"
+                        // Only a column that is actually sorted claims a direction; "none"
+                        // on every other header is noise in a screen reader.
+                        aria-sort={
+                          sorted ? (sorted === "desc" ? "descending" : "ascending") : undefined
+                        }
+                        className="font-medium text-muted"
+                      >
+                        <span className="flex items-center gap-1">
+                        {header.isPlaceholder ? null : column.getCanSort() ? (
+                          <button
+                            type="button"
+                            onClick={column.getToggleSortingHandler()}
+                            data-testid={`${testId}-sort-${column.id}`}
+                            className="flex items-center gap-1 font-medium underline-offset-2 hover:underline"
+                          >
+                            <table.FlexRender header={header} />
+                            {/* A glyph, not an icon font: it has to survive a print and a
+                                copy-paste of the table. */}
+                            <span aria-hidden="true" className="text-xs text-faint">
+                              {sorted === "asc" ? "▲" : sorted === "desc" ? "▼" : "↕"}
+                            </span>
+                            <span className="sr-only">
+                              {sorted === "asc"
+                                ? t("table.sortedAscending")
+                                : sorted === "desc"
+                                  ? t("table.sortedDescending")
+                                  : t("table.sortBy")}
+                            </span>
+                          </button>
+                        ) : (
                           <table.FlexRender header={header} />
-                          {/* A glyph, not an icon font: it has to survive a print and a
-                              copy-paste of the table. */}
-                          <span aria-hidden="true" className="text-xs text-faint">
-                            {sorted === "asc" ? "▲" : sorted === "desc" ? "▼" : "↕"}
-                          </span>
-                          <span className="sr-only">
-                            {sorted === "asc"
-                              ? t("table.sortedAscending")
-                              : sorted === "desc"
-                                ? t("table.sortedDescending")
-                                : t("table.sortBy")}
-                          </span>
-                        </button>
-                      ) : (
-                        <table.FlexRender header={header} />
-                      )}
-                      {filters?.length ? (
-                        <HeaderFilter filters={filters} params={params} testId={`${testId}-filter-${column.id}`} />
-                      ) : null}
-                      </span>
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {page && !page.items.length && (
-              <tr>
-                <td colSpan={table.getAllLeafColumns().length} className="text-muted" data-testid={`${testId}-empty`}>
-                  {empty}
-                </td>
-              </tr>
-            )}
-            {table.getRowModel().rows.map((row, index) => (
-              <tr
-                key={row.id}
-                data-testid={`${testId}-row-${
-                  rowTestId ? rowTestId(row.original, index) : index
-                }`}
-                className="border-b border-separator last:border-0"
-              >
-                {row.getAllCells().map((cell) => (
-                  <td key={cell.id}>
-                    <table.FlexRender cell={cell} />
+                        )}
+                        {filters?.length ? (
+                          <HeaderFilter filters={filters} params={params} testId={`${testId}-filter-${column.id}`} />
+                        ) : null}
+                        </span>
+                      </th>
+                    );
+                  })}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {page && !page.items.length && (
+                <tr>
+                  <td colSpan={table.getAllLeafColumns().length} className="text-muted" data-testid={`${testId}-empty`}>
+                    {empty}
                   </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </TableFrame>
+                </tr>
+              )}
+              {table.getRowModel().rows.map((row, index) => (
+                <tr
+                  key={row.id}
+                  data-testid={`${testId}-row-${
+                    rowTestId ? rowTestId(row.original, index) : index
+                  }`}
+                  className="border-b border-separator last:border-0"
+                >
+                  {row.getAllCells().map((cell) => (
+                    <td key={cell.id}>
+                      <table.FlexRender cell={cell} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TableFrame>
+      </div>
       <Pager page={page} onPage={params.setPage} current={params.page} testId={testId} />
     </>
   );

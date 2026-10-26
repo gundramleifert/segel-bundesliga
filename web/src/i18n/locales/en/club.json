@@ -34,7 +34,10 @@
     "accept": "Accept",
     "statusInvited": "invited",
     "statusRequested": "asks to join",
-    "decline": "Decline"
+    "decline": "Decline",
+    "withdrawInvitation": "Withdraw invitation",
+    "revokeRole": "Remove as {role}",
+    "endMembership": "End membership"
   },
   "organizer": "Organizer",
   "mine": {
@@ -133,6 +136,9 @@
       "no_birth_dateYes": "Missing",
       "no_birth_dateNo": "Given"
     },
-    "squad": "Squad"
+    "squad": "Squad",
+    "membership": "Membership",
+    "actions": "Actions",
+    "actionsFor": "Actions for {name}"
   }
 }

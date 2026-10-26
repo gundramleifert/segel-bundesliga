@@ -29,6 +29,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [An account reached through selectinload(Grant.user) has no grants loaded, and a test with only the caller in the result hides it](an-account-reached-through-selectinload-grant-user-has-no-grants-loaded-and-a-te.md)
 - [An exists() subquery over a table the outer query also joins correlates itself away, and fails with 'no FROM clauses' instead of returning nothing](an-exists-subquery-over-a-table-the-outer-query-also-joins-correlates-itself-awa.md)
 - [A "page doesn't scroll sideways" assertion passes while the page is unusably zoomed out](an-overflow-assertion-cannot-see-its-own-symptom.md)
+- [An sr-only label inside a scroller widens the page unless the scroller is positioned](an-sr-only-label-inside-a-scroller-widens-the-page-unless-the-scroller-is-positi.md)
 - [app.routes holds included routers, not their routes, so a sweep over APIRoute instances finds nothing and passes](app-routes-holds-included-routers-not-their-routes-so-a-sweep-over-apiroute-inst.md)
 - [Appending a Tailwind class to override one in a shared class string does nothing when the shared one comes later in the stylesheet](appending-a-tailwind-class-to-override-one-in-a-shared-class-string-does-nothing.md)
 - [Checking a path against the app's route patterns proves nothing when a catch-all or a placeholder-only pattern is among them](checking-a-path-against-the-app-s-route-patterns-proves-nothing-when-a-catch-all.md)

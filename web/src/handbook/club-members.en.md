@@ -28,13 +28,14 @@ Press *＋ Person*, top-right:
 
 ![*Add a person*, *Someone on record, by email*: address ①, *As* ②, *Add* ③](shot:help-club-people)
 
-The ✕ on a chip removes that role or, on *member*, the membership.
+Every change to a row is behind its *⋯*: *Remove as …* for a role, *End membership*.
+You end your own membership with *Leave the club* instead.
 
 ### Invitations and requests {#club-members-requests}
 
 Someone in another club joins only with consent: *invited* until they accept in [*Me* ›
 *My clubs*](place:profile.clubs); *asks to join* until the club admin presses *Accept*
-or ✕ (*Decline*). Without an account, the league office adds them.
+or *Decline* in the row's *⋯*. Without an account, the league office adds them.
 
 ### Name the organizers {#club-members-organizers}
 

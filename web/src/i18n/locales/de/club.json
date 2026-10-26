@@ -34,7 +34,10 @@
     "accept": "Aufnehmen",
     "statusInvited": "eingeladen",
     "statusRequested": "möchte aufgenommen werden",
-    "decline": "Ablehnen"
+    "decline": "Ablehnen",
+    "withdrawInvitation": "Einladung zurückziehen",
+    "revokeRole": "Als {role} entfernen",
+    "endMembership": "Mitgliedschaft beenden"
   },
   "organizer": "Organisator:in",
   "mine": {
@@ -133,6 +136,9 @@
       "no_birth_dateYes": "Fehlt",
       "no_birth_dateNo": "Angegeben"
     },
-    "squad": "Kader"
+    "squad": "Kader",
+    "membership": "Mitgliedschaft",
+    "actions": "Aktionen",
+    "actionsFor": "Aktionen für {name}"
   }
 }

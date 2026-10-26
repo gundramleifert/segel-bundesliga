@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button, Dropdown } from "@heroui/react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
@@ -203,16 +203,16 @@ function useFilters(mayOrganize: boolean) {
           label: t(`members.relations.${r}`),
         })),
       },
-      ...(mayOrganize
-        ? [
-            {
-              param: "status",
-              label: t("people.filters.status"),
-              options: ["active", "invited", "requested"].map((s) => ({ value: s, label: t(`join.status.${s}`) })),
-            },
-          ]
-        : []),
     ],
+    membership: mayOrganize
+      ? [
+          {
+            param: "status",
+            label: t("people.filters.status"),
+            options: ["active", "invited", "requested"].map((s) => ({ value: s, label: t(`join.status.${s}`) })),
+          },
+        ]
+      : [],
     account: [yesNo("account", "account")],
     squad: [yesNo("in_squad", "in_squad")],
     birth: mayOrganize ? [yesNo("minor", "minor"), yesNo("no_birth_date", "no_birth_date")] : [],
@@ -278,6 +278,28 @@ function PeopleTable({
             </span>
           ),
         }),
+        // Membership is no role: it is the person's row in the club — active, invited or
+        // asking — and ends by leaving or by the admin, never as a chip's ✕.
+        column.accessor("status", {
+          header: t("people.membership"),
+          enableSorting: false,
+          meta: { filters: filters.membership },
+          cell: ({ row }) => {
+            const p = row.original;
+            const key = p.user_id ?? `person-${p.person_id}`;
+            if (p.status === "active") {
+              return <Badge tone="brand" testId={`my-club-member-relation-${key}-member`}>{t("members.relations.member")}</Badge>;
+            }
+            if (p.status === "invited" || p.status === "requested") {
+              return (
+                <Badge tone="warning" testId={`my-club-member-pending-${key}`}>
+                  {p.status === "requested" ? t("members.statusRequested") : t("members.statusInvited")}
+                </Badge>
+              );
+            }
+            return <span className="text-muted">—</span>;
+          },
+        }),
         column.accessor("roles", {
           header: t("people.roles"),
           enableSorting: false,
@@ -287,45 +309,11 @@ function PeopleTable({
             const key = p.user_id ?? `person-${p.person_id}`;
             return (
               <span className="flex flex-wrap items-center gap-1">
-                {p.status === "active" && (
-                  <Chip
-                    testId={`my-club-member-relation-${key}-member`}
-                    label={t("members.relations.member")}
-                    onDrop={mayAdmin ? () => remove.mutate({ clubId, personId: p.person_id }) : undefined}
-                    dropTestId={`my-club-member-revoke-member-${p.person_id}`}
-                    dropLabel={t("members.revoke")}
-                  />
-                )}
-                {(p.status === "invited" || p.status === "requested") && (
-                  <>
-                    <Chip
-                      tone="warning"
-                      testId={`my-club-member-pending-${key}`}
-                      label={p.status === "requested" ? t("members.statusRequested") : t("members.statusInvited")}
-                      onDrop={mayAdmin ? () => remove.mutate({ clubId, personId: p.person_id }) : undefined}
-                      dropTestId={`my-club-member-decline-${p.person_id}`}
-                      dropLabel={t("members.decline")}
-                    />
-                    {p.status === "requested" && mayAdmin && (
-                      <Button size="sm" onPress={() => accept.mutate({ clubId, personId: p.person_id })} data-testid={`my-club-member-accept-${p.person_id}`}>
-                        {t("members.accept")}
-                      </Button>
-                    )}
-                  </>
-                )}
-                {(p.roles ?? []).map((relation) => {
-                  const tupleId = p.user_id != null ? tupleOf.get(`${p.user_id}:${relation}`) : undefined;
-                  return (
-                    <Chip
-                      key={relation}
-                      testId={`my-club-member-relation-${key}-${relation}`}
-                      label={t(`members.relations.${relation}`, { defaultValue: relation })}
-                      onDrop={mayAdmin && tupleId !== undefined ? () => revoke.mutate({ tupleId }) : undefined}
-                      dropTestId={`my-club-member-revoke-${tupleId}`}
-                      dropLabel={t("members.revoke")}
-                    />
-                  );
-                })}
+                {(p.roles ?? []).map((relation) => (
+                  <Badge key={relation} tone="brand" testId={`my-club-member-relation-${key}-${relation}`}>
+                    {t(`members.relations.${relation}`, { defaultValue: relation })}
+                  </Badge>
+                ))}
               </span>
             );
           },
@@ -352,6 +340,24 @@ function PeopleTable({
               }),
             ]
           : []),
+        ...(mayAdmin
+          ? [
+              column.display({
+                id: "actions",
+                header: () => <span className="sr-only">{t("people.actions")}</span>,
+                cell: ({ row }) => (
+                  <RowActions
+                    person={row.original}
+                    self={row.original.user_id != null && row.original.user_id === account?.id}
+                    tupleOf={tupleOf}
+                    onAccept={() => accept.mutate({ clubId, personId: row.original.person_id })}
+                    onEnd={() => remove.mutate({ clubId, personId: row.original.person_id })}
+                    onRevoke={(tupleId) => revoke.mutate({ tupleId })}
+                  />
+                ),
+              }),
+            ]
+          : []),
       ]),
     [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, remove, accept, revoke, onChanged, filters],
   );
@@ -372,38 +378,82 @@ function PeopleTable({
   );
 }
 
-/** A role or a membership on a row — with its ✕ where the reader may take it away. */
-function Chip({
-  label,
-  testId,
-  tone = "brand",
-  onDrop,
-  dropTestId,
-  dropLabel,
+/** Every change to a row, behind one "⋯" (the club's admin's): accept or decline a
+ * request, withdraw an invitation, take a role away, end a membership. Ending one's own
+ * membership is not offered here — that is *Leave*, with its own confirmation — and the
+ * server keeps the club's last admin (Story A-8). */
+function RowActions({
+  person,
+  self,
+  tupleOf,
+  onAccept,
+  onEnd,
+  onRevoke,
 }: {
-  label: string;
-  testId: string;
-  tone?: "brand" | "warning";
-  onDrop?: () => void;
-  dropTestId: string;
-  dropLabel: string;
+  person: ClubPersonOut;
+  self: boolean;
+  tupleOf: Map<string, number>;
+  onAccept: () => void;
+  onEnd: () => void;
+  onRevoke: (tupleId: number) => void;
 }) {
+  const { t } = useTranslation("club");
+  const id = person.person_id;
+  const items: { key: string; label: string; testId: string; danger?: boolean; run: () => void }[] = [];
+  if (person.status === "requested") {
+    items.push({ key: "accept", label: t("members.accept"), testId: `my-club-member-accept-${id}`, run: onAccept });
+    items.push({ key: "decline", label: t("members.decline"), testId: `my-club-member-decline-${id}`, danger: true, run: onEnd });
+  }
+  if (person.status === "invited") {
+    items.push({ key: "withdraw", label: t("members.withdrawInvitation"), testId: `my-club-member-decline-${id}`, danger: true, run: onEnd });
+  }
+  for (const relation of person.roles ?? []) {
+    const tupleId = person.user_id != null ? tupleOf.get(`${person.user_id}:${relation}`) : undefined;
+    if (tupleId === undefined) continue;
+    items.push({
+      key: `revoke-${relation}`,
+      label: t("members.revokeRole", { role: t(`members.relations.${relation}`, { defaultValue: relation }) }),
+      testId: `my-club-member-revoke-${relation}-${id}`,
+      danger: true,
+      run: () => onRevoke(tupleId),
+    });
+  }
+  if (person.status === "active" && !self) {
+    items.push({ key: "end", label: t("members.endMembership"), testId: `my-club-member-revoke-member-${id}`, danger: true, run: onEnd });
+  }
+  if (!items.length) return null;
   return (
-    <Badge tone={tone} testId={testId}>
-      {label}
-      {onDrop && (
-        <button
-          type="button"
-          className="ml-1 text-faint hover:text-danger"
-          aria-label={`${dropLabel}: ${label}`}
-          title={dropLabel}
-          onClick={onDrop}
-          data-testid={dropTestId}
+    <Dropdown>
+      <Dropdown.Trigger
+        aria-label={t("people.actionsFor", { name: [person.first_name, person.last_name].filter(Boolean).join(" ") })}
+        className="rounded-md p-1 text-muted hover:bg-surface-secondary hover:text-foreground"
+        data-testid={`my-club-member-actions-${id}`}
+      >
+        <svg aria-hidden="true" viewBox="0 0 16 16" className="size-4" fill="currentColor">
+          <circle cx="3" cy="8" r="1.5" />
+          <circle cx="8" cy="8" r="1.5" />
+          <circle cx="13" cy="8" r="1.5" />
+        </svg>
+      </Dropdown.Trigger>
+      <Dropdown.Popover placement="bottom end">
+        <Dropdown.Menu
+          aria-label={t("people.actions")}
+          onAction={(key) => items.find((item) => item.key === key)?.run()}
         >
-          ✕
-        </button>
-      )}
-    </Badge>
+          {items.map((item) => (
+            <Dropdown.Item
+              key={item.key}
+              id={item.key}
+              textValue={item.label}
+              variant={item.danger ? "danger" : "default"}
+              data-testid={item.testId}
+            >
+              {item.label}
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Dropdown.Popover>
+    </Dropdown>
   );
 }
 
