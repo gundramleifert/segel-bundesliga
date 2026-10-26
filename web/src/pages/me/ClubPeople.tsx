@@ -33,7 +33,6 @@ import { ConfirmButton } from "../../components/ConfirmButton";
 import { CrestEditor } from "../../components/CrestEditor";
 import { DataTable } from "../../components/DataTable";
 import { GrantForm } from "../../components/GrantForm";
-import { Select } from "../../components/Select";
 import { NewPerson } from "../../components/SquadPanel";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { useListParams, type ListParams } from "../../lib/listParams";
@@ -113,7 +112,6 @@ export function ClubPeopleSection({
         </h3>
         {mayOrganize && <AddPerson clubId={clubId} mayAdmin={mayAdmin} onAdded={refresh} />}
       </div>
-      <Filters list={list} mayOrganize={mayOrganize} />
       <Async state={people} testId={id}>
         {(page) => (
           <PeopleTable
@@ -179,55 +177,44 @@ function AddPerson({ clubId, mayAdmin, onAdded }: { clubId: number; mayAdmin: bo
   );
 }
 
-/** The filters, each a query parameter of the list — a member gets those that reveal
- *  nothing personal. */
-function Filters({ list, mayOrganize }: { list: ListParams; mayOrganize: boolean }) {
+/** The filters of the list, each in the header of the column it narrows (`DataTable`) —
+ *  a member gets those that reveal nothing personal. */
+function useFilters(mayOrganize: boolean) {
   const { t } = useTranslation("club");
-  const yesNo = (key: string) => (
-    <Select value={list.filter(key)} onChange={(e) => list.setFilter(key, e.target.value)} testId={`my-club-people-filter-${key}`}>
-      <option value="">{t(`people.filters.${key}`)}</option>
-      <option value="true">{t(`people.filters.${key}Yes`)}</option>
-      <option value="false">{t(`people.filters.${key}No`)}</option>
-    </Select>
-  );
-  return (
-    // A grid, not a row of full-width fields: six filters stacked would push the list
-    // off a phone's first screen.
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" data-testid="my-club-people-filters">
-      <input
-        className={`${INPUT_CLASS} col-span-2 sm:col-span-3 lg:col-span-4`}
-        value={list.q}
-        onChange={(e) => list.setQuery(e.target.value)}
-        placeholder={t("people.search")}
-        aria-label={t("people.search")}
-        data-testid="my-club-people-search"
-      />
-      <Select value={list.filter("role")} onChange={(e) => list.setFilter("role", e.target.value)} testId="my-club-people-filter-role">
-        <option value="">{t("people.filters.role")}</option>
-        {[Relation.admin, Relation.manager, Relation.treasurer].map((r) => (
-          <option key={r} value={r}>
-            {t(`members.relations.${r}`)}
-          </option>
-        ))}
-      </Select>
-      {yesNo("account")}
-      {yesNo("in_squad")}
-      {mayOrganize && (
-        <>
-          {yesNo("minor")}
-          {yesNo("no_birth_date")}
-          <Select value={list.filter("status")} onChange={(e) => list.setFilter("status", e.target.value)} testId="my-club-people-filter-status">
-            <option value="">{t("people.filters.status")}</option>
-            {["active", "invited", "requested"].map((s) => (
-              <option key={s} value={s}>
-                {t(`join.status.${s}`)}
-              </option>
-            ))}
-          </Select>
-        </>
-      )}
-    </div>
-  );
+  const yesNo = (param: string, label: string) => ({
+    param,
+    label: t(`people.filters.${label}`),
+    options: [
+      { value: "true", label: t(`people.filters.${label}Yes`) },
+      { value: "false", label: t(`people.filters.${label}No`) },
+    ],
+  });
+  // Memoised: the columns depend on it, and a fresh object each render rebuilds the table.
+  return useMemo(() => ({
+    roles: [
+      {
+        param: "role",
+        label: t("people.filters.role"),
+        options: [Relation.admin, Relation.manager, Relation.treasurer].map((r) => ({
+          value: r,
+          label: t(`members.relations.${r}`),
+        })),
+      },
+      ...(mayOrganize
+        ? [
+            {
+              param: "status",
+              label: t("people.filters.status"),
+              options: ["active", "invited", "requested"].map((s) => ({ value: s, label: t(`join.status.${s}`) })),
+            },
+          ]
+        : []),
+    ],
+    account: [yesNo("account", "account")],
+    squad: [yesNo("in_squad", "in_squad")],
+    birth: mayOrganize ? [yesNo("minor", "minor"), yesNo("no_birth_date", "no_birth_date")] : [],
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `yesNo` is built from `t` alone
+  }), [t, mayOrganize]);
 }
 
 const column = createColumnHelper<typeof TABLE_FEATURES, ClubPersonOut>();
@@ -255,6 +242,7 @@ function PeopleTable({
   const remove = useRemoveClubMember({ mutation: { onSuccess: onChanged } });
   const accept = useAcceptClubMember({ mutation: { onSuccess: onChanged } });
   const failed = revoke.error ?? remove.error ?? accept.error;
+  const filters = useFilters(mayOrganize);
   // The tuple behind each role chip, so the club's admin can take that one away.
   const tupleOf = useMemo(() => {
     const ids = new Map<string, number>();
@@ -282,6 +270,7 @@ function PeopleTable({
         column.accessor("roles", {
           header: t("people.roles"),
           enableSorting: false,
+          meta: { filters: filters.roles },
           cell: ({ row }) => {
             const p = row.original;
             const key = p.user_id ?? `person-${p.person_id}`;
@@ -333,19 +322,27 @@ function PeopleTable({
         column.accessor("user_id", {
           header: t("people.account"),
           enableSorting: false,
+          meta: { filters: filters.account },
           cell: ({ row }) => <span className="text-muted">{row.original.user_id != null ? "✓" : "—"}</span>,
+        }),
+        column.accessor("in_squad", {
+          header: t("people.squad"),
+          enableSorting: false,
+          meta: { filters: filters.squad },
+          cell: ({ row }) => <span className="text-muted">{row.original.in_squad ? "✓" : "—"}</span>,
         }),
         ...(mayOrganize
           ? [
               column.accessor("birth_date", {
                 header: t("people.birthDate"),
                 enableSorting: true,
+                meta: { filters: filters.birth },
                 cell: ({ row }) => <BirthDate person={row.original} onChanged={onChanged} />,
               }),
             ]
           : []),
       ]),
-    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, remove, accept, revoke, onChanged],
+    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, remove, accept, revoke, onChanged, filters],
   );
 
   return (
@@ -356,6 +353,7 @@ function PeopleTable({
         params={list}
         testId="my-club-people"
         empty={t("people.empty")}
+        search={t("people.search")}
         rowTestId={(p) => p.person_id}
       />
       {failed && <ErrorMessage text={errorText(failed)} testId="my-club-member-revoke-error" />}

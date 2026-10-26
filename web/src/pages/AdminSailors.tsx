@@ -15,7 +15,6 @@ import { TABLE_FEATURES } from "../lib/table";
 import { useListParams, type ListParams } from "../lib/listParams";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { SquadPanel } from "../components/SquadPanel";
-import { INPUT_CLASS } from "../lib/admin";
 import { Section, Field } from "../components/Form";
 import { AddButton } from "../components/AddButton";
 import { Select } from "../components/Select";
@@ -56,16 +55,6 @@ function Sailors() {
       testId="admin-people-section"
       action={<AddButton label={t("sailors.newButton")} to="/office/people/new" testId="admin-people-new-button" />}
     >
-      <Field label={t("sailors.searchLabel")} hint={t("sailors.searchHint")}>
-        <input
-          className={INPUT_CLASS}
-          value={list.q}
-          onChange={(e) => list.setQuery(e.target.value)}
-          placeholder={t("sailors.searchPlaceholder")}
-          data-testid="admin-people-search-input"
-        />
-      </Field>
-
       {results.loading && <Loading text={t("sailors.loadingText")} testId="admin-people-loading" />}
       {results.error && <ErrorMessage text={results.error} testId="admin-people-error" />}
       {results.data && <SailorList page={results.data} params={list} />}
@@ -126,6 +115,7 @@ function SailorList({ page, params }: { page: SailorPage; params: ListParams }) 
       params={params}
       testId="admin-people"
       empty={t("sailors.emptyText")}
+      search={t("sailors.searchHint")}
       rowTestId={(sailor) => sailor.id}
     />
   );

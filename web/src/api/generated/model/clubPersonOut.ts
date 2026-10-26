@@ -26,4 +26,6 @@ export interface ClubPersonOut {
   birth_date?: string | null;
   /** Empty without a date of birth */
   minor?: boolean | null;
+  /** In one of the club's squads this year */
+  in_squad?: boolean;
 }

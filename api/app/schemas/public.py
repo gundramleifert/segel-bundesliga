@@ -224,6 +224,7 @@ class ClubPersonOut(BaseModel):
     email: str | None = None
     birth_date: date | None = None
     minor: bool | None = Field(default=None, description="Empty without a date of birth")
+    in_squad: bool = Field(default=False, description="In one of the club's squads this year")
 
 
 class ClubMemberIn(BaseModel):

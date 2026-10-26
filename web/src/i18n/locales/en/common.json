@@ -85,7 +85,9 @@
   "table": {
     "sortBy": "Sort by this column",
     "sortedAscending": "Sorted ascending",
-    "sortedDescending": "Sorted descending"
+    "sortedDescending": "Sorted descending",
+    "filter": "Filter",
+    "filterAll": "All"
   },
   "dropzone": {
     "prompt": "Drop a file here, or tap to choose one",

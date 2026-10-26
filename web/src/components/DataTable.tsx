@@ -1,3 +1,4 @@
+import { Button, Popover } from "@heroui/react";
 import {
   type ColumnDef,
   type RowData,
@@ -6,10 +7,11 @@ import {
 } from "@tanstack/react-table";
 import { useTranslation } from "react-i18next";
 
+import { INPUT_CLASS } from "../lib/admin";
 import type { ListParams } from "../lib/listParams";
-import { TABLE_FEATURES } from "../lib/table";
+import { TABLE_FEATURES, type ColumnFilter, type TableColumnMeta } from "../lib/table";
 import { formatSort, parseSort } from "../lib/listParams";
-import { Empty, TableFrame } from "./Blocks";
+import { TableFrame } from "./Blocks";
 import { Pager } from "./Pager";
 
 /** The one table on this site — Story A-13.
@@ -32,6 +34,13 @@ import { Pager } from "./Pager";
  *     <DataTable columns={columns} page={query.data} params={list}
  *                testId="admin-people" empty={t("sailors.emptyText")} />
  *
+ * **Filters live in the column they narrow** (the shape of Backbone's table): a column
+ * declares them in `meta.filters` (`lib/table.ts`), and its header gets a filter button
+ * beside the sort control, opening the choices. Each filter is a query parameter in the
+ * URL, read by the server — so a filtered list can be linked like a sorted one. `search`
+ * adds the one search box above the table, over the columns the server searches. A page
+ * that a filter empties keeps its header — the filter that emptied it stays in reach.
+ *
  * Headless means we own every element: the markup below is ours, carries the project's
  * `.data-table` surface, sits in a `TableFrame` so a wide table scrolls inside its panel
  * instead of widening the page (Story A-10), and says `aria-sort` on the column that is
@@ -44,6 +53,7 @@ export function DataTable<TData extends RowData>({
   testId,
   empty,
   rowTestId,
+  search,
 }: {
   /** Built with `createColumnHelper<typeof TABLE_FEATURES, T>().columns([...])`. The
    *  value type is the library's own `any` — a column list is heterogeneous by nature. */
@@ -56,6 +66,8 @@ export function DataTable<TData extends RowData>({
   empty: string;
   /** A stable id per row, so a test can address one. Defaults to its position. */
   rowTestId?: (row: TData, index: number) => string | number;
+  /** A search box above the table (`q`), with this placeholder; none without it. */
+  search?: string;
 }) {
   const { t } = useTranslation();
   const sorting = parseSort(params.sort);
@@ -75,12 +87,18 @@ export function DataTable<TData extends RowData>({
     },
   });
 
-  if (page && !page.items.length) {
-    return <Empty testId={`${testId}-empty`}>{empty}</Empty>;
-  }
-
   return (
     <>
+      {search !== undefined && (
+        <input
+          className={`${INPUT_CLASS} mb-2 max-w-sm`}
+          value={params.q}
+          onChange={(e) => params.setQuery(e.target.value)}
+          placeholder={search}
+          aria-label={search}
+          data-testid={`${testId}-search-input`}
+        />
+      )}
       <TableFrame testId={`${testId}-frame`}>
         <table
           data-testid={`${testId}-table`}
@@ -92,6 +110,7 @@ export function DataTable<TData extends RowData>({
                 {group.headers.map((header) => {
                   const column = header.column;
                   const sorted = column.getIsSorted();
+                  const filters = (column.columnDef.meta as TableColumnMeta | undefined)?.filters;
                   return (
                     <th
                       key={header.id}
@@ -103,6 +122,7 @@ export function DataTable<TData extends RowData>({
                       }
                       className="font-medium text-muted"
                     >
+                      <span className="flex items-center gap-1">
                       {header.isPlaceholder ? null : column.getCanSort() ? (
                         <button
                           type="button"
@@ -127,6 +147,10 @@ export function DataTable<TData extends RowData>({
                       ) : (
                         <table.FlexRender header={header} />
                       )}
+                      {filters?.length ? (
+                        <HeaderFilter filters={filters} params={params} testId={`${testId}-filter-${column.id}`} />
+                      ) : null}
+                      </span>
                     </th>
                   );
                 })}
@@ -134,6 +158,13 @@ export function DataTable<TData extends RowData>({
             ))}
           </thead>
           <tbody>
+            {page && !page.items.length && (
+              <tr>
+                <td colSpan={table.getAllLeafColumns().length} className="text-muted" data-testid={`${testId}-empty`}>
+                  {empty}
+                </td>
+              </tr>
+            )}
             {table.getRowModel().rows.map((row, index) => (
               <tr
                 key={row.id}
@@ -154,6 +185,58 @@ export function DataTable<TData extends RowData>({
       </TableFrame>
       <Pager page={page} onPage={params.setPage} current={params.page} testId={testId} />
     </>
+  );
+}
+
+/** A column's filters, behind one button in its header: each filter's choices, "all"
+ *  first, the chosen one marked. The button is marked while any of them is set. Choosing
+ *  writes the query parameter (and goes back to page one, `ListParams.setFilter`). */
+function HeaderFilter({ filters, params, testId }: { filters: readonly ColumnFilter[]; params: ListParams; testId: string }) {
+  const { t } = useTranslation();
+  const active = filters.some((f) => params.filter(f.param) !== "");
+  return (
+    <Popover>
+      <Button
+        isIconOnly
+        size="sm"
+        variant="ghost"
+        aria-label={t("table.filter")}
+        className={active ? "text-accent" : "text-faint"}
+        data-active={active || undefined}
+        data-testid={testId}
+      >
+        {/* A funnel, drawn: it has to read as "filter" without an icon font. */}
+        <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+          <path d="M2 3h12l-4.5 5.5V13l-3 1.5V8.5z" strokeLinejoin="round" />
+        </svg>
+      </Button>
+      <Popover.Content placement="bottom start">
+        <Popover.Dialog className="flex max-w-xs flex-col gap-3 p-1" data-testid={`${testId}-popover`}>
+          {filters.map((filter) => {
+            const current = params.filter(filter.param);
+            const choice = (value: string, label: string) => (
+              <label key={value || "all"} className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="radio"
+                  name={`${testId}-${filter.param}`}
+                  checked={current === value}
+                  onChange={() => params.setFilter(filter.param, value)}
+                  data-testid={`${testId}-${filter.param}-${value || "all"}`}
+                />
+                {label}
+              </label>
+            );
+            return (
+              <fieldset key={filter.param} className="flex flex-col gap-1">
+                <legend className="mb-1 text-xs font-medium text-muted">{filter.label}</legend>
+                {choice("", t("table.filterAll"))}
+                {filter.options.map((o) => choice(o.value, o.label))}
+              </fieldset>
+            );
+          })}
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
   );
 }
 

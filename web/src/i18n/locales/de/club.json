@@ -118,20 +118,21 @@
     "birthDate": "Geburtsdatum",
     "empty": "Niemand passt.",
     "filters": {
-      "role": "Jede Rolle",
-      "account": "Konto?",
+      "role": "Rolle",
+      "status": "Stand",
+      "account": "Konto",
       "accountYes": "Mit Konto",
       "accountNo": "Ohne Konto",
-      "in_squad": "Im Kader?",
-      "in_squadYes": "In einem Kader dieses Jahr",
-      "in_squadNo": "In keinem Kader dieses Jahr",
-      "minor": "Alter?",
+      "in_squad": "In einem Kader dieses Jahr",
+      "in_squadYes": "Ja",
+      "in_squadNo": "Nein",
+      "minor": "Alter",
       "minorYes": "Unter 18",
       "minorNo": "18 oder älter",
-      "no_birth_date": "Geburtsdatum?",
-      "no_birth_dateYes": "Ohne Geburtsdatum",
-      "no_birth_dateNo": "Mit Geburtsdatum",
-      "status": "Jeder Stand"
-    }
+      "no_birth_date": "Geburtsdatum",
+      "no_birth_dateYes": "Fehlt",
+      "no_birth_dateNo": "Angegeben"
+    },
+    "squad": "Kader"
   }
 }

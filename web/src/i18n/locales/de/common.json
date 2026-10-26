@@ -85,7 +85,9 @@
   "table": {
     "sortBy": "Nach dieser Spalte sortieren",
     "sortedAscending": "Aufsteigend sortiert",
-    "sortedDescending": "Absteigend sortiert"
+    "sortedDescending": "Absteigend sortiert",
+    "filter": "Filtern",
+    "filterAll": "Alle"
   },
   "dropzone": {
     "prompt": "Datei hier ablegen oder tippen, um eine auszuwählen",

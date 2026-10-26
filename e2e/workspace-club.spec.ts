@@ -47,6 +47,14 @@ describeStory("Z-10: the club's sections follow what I hold on the club", () => 
     await openSection(page, "club", "people");
     await expect(page.getByTestId("my-club-people-table")).toBeVisible();
     await expect(page.getByTestId(`my-club-access-${club}-open`)).toBeVisible();
+    // A filter sits in the header of the column it narrows, and lands in the address —
+    // the server narrows, the table keeps its header when nothing is left.
+    await page.getByTestId("my-club-people-filter-birth_date").click();
+    await page.getByTestId("my-club-people-filter-birth_date-no_birth_date-true").click();
+    await expect(page).toHaveURL(/[?&]no_birth_date=true/);
+    await expect(page.getByTestId("my-club-people-filter-birth_date")).toHaveAttribute("data-active", "true");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("my-club-people-table")).toBeVisible();
     // The old addresses of *Members* and *Sailors* lead there.
     await page.goto(`/me/club/${club}/sailors?no_birth_date=true`);
     await expect(page).toHaveURL(new RegExp(`/me/club/${club}/people\\?no_birth_date=true$`));

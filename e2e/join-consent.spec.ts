@@ -50,7 +50,7 @@ describeStory("V-15: a second club takes someone in only with consent, either wa
     await page.getByTestId(`${panel}-add`).click();
     await expect(page.getByTestId(`${panel}-dialog`)).toHaveCount(0);
     const person = (await roster(request, asvw)).find((m) => m.status === "invited" && m.user_id !== null)!;
-    await page.getByTestId("my-club-people-search").fill(email);
+    await page.getByTestId("my-club-people-search-input").fill(email);
     await expect(page.getByTestId(`my-club-member-pending-${person.user_id}`)).toBeVisible();
 
     // They find it in Me › My clubs — a to-do — and accept.

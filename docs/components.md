@@ -343,8 +343,9 @@ const query = useListPeople(
 const columns = useMemo(() => helper.columns([...]), [t]);
 
 <DataTable columns={columns} page={query.data} params={list}
-           testId="admin-sailors" empty={t("sailors.emptyText")}
-           rowTestId={(sailor) => sailor.id} />
+           testId="admin-people" empty={t("sailors.emptyText")}
+           search={t("sailors.searchHint")}
+           rowTestId={(person) => person.id} />
 ```
 
 Story A-13's table, on TanStack Table v9 (headless: the library owns the sorting state and
@@ -359,6 +360,17 @@ real button.
 - Columns are built with `createColumnHelper<typeof TABLE_FEATURES, Row>()` from
   `lib/table.ts`, and **memoised**: a new array each render rebuilds the table.
 - There is no `rowPaginationFeature`: paging is the URL's and the server's.
+- **Filters sit in the header of the column they narrow** (the shape of Backbone's table,
+  not its browser-side filtering): a column declares `meta: { filters: [{ param, label,
+  options }] }` (`ColumnFilter`, `lib/table.ts`) and its header gets a funnel button with a
+  popover of choices, "All" first. Each filter is a query parameter of the list
+  (`list.filter(param)` into the generated hook), so the server narrows and a filtered
+  list is a link. Declare only what the endpoint's `ListFilter` takes. Test ids:
+  `${testId}-filter-<column>`, its choices `…-<param>-<value>` (`-all`).
+- **`search`** puts the one search box above the table (`${testId}-search-input`), bound
+  to `q` — over whatever the endpoint's `search_columns` are.
+- A page a filter empties keeps the header: the empty text is a row of the table
+  (`${testId}-empty`), so the filter that emptied it stays in reach.
 
 A screen whose rows are *editors* rather than values — the admin event list, where every
 row opens readiness, clubs, the draw and publication — stays a list and takes only

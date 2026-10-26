@@ -14,7 +14,8 @@ title: "People, organizers and the crest"
 
 Everyone in the club is one row in [*your club* › *People*](place:club.people). Members
 see the active members; organizers also see pending rows, organizers who are not
-members, and dates of birth.
+members, and dates of birth. Search above the list; the funnel in a column's header
+filters by it (role, account, squad, age), the column's name sorts.
 
 ![*People* as the club admin sees it](shot:help-club-members)
 

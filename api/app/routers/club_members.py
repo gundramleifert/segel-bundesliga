@@ -28,7 +28,15 @@ from app.auth import current_user
 from app.db import get_session
 from app.filters import ClubPersonFilter
 from app.listing import ListDepends
-from app.models import Club, ClubMembership, MembershipStatus, Person
+from app.models import (
+    Club,
+    ClubMembership,
+    MembershipStatus,
+    Person,
+    Series,
+    Team,
+    TeamMembership,
+)
 from app.models.auth import Grant, ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
@@ -164,6 +172,22 @@ async def list_club_people(
         roles.setdefault(grant.user_id, []).append(grant.relation)
     order = list(Relation).index
     today = date.today()
+    # Who of this page is in one of the club's squads this year — the *Squad* column.
+    in_squad = set(
+        (
+            await session.execute(
+                select(TeamMembership.person_id)
+                .join(Team, TeamMembership.team_id == Team.id)
+                .join(Series, Team.series_id == Series.id)
+                .where(
+                    Team.club_id == club.id,
+                    Team.event_id.is_(None),
+                    Series.year == today.year,
+                    TeamMembership.person_id.in_([p.id for p in persons]),
+                )
+            )
+        ).scalars()
+    )
     return page_of(
         [
             ClubPersonOut(
@@ -178,6 +202,7 @@ async def list_club_people(
                 email=person.email if organizer else None,
                 birth_date=person.birth_date if organizer else None,
                 minor=is_minor(person.birth_date, today) if organizer else None,
+                in_squad=person.id in in_squad,
             )
             for person in persons
         ],

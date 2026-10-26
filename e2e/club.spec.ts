@@ -186,7 +186,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await signIn(page, clubAdmin.email);
     await openMyClub(page, club.id, "people");
     await expect(page.getByTestId("my-club-people-table")).toBeVisible();
-    await page.getByTestId("my-club-people-search").fill(guest);
+    await page.getByTestId("my-club-people-search-input").fill(guest);
     await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toHaveCount(0);
     await page.getByTestId(`${panel}-open`).click();
     await page.getByTestId(`${panel}-mode-email`).check();
@@ -210,9 +210,9 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await signIn(page, guest);
     await openMyClub(page, club.id, "people");
     await expect(page.getByTestId("my-club-people-table")).toBeVisible();
-    await page.getByTestId("my-club-people-search").fill(guest);
+    await page.getByTestId("my-club-people-search-input").fill(guest);
     await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toBeVisible();
-    await page.getByTestId("my-club-people-search").fill(clubAdmin.email);
+    await page.getByTestId("my-club-people-search-input").fill(clubAdmin.email);
     await expect(page.getByTestId(`my-club-member-relation-${clubAdmin.id}-admin`)).toBeVisible();
     await expect(page.getByTestId(`${panel}-open`)).toHaveCount(0);
     await expect(page.locator('[data-testid^="my-club-member-revoke-"]')).toHaveCount(0);
@@ -226,7 +226,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     // Back as the admin: the guest is no longer on the list.
     await signIn(page, clubAdmin.email);
     await openMyClub(page, club.id, "people");
-    await page.getByTestId("my-club-people-search").fill(guest);
+    await page.getByTestId("my-club-people-search-input").fill(guest);
     await expect(page.getByTestId("my-club-people-table")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toHaveCount(0);
   });

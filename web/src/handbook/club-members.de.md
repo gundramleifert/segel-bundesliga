@@ -14,7 +14,9 @@ title: "Personen, Organisation und Stander"
 
 Jede Person des Vereins ist eine Zeile in [*Ihr Verein* › *Personen*](place:club.people).
 Mitglieder sehen die aktiven Mitglieder; die Organisation sieht zusätzlich offene
-Zeilen, Organisatoren ohne Mitgliedschaft und die Geburtsdaten.
+Zeilen, Organisatoren ohne Mitgliedschaft und die Geburtsdaten. Suchen Sie über der
+Liste; der Trichter im Spaltenkopf filtert danach (Rolle, Konto, Kader, Alter), der
+Spaltenname sortiert.
 
 ![*Personen*, wie die Vereinsverwaltung sie sieht](shot:help-club-members)
 
