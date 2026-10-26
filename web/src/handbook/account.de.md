@@ -24,8 +24,9 @@ Auf der Anmeldeseite als Reiter *Konto anlegen*, wo die Seite das zulässt.
 2. Tragen Sie den 6-stelligen Code aus der E-Mail unter *Einmalcode* ein und tippen Sie
    auf *Anmelden*. Der Code gilt zehn Minuten.
 
-Ergebnis: Sie sind angemeldet, ohne Verein und ohne Rolle. Der Admin eines Vereins nimmt
-Sie dann über diese Adresse als Mitglied auf ([Ihr Verein](#my-space-club)). Die Seite
+Ergebnis: Sie sind bei Ihrem eigenen Personendatensatz angemeldet, ohne Verein und ohne
+Rolle. Der Admin eines Vereins nimmt Sie dann über diese Adresse als Mitglied auf, oder Sie
+bitten einen Verein um Aufnahme ([Ihr Verein](#my-space-club)). Die Seite
 verrät nie, ob zu einer Adresse schon ein Konto besteht; eine Registrierung mit einer
 solchen Adresse ändert daran nichts.
 
@@ -61,8 +62,8 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 
 | Geht | Bleibt |
 |---|---|
-| das Konto, seine Anmeldewege und das Passwort | Ihr Segler-Datensatz: Ihr Name in Kadern, Crews und Ergebnissen, Ihre Bestätigungen des Haftungsausschlusses |
-| jede Rolle, auch Vereinsmitgliedschaften | bereits eingereichte Abrechnungen, beim Verein, der sie bezahlt |
+| das Konto, seine Anmeldewege und das Passwort | Ihr Personendatensatz: Ihr Name in Kadern, Crews und Ergebnissen, Ihre Bestätigungen des Haftungsausschlusses, Ihre Vereinsmitgliedschaften |
+| jede Rolle | bereits eingereichte Abrechnungen, beim Verein, der sie bezahlt |
 | Ihre Dokumente, Ihre Bankverbindung und nicht eingereichte Abrechnungen | Bestätigungen, die Sie für andere erfasst haben |
 
 ### Sprache und hell oder dunkel {#account-look}

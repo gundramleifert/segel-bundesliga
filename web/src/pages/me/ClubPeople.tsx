@@ -191,9 +191,11 @@ function Filters({ list, mayOrganize }: { list: ListParams; mayOrganize: boolean
     </Select>
   );
   return (
-    <div className="flex flex-wrap items-end gap-2" data-testid="my-club-people-filters">
+    // A grid, not a row of full-width fields: six filters stacked would push the list
+    // off a phone's first screen.
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" data-testid="my-club-people-filters">
       <input
-        className={`${INPUT_CLASS} max-w-xs`}
+        className={`${INPUT_CLASS} col-span-2 sm:col-span-3 lg:col-span-4`}
         value={list.q}
         onChange={(e) => list.setQuery(e.target.value)}
         placeholder={t("people.search")}

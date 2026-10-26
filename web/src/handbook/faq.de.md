@@ -3,7 +3,7 @@ id: faq
 type: faq
 order: 10
 audience: [sailor, club, event-organizer, race-committee, treasurer, administration]
-stories: [S-1, S-3, V-1, V-9, A-8, VA-8, Z-4]
+stories: [S-1, S-3, V-1, V-9, V-15, A-8, VA-8, Z-4]
 journey: null
 route: null
 tags: [faq, questions, problems, refused, fragen, probleme, abgelehnt, fehler]
@@ -28,15 +28,15 @@ Der Wortlaut hat sich geändert (*Neuer Wortlaut – bitte erneut bestätigen*):
 [welcher Haftungsausschluss](#waiver-which).
 
 #### Mein Konto hat kein Segler-Profil.
-Ihr Datensatz wird über die E-Mail-Adresse gefunden. Gibt es keinen, bitten Sie die
-Organisation Ihres Vereins (*Ihr Verein* › *Segler*) oder die Geschäftsstelle, einen mit
-der Adresse anzulegen, mit der Sie sich anmelden; trägt er eine
-andere Adresse, melden Sie sich mit dieser an oder fragen Sie die Geschäftsstelle:
+Jedes Konto hat ab der ersten Anmeldung mit bestätigter Adresse seinen
+Personendatensatz – niemand muss ihn anlegen. Fehlt die Karte, melden Sie sich einmal mit
+einem Code per E-Mail an; hilft das nicht, fragen Sie die Geschäftsstelle:
 [Ihr Profil](#profile-sailor).
 
 #### Wie trete ich meinem Verein bei?
-Beantragen lässt er sich nicht: Die Vereinsverwaltung trägt Sie mit der E-Mail-Adresse
-Ihres Kontos ein: [meine Vereine](#my-space-club).
+Der Admin des Vereins nimmt Sie über Ihre E-Mail-Adresse auf, oder Sie tippen auf der
+Seite des Vereins oder in [*Ich* › *Meine Vereine*](place:profile.clubs) auf *Aufnahme
+anfragen*, und der Admin nimmt Sie auf: [meine Vereine](#my-space-club).
 
 #### Die Anmeldung meldet, zu meiner Adresse gebe es kein Konto.
 Die Anmeldung legt keines an. Legen Sie es selbst mit *Konto anlegen* an; das kann
@@ -57,8 +57,15 @@ die einer Einzelveranstaltung deren Organisation. Nehmen Sie jemanden heraus, od
 Die Person steht in einer Crew eines Spieltags. Ändern Sie zuerst die Aufstellung: [die Crew](#squad-and-lineup-crew).
 
 #### Das Mitglied, das ich eintragen möchte, hat kein Konto.
-Die Person legt es selbst mit *Konto anlegen* an — das kann niemand für sie tun; danach
-tragen Sie sie ein: [Mitglieder eintragen](#club-members-add).
+Wer schon erfasst ist – eine Person, die Ihr Verein angelegt hat –, nehmen Sie über die
+Adresse unter *Jemand Bekanntes, per E-Mail* auf. Alle anderen legen Sie unter *Eine neue
+Person* an. Jemanden aus einem anderen Verein ohne Konto nimmt nur die Geschäftsstelle
+auf: [Mitglieder eintragen](#club-members-add).
+
+#### Warum ist jemand, den ich aufgenommen habe, nur *eingeladen*?
+Die Person ist schon in einem anderen Verein und kommt erst dazu, wenn sie in *Ich* ›
+*Meine Vereine* annimmt. Hätte sie zuvor selbst angefragt, wäre sie sofort dabei:
+[Mitglieder eintragen](#club-members-add).
 
 #### Warum kann ich unsere letzte Organisation nicht entfernen?
 Ein Verein behält immer mindestens eine *Verwaltung*. Benennen Sie zuerst eine weitere:

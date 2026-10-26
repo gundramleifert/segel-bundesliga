@@ -19,9 +19,9 @@ All in the context *Me* of [my space](place:profile.account).
 [*Me* › *Account*](place:profile.account) → *My sailor profile*: your *First name*, *Last name* and *Birthdate* as the
 site shows them; *Save*.
 
-The card appears once a sailor record carries your account's email address, confirmed.
-Otherwise it says no record is linked — ask your club's organizer to create one with your
-address (*your club* › *Sailors*), or the league office.
+The card is there from your first sign-in with a confirmed address: your own person
+record — new, or the one your club already keeps under that address. Nobody has to create
+it for you; your club's organizer may complete it, such as with your date of birth.
 
 - *Upload photo*: an image, at most 5 MB. It is turned upright, cut to a square and
   reduced to 512×512 pixels. *Replace photo*, *Remove photo*.

@@ -74,7 +74,8 @@ export function GrantForm({
       }}
     >
       <label className="flex flex-col text-xs text-muted">
-        {t("access.emailLabel")}
+        {/* With a membership the address may be the person's own, not only an account's. */}
+        {t(addMember ? "access.emailLabelPerson" : "access.emailLabel")}
         <input
           className={INPUT_CLASS}
           type="email"

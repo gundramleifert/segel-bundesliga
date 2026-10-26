@@ -20,8 +20,9 @@ Profil, Ihren Verein.
 
 - [Konto anlegen](#account-register) oder [anmelden](#account-sign-in) – mit einem Code
   per E-Mail oder einem Passwort.
-- Bitten Sie den Admin Ihres Vereins, Sie als Mitglied aufzunehmen:
-  [Ihr Verein](#my-space-club).
+- Bitten Sie den Admin Ihres Vereins, Sie als Mitglied aufzunehmen, oder tippen Sie auf
+  *Aufnahme anfragen* auf der Seite Ihres Vereins oder in
+  [*Ich* › *Meine Vereine*](place:profile.clubs): [Ihr Verein](#my-space-club).
 - Prüfen Sie Ihren Namen und Ihr Geburtsdatum: [Segler-Profil](#profile-sailor).
 
 ### Vor und während der Saison {#start-sailor-season}

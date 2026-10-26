@@ -3,7 +3,7 @@ id: faq
 type: faq
 order: 10
 audience: [sailor, club, event-organizer, race-committee, treasurer, administration]
-stories: [S-1, S-3, V-1, V-9, A-8, VA-8, Z-4]
+stories: [S-1, S-3, V-1, V-9, V-15, A-8, VA-8, Z-4]
 journey: null
 route: null
 tags: [faq, questions, problems, refused, fragen, probleme, abgelehnt, fehler]
@@ -25,12 +25,13 @@ A parent or guardian must sign — on the printed form, or online from their own
 The wording has changed (*New wording — please confirm again*): [which waiver](#waiver-which).
 
 #### My account has no sailor profile.
-Your record is found by email address. If there is none, ask your club's organizer
-(*your club* › *Sailors*) or the league office to create one with the address you sign in with; if it carries another address, sign in with that
-one, or ask the league office: [your profile](#profile-sailor).
+Every account has its person record from the first sign-in with a confirmed address —
+nobody has to create it. If the card is missing, sign in once with a code by email; if
+that does not help, ask the league office: [your profile](#profile-sailor).
 
 #### How do I join my club?
-There is no request: the club's admin adds you by your account's email address:
+The club's admin adds you by your email address, or you tap *Ask to join* on the club's
+page or in [*Me* › *My clubs*](place:profile.clubs) and the admin accepts:
 [my clubs](#my-space-club).
 
 #### Signing in says there is no account for my address.
@@ -51,8 +52,14 @@ Remove someone, or ask them: [squad size](#squad-and-lineup-size).
 They are in a matchday crew. Change the crew first: [the crew](#squad-and-lineup-crew).
 
 #### The member I want to add has no account.
-They create one themselves with *Create an account* — nobody can do it for them; then add
-them: [add members](#club-members-add).
+Someone on record — a person your club created — is added by their address under
+*Someone on record, by email*. Anyone else you create under *A new person*. Someone in
+another club without an account only the league office adds: [add members](#club-members-add).
+
+#### Why is someone I added only *invited*?
+They are already in another club, so they join only when they accept in *Me* › *My
+clubs*. Had they asked to join first, they would be in at once:
+[add members](#club-members-add).
 
 #### Why can't I remove our last organizer?
 A club always keeps at least one *Admin*. Name another *Admin* first:

@@ -3,7 +3,7 @@ id: roles
 type: doc
 order: 20
 audience: [sailor, club, event-organizer, race-committee, treasurer, administration]
-stories: [Z-2, Z-5, A-8, F-1, F-3, VA-12]
+stories: [Z-2, Z-5, V-15, A-8, F-1, F-3, VA-12]
 journey: null
 route: /help/roles
 tags: [roles, permissions, access, rollen, rechte, zugriff, geschäftsstelle, redaktion, wettfahrtleitung, teammanager, kassenwart, vereinsverwaltung, veranstaltungsleitung, serienleitung]
@@ -25,7 +25,7 @@ Sie wirkt ab dem nächsten Klick.
 | *Verwaltung* (*Vereinsverwaltung*) | einen Verein | Wer zum Verein gehört und wer ihn organisiert; der Stander. Alles, was die Organisation tut. Verwaltung jeder Veranstaltung, die der Verein ausrichtet. |
 | *Organisation* (*Teammanager*) | einen Verein | Wer segelt: Meldungen, Kader, Crews, Segler, Erziehungsberechtigte, Haftungsausschlüsse. Das Geld des Vereins, mit dem Kassenwart. Organisation jeder Veranstaltung, die der Verein ausrichtet. |
 | *Kassenwart* | einen Verein | Zahlt die Abrechnungen des Vereins und jeder Veranstaltung, die er ausrichtet. |
-| *Mitglied* | einen Verein | Gehört zum Verein. Sonst nichts. |
+| *Mitglied* | einen Verein | Gehört durch Mitgliedschaft zum Verein — die Vereinsverwaltung nimmt auf, niemand vergibt sie als Rolle. Sieht die *Personen* des Vereins. |
 | *Verwaltung* | eine Serie | Alles an der Serie und ihren Veranstaltungen, Personen eingeschlossen. |
 | *Organisation* (*Serienleitung*) | eine Serie | Ihre Vereine, Meldungen, Termine, Kadergröße, Veröffentlichung; legt ihre Spieltage an. Organisation jeder Veranstaltung der Serie. |
 | *Wettfahrtleitung*, *Jury* | eine Serie | Diese Rolle bei jeder Veranstaltung der Serie. |
@@ -52,8 +52,8 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 | Vereine anlegen, bearbeiten, zu einer Serie melden | ✓ | — | — | — | — | — | — | — | — | — | — |
 | Stander eines Vereins ändern | ✓ | — | — | — | — | — | — | eigene | — | — | — |
 | News und Pressemitteilungen schreiben, die Bilder pflegen | ✓ | ✓ | — | — | — | — | — | — | — | — | — |
-| Mitglieder, Organisation, Kassenwart eintragen | ✓ | — | — | — | — | — | — | eigene | — | — | — |
-| Mitgliederliste eines Vereins sehen | ✓ | — | — | — | — | — | — | eigene | eigene | — | eigene |
+| Bekannte Personen aufnehmen, Anfragen annehmen; Organisation, Kassenwart benennen | ✓ | — | — | — | — | — | — | eigene | — | — | — |
+| *Personen* eines Vereins sehen | ✓ | — | — | — | — | — | — | eigene | eigene | — | eigene |
 | Konten anlegen und deaktivieren | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
 | Eine Serie anlegen | ✓ | — | — | — | — | — | — | — | — | — | — |
 | Serie bearbeiten, veröffentlichen, ihre Vereine festlegen | ✓ | — | — | eigene | — | — | — | — | — | — | — |
@@ -65,7 +65,7 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 | Pairing-Liste auslosen | ✓ | — | — | — | — | — | — | — | — | — | — |
 | Veranstaltung starten, beenden, absagen, wieder öffnen | ✓ | — | ✓ | Serie | eigene | eigene | — | ausgerichtet | ausgerichtet | — | — |
 | Wettfahrten durchführen, Ergebnisse erfassen und korrigieren | ✓ | — | ✓ | —¹ | — | eigene | — | ausgerichtet | — | — | — |
-| Segler suchen und anlegen | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
+| Personen suchen und anlegen | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
 | Angaben eines Seglers ändern | ✓⁹ | — | — | — | — | — | — | Kader²˒⁹ | Kader²˒⁹ | — | selbst |
 | Kader melden | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
 | Crew für einen Spieltag aufstellen | ✓⁹ | — | ✓⁹ | Serie⁹ | eigene⁹ | eigene⁹ | — | eigene, ausgerichtet⁹ | eigene, ausgerichtet⁹ | — | — |
@@ -99,9 +99,10 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 - **Zuerst ein Konto.** Die Anmeldung legt keines an. Sie legen es selbst mit *Konto
   anlegen* an; weder Ihr Verein noch die Geschäftsstelle kann das für Sie tun.
 - **Rollen der Geschäftsstelle:** vergibt deren Verwaltung unter [*Konten*](place:admin.accounts).
-- **Verein:** Die Vereinsverwaltung trägt Personen unter [*der Verein* ›
-  *Mitglieder*](place:club.people) ein, mit der E-Mail-Adresse eines bestehenden Kontos.
-  Eine *Verwaltung* muss immer bleiben.
+- **Verein:** Die Vereinsverwaltung nimmt Personen auf und benennt die Organisation unter
+  [*der Verein* › *Personen*](place:club.people). Wer schon in einem anderen Verein ist,
+  kommt nur mit Zustimmung dazu: Die Person nimmt eine Einladung an, oder sie fragt an und
+  die Verwaltung nimmt sie auf. Eine *Verwaltung* muss immer bleiben.
 - **Serie, Veranstaltung:** deren Verwaltung oder die Geschäftsstelle — unter *die Serie* ›
   *Wettfahrtleitung & Jury*, unter *die Veranstaltung* › [*Personen*](place:event.people).
   Zur Verwaltung einer Veranstaltung gehören die ihrer Serie und ihres Ausrichters; ihre
@@ -110,9 +111,10 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
   unter [*der Verein* › *Minderjährige & Erziehungsberechtigte*](place:club.minors).
 - **Fotograf:** keine Rolle und kein Konto — die Redaktion schickt einen
   [Upload-Link](#news-and-press-pictures).
-- **Segler:** Ein Verein nimmt Sie in seinen Kader auf. Ihr Konto findet Ihren Datensatz
-  über die E-Mail-Adresse.
-- **Eine Rolle beenden:** Ein Mitglied tritt mit *Verein verlassen* aus. Andere Rollen
-  entfernt, wer sie vergeben kann.
+- **Segler:** Ein Verein nimmt Sie in seinen Kader auf. Ihr Konto ist Ihr Personendatensatz
+  — der, den Ihr Verein unter Ihrer bestätigten Adresse schon hat, oder ein neuer.
+- **Eine Rolle beenden:** Ein Mitglied tritt mit *Verein verlassen* aus, unter *Personen*
+  oder unter [*Ich* › *Meine Vereine*](place:profile.clubs); Rollen am Verein bleiben.
+  Andere Rollen entfernt, wer sie vergeben kann.
 
 [Mein Bereich öffnen](place:space)

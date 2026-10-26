@@ -94,3 +94,8 @@ it did not foresee — a person who already belongs to someone else.
 6. **Handbook, journeys, e2e** — the help pages, J-3 (member) and the §5 walk.
 
 Steps 2–3 are one database change for the initial migration (CLAUDE.md, Migrations).
+
+## Status
+
+Built 2026-10-26: steps 1–6 — #41 (stories), #42 (rename), #43 (link, membership not a
+tuple), #44 (consent, V-15), #45 (*Club › People*), #46 (help pages, J-3, the §5 walk).

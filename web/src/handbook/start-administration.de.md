@@ -21,7 +21,7 @@ darf — im *Ligabüro* (Benutzermenü oder Kontextwechsler). Jede seiner drei
 | [*Vereine*](place:admin.clubs): anlegen, Stander | ✓ | — | — |
 | [*Serien*](place:admin.series): anlegen, füllen, veröffentlichen | ✓ | — | — |
 | [*Veranstaltungen*](place:admin.events): anlegen und durchführen (die Auslosung: nur Verwaltung) | ✓ | — | ✓ |
-| [*Segler*](place:admin.sailors), [*Konten*](place:admin.accounts) | ✓ | — | — |
+| [*Personen*](place:admin.sailors), [*Konten*](place:admin.accounts) | ✓ | — | — |
 | [*News*](place:admin.news), [*Medien*](place:admin.media) | ✓ | ✓ | — |
 
 Ein Verein, eine Serie oder eine Veranstaltung, von hier geöffnet, ist ein eigener Kontext

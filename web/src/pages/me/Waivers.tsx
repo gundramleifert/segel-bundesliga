@@ -59,7 +59,7 @@ export function Waivers({ only }: { only?: { scope: "series" | "event"; id: numb
       })
       .catch((err) => {
         if (!active) return;
-        if (err instanceof ApiError && err.code === "no-linked-sailor-record") {
+        if (err instanceof ApiError && err.code === "no-linked-person-record") {
           setNoRecord(true);
         } else {
           setLoadError(errorText(err));

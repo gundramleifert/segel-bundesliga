@@ -31,8 +31,9 @@ title: "Begriffe"
 
 | Begriff | Bedeutung |
 |---|---|
-| Mitglied | Eine Person, die auf dieser Seite zu einem Verein gehört. Die Vereinsverwaltung trägt sie ein. |
-| Segler | Eine Person im Seglerverzeichnis. Das Verzeichnis verknüpft ein Konto über dieselbe E-Mail-Adresse mit einem Segler. |
+| Person | Jemand auf dieser Seite — ein Datensatz, ob die Person segelt, sich anmeldet oder beides. Ein Konto gehört zu genau einer Person; eine Person braucht kein Konto. |
+| Mitglied | Eine Person, die durch Mitgliedschaft zu einem Verein gehört. Die Vereinsverwaltung nimmt sie auf; wer in einem anderen Verein ist, kommt nur mit Zustimmung dazu. Eine Person kann in mehreren Vereinen sein. |
+| Segler | Eine Person, die für einen Verein segelt. |
 | Kader | Die Segler, die ein Verein für eine Serie meldet. Die Serie legt die kleinste und größte Zahl fest, eine Einzelveranstaltung für sich selbst. Eine Person segelt in einer Serie nur für einen Verein. |
 | Crew, Aufstellung | Wer an einem Spieltag für den Verein segelt. Aufgestellt werden kann nur, wer im Kader steht. |
 | Haftungsausschluss | Wird einmal je Serie bestätigt und gilt dann für alle ihre Veranstaltungen. Eine Einzelveranstaltung braucht einen eigenen. Ein neuer Wortlaut muss erneut bestätigt werden. |

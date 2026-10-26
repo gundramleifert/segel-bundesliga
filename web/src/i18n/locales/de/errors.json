@@ -20,7 +20,7 @@
   "race-result-position-required": "Bitte eine Platzierung für Boot {boat_number} eintragen.",
   "race-result-redress-required": "Bitte die Redress-Punkte für Boot {boat_number} eintragen.",
   "race-result-duplicate-position": "Platz {finish_position} ist mehrfach vergeben.",
-  "no-linked-sailor-record": "Zu diesem Konto ist noch kein Segler-Datensatz verknüpft. Ein Admin oder die Vereinsleitung kann einen anlegen und mit deiner E-Mail-Adresse verknüpfen.",
+  "no-linked-person-record": "Zu diesem Konto ist noch kein Personen-Datensatz verknüpft — das geschieht, sobald Ihre Adresse bestätigt ist. Melden Sie sich einmal mit einem Code an, oder wenden Sie sich an die Geschäftsstelle.",
   "sailor-photo-not-found": "Dieser Segler hat noch kein Foto.",
   "sailor-photo-invalid-type": "Der Upload muss ein Bild sein.",
   "sailor-photo-invalid": "Diese Datei ist kein lesbares Bild.",
@@ -48,7 +48,7 @@
   "series-not-found": "Diese Serie gibt es nicht.",
   "venue-not-found": "Dieses Revier gibt es nicht.",
   "team-not-found": "Dieses Team gibt es nicht.",
-  "club-members-restricted-to-members": "Die Mitgliederliste eines Vereins sehen nur dessen eigene Mitglieder.",
+  "club-members-restricted-to-members": "Die Personen eines Vereins sehen nur seine Mitglieder und seine Leitung.",
   "squad-duplicate-person": "Jemand steht doppelt in diesem Kader.",
   "squad-person-in-another-club": "In dieser Serie schon für einen anderen Verein gemeldet: {people}. Eine Person tritt je Serie nur einmal an.",
   "squad-member-is-lined-up": "Schon für eine Veranstaltung aufgestellt: {selections}. Erst die Aufstellung ändern, dann den Kader.",
@@ -224,7 +224,11 @@
   "context-not-found": "Das gehört nicht zu Ihrem Bereich — oder es existiert nicht.",
   "membership-forbidden": "Wer im Verein ist, bestimmt nur der Admin des Vereins.",
   "membership-address-unknown": "Unter dieser Adresse ist niemand bekannt — die Person registriert sich zuerst, oder der Verein legt sie an.",
-  "membership-exists": "Diese Person ist schon im Verein.",
-  "membership-needs-consent": "Diese Person ist schon in einem anderen Verein. Einem zweiten Verein ordnet die Geschäftsstelle sie zu.",
-  "membership-not-found": "Diese Person ist nicht im Verein."
+  "membership-exists": "Diese Person ist schon im Verein oder eingeladen.",
+  "membership-not-found": "Diese Person ist nicht im Verein.",
+  "membership-needs-league-office": "Diese Person ist in einem anderen Verein und hat kein Konto, um eine Einladung anzunehmen. Die Geschäftsstelle nimmt sie auf.",
+  "membership-unverified": "Bestätigen Sie Ihre Adresse, bevor Sie um Aufnahme in einen Verein bitten.",
+  "membership-request-not-found": "Diese Person hat nicht um Aufnahme gebeten.",
+  "membership-invitation-not-found": "Von diesem Verein liegt keine Einladung vor.",
+  "club-people-filter-forbidden": "Nach Geburtsdatum und offenen Anfragen filtert nur die Vereinsleitung."
 }

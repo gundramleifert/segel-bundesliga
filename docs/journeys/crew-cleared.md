@@ -11,7 +11,7 @@ three different times, and each one is the next one's input.
 Who: team manager, sailor, guardian, event organizer
 Starting point: the club is registered for a published series and entered in one of its
 matchdays (or entered in an event in no series); the event has its organizer; the waiver
-text is in force; the club's sailors exist, each with an account under their address.
+text is in force; the club's sailors exist, each with an account linked to their person record.
 Goal: every sailor in the club's squad shows "cleared" on the event's check-in list.
 
 ### Main path — a series matchday, an adult crew

@@ -35,8 +35,9 @@ nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
 4. *Vergeben*. Die neue Zeile zeigt die Rolle und wo sie gilt.
 
 - **Die erste Verwaltung eines Vereins kommt von Ihnen:** *Einen Verein*, *Verwaltung*.
-  Danach benennt sie Mitglieder und Organisation des Vereins selbst
-  ([Vereinsmitglieder](#club-members-add)).
+  Danach nimmt sie unter [*Personen*](place:club.people) die Personen des Vereins auf und
+  benennt seine Organisation ([Vereinsmitglieder](#club-members-add)). *Konten* zeigt
+  Rollen, keine Vereinsmitgliedschaften.
 - Rollen auf der *Gesamte Seite* — *Verwaltung*, *Redaktion*, *Wettfahrtleitung* — werden
   nur hier vergeben.
 - Ebenso im Feld *Personen* einer Serie ([Organisation der Serie](#admin-series-manager))
@@ -60,9 +61,9 @@ nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
 
 | | |
 |---|---|
-| Seiten | *Konten*, *Segler* und die Liste unter *Veranstaltungen*: 25 Zeilen je Seite, *Zurück* und *Weiter* |
+| Seiten | *Konten*, *Personen* und die Liste unter *Veranstaltungen*: 25 Zeilen je Seite, *Zurück* und *Weiter* |
 | Suche | überall in Name oder Adresse (Veranstaltungen: Titel, Revier, Ausrichter), gleich in welcher Schreibung |
-| Sortierung | *Name* oder *E-Mail* sortiert *Konten* oder *Segler*; nochmals kehrt um |
+| Sortierung | *Name* oder *E-Mail* sortiert *Konten* oder *Personen*; nochmals kehrt um |
 | Adresse | enthält Seite, Sortierung und Suche: Neu laden behält sie; ein geschickter Link zeigt genau diese Liste |
 | *Vereine*, *Serien* | alle Zeilen auf einmal, ohne Suche |
 

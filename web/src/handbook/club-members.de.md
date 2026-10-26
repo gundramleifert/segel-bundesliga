@@ -3,53 +3,54 @@ id: club-members
 type: guide
 order: 80
 audience: [club]
-stories: [Z-3, V-8, V-9, A-8, V-13, V-3]
+stories: [Z-3, Z-5, V-4, V-8, V-9, V-10, V-15, A-8, V-13, V-3]
 journey: null
 route: /me/club/:id
 tags: [membership, organizer, parent, guardian, crest, mitglieder, organisation, erziehungsberechtigte, stander, vereinsverwaltung]
-title: "Mitglieder, Organisation und Stander"
+title: "Personen, Organisation und Stander"
 ---
 
-## Mitglieder, Organisation und Stander
+## Personen, Organisation und Stander
 
-Die Mitgliedschaft liegt in [*Ihr Verein* › *Mitglieder*](place:club.people): Jedes Mitglied sieht die
-Mitgliederliste. Die Vereinsverwaltung nimmt mit *＋ Mitglied* oben rechts Personen auf und entfernt eine Rolle mit dem ✕ daran.
-Eltern werden unter *Minderjährige & Erziehungsberechtigte* verknüpft, der Stander
-steht unter *Vereinsseite*.
+Jede Person des Vereins ist eine Zeile in [*Ihr Verein* › *Personen*](place:club.people).
+Mitglieder sehen die aktiven Mitglieder; die Organisation sieht zusätzlich offene
+Zeilen, Organisatoren ohne Mitgliedschaft und die Geburtsdaten.
 
-![*Mitglieder*, wie die Vereinsverwaltung sie sieht](shot:help-club-members)
+![*Personen*, wie die Vereinsverwaltung sie sieht](shot:help-club-members)
 
-### Mitglieder hinzufügen {#club-members-add}
+### Personen hinzufügen {#club-members-add}
 
-Nur die Vereinsverwaltung. Die Person braucht ein Konto, das sie selbst
-[anlegt](#account-register); ohne Konto: „Kein Konto mit dieser Adresse. Bitte zuerst
-anlegen.“
+Drücken Sie *＋ Person* oben rechts:
 
-1. Drücken Sie *＋ Mitglied* oben rechts über der Liste.
-2. Geben Sie ihre Adresse in *E-Mail eines bestehenden Kontos* ① ein; unter *Als* ② ist
-   *Mitglied* schon angekreuzt – kreuzen Sie weitere Rollen an, wenn die Person sie hat.
-3. Drücken Sie *Hinzufügen* ③.
+- *Eine neue Person* – sofort Mitglied. Vereinsverwaltung oder Teammanager.
+- *Jemand Bekanntes, per E-Mail* – Vereinsverwaltung: Adresse ①, Rollen unter *Als* ②,
+  *Hinzufügen* ③.
 
-![Der Dialog von *＋ Mitglied*: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
+![*Person hinzufügen*, *Jemand Bekanntes, per E-Mail*: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
 
-Die Person ist sofort Mitglied, ohne zuzustimmen; das ✕ an *Mitglied* entfernt sie. Eine
-Person kann in mehreren Vereinen sein und tritt mit *Verein verlassen* aus einem aus.
+Das ✕ an einem Chip entfernt diese Rolle oder, an *Mitglied*, die Mitgliedschaft.
+
+### Einladungen und Anfragen {#club-members-requests}
+
+Wer schon in einem anderen Verein ist, kommt nur mit Zustimmung dazu: *eingeladen*, bis
+die Person unter [*Ich* › *Meine Vereine*](place:profile.clubs) annimmt; *möchte
+aufgenommen werden*, bis die Vereinsverwaltung *Aufnehmen* oder ✕ (*Ablehnen*) drückt.
+Ohne Konto trägt die Geschäftsstelle die Person ein.
 
 ### Die Organisation benennen {#club-members-organizers}
 
-Nur die Vereinsverwaltung, mit demselben *＋ Mitglied*: unter *Als* ankreuzen – mehrere
-auf einmal, wenn eine Person mehrere Rollen hat –, dann *Hinzufügen*. Das ✕ an einer Rolle entfernt sie.
+Vereinsverwaltung, im selben Dialog; entfernen Sie das Häkchen bei *Mitglied* für jemanden
+in der Organisation, der kein Mitglied ist.
 
-| *Als* | für | Kennzeichen in der Mitgliederliste |
+| *Als* | für | Kennzeichen in *Personen* |
 |---|---|---|
 | *Organisation* | einen Teammanager | *Organisator:in* |
 | *Verwaltung* | eine weitere Vereinsverwaltung | *Admin* |
 | *Kassenwart* | den Kassenwart | *Kassenwart* |
 
-Ein Verein behält immer mindestens eine *Verwaltung*: Die letzte *Verwaltung* zu
-entfernen, wird abgelehnt — „Dieser Verein braucht weiterhin mindestens eine Person in
-der Verwaltung.“ —, auch wenn noch eine *Organisation* bleibt. Benennen Sie zuerst eine
-weitere *Verwaltung*. Eine *Organisation* kann gehen, solange eine *Verwaltung* bleibt. Die erste Vereinsverwaltung eines neuen Vereins benennt die Geschäftsstelle.
+Die letzte *Verwaltung* lässt sich nicht entfernen – „Dieser Verein braucht weiterhin
+mindestens eine Person in der Verwaltung.“ Benennen Sie zuerst eine weitere. Die erste
+Vereinsverwaltung eines neuen Vereins benennt die Geschäftsstelle.
 
 ### Ein Elternteil mit einem jungen Segler verknüpfen {#club-members-guardians}
 

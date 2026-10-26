@@ -18,7 +18,7 @@ Three things at three times, each the next one's input: the **squad** (per serie
 **crew** (per matchday), the **waiver** (per competition).
 
 Before: the club is registered for a published series and entered in one of its matchdays;
-each sailor has an account under their sailor record's address.
+each sailor has an account linked to their person record.
 
 | Step | Who | What is then true | How |
 |---|---|---|---|

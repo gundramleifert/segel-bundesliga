@@ -20,7 +20,7 @@
   "race-result-position-required": "Enter a finish position for boat {boat_number}.",
   "race-result-redress-required": "Enter the redress points awarded to boat {boat_number}.",
   "race-result-duplicate-position": "Finish position {finish_position} is used by more than one boat.",
-  "no-linked-sailor-record": "No sailor record is linked to this account yet. An administrator or your club's leadership can create one and link it to your email address.",
+  "no-linked-person-record": "No person record is linked to this account yet — it is once your address is confirmed. Sign in once with a code, or ask the league office.",
   "sailor-photo-not-found": "This sailor has no photo yet.",
   "sailor-photo-invalid-type": "The upload must be an image.",
   "sailor-photo-invalid": "This file is not a readable image.",
@@ -48,7 +48,7 @@
   "series-not-found": "This series does not exist.",
   "venue-not-found": "This venue does not exist.",
   "team-not-found": "This team does not exist.",
-  "club-members-restricted-to-members": "Only a club's own members can see its member list.",
+  "club-members-restricted-to-members": "Only a club's members and organizers can see its people.",
   "squad-duplicate-person": "Someone is in this squad twice.",
   "squad-person-in-another-club": "Already sailing for another club in this series: {people}. A person competes only once per series.",
   "squad-member-is-lined-up": "Already lined up for a matchday: {selections}. Change the lineup first, then the squad.",
@@ -224,7 +224,11 @@
   "context-not-found": "This is not part of your space — or it does not exist.",
   "membership-forbidden": "Only the club's admin changes who is in the club.",
   "membership-address-unknown": "Nobody here has this address — the person registers first, or the club creates them.",
-  "membership-exists": "This person is already in the club.",
-  "membership-needs-consent": "This person is already in another club. The league office adds them to a second one.",
-  "membership-not-found": "This person is not in the club."
+  "membership-exists": "This person is already in the club, or invited.",
+  "membership-not-found": "This person is not in the club.",
+  "membership-needs-league-office": "This person is in another club and has no account to accept an invitation. The league office adds them.",
+  "membership-unverified": "Confirm your address before asking to join a club.",
+  "membership-request-not-found": "This person has not asked to join.",
+  "membership-invitation-not-found": "There is no invitation from this club.",
+  "club-people-filter-forbidden": "Dates of birth and waiting requests are the club's organizers' to filter by."
 }

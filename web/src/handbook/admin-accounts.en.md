@@ -33,7 +33,8 @@ The *League office* has a section per area; a role sees only the sections it may
 4. *Grant*. The new line shows the role and where it is held.
 
 - **A club's first admin comes from you:** *One club*, *Admin*. Then the club's admin
-  names its own members and organizers ([club members](#club-members-add)).
+  adds its people and names its organizers in [*People*](place:club.people)
+  ([club members](#club-members-add)). *Accounts* shows roles, not club memberships.
 - Roles on the *Whole site* — *Admin*, *Editor*, *Race officer* — are granted only here.
 - Also on the *People* panel of a series ([series manager](#admin-series-manager)), and
   at *the event* › [*People*](place:event.people) — from [*Events*](place:admin.events),
@@ -55,9 +56,9 @@ The *League office* has a section per area; a role sees only the sections it may
 
 | | |
 |---|---|
-| Pages | *Accounts*, *Sailors* and the *Events* list: 25 rows a page, *Previous* and *Next* |
+| Pages | *Accounts*, *People* and the *Events* list: 25 rows a page, *Previous* and *Next* |
 | Search | anywhere in name or email (events: title, venue, host club), any case |
-| Sort | *Name* or *Email* sorts *Accounts* or *Sailors*; again reverses |
+| Sort | *Name* or *Email* sorts *Accounts* or *People*; again reverses |
 | Address | holds page, sort and search: a reload keeps them; a sent link shows exactly this list |
 | *Clubs*, *Series* | every row at once, without a search |
 

@@ -19,7 +19,7 @@ Drei Dinge zu drei Zeitpunkten, jedes die Grundlage des nächsten: der **Kader**
 die **Crew** (je Spieltag), der **Haftungsausschluss** (je Wettbewerb).
 
 Vorher: Der Verein ist für eine veröffentlichte Serie gemeldet und für einen ihrer Spieltage
-eingetragen; jeder Segler hat ein Konto unter der Adresse seines Segler-Datensatzes.
+eingetragen; jeder Segler hat ein Konto, das mit seinem Personen-Datensatz verknüpft ist.
 
 | Schritt | Wer | Was danach gilt | Wie |
 |---|---|---|---|

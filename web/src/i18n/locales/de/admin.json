@@ -353,7 +353,8 @@
     "addButton": "Hinzufügen",
     "revoke": "Entfernen",
     "newButton": "Person",
-    "newTitle": "Person benennen"
+    "newTitle": "Person benennen",
+    "emailLabelPerson": "E-Mail der Person oder ihres Kontos"
   },
   "posts": {
     "title": "News",

@@ -32,7 +32,7 @@ vollständig* und listet den ganzen Kader, die Offenen zuerst, *unter 18* neben 
 | *Fehlt* | für diesen Wettbewerb nichts bestätigt | Erwachsene bestätigen im eigenen Profil; für Minderjährige siehe unten |
 | *Veraltete Fassung* | eine frühere Fassung bestätigt | die neue bestätigen |
 | *Formular der Eltern fehlt* | unter 18, die Unterschrift der Eltern liegt noch nicht vor | das Elternteil nimmt online an, oder das unterschriebene Formular wird hochgeladen |
-| *Geburtsdatum unbekannt* | das Alter lässt sich nicht beurteilen | der Segler trägt es im Profil ein ([so geht's](#waiver-birth-date)), oder Sie tragen es unter [*Ihr Verein* › *Segler*](place:club.people) ein |
+| *Geburtsdatum unbekannt* | das Alter lässt sich nicht beurteilen | der Segler trägt es im Profil ein ([so geht's](#waiver-birth-date)), oder Sie tragen es unter [*Ihr Verein* › *Personen*](place:club.people) ein — die Aufgabe öffnet sie gefiltert auf *Ohne Geburtsdatum* |
 | *Nicht erforderlich* | es ist noch kein Haftungsausschluss veröffentlicht | – |
 
 Der Segler und die Organisation der Veranstaltung in der Check-in-Liste sehen denselben

@@ -353,7 +353,8 @@
     "addButton": "Add",
     "revoke": "Remove",
     "newButton": "Person",
-    "newTitle": "Name a person"
+    "newTitle": "Name a person",
+    "emailLabelPerson": "Email of the person or their account"
   },
   "posts": {
     "title": "News",

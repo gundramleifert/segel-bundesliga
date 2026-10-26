@@ -78,12 +78,12 @@ here — this page says what *exists*, the report what *passed*.
 | J-3.2 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
 | J-3.3 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
 | J-3.4 | password | Z-9 | ● | W1 | — | `account`<br>`journey-member` |
-| J-3.5 | main | Z-5 | ● | W1 | — | `journey-member`<br>`my-space`<br>`roles` |
+| J-3.5 | main | Z-5 | ● | W1 | — | `club-members`<br>`journey-member`<br>`my-space`<br>`roles` |
 | J-3.6 | main | Z-8 | ● | W1 | — | `journey-club`<br>`journey-crew-cleared`<br>`journey-member`<br>`my-space` |
-| J-3.7 | main | V-10 | ● | W1 | — | `journey-member`<br>`my-space` |
-| J-3.8 | main | V-4 | ● | W1 | — | `journey-member`<br>`squad-and-lineup` |
+| J-3.7 | main | V-10 | ● | W1 | — | `club-members`<br>`journey-member`<br>`my-space` |
+| J-3.8 | main | V-4 | ● | W1 | — | `club-members`<br>`journey-member`<br>`squad-and-lineup` |
 | J-3.9 | main | S-2 | ◐ | W1 | — | `journey-crew-cleared`<br>`journey-member`<br>`profile` |
-| J-3.10 | leaves | Z-5 | ● | W1 | — | `journey-member`<br>`my-space`<br>`roles` |
+| J-3.10 | leaves | Z-5 | ● | W1 | — | `club-members`<br>`journey-member`<br>`my-space`<br>`roles` |
 
 ### J-4 ◐ An organizer sets up a series
 

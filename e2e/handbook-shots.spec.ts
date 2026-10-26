@@ -85,6 +85,16 @@ const SHOTS: Shot[] = [
     phone: true,
   },
   {
+    // *Me › My clubs* (Story V-15): my clubs, and below, asking another to take me in.
+    id: "help-my-clubs",
+    as: (d) => d.sailor,
+    path: () => "/me/profile/clubs",
+    waitFor: () => tid("me-clubs-list"),
+    clip: () => ({ from: tid("me-clubs") }),
+    marks: () => [{ target: tid("me-clubs-list") }, { target: tid("me-clubs-search") }],
+    phone: true,
+  },
+  {
     id: "help-waiver-card",
     as: (d) => d.sailor,
     path: () => "/me/profile/waivers",

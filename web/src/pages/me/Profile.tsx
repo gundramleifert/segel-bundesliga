@@ -190,7 +190,7 @@ export function SignInMethods({ account, onChanged }: { account: AccountData; on
  *
  * Not every account has a linked `Sailor` row (an admin-only test account, for
  * instance) — that's not an error, just nothing to edit here, so the 404 the backend
- * sends for it (`no-linked-sailor-record`) gets its own quiet message instead of the
+ * sends for it (`no-linked-person-record`) gets its own quiet message instead of the
  * generic error banner.
  */
 export function SailorProfile() {
@@ -226,7 +226,7 @@ export function SailorProfile() {
       })
       .catch((err) => {
         if (!active) return;
-        if (err instanceof ApiError && err.code === "no-linked-sailor-record") {
+        if (err instanceof ApiError && err.code === "no-linked-person-record") {
           setNoRecord(true);
         } else {
           setLoadError(errorText(err));

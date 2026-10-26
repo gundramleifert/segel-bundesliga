@@ -3,52 +3,50 @@ id: club-members
 type: guide
 order: 80
 audience: [club]
-stories: [Z-3, V-8, V-9, A-8, V-13, V-3]
+stories: [Z-3, Z-5, V-4, V-8, V-9, V-10, V-15, A-8, V-13, V-3]
 journey: null
 route: /me/club/:id
 tags: [membership, organizer, parent, guardian, crest, mitglieder, organisation, erziehungsberechtigte, stander, vereinsverwaltung]
-title: "Members, organizers and the crest"
+title: "People, organizers and the crest"
 ---
 
-## Members, organizers and the crest
+## People, organizers and the crest
 
-Membership lives in [*your club* › *Members*](place:club.people): every member sees the member list. The
-club admin adds people with *＋ Member* top-right and removes a role with the ✕ on it. Parents are linked in *Minors &
-guardians*, the crest is on *Club page*.
+Everyone in the club is one row in [*your club* › *People*](place:club.people). Members
+see the active members; organizers also see pending rows, organizers who are not
+members, and dates of birth.
 
-![*Members* as the club admin sees it](shot:help-club-members)
+![*People* as the club admin sees it](shot:help-club-members)
 
-### Add members {#club-members-add}
+### Add people {#club-members-add}
 
-Club admin only. The person needs an account, which they [register](#account-register)
-themselves; without one: "No account with this address. Create it first."
+Press *＋ Person*, top-right:
 
-1. Press *＋ Member*, top-right of the list.
-2. Enter their address in *Email of an existing account* ①; under *As* ② *Member* is
-   already ticked — tick more roles if they have them.
-3. Press *Add* ③.
+- *A new person* — a member at once. Club admin or team manager.
+- *Someone on record, by email* — club admin: address ①, roles under *As* ②, *Add* ③.
 
-![The dialog of *＋ Member*: address ①, *As* ②, *Add* ③](shot:help-club-people)
+![*Add a person*, *Someone on record, by email*: address ①, *As* ②, *Add* ③](shot:help-club-people)
 
-They are a member at once, with nothing to accept; the ✕ on *member* removes it. A person
-can be in several clubs, and leaves one with *Leave the club*.
+The ✕ on a chip removes that role or, on *member*, the membership.
+
+### Invitations and requests {#club-members-requests}
+
+Someone in another club joins only with consent: *invited* until they accept in [*Me* ›
+*My clubs*](place:profile.clubs); *asks to join* until the club admin presses *Accept*
+or ✕ (*Decline*). Without an account, the league office adds them.
 
 ### Name the organizers {#club-members-organizers}
 
-Club admin only, with the same *＋ Member*: tick under *As* — several at once if one
-person has several roles — then *Add*. The ✕ on a
-role removes it.
+Club admin, in the same dialog; untick *Member* for an organizer who is not one.
 
-| *As* | for | Mark in the member list |
+| *As* | for | Mark in *People* |
 |---|---|---|
 | *Manager* | a team manager | *organizer* |
 | *Admin* | a second club admin | *admin* |
 | *Treasurer* | the treasurer | *treasurer* |
 
-A club always keeps at least one *Admin*: removing its last *Admin* is refused — "At least
-one admin must remain for this club." — even while *Managers* remain. Name another *Admin*
-first. A *Manager* may go while an *Admin* remains. The league office names a new club's first
-admin.
+The last *Admin* cannot be removed — "At least one admin must remain for this club." Name
+another first. The league office names a new club's first admin.
 
 ### Link a parent to a young sailor {#club-members-guardians}
 

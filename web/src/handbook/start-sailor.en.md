@@ -19,7 +19,8 @@ account is for what is yours: your liability waiver, your profile, your club.
 
 - [Create an account](#account-register), or [sign in](#account-sign-in) with a code by
   email or a password.
-- Ask your club's admin to add you as a member: [your club](#my-space-club).
+- Ask your club's admin to add you as a member, or tap *Ask to join* on your club's page
+  or in [*Me* › *My clubs*](place:profile.clubs): [your club](#my-space-club).
 - Check your name and date of birth: [sailor profile](#profile-sailor).
 
 ### Before and during the season {#start-sailor-season}

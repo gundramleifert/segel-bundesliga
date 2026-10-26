@@ -21,7 +21,7 @@ the *League office* (user menu, or the context switcher). Each of its three
 | [*Clubs*](place:admin.clubs): create, crest | ✓ | — | — |
 | [*Series*](place:admin.series): create, fill, publish | ✓ | — | — |
 | [*Events*](place:admin.events): create and run (the draw: admin only) | ✓ | — | ✓ |
-| [*Sailors*](place:admin.sailors), [*Accounts*](place:admin.accounts) | ✓ | — | — |
+| [*People*](place:admin.sailors), [*Accounts*](place:admin.accounts) | ✓ | — | — |
 | [*News*](place:admin.news), [*Media*](place:admin.media) | ✓ | ✓ | — |
 
 A club, series or event opened from here is its own context, with its own sections.

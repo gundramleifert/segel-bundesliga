@@ -24,8 +24,9 @@ Offered as the tab *Create an account* on the sign-in page, where the site allow
 2. Enter the 6-digit code from the mail in *One-time code* and tap *Sign in*. The code is
    valid for ten minutes.
 
-Result: you are signed in, with no club and no role. A club's admin then adds you as a
-member by this address ([your club](#my-space-club)). The page never tells whether an
+Result: you are signed in to your own person record, with no club and no role. A club's
+admin then adds you as a member by this address, or you ask a club to take you in
+([your club](#my-space-club)). The page never tells whether an
 address already has an account, and registering one that has changes nothing on it.
 
 ### Sign in {#account-sign-in}
@@ -60,8 +61,8 @@ confirmed — signing in with a code once does that.
 
 | Goes | Stays |
 |---|---|
-| the account, its sign-in methods and password | your sailor record: your name in squads, crews and results, your waiver confirmations |
-| every role, club memberships included | claims already submitted, with the club that pays them |
+| the account, its sign-in methods and password | your person record: your name in squads, crews and results, your waiver confirmations, your club memberships |
+| every role | claims already submitted, with the club that pays them |
 | your documents, bank account and unsubmitted claims | waiver confirmations you recorded for others |
 
 ### Language and light or dark {#account-look}

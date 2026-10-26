@@ -3,7 +3,7 @@ id: my-space
 type: guide
 order: 50
 audience: [sailor]
-stories: [Z-8, S-7, Z-5, V-10, Z-10]
+stories: [Z-8, S-7, Z-5, V-10, V-15, Z-10]
 journey: null
 route: /me
 tags: [my space, mein bereich, club, verein, member, mitglied, badge, switcher, sidebar]
@@ -42,8 +42,8 @@ Each context opens on its *Overview*: what waits, dates, status.
 
 | Context | As a sailor or member |
 |---|---|
-| *Me* | [*Account*](place:profile.account), [*Waivers*](place:profile.waivers), [*Claims*](place:profile.claims), [*Documents*](place:profile.documents), [*Bank account*](place:profile.bank) — see [profile](#profile-sailor) |
-| your club | [*Members*](place:club.people); *Racing* › [*Squads*](place:club.series) and [*Events & crews*](place:club.events), read only; [*My claims*](place:club.claims) |
+| *Me* | [*Account*](place:profile.account), [*My clubs*](place:profile.clubs), [*Waivers*](place:profile.waivers), [*Claims*](place:profile.claims), [*Documents*](place:profile.documents), [*Bank account*](place:profile.bank) — see [profile](#profile-sailor) |
+| your club | [*People*](place:club.people), read only; *Racing* › [*Squads*](place:club.series) and [*Events & crews*](place:club.events), read only; [*My claims*](place:club.claims) |
 | a series | [*My team*](place:series.team): the club you sail for; [*Events*](place:series.events); *Standings* |
 | an event | [*My crew*](place:event.crew); once the event is published, a link to its crews and pairing list |
 
@@ -53,18 +53,39 @@ in its crew. An unsigned waiver is a notice above every section there
 
 ### Your club {#my-space-club}
 
-The club's admin adds you by your account's email address — no request, no acceptance.
-You need an [account](#account-register) first.
+You need an [account](#account-register) first. Then either:
 
-- [*your club* › *Members*](place:club.people): every member by display name, marked e.g. *organizer*;
-  seen only by members, organizers and the league office's admin.
+- the club's admin adds you by your email address — at once while you are in no other
+  club; if you are, you are *Invited* and accept in [*My clubs*](#my-space-clubs);
+- or you tap *Ask to join* on the club's page or in *My clubs*, with a confirmed address;
+  the club's admin accepts.
+
+In the club:
+
+- [*your club* › *People*](place:club.people): the members by name, with account and
+  roles such as *organizer* — no addresses, no dates of birth; seen only by members,
+  organizers and the league office's admin.
 - *Squads*, *Events & crews*: read only; the club's organizer edits them.
 - [*My claims*](place:club.claims): claims to the club ([file a claim](#file-a-claim-where)).
 
+### Me › My clubs {#my-space-clubs}
+
+[*Me* › *My clubs*](place:profile.clubs) ① lists each club with *Member*, *Invited* or *Asked*:
+
+- *Invited*: *Accept* or *Decline*. *To do* says *A club invites you to join*.
+- *Asked*: *Withdraw*.
+- *Member*: the name opens the club; *Leave the club*.
+
+Below, *Ask a club to take you in*: *Find a club by name* ② → *Ask to join*. Where you are
+invited, the button reads *Accept the invitation*.
+
+![My clubs: your clubs with their status ①, and the search for a club to ask ②](shot:help-my-clubs)
+
 ### Leave a club {#my-space-leave}
 
-[*your club* › *Members*](place:club.people) → *Leave the club*, and confirm. Only the membership ends: other roles
-in the club stay, and squad places until the club changes them. To return, the club's
-admin adds you again.
+[*your club* › *People*](place:club.people) or [*Me* › *My clubs*](place:profile.clubs) →
+*Leave the club*, and confirm. Only the membership ends: other roles in the club stay,
+squad places until the club changes them, and your person record. To return, ask to join
+again, or the club's admin adds you.
 
 [Open my space](place:space)

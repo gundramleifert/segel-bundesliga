@@ -31,8 +31,9 @@ title: "Terms"
 
 | Term | Meaning |
 |---|---|
-| Member | A person who belongs to a club on this site. The club's admin adds them. |
-| Sailor | A person in the sailor register. The register links an account to a sailor through the same email address. |
+| Person | Someone on this site — one record whether they sail, sign in, or both. An account belongs to exactly one person; a person need not have an account. |
+| Member | A person who belongs to a club by membership. The club's admin takes them in; someone in another club joins only with consent. A person can be in several clubs. |
+| Sailor | A person who sails for a club. |
 | Squad | The sailors a club registers for a series. The series sets the minimum and maximum size; a standalone event sets them for itself. A person sails for only one club in a series. |
 | Crew, Lineup | Who sails for the club at one matchday. Only people from the squad can be named. |
 | Liability waiver | Confirmed once per series, and that covers all its events. A standalone event needs its own. A new wording must be confirmed again. |

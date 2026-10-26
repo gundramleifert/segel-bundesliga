@@ -22,8 +22,11 @@ den Verein im Kontextwechsler; seine Bereiche stehen unter *Personen*, *Segeln* 
 
 ### Die Personen Ihres Vereins {#start-club-people}
 
-- [Mitglieder hinzufügen](#club-members-add) über die E-Mail-Adresse ihres Kontos –
+- [Personen hinzufügen](#club-members-add) unter *Personen*: eine neue Person –
+  Vereinsverwaltung oder Teammanager – oder jemand Bekanntes, per E-Mail –
   Vereinsverwaltung.
+- [Anfragen beantworten](#club-members-requests) und Personen aus anderen Vereinen
+  einladen – Vereinsverwaltung.
 - [Die Organisation benennen](#club-members-organizers): Teammanager, Verwaltung,
   Kassenwart – Vereinsverwaltung.
 - [Ein Elternteil verknüpfen](#club-members-guardians), das den Haftungsausschluss eines

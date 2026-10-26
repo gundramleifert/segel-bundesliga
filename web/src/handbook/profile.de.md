@@ -19,10 +19,10 @@ Alles im Kontext *Ich* von [Mein Bereich](place:profile.account).
 [*Ich* › *Konto*](place:profile.account) → *Mein Segler-Profil*: Ihr *Vorname*, *Nachname* und *Geburtsdatum*, wie die
 Seite sie zeigt; *Speichern*.
 
-Die Karte erscheint, sobald ein Segler-Datensatz die bestätigte E-Mail-Adresse Ihres
-Kontos trägt. Sonst steht dort, dass kein Datensatz verknüpft
-ist – bitten Sie die Organisation Ihres Vereins, einen mit Ihrer Adresse anzulegen
-(*Ihr Verein* › *Segler*), oder die Geschäftsstelle.
+Die Karte ist ab Ihrer ersten Anmeldung mit bestätigter Adresse da: Ihr eigener
+Personendatensatz – neu angelegt oder der, den Ihr Verein schon unter dieser Adresse
+führt. Niemand muss ihn für Sie anlegen; die Organisation Ihres Vereins kann ihn ergänzen,
+etwa um Ihr Geburtsdatum.
 
 - *Foto hochladen*: ein Bild, höchstens 5 MB. Es wird aufgerichtet, quadratisch
   zugeschnitten und auf 512×512 Pixel verkleinert. *Foto ersetzen*, *Foto entfernen*.

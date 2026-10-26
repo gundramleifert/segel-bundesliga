@@ -3,7 +3,7 @@ id: my-space
 type: guide
 order: 50
 audience: [sailor]
-stories: [Z-8, S-7, Z-5, V-10, Z-10]
+stories: [Z-8, S-7, Z-5, V-10, V-15, Z-10]
 journey: null
 route: /me
 tags: [my space, mein bereich, club, verein, member, mitglied, badge, switcher, sidebar]
@@ -43,8 +43,8 @@ Jeder Kontext öffnet mit seiner *Übersicht*: was wartet, Termine, Stand.
 
 | Kontext | Als Segler oder Mitglied |
 |---|---|
-| *Ich* | [*Konto*](place:profile.account), [*Haftungsausschlüsse*](place:profile.waivers), [*Abrechnungen*](place:profile.claims), [*Dokumente*](place:profile.documents), [*Bankverbindung*](place:profile.bank) – siehe [Profil](#profile-sailor) |
-| Ihr Verein | [*Mitglieder*](place:club.people); *Segeln* › [*Kader*](place:club.series) und [*Veranstaltungen & Crews*](place:club.events), nur zum Lesen; [*Meine Abrechnungen*](place:club.claims) |
+| *Ich* | [*Konto*](place:profile.account), [*Meine Vereine*](place:profile.clubs), [*Haftungsausschlüsse*](place:profile.waivers), [*Abrechnungen*](place:profile.claims), [*Dokumente*](place:profile.documents), [*Bankverbindung*](place:profile.bank) – siehe [Profil](#profile-sailor) |
+| Ihr Verein | [*Personen*](place:club.people), nur zum Lesen; *Segeln* › [*Kader*](place:club.series) und [*Veranstaltungen & Crews*](place:club.events), nur zum Lesen; [*Meine Abrechnungen*](place:club.claims) |
 | eine Serie | [*Mein Team*](place:series.team): der Verein, für den Sie segeln; [*Veranstaltungen*](place:series.events); *Tabelle* |
 | eine Veranstaltung | [*Meine Crew*](place:event.crew); ist die Veranstaltung veröffentlicht, ein Link zu ihren Crews und ihrer Pairing-Liste |
 
@@ -54,21 +54,43 @@ dort als Hinweis über jedem Bereich ([Haftungsausschluss](#waiver-adult)).
 
 ### Ihr Verein {#my-space-club}
 
-Der Admin des Vereins nimmt Sie über die E-Mail-Adresse Ihres Kontos auf – ohne Antrag,
-ohne Bestätigung. Zuerst brauchen Sie ein [Konto](#account-register).
+Zuerst brauchen Sie ein [Konto](#account-register). Dann entweder:
 
-- [*Ihr Verein* › *Mitglieder*](place:club.people): jedes Mitglied mit Anzeigenamen, mit
-  Kennzeichen wie *Organisator:in*; sichtbar nur für Mitglieder, Organisation und den
-  Admin der Geschäftsstelle.
+- Der Admin des Vereins nimmt Sie über Ihre E-Mail-Adresse auf – sofort, solange Sie in
+  keinem anderen Verein sind; sonst sind Sie *Eingeladen* und nehmen unter
+  [*Meine Vereine*](#my-space-clubs) an;
+- oder Sie tippen auf der Seite des Vereins oder unter *Meine Vereine* auf *Aufnahme
+  anfragen*, mit bestätigter Adresse; der Admin des Vereins nimmt Sie auf.
+
+Im Verein:
+
+- [*Ihr Verein* › *Personen*](place:club.people): die Mitglieder mit Namen, Konto und
+  Rollen wie *Organisator:in* – ohne Adressen, ohne Geburtsdaten; sichtbar nur für
+  Mitglieder, Organisation und den Admin der Geschäftsstelle.
 - *Kader*, *Veranstaltungen & Crews*: nur zum Lesen; die Organisation des Vereins
   bearbeitet sie.
 - [*Meine Abrechnungen*](place:club.claims): Abrechnungen an den Verein
   ([Abrechnung einreichen](#file-a-claim-where)).
 
+### Ich › Meine Vereine {#my-space-clubs}
+
+[*Ich* › *Meine Vereine*](place:profile.clubs) ① nennt jeden Verein mit *Mitglied*,
+*Eingeladen* oder *Angefragt*:
+
+- *Eingeladen*: *Annehmen* oder *Ablehnen*. *Zu erledigen* meldet *Ein Verein lädt Sie ein*.
+- *Angefragt*: *Zurückziehen*.
+- *Mitglied*: Der Name öffnet den Verein; *Verein verlassen*.
+
+Darunter *Einen Verein um Aufnahme bitten*: *Verein nach Namen finden* ② → *Aufnahme
+anfragen*. Wo Sie eingeladen sind, heißt der Knopf *Einladung annehmen*.
+
+![Meine Vereine: Ihre Vereine mit ihrem Stand ①, und die Suche nach einem Verein zum Anfragen ②](shot:help-my-clubs)
+
 ### Einen Verein verlassen {#my-space-leave}
 
-[*Ihr Verein* › *Mitglieder*](place:club.people) → *Verein verlassen*, dann bestätigen. Nur die Mitgliedschaft
-endet: andere Rollen im Verein bleiben, Kaderplätze, bis der Verein sie ändert. Zurück
-kommen Sie, wenn der Admin des Vereins Sie wieder aufnimmt.
+[*Ihr Verein* › *Personen*](place:club.people) oder [*Ich* › *Meine Vereine*](place:profile.clubs)
+→ *Verein verlassen*, dann bestätigen. Nur die Mitgliedschaft endet: andere Rollen im
+Verein bleiben, Kaderplätze, bis der Verein sie ändert, und Ihr Personendatensatz. Zurück
+kommen Sie, indem Sie erneut anfragen oder der Admin des Vereins Sie wieder aufnimmt.
 
 [Mein Bereich öffnen](place:space)
