@@ -216,7 +216,7 @@ export function SquadPanel({
             testId="admin-squad-panes"
             available={available}
             selected={selected}
-            label={(p) => fullName(p)}
+            label={fullName}
             detail={sailsFor}
             selectedDetail={linedUp}
             blocked={full ? t("squad.fullReason", { max: squadMax }) : undefined}

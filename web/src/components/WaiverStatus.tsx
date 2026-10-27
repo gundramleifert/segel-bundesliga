@@ -7,12 +7,12 @@ import { fullName } from "../lib/format";
  * the club's overview (V-14): green when cleared, amber when something is still to do,
  * with the "under 18" mark beside the name. The sailor's own page words it for them
  * instead (`pages/me/Waivers.tsx`). */
-export function WaiverName({ first, last, minor }: { first: string; last: string; minor?: boolean | null }) {
+export function WaiverName({ person }: { person: { first_name: string; last_name: string; minor?: boolean | null } }) {
   const { t } = useTranslation("admin");
   return (
     <>
-      {fullName({ first_name: first, last_name: last })}
-      {minor && <span className="ml-2 text-xs text-muted">{t("manage.waiverMinor")}</span>}
+      {fullName(person)}
+      {person.minor && <span className="ml-2 text-xs text-muted">{t("manage.waiverMinor")}</span>}
     </>
   );
 }

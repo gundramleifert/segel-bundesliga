@@ -174,7 +174,7 @@ export function TwoLine({
   return (
     <span className="min-w-0 flex-1">
       <span className="block truncate">{primary}</span>
-      {detail !== undefined && (
+      {detail != null && detail !== "" && (
         <span className="block truncate text-xs text-faint" data-testid={detailTestId}>
           {detail}
         </span>

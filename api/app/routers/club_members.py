@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import load_only, noload, selectinload
+from sqlalchemy.orm import selectinload
 
 from app import authz
 from app.auth import current_user
@@ -162,11 +162,7 @@ async def list_club_people(
         and_(ClubMembership.person_id == Person.id, ClubMembership.club_id == club.id),
     )
     if organizer:
-        # The account's address, loaded with the page: a role is written to it, and it need
-        # not be the person record's. Only the address — not the account's tuples.
-        stmt = stmt.options(
-            selectinload(Person.user).options(load_only(User.id, User.email), noload("*"))
-        ).where(or_(ClubMembership.id.is_not(None), Person.user_id.in_(holders)))
+        stmt = stmt.where(or_(ClubMembership.id.is_not(None), Person.user_id.in_(holders)))
     else:
         stmt = stmt.where(ClubMembership.status == MembershipStatus.ACTIVE)
     filters.for_club(club.id)
@@ -192,6 +188,14 @@ async def list_club_people(
             )
         ).scalars()
     )
+    # The accounts' addresses, for the organizers: a role is written to the account, whose
+    # address need not be the person record's.
+    accounts: dict[int, str] = {}
+    if organizer:
+        ids = [p.user_id for p in persons if p.user_id is not None]
+        accounts = dict(
+            (await session.execute(select(User.id, User.email).where(User.id.in_(ids)))).all()
+        )
     return page_of(
         [
             ClubPersonOut(
@@ -204,7 +208,7 @@ async def list_club_people(
                 if person.user_id is not None
                 else [],
                 email=person.email if organizer else None,
-                account_email=person.user.email if organizer and person.user else None,
+                account_email=accounts.get(person.user_id),
                 birth_date=person.birth_date if organizer else None,
                 minor=is_minor(person.birth_date, today) if organizer else None,
                 in_squad=person.id in in_squad,

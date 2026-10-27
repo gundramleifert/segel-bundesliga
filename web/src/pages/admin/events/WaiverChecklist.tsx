@@ -57,7 +57,7 @@ export function WaiverChecklist({ eventId }: { eventId: number }) {
                       data-status={row.status}
                     >
                       <td className="px-3 py-2">
-                        <WaiverName first={row.first_name} last={row.last_name} minor={row.minor} />
+                        <WaiverName person={row} />
                       </td>
                       <td className="px-3 py-2 text-muted">{row.club ?? "—"}</td>
                       <td className="px-3 py-2">

@@ -1,27 +1,27 @@
 import { Button, Dropdown } from "@heroui/react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { createColumnHelper } from "@tanstack/react-table";
-import { useCallback, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import {
+  acceptClubMember,
   addClubMember,
+  deleteTuple,
   getListMyMembershipsQueryKey,
   getListPeopleQueryKey,
   getReadTuplesQueryKey,
-  useAcceptClubMember,
+  removeClubMember,
   useCreatePerson,
-  useDeleteTuple,
   useEndMyMembership,
   useGetClub,
   useListClubPeople,
   useListMyMemberships,
   useReadTuples,
-  useRemoveClubMember,
   useUpdateClub,
   useUpdatePerson,
-  useWriteTuple,
+  writeTuple,
 } from "../../api/generated/sbl";
 import type { ClubPersonOut } from "../../api/generated/model/clubPersonOut";
 import type { MembershipStatus } from "../../api/generated/model/membershipStatus";
@@ -97,7 +97,7 @@ export function ClubPeopleSection({
     ),
   );
   const tuples = useReadTuples({ object: `club:${clubId}` }, { query: { enabled: mayAdmin } });
-  const refresh = useCallback(() => {
+  const refresh = () =>
     invalidate(
       `/api/clubs/${clubId}`,
       getReadTuplesQueryKey({ object: `club:${clubId}` }),
@@ -106,7 +106,6 @@ export function ClubPeopleSection({
       "/api/auth/me",
       getListPeopleQueryKey(),
     );
-  }, [invalidate, clubId]);
   const id = `my-club-people`;
 
   return (
@@ -125,7 +124,7 @@ export function ClubPeopleSection({
             list={list}
             mayAdmin={mayAdmin}
             mayOrganize={mayOrganize}
-            tuples={tuples.data ?? NO_TUPLES}
+            tuples={tuples.data ?? []}
             onChanged={refresh}
           />
         )}
@@ -243,15 +242,23 @@ function PeopleTable({
 }) {
   const { t } = useTranslation("club");
   const { account } = useAccount();
-  // A row's change that failed, said once under the table rather than in a narrow cell.
-  const [failed, setFailed] = useState<unknown>(null);
+  // Each person's change that failed, said under the table rather than in a narrow cell —
+  // one per person, so another row's success never hides it.
+  const [failed, setFailed] = useState<Map<number, { name: string; error: unknown }>>(new Map());
   const filters = useFilters(mayOrganize);
   // The tuple behind each role chip, so the club's admin can take that one away.
-  const tupleOf = useMemo(() => {
-    const ids = new Map<string, number>();
-    for (const row of tuples) ids.set(`${row.user_id}:${row.relation}`, row.id);
-    return ids;
-  }, [tuples]);
+  const tupleOf = new Map(tuples.map((row) => [`${row.user_id}:${row.relation}`, row.id]));
+  const act = (person: ClubPersonOut, request: Promise<unknown>) => {
+    const id = person.person_id;
+    setFailed((all) => {
+      const next = new Map(all);
+      next.delete(id);
+      return next;
+    });
+    request.then(onChanged, (error: unknown) =>
+      setFailed((all) => new Map(all).set(id, { name: fullName(person), error })),
+    );
+  };
 
   const columns = useMemo(
     () =>
@@ -336,7 +343,7 @@ function PeopleTable({
                 header: t("people.birthDate"),
                 enableSorting: true,
                 meta: { filters: filters.birth },
-                cell: ({ row }) => <BirthDate person={row.original} onChanged={onChanged} />,
+                cell: ({ row }) => <BirthDate person={row.original} />,
               }),
             ]
           : []),
@@ -346,41 +353,51 @@ function PeopleTable({
                 id: "actions",
                 header: () => <span className="sr-only">{t("people.actions")}</span>,
                 cell: ({ row }) => (
-                  <RowActions
-                    person={row.original}
-                    self={isSelf(row.original, account?.id)}
-                    clubId={clubId}
-                    tupleOf={tupleOf}
-                    onChanged={onChanged}
-                    onFailed={setFailed}
-                  />
+                  <RowActions person={row.original} self={isSelf(row.original, account?.id)} />
                 ),
               }),
             ]
           : []),
       ]),
-    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, onChanged, filters],
+    [t, account?.id, mayAdmin, mayOrganize, filters],
   );
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
-      <DataTable
-        columns={columns}
-        page={page}
-        params={list}
-        testId="my-club-people"
-        empty={t("people.empty")}
-        search={t("people.search")}
-        rowTestId={(p) => p.person_id}
-      />
-      {failed != null && <ErrorMessage text={errorText(failed)} testId="my-club-member-revoke-error" />}
+      <RowContext.Provider value={{ clubId, tupleOf, onChanged, act }}>
+        <DataTable
+          columns={columns}
+          page={page}
+          params={list}
+          testId="my-club-people"
+          empty={t("people.empty")}
+          search={t("people.search")}
+          rowTestId={(p) => p.person_id}
+        />
+      </RowContext.Provider>
+      {[...failed].map(([id, { name, error }]) => (
+        <ErrorMessage key={id} text={`${name}: ${errorText(error)}`} testId={`my-club-member-error-${id}`} />
+      ))}
     </div>
   );
 }
 
-// One empty list while the tuples aren't read (or not yet): a fresh `[]` each render would
-// rebuild the table's columns every time.
-const NO_TUPLES: TupleOut[] = [];
+/** What a row's cells act with. Handed down beside the table rather than closed over by
+ *  the columns, so the columns are built once per role and a new callback or a newly read
+ *  tuple re-renders the cells instead of rebuilding the table. */
+const RowContext = createContext<{
+  clubId: number;
+  tupleOf: Map<string, number>;
+  onChanged: () => void;
+  /** Runs one row's request: refreshes on success, keeps the failure under the person. */
+  act: (person: ClubPersonOut, request: Promise<unknown>) => void;
+} | null>(null);
+
+function useRow() {
+  const row = useContext(RowContext);
+  if (!row) throw new Error("a people row outside PeopleTable");
+  return row;
+}
 
 /** The roles a club's admin hands out from a row — what `members.relations` names. */
 const CLUB_ROLES = [Relation.admin, Relation.manager, Relation.treasurer] as const;
@@ -393,43 +410,16 @@ const isSelf = (p: ClubPersonOut, accountId: number | undefined) => p.user_id !=
  * request, withdraw an invitation, give or take a role (an account's — a person without
  * one holds none), end a membership. Ending one's own
  * membership is not offered here — that is *Leave*, with its own confirmation — and the
- * server keeps the club's last admin (Story A-8). The row makes its own requests, so the
- * table's columns never depend on a mutation's changing state. */
-function RowActions({
-  person,
-  self,
-  clubId,
-  tupleOf,
-  onChanged,
-  onFailed,
-}: {
-  person: ClubPersonOut;
-  self: boolean;
-  clubId: number;
-  tupleOf: Map<string, number>;
-  onChanged: () => void;
-  onFailed: (error: unknown) => void;
-}) {
+ * server keeps the club's last admin (Story A-8). */
+function RowActions({ person, self }: { person: ClubPersonOut; self: boolean }) {
   const { t } = useTranslation("club");
+  const { clubId, tupleOf, act } = useRow();
   const id = person.person_id;
-  const settled = {
-    mutation: {
-      onSuccess: () => {
-        onFailed(null);
-        onChanged();
-      },
-      onError: onFailed,
-    },
-  };
-  const revoke = useDeleteTuple(settled);
-  const grant = useWriteTuple(settled);
-  const remove = useRemoveClubMember(settled);
-  const accept = useAcceptClubMember(settled);
-  const onAccept = () => accept.mutate({ clubId, personId: id });
-  const onEnd = () => remove.mutate({ clubId, personId: id });
-  const onRevoke = (tupleId: number) => revoke.mutate({ tupleId });
+  const onAccept = () => act(person, acceptClubMember(clubId, id));
+  const onEnd = () => act(person, removeClubMember(clubId, id));
+  const onRevoke = (tupleId: number) => act(person, deleteTuple(tupleId));
   const onGrant = (user: string, relation: Relation) =>
-    grant.mutate({ data: { user, relation, object: `club:${clubId}` } });
+    act(person, writeTuple({ user, relation, object: `club:${clubId}` }));
   const items: { key: string; label: string; testId: string; danger?: boolean; run: () => void }[] = [];
   if (person.status === "requested") {
     items.push({ key: "accept", label: t("members.accept"), testId: `my-club-member-accept-${id}`, run: onAccept });
@@ -505,7 +495,8 @@ function RowActions({
 }
 
 /** The date of birth — or, without one, the field to set it (S-3: no waiver without it). */
-function BirthDate({ person, onChanged }: { person: ClubPersonOut; onChanged: () => void }) {
+function BirthDate({ person }: { person: ClubPersonOut }) {
+  const { onChanged } = useRow();
   const { t } = useTranslation("space");
   const { t: tc } = useTranslation("club");
   const id = person.person_id;

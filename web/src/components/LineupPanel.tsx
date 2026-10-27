@@ -136,7 +136,7 @@ export function LineupPanel({
             testId={`${testIdPrefix}-panes`}
             available={available}
             selected={selected}
-            label={(m) => fullName(m)}
+            label={fullName}
             secondary={(m) => roleText(m.role)}
             matches={(m, term) => fullName(m).toLowerCase().includes(term)}
             // Named in the role they hold in the squad; corrected in place on the right.

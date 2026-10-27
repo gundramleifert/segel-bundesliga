@@ -421,7 +421,7 @@ export function ClubWaivers({ clubId }: { clubId: number }) {
                       data-status={row.status}
                     >
                       <span>
-                        <WaiverName first={row.first_name} last={row.last_name} minor={row.minor} />
+                        <WaiverName person={row} />
                       </span>
                       <WaiverStatus status={row.status} />
                     </li>
