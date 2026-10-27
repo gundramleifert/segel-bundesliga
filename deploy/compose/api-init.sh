@@ -1,8 +1,8 @@
 #!/bin/sh
-# The one-shot `init` service of compose.yaml: migrate, and seed only an empty database.
+# The one-shot `db-setup` service of compose.yaml: migrate, and seed only an empty database.
 #
 #   api-init            migrate; seed if there is no series yet (the first start)
-#   api-init --reset    drop everything, migrate, seed again (docker compose run --rm init --reset)
+#   api-init --reset    drop everything, migrate, seed again (docker compose run --rm db-setup --reset)
 #
 # Seeding is not run on every start: app.seed clears the seed's rows and recreates them,
 # which would throw away whatever was changed through the site since the last start.

@@ -1,0 +1,37 @@
+# The site for the Compose stack: the built SPA, and /api proxied to the api service.
+# Plain HTTP on :80 — TLS, if any, is the host's front proxy's job.
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	root * /srv
+
+	# Pictures, waiver scans and receipts are uploaded through /api.
+	request_body /api/* {
+		max_size 50MB
+	}
+
+	handle /api/* {
+		# Live updates are Server-Sent Events (app/live.py): pass every event on at once.
+		reverse_proxy api:8000 {
+			flush_interval -1
+		}
+	}
+
+	# Hashed bundle files never change under the same name.
+	handle /assets/* {
+		encode zstd gzip
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# Every other path is a route of the SPA.
+	handle {
+		encode zstd gzip
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

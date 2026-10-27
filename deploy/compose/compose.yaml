@@ -1,4 +1,4 @@
-# The whole site on one machine: Postgres, the API, the SPA behind nginx, and SeaweedFS.
+# The whole site on one machine: Postgres, the API, the SPA behind Caddy, and SeaweedFS.
 #
 #   cp deploy/compose/.env.example deploy/compose/.env   # then set the secrets in it
 #   docker compose -f deploy/compose/compose.yaml up --build -d
@@ -7,11 +7,11 @@
 name: segelliga
 
 x-api-env: &api-env
-  SBL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sbl}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/.env}@postgres:5432/${POSTGRES_DB:-sbl}
+  SBL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sbl}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/.env}@db:5432/${POSTGRES_DB:-sbl}
   # Uploads: "s3" keeps them in SeaweedFS below, "local" in the `uploads` volume.
   SBL_STORAGE: ${SBL_STORAGE:-s3}
   SBL_UPLOADS_DIR: /data/uploads
-  SBL_S3_ENDPOINT_URL: ${SBL_S3_ENDPOINT_URL:-http://seaweedfs:8333}
+  SBL_S3_ENDPOINT_URL: ${SBL_S3_ENDPOINT_URL:-http://storage:8333}
   SBL_S3_REGION: ${SBL_S3_REGION:-us-east-1}
   SBL_S3_BUCKET: ${SBL_S3_BUCKET:-sbl-uploads}
   SBL_S3_PREFIX: ${SBL_S3_PREFIX:-}
@@ -44,7 +44,7 @@ x-api-env: &api-env
   SBL_BREVO_API_KEY: ${SBL_BREVO_API_KEY:-}
 
 services:
-  postgres:
+  db:
     image: postgres:17.6-alpine
     restart: unless-stopped
     environment:
@@ -52,7 +52,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/.env}
       POSTGRES_DB: ${POSTGRES_DB:-sbl}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
@@ -60,7 +60,7 @@ services:
       retries: 20
 
   # One-shot: migrate, and seed an empty database (deploy/compose/api-init.sh).
-  init:
+  db-setup:
     build:
       context: ../..
       dockerfile: deploy/compose/api.Dockerfile
@@ -70,9 +70,9 @@ services:
     volumes:
       - uploads:/data/uploads
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
-      seaweedfs:
+      storage:
         condition: service_healthy
     restart: "no"
 
@@ -86,11 +86,11 @@ services:
     volumes:
       - uploads:/data/uploads
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
-      seaweedfs:
+      storage:
         condition: service_healthy
-      init:
+      db-setup:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
@@ -120,13 +120,13 @@ services:
       retries: 5
 
   # Object storage with an S3 gateway: where the uploads go while SBL_STORAGE=s3.
-  seaweedfs:
+  storage:
     image: chrislusf/seaweedfs:3.97
     restart: unless-stopped
     command:
       - server
       - -dir=/data
-      - -ip=seaweedfs
+      - -ip=storage
       - -ip.bind=0.0.0.0
       - -volume.max=0
       # Explicitly off: `weed server` preallocates every volume (1 GB each, seven per
@@ -139,7 +139,7 @@ services:
       - source: s3-config
         target: /etc/seaweedfs/s3.json
     volumes:
-      - seaweedfs-data:/data
+      - storage-data:/data
     ports:
       - "${S3_PORT:-8333}:8333"
     healthcheck:
@@ -169,6 +169,6 @@ configs:
       }
 
 volumes:
-  postgres-data:
+  db-data:
   uploads:
-  seaweedfs-data:
+  storage-data:

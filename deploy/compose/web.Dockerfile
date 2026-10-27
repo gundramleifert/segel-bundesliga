@@ -1,4 +1,4 @@
-# The site for the Compose stack: the SPA built with Vite, served by nginx, which also
+# The site for the Compose stack: the SPA built with Vite, served by Caddy, which also
 # proxies /api to the api service — the same split Render runs (a static site with an
 # /api/* rewrite to the API, render.yaml), so the browser stays same-origin.
 # Build context: repo root.
@@ -15,6 +15,6 @@ ARG VITE_DEV_TOOLS=false
 ENV VITE_DEV_TOOLS=${VITE_DEV_TOOLS}
 RUN pnpm build
 
-FROM nginx:1.29.1-alpine
-COPY deploy/compose/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /web/dist /usr/share/nginx/html
+FROM caddy:2.10.2-alpine
+COPY deploy/compose/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /web/dist /srv

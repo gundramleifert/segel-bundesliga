@@ -1,19 +1,19 @@
 # The site in Docker Compose
 
-Everything on one machine: **Postgres**, the **API**, the **SPA** behind nginx, and
+Everything on one machine: **Postgres**, the **API**, the **SPA** behind Caddy, and
 **SeaweedFS** as the S3 store for uploads.
 
 | Service | Image | What it does |
 |---|---|---|
-| `postgres` | `postgres:17.6-alpine` | The database (volume `postgres-data`) |
-| `init` | built from `api.Dockerfile` | One-shot: `alembic upgrade head`; on an **empty** database also `app.seed_test_setup` (`api-init.sh`) |
-| `api` | built from `api.Dockerfile` | uvicorn, one process; starts after `init` finished |
-| `web` | built from `web.Dockerfile` | The Vite build served by nginx, which proxies `/api` to `api` |
-| `seaweedfs` | `chrislusf/seaweedfs:3.97` | `weed server -s3`, the uploads' bucket (volume `seaweedfs-data`) |
+| `db` | `postgres:17.6-alpine` | The database (volume `db-data`) |
+| `db-setup` | built from `api.Dockerfile` | One-shot: `alembic upgrade head`; on an **empty** database also `app.seed_test_setup` (`api-init.sh`) |
+| `api` | built from `api.Dockerfile` | uvicorn, one process; starts after `db-setup` finished |
+| `web` | built from `web.Dockerfile` | The Vite build served by Caddy, which proxies `/api` to `api` |
+| `storage` | `chrislusf/seaweedfs:3.97` | `weed server -s3`, the uploads' bucket (volume `storage-data`) |
 
-**Why nginx serves the SPA, not the API.** That is how the site already runs on Render:
+**Why Caddy serves the SPA, not the API.** That is how the site already runs on Render:
 a static site with an `/api/*` rewrite to the API (`render.yaml`), and the API has no
-static-file route. nginx keeps that split, and the browser stays on one origin, so there
+static-file route. Caddy keeps that split, and the browser stays on one origin, so there
 is no CORS to configure. Server-Sent Events (live results) pass through unbuffered.
 
 ## Start
@@ -31,7 +31,7 @@ seeds the database, including 35 press pictures downloaded from SmugMug.
 | URL | |
 |---|---|
 | http://localhost:8080 | the site (`WEB_PORT`) |
-| http://localhost:8080/api/series | the API, through nginx |
+| http://localhost:8080/api/series | the API, through Caddy |
 | http://localhost:8333 | the S3 endpoint (`S3_PORT`), signed with `S3_ACCESS_KEY` / `S3_SECRET_KEY` |
 
 The API's own `/docs` and `/health` are not proxied:
@@ -60,7 +60,7 @@ argument of the web image too, so change it with `up --build`.
 Without it, sign in by one-time code: with no SMTP configured the code is written to the
 api log (`docker compose … logs api`). `SBL_ADMIN_EMAILS=["you@example.com"]` makes an
 address admin on its first sign-in. Note that the seed prints a ready admin token for
-curl to the `init` log — signed with your `SBL_JWT_SECRET`, valid for its lifetime.
+curl to the `db-setup` log — signed with your `SBL_JWT_SECRET`, valid for its lifetime.
 
 ## Reset
 
@@ -70,7 +70,7 @@ docker compose -f deploy/compose/compose.yaml up -d --wait # migrate and seed af
 ```
 
 Or keep the volumes and reseed the database only:
-`docker compose -f deploy/compose/compose.yaml run --rm init api-init --reset`.
+`docker compose -f deploy/compose/compose.yaml run --rm db-setup api-init --reset`.
 
 ## Postgres
 
