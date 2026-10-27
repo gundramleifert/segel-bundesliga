@@ -26,8 +26,13 @@ class ExternalId(Base, TimestampMixin):
 
     __tablename__ = "external_id"
     __table_args__ = (
-        UniqueConstraint("source", "entity_type", "external_key"),
-        UniqueConstraint("source", "entity_type", "entity_id"),
+        # Named by hand: the convention names a constraint after its first column only, and
+        # two constraints on `source` would both be `uq_external_id_source` — which SQLite
+        # accepts and Postgres refuses (constraint names are unique per schema there).
+        UniqueConstraint(
+            "source", "entity_type", "external_key", name="uq_external_id_external_key"
+        ),
+        UniqueConstraint("source", "entity_type", "entity_id", name="uq_external_id_entity"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

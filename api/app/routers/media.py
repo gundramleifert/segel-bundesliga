@@ -18,7 +18,6 @@ from datetime import date, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Header, Query, Response, UploadFile, status
-from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,6 +35,7 @@ from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.services import editorial, media
 from app.services.lookup import get_or_404
+from app.storage import respond
 
 admin_router = APIRouter(prefix="/api/admin", tags=["media"])
 import_router = APIRouter(prefix="/api/import", tags=["import"])
@@ -519,18 +519,23 @@ async def list_league_media(
 
 
 @public_router.get("/{file_name}", summary="A picture from the library")
-async def get_media_file(file_name: str) -> FileResponse:
+async def get_media_file(file_name: str) -> Response:
     """``<name>.webp`` (the largest) or ``<name>-<edge>.webp`` for an edge of
     ``media.EDGES``; ``<name>.jpg`` and ``<name>-thumb.jpg`` from before WebP still answer.
     The name is random and a file never changes under it, so it is cached for good."""
-    path = await asyncio.to_thread(media.file_path, file_name)
-    if path is None:
-        raise Problem(404, "media-not-found", "No such picture.")
-    return FileResponse(
-        path,
-        media_type="image/webp" if path.suffix == ".webp" else "image/jpeg",
-        headers={"Cache-Control": "public, max-age=31536000, immutable"},
+    key = await asyncio.to_thread(media.file_key, file_name)
+    found = (
+        await respond(
+            key,
+            "image/webp" if key.endswith(".webp") else "image/jpeg",
+            {"Cache-Control": "public, max-age=31536000, immutable"},
+        )
+        if key is not None
+        else None
     )
+    if found is None:
+        raise Problem(404, "media-not-found", "No such picture.")
+    return found
 
 
 # ---------------------------------------------------------------- helpers

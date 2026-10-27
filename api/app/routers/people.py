@@ -21,11 +21,10 @@ from __future__ import annotations
 import asyncio
 from collections import Counter
 from datetime import date
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import Select, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,7 +32,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import authz
 from app.auth import current_user, optional_user
 from app.authz import ObjectRef
-from app.config import settings
 from app.db import get_session
 from app.filters import PersonFilter
 from app.listing import ListDepends
@@ -62,6 +60,7 @@ from app.services import is_minor, pictures
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
 from app.services.participation import connect_person
+from app.storage import respond, storage
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
 me_router = APIRouter(prefix="/api/people", tags=["people"])
@@ -601,7 +600,7 @@ async def delete_my_photo(
 ) -> Response:
     """Removing a photo that doesn't exist is not an error — there is simply nothing to do."""
     person = await require_linked_person(session, acting)
-    _photo_path(person.id).unlink(missing_ok=True)
+    storage().delete(_photo_key(person.id))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -610,13 +609,12 @@ async def get_person_photo(
     person_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User | None = Depends(optional_user),
-) -> FileResponse:
+) -> Response:
     """Serves the stored photo — see `_save_photo` for the minors-visibility rule this
     enforces. There is no placeholder here: the frontend already renders one when
     `has_photo` is false, so a missing file is simply a 404."""
     person = await _person(session, person_id)
-    path = _photo_path(person.id)
-    if not path.exists():
+    if not storage().exists(_photo_key(person.id)):
         raise Problem(404, "person-photo-not-found", "This person has no photo.")
 
     # `is_minor` is deliberately tri-state: None means the birth date is unset. None is
@@ -628,7 +626,7 @@ async def get_person_photo(
     # uploaded it from. `app/routers/waivers.py` treats the same unknown as blocking.
     minor = is_minor(person.birth_date, date.today()) is not False
     if (minor or not person.profile_public) and await connected_to_person(session, acting, person):
-        return FileResponse(path, media_type="image/jpeg")
+        return await _photo_response(person.id)
     if minor:
         raise Problem(
             403,
@@ -642,7 +640,7 @@ async def get_person_photo(
     if not person.profile_public:
         raise Problem(404, "person-photo-not-found", "This person has no photo.")
 
-    return FileResponse(path, media_type="image/jpeg")
+    return await _photo_response(person.id)
 
 
 def _me_out(person: Person) -> PersonMeOut:
@@ -651,24 +649,28 @@ def _me_out(person: Person) -> PersonMeOut:
         first_name=person.first_name,
         last_name=person.last_name,
         birth_date=person.birth_date,
-        has_photo=_photo_path(person.id).exists(),
+        has_photo=storage().exists(_photo_key(person.id)),
         profile_public=person.profile_public,
     )
 
 
-def _photo_path(person_id: int) -> Path:
-    directory = Path(settings.uploads_dir) / "sailors"
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory / f"{person_id}.jpg"
+def _photo_key(person_id: int) -> str:
+    return f"sailors/{person_id}.jpg"
+
+
+async def _photo_response(person_id: int) -> Response:
+    found = await respond(_photo_key(person_id), "image/jpeg")
+    if found is None:
+        raise Problem(404, "person-photo-not-found", "This person has no photo.")
+    return found
 
 
 def _save_photo(person_id: int, raw: bytes) -> None:
     """Validates, then center-crops and downsizes the upload — Story S-2.
 
-    **Storage**: a deterministic path (`uploads/sailors/{id}.jpg`) needs no database
+    **Storage**: a deterministic key (`sailors/{id}.jpg`, `app/storage.py`) needs no database
     column — the file's existence *is* the "has a photo" state (`PersonMeOut.has_photo`,
-    `_me_out`). Not versioned (see `.gitignore`); Postgres/S3-backed storage remains a
-    later option once this goes into production, see `docs/userstories/README.md`, "Still to Write".
+    `_me_out`). Local disk or S3, as `SBL_STORAGE` says.
 
     **Processing**: re-encoded as JPEG, EXIF-rotated upright first (phone cameras store
     orientation as metadata, not pixels — skipping this would show sideways photos),
@@ -685,7 +687,7 @@ def _save_photo(person_id: int, raw: bytes) -> None:
     """
     pictures.check(raw, code="person-photo", what="The photo", max_bytes=_MAX_UPLOAD_BYTES)
     image = pictures.square(pictures.upright(raw, code="person-photo"), _PHOTO_SIZE)
-    _photo_path(person_id).write_bytes(pictures.jpeg(image))
+    storage().put(_photo_key(person_id), pictures.jpeg(image))
 
 
 async def connected_to_person(session: AsyncSession, acting: User | None, person: Person) -> bool:

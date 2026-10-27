@@ -36,11 +36,11 @@ from sqlalchemy import Select, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.models import Event, ImportKey, MediaItem, MediaSource, Post, Series
 from app.models.base import utcnow
 from app.problems import Problem
 from app.services import pictures, uploads
+from app.storage import storage
 
 #: The longer edges served — a phone's column, a desktop's, a wide header, a large
 #: screen's full width. The first is also the library's tile.
@@ -86,17 +86,15 @@ class _Encoded(NamedTuple):
     taken_on: date | None
 
 
-def _directory() -> Path:
-    directory = Path(settings.uploads_dir) / "media"
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory
+#: The served variants' prefix in the upload store (`app/storage.py`).
+_SERVED = "media"
+#: Where uploads are kept as they came — outside the served prefix on purpose.
+_ORIGINALS = "media-originals"
 
 
-def _originals() -> Path:
-    """Where uploads are kept as they came — outside the served directory on purpose."""
-    directory = Path(settings.uploads_dir) / "media-originals"
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory
+def _put_all(keys: list[str], blobs: list[bytes]) -> None:
+    for key, data in zip(keys, blobs, strict=True):
+        storage().put(key, data)
 
 
 def edges_of(width: int, height: int) -> list[int]:
@@ -140,39 +138,39 @@ def _parse(file_name: str) -> _Wanted | None:
     return _Wanted(found["name"], int(edge)) if found["ext"] == "webp" else None
 
 
-def _source(name: str) -> Path | None:
+def _source(name: str) -> str | None:
     """What a variant is made from: the original, or — for a picture stored before
     originals were kept — the 2400 px JPEG it was stored as."""
-    for path in sorted(_originals().glob(f"{name}.*")):
-        return path
-    legacy = _directory() / f"{name}.jpg"
-    return legacy if legacy.is_file() else None
+    for key in storage().keys(f"{_ORIGINALS}/{name}."):
+        return key
+    legacy = f"{_SERVED}/{name}.jpg"
+    return legacy if storage().exists(legacy) else None
 
 
-def file_path(file_name: str) -> Path | None:
-    """The file to answer `/api/media/<file_name>` with, made from the original if it is
-    not there yet — ``None`` when no such picture exists."""
+def file_key(file_name: str) -> str | None:
+    """The stored file to answer `/api/media/<file_name>` with, made from the original if
+    it is not there yet — ``None`` when no such picture exists."""
     wanted = _parse(file_name)
     if wanted is None:
         return None
-    directory = _directory()
     if wanted.edge is not None and wanted.edge not in EDGES:
         return None
     if wanted.edge is not None:
-        path = directory / _variant_name(wanted.name, wanted.edge)
-        if path.is_file():
-            return path
+        key = f"{_SERVED}/{_variant_name(wanted.name, wanted.edge)}"
+        if storage().exists(key):
+            return key
     source = _source(wanted.name)
-    if source is None:
+    raw = storage().get(source) if source is not None else None
+    if raw is None:
         return None
-    image = pictures.upright(source.read_bytes(), code="media", edge=MASTER_EDGE)
+    image = pictures.upright(raw, code="media", edge=MASTER_EDGE)
     edges = edges_of(*image.size)
     # Larger than the picture is: the largest there is, never a blown-up copy.
     edge = edges[-1] if wanted.edge is None else min(wanted.edge, edges[-1])
-    path = directory / _variant_name(wanted.name, edge)
-    if not path.is_file():
-        path.write_bytes(pictures.webp(pictures.bounded(image, edge)))
-    return path
+    key = f"{_SERVED}/{_variant_name(wanted.name, edge)}"
+    if not storage().exists(key):
+        storage().put(key, pictures.webp(pictures.bounded(image, edge)))
+    return key
 
 
 def _encode(raw: bytes) -> _Encoded:
@@ -188,9 +186,10 @@ def original(item: MediaItem) -> bytes | None:
     """The picture at its full size, re-encoded without its metadata — what editorial
     hands to the press. Never the stored original itself: that carries the location."""
     source = _source(item.name)
-    if source is None:
+    raw = storage().get(source) if source is not None else None
+    if raw is None:
         return None
-    image = pictures.upright(source.read_bytes(), code="media")
+    image = pictures.upright(raw, code="media")
     return pictures.jpeg(image)
 
 
@@ -234,12 +233,9 @@ async def store(
 
     encoded = await asyncio.to_thread(_encode, raw)
     name = uuid.uuid4().hex
-    directory = _directory()
-    files = [_originals() / f"{name}.{uploads.IMAGE_TYPES[media_type]}"]
-    files[0].write_bytes(raw)
-    for edge, data in encoded.variants.items():
-        files.append(directory / _variant_name(name, edge))
-        files[-1].write_bytes(data)
+    files = [f"{_ORIGINALS}/{name}.{uploads.IMAGE_TYPES[media_type]}"]
+    files.extend(f"{_SERVED}/{_variant_name(name, edge)}" for edge in encoded.variants)
+    await asyncio.to_thread(_put_all, files, [raw, *encoded.variants.values()])
     item = MediaItem(
         name=name,
         source=MediaSource.IMPORT if key is not None else MediaSource.UPLOAD,
@@ -265,8 +261,8 @@ async def store(
         # both pass the look-up above; the one that commits second is answered the entry
         # the first one made, as if it had come a moment later.
         await session.rollback()
-        for path in files:
-            path.unlink(missing_ok=True)
+        for key in files:
+            storage().delete(key)
         if isinstance(error, IntegrityError):
             same = await session.scalar(select(MediaItem).where(MediaItem.sha256 == digest))
             if same is not None:
@@ -298,8 +294,11 @@ async def delete(session: AsyncSession, item: MediaItem) -> None:
             "A post still shows this picture.",
             posts=[{"id": post.id, "title": post.title} for post in posts],
         )
-    for path in [*_directory().glob(f"{item.name}*"), *_originals().glob(f"{item.name}.*")]:
-        path.unlink(missing_ok=True)
+    for key in [
+        *storage().keys(f"{_SERVED}/{item.name}"),
+        *storage().keys(f"{_ORIGINALS}/{item.name}."),
+    ]:
+        storage().delete(key)
     await session.delete(item)
     await session.commit()
 

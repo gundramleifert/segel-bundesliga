@@ -121,7 +121,9 @@ class ExpenseClaim(Base, TimestampMixin):
 
     __tablename__ = "expense_claim"
     __table_args__ = (
-        CheckConstraint("(event_id IS NOT NULL) + (club_id IS NOT NULL) = 1", name="event_or_club"),
+        # Exactly one — compared as booleans, which SQLite and Postgres both can (adding
+        # them is SQLite's alone).
+        CheckConstraint("(event_id IS NULL) <> (club_id IS NULL)", name="event_or_club"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

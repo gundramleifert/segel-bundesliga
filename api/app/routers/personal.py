@@ -24,6 +24,7 @@ from app.problems import Problem
 from app.services import uploads
 from app.services.audit import EntityType, audit
 from app.services.personal import DOCUMENTS, bic_for, checked_iban, may_see_documents
+from app.storage import disposition
 
 router = APIRouter(tags=["personal"])
 
@@ -156,10 +157,9 @@ async def get_document_file(
     document_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> FileResponse:
+) -> Response:
     document = await session.get(PersonalDocument, document_id)
-    found = uploads.path(DOCUMENTS, document.stored_name) if document is not None else None
-    if document is None or found is None:
+    if document is None or not uploads.exists(DOCUMENTS, document.stored_name):
         raise Problem(404, "document-not-found", "No such document.")
     if not await may_see_documents(session, acting, document.user_id):
         raise _forbidden()
@@ -173,13 +173,15 @@ async def get_document_file(
             owner_user_id=document.user_id,
         )
         await session.commit()
-    return FileResponse(
-        found,
-        media_type=document.content_type,
-        filename=document.original_name,
-        content_disposition_type="inline",
-        headers={"Cache-Control": "private, no-store"},
+    found = await uploads.serve(
+        DOCUMENTS,
+        document.stored_name,
+        document.content_type,
+        {**disposition(document.original_name), "Cache-Control": "private, no-store"},
     )
+    if found is None:
+        raise Problem(404, "document-not-found", "No such document.")
+    return found
 
 
 def _forbidden() -> Problem:

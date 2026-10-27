@@ -18,14 +18,14 @@ from collections.abc import Iterable
 from datetime import date
 
 from fastapi import APIRouter, Depends, Header, Query
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import authz
 from app.auth import current_user, optional_user
-from app.crests import crest_path
+from app.crests import crest_key
 from app.db import get_session
 from app.filters import ClubFilter, PublicEventFilter
 from app.listing import ListDepends
@@ -100,6 +100,7 @@ from app.services.announcements import issuers_for
 from app.services.lookup import get_or_404
 from app.services.pairing_service import TeamNotInPairing, stored_pairing
 from app.services.standings import points_by_flight, race_flights
+from app.storage import respond
 from app.text import slugify
 
 router = APIRouter(prefix="/api", tags=["public"])
@@ -444,9 +445,8 @@ async def list_clubs(
     what happened to be on the page it was holding. ``q`` narrows, it never widens — a
     club that is not public is not found by naming it either.
     """
-    stmt = (
-        select(Club)
-        .join(Team, Team.club_id == Club.id)
+    registered = (
+        select(Team.club_id)
         .join(Series, Team.series_id == Series.id)
         # A pending club is not yet a participant. We count registration for the series,
         # not participation in a single event.
@@ -455,18 +455,20 @@ async def list_clubs(
             Team.event_id.is_(None),
             Series.published.is_(True),
         )
-        .distinct()
     )
     if series is not None:
-        stmt = stmt.where(Series.id == series)
+        registered = registered.where(Series.id == series)
     else:
         effective_year = (
             year if year is not None else await current_year(session, published_only=True)
         )
         if effective_year is None:
             return page_of([], 0, params)
-        stmt = stmt.where(Series.year == effective_year)
+        registered = registered.where(Series.year == effective_year)
 
+    # `IN`, not a join and `DISTINCT`: a club registered in two series would otherwise come
+    # twice, and Postgres cannot `DISTINCT` a row holding a JSON column (`expense_policy`).
+    stmt = select(Club).where(Club.id.in_(registered))
     clubs, total = await paginate(session, filters.sort(filters.filter(stmt)), params)
     return page_of([ClubOut.model_validate(club) for club in clubs], total, params)
 
@@ -671,7 +673,7 @@ async def get_club(
 
 
 @router.get("/clubs/{club_id}/logo", summary="A club's crest")
-async def get_club_logo(club_id: int) -> FileResponse:
+async def get_club_logo(club_id: int) -> Response:
     """Serves the uploaded crest — Story V-3.
 
     Public, like the rest of this router: a club emblem is on every table row and every
@@ -683,10 +685,10 @@ async def get_club_logo(club_id: int) -> FileResponse:
     Needs no database round-trip — the file's presence answers the question. A club id
     that does not exist and a club without a crest are the same 404 here.
     """
-    path = crest_path(club_id)
-    if not path.exists():
+    found = await respond(crest_key(club_id), "image/png")
+    if found is None:
         raise Problem(404, "club-crest-not-found", "This club has no uploaded crest.")
-    return FileResponse(path, media_type="image/png")
+    return found
 
 
 # ----------------------------------------------------------------------- Sailors

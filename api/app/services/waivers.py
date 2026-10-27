@@ -13,7 +13,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from enum import StrEnum
-from pathlib import Path
 from typing import NamedTuple
 
 from sqlalchemy import ColumnElement, or_, select
@@ -383,27 +382,32 @@ async def person_competitions(session: AsyncSession, person: Person) -> list[Com
 
 # A `guardian_signature_ref` that names an uploaded file rather than a paper folder.
 SCAN_REF_PREFIX = "upload:"
-# The scans' directory in the private upload store, `uploads/waivers/`.
+# The scans' prefix in the private upload store, `waivers/`.
 SCANS = "waivers"
 
 
-def scan_path(ref: str | None) -> Path | None:
-    """Where an uploaded scan lives, or ``None`` when the reference is a note or absent.
+def scan_name(ref: str | None) -> str | None:
+    """The uploaded scan's stored name, or ``None`` when the reference is a note or absent.
 
     The name is a UUID the confirmation row alone knows — a client never learns it, and
     the only way to the bytes is `GET /api/waiver/confirmations/{id}/scan`, which checks
-    who is asking and logs the look (Story S-1). Missing file: ``None`` as well, so a
-    row whose file was cleaned up reads as "no scan" instead of a 500.
+    who is asking and logs the look (Story S-1).
     """
     if not ref or not ref.startswith(SCAN_REF_PREFIX):
         return None
-    return uploads.path(SCANS, ref[len(SCAN_REF_PREFIX) :])
+    return ref[len(SCAN_REF_PREFIX) :]
+
+
+def scan_exists(ref: str | None) -> bool:
+    """Whether the scan is on file — ``False`` for a row whose file was cleaned up, so it
+    reads as "no scan" instead of a 500."""
+    return uploads.exists(SCANS, scan_name(ref))
 
 
 def has_scan(ref: str | None) -> bool:
     """Whether the reference names an uploaded scan — read off the row, no disk access,
     so judging a club's whole squad touches no file. A file lost since reads as
-    available here and answers 404 where it is served (``scan_path``)."""
+    available here and answers 404 where it is served (``scan_exists``)."""
     return bool(ref) and ref.startswith(SCAN_REF_PREFIX)
 
 
@@ -420,6 +424,4 @@ def store_scan(raw: bytes, media_type: str) -> str:
 
 
 def discard_scan(ref: str | None) -> None:
-    path = scan_path(ref)
-    if path is not None:
-        path.unlink(missing_ok=True)
+    uploads.discard(SCANS, scan_name(ref))

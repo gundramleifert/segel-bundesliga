@@ -3,6 +3,9 @@
 Goal: both halves reachable on the public internet, at no cost, for trying things out.
 **Not** production — no backup, the database resets on restart, and dev-login is on.
 
+To run the whole site on one machine instead — Postgres, the API, the SPA and SeaweedFS
+— see `deploy/compose/README.md`.
+
 ## What's in the box
 
 | File | Purpose |
@@ -37,7 +40,9 @@ If a service name is already taken, Render adds a suffix (`sbl-api-xyz`). Then e
   the seeded data**. Good for testing, useless as storage.
 - The same goes for **uploads** (`SBL_UPLOADS_DIR`: sailor photos, club crests, and the
   guardians' signed waiver forms from Story S-1) — the container's disk is thrown away with
-  it. A real deployment needs a persistent disk or object storage for that directory
+  it. A real deployment needs a persistent disk for that directory, or object storage
+  (`SBL_STORAGE=s3` and the `SBL_S3_*` settings, `app/storage.py`; `deploy/compose/` runs
+  it against SeaweedFS)
   *before* anyone uploads a signed form they will not upload twice.
 - The image **does** carry a headless JRE and the pairing tool, built from a pinned commit
   of its repository in a first build stage — so the printable pairing list works there

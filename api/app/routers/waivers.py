@@ -20,7 +20,7 @@ from datetime import date, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, Header, Query, UploadFile
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,6 +51,7 @@ from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
+    SCANS,
     Competition,
     PersonWaiver,
     WaiverStatus,
@@ -58,11 +59,13 @@ from app.services.waivers import (
     discard_scan,
     event_reference_date,
     person_waivers,
+    scan_exists,
     scan_media_type,
-    scan_path,
+    scan_name,
     series_reference_date,
     store_scan,
 )
+from app.storage import disposition
 
 Scope = Literal["series", "event"]
 
@@ -496,7 +499,7 @@ async def get_waiver_scan(
     confirmation_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> FileResponse:
+) -> Response:
     """The most sensitive file on the site (Story S-1): a minor's data and a signature.
     Served to the sailor themselves, to `admin`, `editor` and `race_officer`, to the
     leadership of the sailor's club, and to the host club of the event it was signed
@@ -506,7 +509,7 @@ async def get_waiver_scan(
             select(WaiverConfirmation).where(WaiverConfirmation.id == confirmation_id)
         )
     ).scalar_one_or_none()
-    if row is None or scan_path(row.guardian_signature_ref) is None:
+    if row is None or not scan_exists(row.guardian_signature_ref):
         raise Problem(404, "waiver-scan-not-found", "No scan is on file for this confirmation.")
     person = await _person(session, row.person_id)
     if not await _may_view_scan(session, acting, row, person):
@@ -516,8 +519,8 @@ async def get_waiver_scan(
             "The signed form is shown only to the sailor, their club's leadership, the "
             "event's organizer and the league office.",
         )
-    path = scan_path(row.guardian_signature_ref)
-    assert path is not None and row.guardian_signature_ref is not None
+    name = scan_name(row.guardian_signature_ref)
+    assert name is not None and row.guardian_signature_ref is not None
     audit(
         session,
         EntityType.WAIVER_SCAN,
@@ -527,12 +530,15 @@ async def get_waiver_scan(
         person_id=person.id,
     )
     await session.commit()
-    return FileResponse(
-        path,
-        media_type=scan_media_type(row.guardian_signature_ref),
-        filename=f"waiver-scan-{row.id}{path.suffix}",
-        content_disposition_type="inline",
+    found = await uploads.serve(
+        SCANS,
+        name,
+        scan_media_type(row.guardian_signature_ref),
+        disposition(f"waiver-scan-{row.id}.{name.rsplit('.', 1)[-1]}"),
     )
+    if found is None:
+        raise Problem(404, "waiver-scan-not-found", "No scan is on file for this confirmation.")
+    return found
 
 
 # --------------------------------------------------------------------- Organizer view
@@ -916,7 +922,7 @@ async def _attach_scan(
     else:
         # The form arrived after the name (Story S-1) — or a better scan replaces a bad
         # one. Replacing is allowed but never silent: the audit row says so.
-        action = "replaced" if scan_path(row.guardian_signature_ref) else "uploaded"
+        action = "replaced" if scan_exists(row.guardian_signature_ref) else "uploaded"
         discard_scan(row.guardian_signature_ref)
         row.guardian_signature_ref = ref
         row.method = WaiverMethod.GUARDIAN

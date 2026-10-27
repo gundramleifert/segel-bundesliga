@@ -1,7 +1,7 @@
 """Storage for uploaded club crests ("Stander", the club burgee) — Story V-3.
 
 Storage follows the person-photo pattern (`app/routers/people.py::_save_photo`): a
-deterministic path under `settings.uploads_dir`, so **the file's existence is the state**
+deterministic key in the upload store (`app/storage.py`), so **the file's existence is the state**
 — no `has_crest` column, nothing to keep in sync, and a lost uploads directory degrades
 to "no crest" instead of to a broken link.
 
@@ -15,10 +15,8 @@ router that writes the file, and `app.schemas.public.ClubOut`, which resolves
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from app.config import settings
 from app.services import pictures
+from app.storage import storage
 
 # Cap applied before any decoding — the whole raw upload is read into memory once. Lower
 # than the sailor photo's 5 MB: a crest is a piece of vector-ish artwork exported small,
@@ -31,34 +29,32 @@ MAX_UPLOAD_BYTES = 2 * 1024 * 1024
 MAX_EDGE = 512
 
 # One extension for every upload, whatever came in. Keeps "does a crest exist?" a single
-# `Path.exists()` instead of a directory scan across candidate suffixes.
+# look-up instead of a scan across candidate suffixes.
 _SUFFIX = ".png"
 
 
-def crest_path(club_id: int) -> Path:
-    """Where this club's crest lives. Pure path arithmetic — no directory is created,
-    because this runs on every club that gets serialized (see `ClubOut`); only the
-    upload path needs the directory to exist."""
-    return Path(settings.uploads_dir) / "clubs" / f"{club_id}{_SUFFIX}"
+def crest_key(club_id: int) -> str:
+    """Where this club's crest lives in the upload store."""
+    return f"clubs/{club_id}{_SUFFIX}"
 
 
 def crest_url(club_id: int) -> str | None:
     """The public URL of the uploaded crest — or ``None`` if this club has none.
 
-    The `?v=` stamp is the file's modification time: the path itself is stable across
+    The `?v=` stamp is when the file was written: the path itself is stable across
     replacements, so without it a browser (or CDN) would keep showing the old crest after
     an upload. It is a cache key, never an identifier — clients must treat the whole
     string as opaque, and the serving endpoint ignores the parameter.
     """
-    path = crest_path(club_id)
-    if not path.exists():
+    stamp = storage().stamp(crest_key(club_id))
+    if stamp is None:
         return None
-    return f"/api/clubs/{club_id}/logo?v={int(path.stat().st_mtime)}"
+    return f"/api/clubs/{club_id}/logo?v={stamp}"
 
 
 def delete_crest(club_id: int) -> None:
     """Removing a crest that isn't there is a no-op, not an error."""
-    crest_path(club_id).unlink(missing_ok=True)
+    storage().delete(crest_key(club_id))
 
 
 def save_crest(club_id: int, raw: bytes) -> None:
@@ -83,6 +79,4 @@ def save_crest(club_id: int, raw: bytes) -> None:
     """
     pictures.check(raw, code="club-crest", what="The crest", max_bytes=MAX_UPLOAD_BYTES)
     image = pictures.bounded(pictures.upright(raw, code="club-crest", alpha=True), MAX_EDGE)
-    path = crest_path(club_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(pictures.png(image))
+    storage().put(crest_key(club_id), pictures.png(image))

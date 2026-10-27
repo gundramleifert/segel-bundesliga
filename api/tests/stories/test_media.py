@@ -8,7 +8,6 @@ and a picture a post shows cannot be deleted.
 import io
 import secrets
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 
 from PIL import Image
 from sqlalchemy import update
@@ -141,7 +140,7 @@ class TestLibrary:
     ):
         """R-2: the upload is kept as it came, never served; the site gets WebP at each size
         smaller than the picture, and a size that went missing is made again."""
-        from app.config import settings
+        from app.storage import storage
 
         headers = await editor(client, caplog, "media-editor@example.com")
         raw = picture(size=(3000, 1500))
@@ -153,10 +152,9 @@ class TestLibrary:
         name = item["url"].removeprefix("/api/media/").removesuffix(".webp")
         assert item["thumb_url"] == f"/api/media/{name}-480.webp"
 
-        uploads = Path(settings.uploads_dir)
-        assert (uploads / "media-originals" / f"{name}.jpg").read_bytes() == raw
-        assert sorted(p.name for p in (uploads / "media").glob(f"{name}*")) == [
-            f"{name}-{edge}.webp" for edge in (1600, 2400, 480, 960)
+        assert storage().get(f"media-originals/{name}.jpg") == raw
+        assert storage().keys(f"media/{name}") == [
+            f"media/{name}-{edge}.webp" for edge in (1600, 2400, 480, 960)
         ]
         for address, size in [
             (item["url"], (2400, 1200)),
@@ -171,13 +169,13 @@ class TestLibrary:
         for address in (f"/api/media/{name}-1000.webp", f"/api/media/{name}-960.jpg"):
             assert (await client.get(address)).status_code == 404, address
 
-        (uploads / "media" / f"{name}-960.webp").unlink()
+        storage().delete(f"media/{name}-960.webp")
         again = await client.get(f"/api/media/{name}-960.webp")
         assert again.status_code == 200
-        assert (uploads / "media" / f"{name}-960.webp").is_file()
+        assert storage().exists(f"media/{name}-960.webp")
 
         await client.delete(f"/api/admin/media/{item['id']}", headers=headers)
-        assert not list(uploads.glob(f"media*/{name}*"))
+        assert not storage().keys(f"media/{name}") + storage().keys(f"media-originals/{name}")
 
     async def test_a_small_picture_is_never_blown_up(self, client, caplog):
         """R-2: a picture smaller than a size asked for answers its own size."""
@@ -287,12 +285,11 @@ class TestLibrary:
         retry — are one entry, the second answered as known, and no file is left over."""
         import asyncio
 
-        from app.config import settings
         from app.services import media
+        from app.storage import storage
 
         data = picture()
-        uploads = Path(settings.uploads_dir)
-        before = set(uploads.glob("media*/*"))
+        before = set(storage().keys("media"))
 
         async def once():
             async with SessionLocal() as session:
@@ -305,7 +302,7 @@ class TestLibrary:
         assert first[0] == second[0]
         assert sorted([first[1], second[1]]) == [False, True]
         # One original and the one size a picture this small has.
-        assert len(set(uploads.glob("media*/*")) - before) == 2
+        assert len(set(storage().keys("media")) - before) == 2
 
 
 class TestImport:

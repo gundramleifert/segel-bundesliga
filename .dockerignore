@@ -1,0 +1,29 @@
+# The build context of deploy/compose/ is the repo root: keep it small and free of local
+# state. (api/Dockerfile, Render's, builds from api/ and has its own api/.dockerignore.)
+.git
+.claude
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.uv-cache
+**/.seed-cache
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.bak
+**/.env
+**/.env.*
+!**/.env.example
+api/uploads
+uploads
+reference
+web/dist
+web/openapi.json
+playwright-report
+test-results
+e2e-evidence
+allure-results
+allure-report

@@ -652,7 +652,8 @@ Acceptance criteria:
 
 **Storage**, as in S-2: a deterministic local path, `api/uploads/clubs/{club_id}.png` —
 the file's existence *is* the "has a crest" state, so no database column was added. Not
-versioned (see `.gitignore`); an S3-compatible store remains the same later option.
+versioned (see `.gitignore`); with `SBL_STORAGE=s3` the same key lives in a bucket
+(`app/storage.py`).
 
 **Resolved — how the upload reaches consumers:** `Club.logo_url` keeps its single meaning,
 *an externally hosted emblem*, and the two sources are resolved **on read** in one place

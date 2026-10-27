@@ -5,6 +5,17 @@
 # deployment uses instead; Postgres stays the eventual production target.
 SBL_DATABASE_URL=postgresql+asyncpg://sbl:sbl@localhost:5432/sbl
 
+# Uploads (app/storage.py): "local" keeps them under SBL_UPLOADS_DIR, "s3" in a bucket of
+# an S3-compatible store (SeaweedFS, MinIO, AWS) — created on first use.
+SBL_STORAGE=local
+SBL_UPLOADS_DIR=uploads
+SBL_S3_ENDPOINT_URL=
+SBL_S3_REGION=us-east-1
+SBL_S3_BUCKET=
+SBL_S3_PREFIX=
+SBL_S3_ACCESS_KEY_ID=
+SBL_S3_SECRET_ACCESS_KEY=
+
 # Signs the session tokens. Without it the protected area stays closed.
 # Generate with: python -c "import secrets; print(secrets.token_urlsafe(48))"
 SBL_JWT_SECRET=

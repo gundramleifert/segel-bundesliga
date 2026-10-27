@@ -367,9 +367,13 @@ class Grant(Base, TimestampMixin):
     __tablename__ = "access_grant"
     __table_args__ = (
         UniqueConstraint("user_id", "relation", "club_id", "series_id", "event_id", "person_id"),
+        # CASE, not `(club_id IS NOT NULL) + …`: adding booleans is SQLite's, and
+        # Postgres has no `boolean + boolean`.
         CheckConstraint(
-            "(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL)"
-            " + (person_id IS NOT NULL) <= 1",
+            "(CASE WHEN club_id IS NULL THEN 0 ELSE 1 END)"
+            " + (CASE WHEN series_id IS NULL THEN 0 ELSE 1 END)"
+            " + (CASE WHEN event_id IS NULL THEN 0 ELSE 1 END)"
+            " + (CASE WHEN person_id IS NULL THEN 0 ELSE 1 END) <= 1",
             name="one_object",
         ),
     )

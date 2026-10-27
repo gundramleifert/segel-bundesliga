@@ -74,8 +74,8 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_external_id')),
-    sa.UniqueConstraint('source', 'entity_type', 'entity_id', name=op.f('uq_external_id_source')),
-    sa.UniqueConstraint('source', 'entity_type', 'external_key', name=op.f('uq_external_id_source'))
+    sa.UniqueConstraint('source', 'entity_type', 'entity_id', name='uq_external_id_entity'),
+    sa.UniqueConstraint('source', 'entity_type', 'external_key', name='uq_external_id_external_key')
     )
     with op.batch_alter_table('external_id', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_external_id_entity_id'), ['entity_id'], unique=False)
@@ -382,7 +382,7 @@ def upgrade() -> None:
     sa.Column('person_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.CheckConstraint('(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL) + (person_id IS NOT NULL) <= 1', name=op.f('ck_access_grant_one_object')),
+    sa.CheckConstraint('(CASE WHEN club_id IS NULL THEN 0 ELSE 1 END) + (CASE WHEN series_id IS NULL THEN 0 ELSE 1 END) + (CASE WHEN event_id IS NULL THEN 0 ELSE 1 END) + (CASE WHEN person_id IS NULL THEN 0 ELSE 1 END) <= 1', name=op.f('ck_access_grant_one_object')),
     sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_access_grant_club_id_club')),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_access_grant_event_id_event')),
     sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_access_grant_person_id_person'), ondelete='CASCADE'),
@@ -484,7 +484,7 @@ def upgrade() -> None:
     sa.Column('decision_note', sa.String(length=1000), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.CheckConstraint('(event_id IS NOT NULL) + (club_id IS NOT NULL) = 1', name=op.f('ck_expense_claim_event_or_club')),
+    sa.CheckConstraint('(event_id IS NULL) <> (club_id IS NULL)', name=op.f('ck_expense_claim_event_or_club')),
     sa.ForeignKeyConstraint(['claimant_user_id'], ['app_user.id'], name=op.f('fk_expense_claim_claimant_user_id_app_user')),
     sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_expense_claim_club_id_club')),
     sa.ForeignKeyConstraint(['decided_by_user_id'], ['app_user.id'], name=op.f('fk_expense_claim_decided_by_user_id_app_user')),
@@ -890,8 +890,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['race_id'], ['race.id'], name=op.f('fk_race_entry_race_id_race')),
     sa.ForeignKeyConstraint(['team_id'], ['team.id'], name=op.f('fk_race_entry_team_id_team')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_race_entry')),
-    sa.UniqueConstraint('race_id', 'boat_id', name=op.f('uq_race_entry_race_id')),
-    sa.UniqueConstraint('race_id', 'team_id', name=op.f('uq_race_entry_race_id'))
+    sa.UniqueConstraint('race_id', 'boat_id', name='uq_race_entry_race_boat'),
+    sa.UniqueConstraint('race_id', 'team_id', name='uq_race_entry_race_team')
     )
     with op.batch_alter_table('race_entry', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_race_entry_boat_id'), ['boat_id'], unique=False)

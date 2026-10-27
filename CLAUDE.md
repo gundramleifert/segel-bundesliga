@@ -32,6 +32,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
+| `deploy/compose/` | **The whole site in Docker Compose** — Postgres, API, the SPA behind nginx, SeaweedFS; `README.md` there |
 | `docs/PLAN_MEDIA.md` | **Pictures** — the media library and the automatic layout (galleries, shapes, crops), the plan Story R-2 is written from |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |
 | `api/app/imports/` | **Imports** from SAP Sailing (past DSBL matchdays, results) and Manage2Sail (entries, notice-board documents) — `uv run python -m app.imports --help`, Story A-14 |
@@ -457,6 +458,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
   `nh3`) — the public page shows the stored HTML as it is, so nothing may reach the table
   around that cleaner. An editor library must be MIT or Apache licensed (decided
   2026-10-19), which ruled out CKEditor 5 and TinyMCE.
+- **Every stored file goes through `app/storage.py`, and where it lives is a setting**
+  (`SBL_STORAGE=local` under `SBL_UPLOADS_DIR`, or `s3` with the `SBL_S3_*` settings,
+  decided 2026-10-27). Callers speak in keys (`clubs/3.png`), never in paths: no `Path`,
+  `open` or `FileResponse` on an upload outside that module. A file is served through
+  the endpoint that checks who asks, on S3 as on disk — no presigned links.
 - **An upload's type is its content, never its name** (decided 2026-10-19,
   `app/services/uploads.py::sniffed`, libmagic): a browser declares a file's type from its
   extension, so neither the name nor `content_type` is read; the browser checks early by

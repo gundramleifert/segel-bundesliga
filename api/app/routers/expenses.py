@@ -30,6 +30,7 @@ from app.services import expenses, payments, uploads
 from app.services.audit import EntityType, audit
 from app.services.expenses import UnclaimableReason
 from app.services.personal import RECEIPTS
+from app.storage import disposition
 
 router = APIRouter(tags=["expenses"])
 
@@ -478,7 +479,7 @@ async def get_claim_document(
     document_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> FileResponse:
+) -> Response:
     claim = await expenses.load(session, claim_id)
     if not expenses.may_see(acting, claim):
         raise Problem(
@@ -487,8 +488,7 @@ async def get_claim_document(
             "A receipt is shown only to the claimant and whoever decides the claim.",
         )
     document = next((d for d in claim.documents if d.id == document_id), None)
-    found = uploads.path(RECEIPTS, document.stored_name) if document is not None else None
-    if document is None or found is None:
+    if document is None or not uploads.exists(RECEIPTS, document.stored_name):
         raise Problem(404, "expense-document-not-found", "No such receipt on this claim.")
     if claim.claimant_user_id != acting.id:
         audit(
@@ -500,13 +500,15 @@ async def get_claim_document(
             claim_id=claim.id,
         )
         await session.commit()
-    return FileResponse(
-        found,
-        media_type=document.content_type,
-        filename=document.original_name,
-        content_disposition_type="inline",
-        headers={"Cache-Control": "private, no-store"},
+    found = await uploads.serve(
+        RECEIPTS,
+        document.stored_name,
+        document.content_type,
+        {**disposition(document.original_name), "Cache-Control": "private, no-store"},
     )
+    if found is None:
+        raise Problem(404, "expense-document-not-found", "No such receipt on this claim.")
+    return found
 
 
 @router.post("/api/claims/{claim_id}/submit", response_model=ClaimOut, summary="Submit a claim")

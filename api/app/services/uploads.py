@@ -6,7 +6,8 @@ someone scanned, with a person's data on it:
   never taken from the file's name or the type the browser declares for it; an image must
   then decode in Pillow as that format.
 * **At most 10 MB.** Stored as uploaded, never re-encoded — a receipt must stay legible.
-* **A random name** under one directory per kind, which only the row knows; the uploaded
+* **A random name** under one prefix per kind in the upload store (`app/storage.py`,
+  local disk or S3), which only the row knows; the uploaded
   name is shown, never used as a path. There is no static route to any of them: each kind
   has one serving endpoint that checks who asks.
 """
@@ -16,10 +17,11 @@ from __future__ import annotations
 import asyncio
 import io
 import uuid
-from pathlib import Path
 
-from app.config import settings
+from fastapi.responses import Response
+
 from app.problems import Problem
+from app.storage import respond, storage, valid_name
 
 MEDIA_TYPES = {
     "application/pdf": "pdf",
@@ -114,30 +116,36 @@ def _image_format(raw: bytes) -> str | None:
         raise ValueError(str(error)) from error
 
 
-def _directory(kind: str) -> Path:
-    directory = Path(settings.uploads_dir) / kind
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory
-
-
 def store(kind: str, raw: bytes, media_type: str) -> str:
-    """Writes validated bytes under a random name in ``uploads/<kind>/`` and returns the
-    name — the only handle to the file, kept on the row."""
+    """Writes validated bytes under a random name in ``<kind>/`` and returns the name —
+    the only handle to the file, kept on the row."""
     name = f"{uuid.uuid4().hex}.{MEDIA_TYPES[media_type]}"
-    (_directory(kind) / name).write_bytes(raw)
+    storage().put(f"{kind}/{name}", raw)
     return name
 
 
-def path(kind: str, name: str | None) -> Path | None:
-    """The stored file, or ``None`` when the name is absent, malformed or its file gone —
-    so a row whose file was cleaned up reads as "no file" instead of a 500."""
-    if not name or "/" in name or "\\" in name or name.startswith("."):
-        return None
-    found = _directory(kind) / name
-    return found if found.is_file() else None
+def _key(kind: str, name: str | None) -> str | None:
+    """The stored file's key, or ``None`` when the name is absent or malformed — a name
+    is never a way out of its kind's prefix."""
+    return f"{kind}/{name}" if name and valid_name(name) else None
+
+
+def exists(kind: str, name: str | None) -> bool:
+    """Whether the file is there — ``False`` for a row whose file was cleaned up, so it
+    reads as "no file" instead of a 500."""
+    key = _key(kind, name)
+    return key is not None and storage().exists(key)
+
+
+async def serve(
+    kind: str, name: str | None, media_type: str, headers: dict[str, str] | None = None
+) -> Response | None:
+    """The stored file as a response, or ``None`` when there is none."""
+    key = _key(kind, name)
+    return None if key is None else await respond(key, media_type, headers)
 
 
 def discard(kind: str, name: str | None) -> None:
-    found = path(kind, name)
-    if found is not None:
-        found.unlink(missing_ok=True)
+    key = _key(kind, name)
+    if key is not None:
+        storage().delete(key)

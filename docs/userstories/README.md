@@ -62,8 +62,11 @@ Sensible next areas:
   name** known only to the confirmation row, one serving endpoint that checks access and
   logs every retrieval, and type/size limits (PDF, JPEG, PNG; 10 MB). **Access control
   differs per story** — a crest and most photos are public, the scan from S-1 on no
-  account — which is why the three never share a static path. Still open: virus scanning
-  and the retention job, and S3-compatible storage once the site leaves one machine.
+  account — which is why the three never share a static path. **Where** the files live is
+  a setting, not a story: `SBL_STORAGE=local` (the directory above) or `s3` (any
+  S3-compatible store — SeaweedFS in `deploy/compose/`), behind one module,
+  `app/storage.py`; the paths above are then keys in a bucket and nothing else changes.
+  Still open: virus scanning and the retention job.
 - **Deadlines:** deliberately left out for now. Series and event each have a **time range**
   (`starts_on`, `ends_on`); a deadline concept is derived from this if it becomes clear what
   is needed.

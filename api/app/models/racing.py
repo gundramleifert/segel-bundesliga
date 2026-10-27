@@ -198,8 +198,10 @@ class RaceEntry(Base, TimestampMixin):
 
     __tablename__ = "race_entry"
     __table_args__ = (
-        UniqueConstraint("race_id", "team_id"),
-        UniqueConstraint("race_id", "boat_id"),
+        # Named by hand, like ExternalId's: both would be `uq_race_entry_race_id` by the
+        # convention, which Postgres refuses.
+        UniqueConstraint("race_id", "team_id", name="uq_race_entry_race_team"),
+        UniqueConstraint("race_id", "boat_id", name="uq_race_entry_race_boat"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

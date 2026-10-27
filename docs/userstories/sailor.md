@@ -335,8 +335,8 @@ Acceptance criteria:
 **Storage** (resolves the "not yet decided" note below, for this story only): a
 deterministic local path, `api/uploads/sailors/{person_id}.jpg` — the file's existence
 *is* the "has a photo" state, so no database column was needed. Not versioned (see
-`.gitignore`); an S3-compatible store remains a later option once this needs to survive
-redeploys of the API's disk, or multiple instances.
+`.gitignore`); with `SBL_STORAGE=s3` the same key lives in a bucket instead
+(`app/storage.py`), which survives a redeploy of the API's disk.
 
 **Resolved — visibility:** public **unless** the sailor is a minor (under 18 as of
 today) *and* has a `birth_date` on record: their photo is then shown only to a signed-in
