@@ -27,6 +27,9 @@ stakeholders can read and a step table the tests are held to. The chain it start
 | J-4 An organizer sets up a series | [series.md](../journeys/series.md) | league office, series manager, team manager, visitor |
 | J-5 A club's crew is cleared for a matchday | [crew-cleared.md](../journeys/crew-cleared.md) | team manager, sailor, guardian, event organizer, visitor |
 | J-6 From a sailed race to the report and the press release | [press.md](../journeys/press.md) | race officer, editor, photographer, visitor |
+| J-7 From a claim to the bank | [money.md](../journeys/money.md) | club admin, treasurer, helper, event organizer |
+| J-8 A club hosts its own event | [hosted-event.md](../journeys/hosted-event.md) | team manager, club admin, event organizer, league office, race officer, visitor |
+| J-9 A fan follows an act | [fan.md](../journeys/fan.md) | visitor |
 
 ## Actors
 

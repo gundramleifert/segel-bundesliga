@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**97 stories** — ● 72 implemented and tested · ◐ 15 partial · ○ 10 open. With backend tests: 79 · with browser tests: 52 · walked by a journey: 34 · **with no test at all: 9**.
+**97 stories** — ● 72 implemented and tested · ◐ 15 partial · ○ 10 open. With backend tests: 79 · with browser tests: 54 · walked by a journey: 53 · **with no test at all: 9**.
 
 ## Journeys
 
@@ -21,6 +21,9 @@ here — this page says what *exists*, the report what *passed*.
 - [J-4 ◐ An organizer sets up a series](#j-4--an-organizer-sets-up-a-series)
 - [J-5 ◐ A club's crew is cleared for a matchday](#j-5--a-clubs-crew-is-cleared-for-a-matchday)
 - [J-6 ◐ From a sailed race to the report and the press release](#j-6--from-a-sailed-race-to-the-report-and-the-press-release)
+- [J-7 ● From a claim to the bank](#j-7--from-a-claim-to-the-bank)
+- [J-8 ◐ A club hosts its own event](#j-8--a-club-hosts-its-own-event)
+- [J-9 ● A fan follows an act](#j-9--a-fan-follows-an-act)
 
 ### J-1 ◐ From an empty series to a scored matchday
 
@@ -150,3 +153,75 @@ here — this page says what *exists*, the report what *passed*.
 | J-6.8 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
 | J-6.9 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
 | J-6.10 | main | R-3 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+
+### J-7 ● From a claim to the bank
+
+[money.md](journeys/money.md) · help: — · report: Allure → story *J-7 · From a claim to the bank*, one step per row below
+
+- **W1** `test_journey_money.py::TestFromAClaimToTheBank::test_rejected_once_paid_by_a_sepa_file_and_one_transfer_returned`
+- **W2** `test_journey_money.py::TestFromAClaimToTheBank::test_the_organizer_cannot_decide_their_own_and_one_claim_paid_by_girocode`
+
+| Step | Path | Story | | Walked by | Also covered by | Help |
+|---|---|---|---|---|---|---|
+| J-7.1 | main | F-1 | ● | W1, W2 | — | `decide-claims`<br>`roles` |
+| J-7.2 | main | F-7 | ● | W1, W2 | — | `payment-runs` |
+| J-7.3 | main | VA-12 | ● | W1, W2 | — | `roles`<br>`run-event` |
+| J-7.4 | main | S-6 | ● | W1, W2 | — | `file-a-claim`<br>`profile` |
+| J-7.5 | main | F-2 | ● | W1, W2 | — | `file-a-claim` |
+| J-7.6 | main | F-5 | ● | W1, W2 | — | `file-a-claim` |
+| J-7.7 | main | F-2 | ● | W1, W2 | — | `file-a-claim` |
+| J-7.8 | main | F-6 | ● | W1, W2 | — | `decide-claims` |
+| J-7.9 | rejected | F-3 | ● | W1 | — | `decide-claims`<br>`roles` |
+| J-7.10 | rejected | F-2 | ● | W1 | — | `file-a-claim` |
+| J-7.11 | own claim | F-3 | ● | W2 | — | `decide-claims`<br>`roles` |
+| J-7.12 | main | F-3 | ● | W1, W2 | — | `decide-claims`<br>`roles` |
+| J-7.13 | GiroCode | F-8 | ● | W2 | — | `decide-claims` |
+| J-7.14 | GiroCode | F-4 | ● | W2 | — | `payment-runs` |
+| J-7.15 | SEPA file | F-7 | ● | W1 | — | `payment-runs` |
+| J-7.16 | SEPA file | F-7 | ● | W1 | — | `payment-runs` |
+| J-7.17 | SEPA file | F-7 | ● | *(offline)* | — | `payment-runs` |
+| J-7.18 | SEPA file | F-7 | ● | W1 | — | `payment-runs` |
+| J-7.19 | returned | F-7 | ● | W1 | — | `payment-runs` |
+| J-7.20 | returned | F-7 | ● | W1 | — | `payment-runs` |
+
+### J-8 ◐ A club hosts its own event
+
+[hosted-event.md](journeys/hosted-event.md) · help: — · report: Allure → story *J-8 · A club hosts its own event*, one step per row below
+
+- **W1** `test_journey_hosted_event.py::TestAClubHostsItsOwnEvent::test_from_the_form_to_the_public_results`
+
+| Step | Path | Story | | Walked by | Also covered by | Help |
+|---|---|---|---|---|---|---|
+| J-8.1 | act of a series | VA-6 | ● | W1 | — | `create-event`<br>`journey-lifecycle`<br>`journey-series` |
+| J-8.2 | main | VA-6 | ● | W1 | — | `create-event`<br>`journey-lifecycle`<br>`journey-series` |
+| J-8.3 | main | Z-2 | ◐ | W1 | — | `admin-accounts`<br>`journey-series`<br>`roles` |
+| J-8.4 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-8.5 | main | VA-13 | ● | W1 | — | `run-event` |
+| J-8.6 | main | V-6 | ● | W1 | — | `squad-and-lineup` |
+| J-8.7 | main | A-9 | ● | W1 | — | `admin-clubs`<br>`journey-club`<br>`journey-series` |
+| J-8.8 | turned down | V-6 | ● | W1 | — | `squad-and-lineup` |
+| J-8.9 | turned down | A-9 | ● | W1 | — | `admin-clubs`<br>`journey-club`<br>`journey-series` |
+| J-8.10 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-8.11 | main | VA-7 | ● | W1 | — | `journey-lifecycle`<br>`run-event` |
+| J-8.12 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-8.13 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`journey-press`<br>`results-entry` |
+| J-8.14 | main | VA-10 | ● | W1 | — | `close-event`<br>`journey-lifecycle`<br>`terms` |
+| J-8.15 | main | B-2 | ● | W1 | — | — |
+
+### J-9 ● A fan follows an act
+
+[fan.md](journeys/fan.md) · help: — · report: Allure → story *J-9 · A fan follows an act*, one step per row below
+
+- **W1** `test_journey_fan.py::TestAFanFollowsAnAct::test_from_the_league_page_to_the_standings`
+
+| Step | Path | Story | | Walked by | Also covered by | Help |
+|---|---|---|---|---|---|---|
+| J-9.1 | main | B-14 | ● | W1 | — | — |
+| J-9.2 | main | B-15 | ● | W1 | — | — |
+| J-9.3 | main | B-2 | ● | W1 | — | — |
+| J-9.4 | main | B-3 | ● | W1 | — | `journey-lifecycle`<br>`run-event` |
+| J-9.5 | main | B-12 | ● | W1 | — | — |
+| J-9.6 | main | B-8 | ● | W1 | — | — |
+| J-9.7 | hidden profile | S-4 | ● | W1 | — | `profile` |
+| J-9.8 | main | B-1 | ● | W1 | — | `journey-lifecycle`<br>`journey-series` |
+| J-9.9 | missed an act | A-5 | ● | W1 | — | `terms` |

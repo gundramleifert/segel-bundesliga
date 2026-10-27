@@ -879,6 +879,338 @@
   "who": "visitor",
   "what": "the league's press centre lists the release, and its text opens"
  },
+ "J-7": {
+  "title": "From a claim to the bank",
+  "status": "●",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/money.md",
+  "anchor": ""
+ },
+ "J-7.1": {
+  "journey": "J-7",
+  "story": "F-1",
+  "path": "main",
+  "who": "club admin",
+  "what": "the person holds `treasurer` on the club — and so on every event the club hosts"
+ },
+ "J-7.10": {
+  "journey": "J-7",
+  "story": "F-2",
+  "path": "rejected",
+  "who": "helper",
+  "what": "the changed item makes the claim a draft; submitted again, it waits on the treasurer again"
+ },
+ "J-7.11": {
+  "journey": "J-7",
+  "story": "F-3",
+  "path": "own claim",
+  "who": "event organizer",
+  "what": "the organizer may decide the helper's claim, but their own is refused (`claim-own-decision`) and not on their list"
+ },
+ "J-7.12": {
+  "journey": "J-7",
+  "story": "F-3",
+  "path": "main",
+  "who": "treasurer",
+  "what": "`approved` at the claimed amount; the claim is frozen and on the list to pay"
+ },
+ "J-7.13": {
+  "journey": "J-7",
+  "story": "F-8",
+  "path": "GiroCode",
+  "who": "treasurer",
+  "what": "the code carries the claim's copied account, the open amount and the line `C-<id> …`; never for the claimant"
+ },
+ "J-7.14": {
+  "journey": "J-7",
+  "story": "F-4",
+  "path": "GiroCode",
+  "who": "treasurer",
+  "what": "one settled payment: the claim is `paid`, off the list, and has no code any more (`claim-not-payable`)"
+ },
+ "J-7.15": {
+  "journey": "J-7",
+  "story": "F-7",
+  "path": "SEPA file",
+  "who": "treasurer",
+  "what": "one `issued` payment per payee; the claim reads `in_payment` and leaves the list to pay"
+ },
+ "J-7.16": {
+  "journey": "J-7",
+  "story": "F-7",
+  "path": "SEPA file",
+  "who": "treasurer",
+  "what": "a pain.001.001.09 file: the club's IBAN as debtor, the helper's as creditor, the claim in the remittance line"
+ },
+ "J-7.17": {
+  "journey": "J-7",
+  "story": "F-7",
+  "path": "SEPA file",
+  "who": "treasurer (offline)",
+  "what": "the bank has the file and the treasurer's TAN"
+ },
+ "J-7.18": {
+  "journey": "J-7",
+  "story": "F-7",
+  "path": "SEPA file",
+  "who": "treasurer",
+  "what": "the run is settled; the claim reads `paid`"
+ },
+ "J-7.19": {
+  "journey": "J-7",
+  "story": "F-7",
+  "path": "returned",
+  "who": "treasurer",
+  "what": "the payment is `failed` with its reason; the claim is approved and `unpaid`, back on the list to pay"
+ },
+ "J-7.2": {
+  "journey": "J-7",
+  "story": "F-7",
+  "path": "main",
+  "who": "treasurer",
+  "what": "the club's account (holder, IBAN, BIC from the IBAN) is saved; only the treasurer and the club's admin read it"
+ },
+ "J-7.20": {
+  "journey": "J-7",
+  "story": "F-7",
+  "path": "returned",
+  "who": "treasurer",
+  "what": "the next run pays the claim again"
+ },
+ "J-7.3": {
+  "journey": "J-7",
+  "story": "VA-12",
+  "path": "main",
+  "who": "club admin",
+  "what": "the person holds `helper` on the event — the host club's admin is the event's admin; no power on the event, but a claim on it"
+ },
+ "J-7.4": {
+  "journey": "J-7",
+  "story": "S-6",
+  "path": "main",
+  "who": "helper",
+  "what": "the helper's account is saved, checked by `schwifty`; only they read it"
+ },
+ "J-7.5": {
+  "journey": "J-7",
+  "story": "F-2",
+  "path": "main",
+  "who": "helper",
+  "what": "the event is among the helper's claim targets; a draft claim with a hotel item over a range of dates — submitting it now is refused, the invoice is missing (`expense-document-missing`)"
+ },
+ "J-7.6": {
+  "journey": "J-7",
+  "story": "F-5",
+  "path": "main",
+  "who": "helper",
+  "what": "the invoice is on the item, checked by content, under a random name"
+ },
+ "J-7.7": {
+  "journey": "J-7",
+  "story": "F-2",
+  "path": "main",
+  "who": "helper",
+  "what": "`submitted`; the payer is the host club, holder and IBAN copied onto the claim"
+ },
+ "J-7.8": {
+  "journey": "J-7",
+  "story": "F-6",
+  "path": "main",
+  "who": "treasurer",
+  "what": "the claim is on the treasurer's list, to decide, and its receipt opens for them"
+ },
+ "J-7.9": {
+  "journey": "J-7",
+  "story": "F-3",
+  "path": "rejected",
+  "who": "treasurer",
+  "what": "`rejected` with the message; the helper's my space shows `claim_rejected` on the event"
+ },
+ "J-8": {
+  "title": "A club hosts its own event",
+  "status": "◐",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/hosted-event.md",
+  "anchor": ""
+ },
+ "J-8.1": {
+  "journey": "J-8",
+  "story": "VA-6",
+  "path": "act of a series",
+  "who": "team manager",
+  "what": "refused with `series-not-mine` (403): a club adds no act to a series it does not organize"
+ },
+ "J-8.10": {
+  "journey": "J-8",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the date is set; the readiness says `ready`"
+ },
+ "J-8.11": {
+  "journey": "J-8",
+  "story": "VA-7",
+  "path": "main",
+  "who": "league office",
+  "what": "a pairing list from the catalog with both host teams and the accepted club, not the rejected one"
+ },
+ "J-8.12": {
+  "journey": "J-8",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the event is `live`"
+ },
+ "J-8.13": {
+  "journey": "J-8",
+  "story": "WL-2",
+  "path": "main",
+  "who": "race officer",
+  "what": "16 races entered; the host's manager may not enter a result (403) — organizing is not racing"
+ },
+ "J-8.14": {
+  "journey": "J-8",
+  "story": "VA-10",
+  "path": "main",
+  "who": "race officer",
+  "what": "the event is `final`"
+ },
+ "J-8.15": {
+  "journey": "J-8",
+  "story": "B-2",
+  "path": "main",
+  "who": "visitor",
+  "what": "the event's public page has the 12 teams' results, both host teams among them, its host club, and no series"
+ },
+ "J-8.2": {
+  "journey": "J-8",
+  "story": "VA-6",
+  "path": "main",
+  "who": "team manager",
+  "what": "the event exists with its host club, no series, no matchday, `teams_per_club` 2, as a draft; no club entered; every club is a candidate; its creator organizes it through `manager from host_club`"
+ },
+ "J-8.3": {
+  "journey": "J-8",
+  "story": "Z-2",
+  "path": "main",
+  "who": "club admin",
+  "what": "the person holds `race_officer` on the event — written by the host club's admin (`admin from host_club`); the host's manager may not write it (403)"
+ },
+ "J-8.4": {
+  "journey": "J-8",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the event is published and in the public calendar, `series` empty — the field is not complete, and need not be"
+ },
+ "J-8.5": {
+  "journey": "J-8",
+  "story": "VA-13",
+  "path": "main",
+  "who": "event organizer",
+  "what": "nine invited clubs and the host club twice (`<short name>` and `<short name> 2`) are entered; a third host team is refused (`too-many-teams-per-club`)"
+ },
+ "J-8.6": {
+  "journey": "J-8",
+  "story": "V-6",
+  "path": "main",
+  "who": "team manager",
+  "what": "an application to the event, `requested` — not an entry: the readiness still says `pairing-team-count-mismatch`"
+ },
+ "J-8.7": {
+  "journey": "J-8",
+  "story": "A-9",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the host's manager sees the event's applications and accepts: the club is entered"
+ },
+ "J-8.8": {
+  "journey": "J-8",
+  "story": "V-6",
+  "path": "turned down",
+  "who": "team manager",
+  "what": "a second application, `requested`"
+ },
+ "J-8.9": {
+  "journey": "J-8",
+  "story": "A-9",
+  "path": "turned down",
+  "who": "event organizer",
+  "what": "`rejected`, and the applying club reads the reason in its own list"
+ },
+ "J-9": {
+  "title": "A fan follows an act",
+  "status": "●",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/fan.md",
+  "anchor": ""
+ },
+ "J-9.1": {
+  "journey": "J-9",
+  "story": "B-14",
+  "path": "main",
+  "who": "visitor",
+  "what": "the league's current year is open; while an act is live its *Results* chapter opens the page and names the act"
+ },
+ "J-9.2": {
+  "journey": "J-9",
+  "story": "B-15",
+  "path": "main",
+  "who": "visitor",
+  "what": "the act's page is open on *Results* — racing has begun — and every tab has its own address"
+ },
+ "J-9.3": {
+  "journey": "J-9",
+  "story": "B-2",
+  "path": "main",
+  "who": "visitor",
+  "what": "the interim standing of the act: every entered team ranked, its points per flight sailed"
+ },
+ "J-9.4": {
+  "journey": "J-9",
+  "story": "B-3",
+  "path": "main",
+  "who": "visitor",
+  "what": "the draw: every race with its boats by colour, each team once per flight; a club not entered has no seat"
+ },
+ "J-9.5": {
+  "journey": "J-9",
+  "story": "B-12",
+  "path": "main",
+  "who": "visitor",
+  "what": "one card per entered team with its crew, helm first; a crew not named yet says so; names only"
+ },
+ "J-9.6": {
+  "journey": "J-9",
+  "story": "B-8",
+  "path": "main",
+  "who": "visitor",
+  "what": "the sailor's page: the series registration and this act's lineup, no contact details"
+ },
+ "J-9.7": {
+  "journey": "J-9",
+  "story": "S-4",
+  "path": "hidden profile",
+  "who": "site",
+  "what": "the name stays in the crew as plain text; the page answers 404 like nobody at all"
+ },
+ "J-9.8": {
+  "journey": "J-9",
+  "story": "B-1",
+  "path": "main",
+  "who": "visitor",
+  "what": "the year's table: a column per act, the running act counted, each heading leading to its act"
+ },
+ "J-9.9": {
+  "journey": "J-9",
+  "story": "A-5",
+  "path": "missed an act",
+  "who": "site",
+  "what": "the club that sat act 2 out carries its field size + 1 there, and the cell says so"
+ },
  "L-1": {
   "title": "See the boats move",
   "status": "◐",
