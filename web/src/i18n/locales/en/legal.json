@@ -163,8 +163,7 @@
         ],
         "items": [
           "Render Services, Inc. — hosting of the application and its database.",
-          "Brevo — dispatch of sign-in and confirmation emails through its API, where that route is enabled.",
-          "STRATO AG — the mailbox and SMTP server used for outgoing mail where Brevo is not used."
+          "STRATO AG — the mailbox and SMTP server used for outgoing mail."
         ],
         "open": "Whether a data processing agreement under Art. 28 GDPR exists with each of these providers has to be confirmed, and concluded where it is missing, before go-live."
       },
@@ -277,9 +276,8 @@
         "heading": "Emails we send",
         "paragraphs": [
           "The application sends exactly one kind of email: sign-in and confirmation codes. There is no newsletter, no marketing and no notification mail.",
-          "Depending on the configuration, mail goes out either through the Brevo API or through our own mailbox provider's SMTP server. The recipient address appears in the operating log for as long as that log is kept."
-        ],
-        "open": "Which of the two routes production uses should be stated here once it is settled, and the corresponding processor named — the current test deployment uses Brevo, because the hosting platform blocks outbound SMTP."
+          "Mail goes out through our own mailbox provider's SMTP server. The recipient address appears in the operating log for as long as that log is kept."
+        ]
       },
       {
         "heading": "Log data and the internal audit trail",

@@ -46,7 +46,7 @@ The API's own `/docs` and `/health` are not proxied:
 
 The secrets are in `deploy/compose/secrets.sops.env`, a dotenv file encrypted with
 [sops](https://github.com/getsops/sops) and committed: the database password, the JWT
-secret, the S3 key pair, and the optional SMTP password and Brevo key. Who may decrypt it
+secret, the S3 key pair, and the optional SMTP password. Who may decrypt it
 is `.sops.yaml` at the repo root — **SSH public keys** (`ssh-ed25519` or `ssh-rsa`), so a
 recipient needs no extra key: sops decrypts with `~/.ssh/id_ed25519` (or the file named
 in `SOPS_AGE_SSH_PRIVATE_KEY_FILE`). A key behind an ssh-agent or on a hardware token
@@ -65,8 +65,8 @@ Without sops (not a recipient, or no sops installed), put the secrets in `.env` 
 `docker compose -f deploy/compose/compose.yaml` directly.
 
 **The file holds placeholders** (`placeholder-…`) until the real values are set: replace
-the four required ones before anyone else can reach the stack. The two optional ones stay
-empty unless used — a Brevo key, once set, sends every mail through Brevo.
+the four required ones before anyone else can reach the stack. The SMTP password stays
+empty until mail is set up.
 
 **Changing a secret of a running stack.** Postgres takes `POSTGRES_PASSWORD` only when
 it creates its volume: on an existing one change it with `ALTER USER sbl PASSWORD '…'`

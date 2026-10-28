@@ -163,8 +163,7 @@
         ],
         "items": [
           "Render Services, Inc. — Hosting der Anwendung und ihrer Datenbank.",
-          "Brevo — Versand der Anmelde- und Bestätigungs-E-Mails über deren Schnittstelle, sofern dieser Weg aktiv ist.",
-          "STRATO AG — Postfach und SMTP-Server für den Versand, soweit nicht über Brevo verschickt wird."
+          "STRATO AG — Postfach und SMTP-Server für den Versand."
         ],
         "open": "Ob mit jedem dieser Anbieter ein Auftragsverarbeitungsvertrag nach Art. 28 DSGVO besteht, muss vor dem Livegang geprüft und, wo er fehlt, geschlossen werden."
       },
@@ -277,9 +276,8 @@
         "heading": "E-Mails, die wir versenden",
         "paragraphs": [
           "Die Anwendung versendet genau eine Art von E-Mail: Anmelde- und Bestätigungscodes. Einen Newsletter, Werbung oder Benachrichtigungs-E-Mails gibt es nicht.",
-          "Je nach Konfiguration geht der Versand über die Schnittstelle von Brevo oder über den SMTP-Server unseres Postfachanbieters. Die Empfängeradresse erscheint für die Dauer der Aufbewahrung im Betriebsprotokoll."
-        ],
-        "open": "Welcher der beiden Wege im Live-Betrieb genutzt wird, sollte hier stehen, sobald es feststeht, und der entsprechende Auftragsverarbeiter benannt werden — die derzeitige Testinstallation nutzt Brevo, weil die Hosting-Plattform ausgehendes SMTP blockiert."
+          "Der Versand geht über den SMTP-Server unseres Postfachanbieters. Die Empfängeradresse erscheint für die Dauer der Aufbewahrung im Betriebsprotokoll."
+        ]
       },
       {
         "heading": "Protokolldaten und internes Änderungsprotokoll",

@@ -28,7 +28,6 @@ x-api: &api
     SBL_S3_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/compose/secrets.sops.env (or .env)}
     SBL_JWT_SECRET: ${SBL_JWT_SECRET:?set SBL_JWT_SECRET in deploy/compose/secrets.sops.env (or .env)}
     SBL_SMTP_PASSWORD: ${SBL_SMTP_PASSWORD:-}
-    SBL_BREVO_API_KEY: ${SBL_BREVO_API_KEY:-}
     # Differ from config.py's development defaults.
     SBL_DEBUG: ${SBL_DEBUG:-false}
     SBL_CORS_ORIGINS: ${SBL_CORS_ORIGINS:-["http://localhost:8080"]}

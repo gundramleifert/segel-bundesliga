@@ -19162,9 +19162,7 @@ export const getSmtpConfigUrl = () => {
 
 /**
  * Shows exactly what `app.config.settings` resolved to — from env vars, Secret
- * Files, or defaults, whichever won — without exposing the password/API key itself.
- * When `brevo_configured` is true, `app.mail` sends over Brevo's HTTPS API instead of
- * SMTP, and the SMTP fields below are irrelevant to what actually gets used.
+ * Files, or defaults, whichever won — without exposing the password itself.
  * @summary What mail config is resolved
  */
 export const smtpConfig = async ( options?: RequestInit): Promise<SmtpConfigOut> => {
@@ -19268,8 +19266,8 @@ export const getTestEmailUrl = () => {
 /**
  * Sends a real message with a throwaway code to the given address right now, and
  * reports the outcome directly in the response — the same send path
- * `app.services.login.request_email_code` uses (SMTP or Brevo, whichever
- * `app.mail.send_login_code` picks), just without needing a valid account or the
+ * `app.services.login.request_email_code` uses (`app.mail.send_login_code`), just
+ * without needing a valid account or the
  * anti-enumeration silence that endpoint deliberately has.
  * @summary Attempt an actual send
  */

@@ -33,7 +33,7 @@ anything entered on the server is test data.
 | CPU, RAM | 2 cores, **2 GB** RAM (1 GB is the minimum). Idle the stack uses ~300 MB; a pairing-list draw or print starts a Java process, and a picture upload is resized in memory. |
 | Disk | 10 GB to start: the images (~2 GB), Postgres, the uploads in SeaweedFS. |
 | Software | Docker Engine with the Compose plugin (v2.20 or newer — `required: false` in `depends_on`), git, [sops](https://github.com/getsops/sops) 3.7 or newer. |
-| Network | Outbound HTTPS for the build (Maven, pnpm, PyPI, GitHub) and the first seed (35 pictures from SmugMug); outbound SMTP or HTTPS to Brevo for mail. |
+| Network | Outbound HTTPS for the build (Maven, pnpm, PyPI, GitHub) and the first seed (35 pictures from SmugMug); outbound SMTP (port 587) for mail. |
 
 ## First installation
 
@@ -75,7 +75,6 @@ SBL_JWT_SECRET=…
 S3_ACCESS_KEY=…
 S3_SECRET_KEY=…
 SBL_SMTP_PASSWORD=
-SBL_BREVO_API_KEY=
 ```
 
 Commit `.sops.yaml` and `prod.sops.env`; `scripts/check-sops.py` (in `scripts/check.sh`)
@@ -204,8 +203,14 @@ signs in through any method (`app.services.login._resolve_user`), checked on eve
 sign-in, so an address added later takes effect on that person's next login. From there,
 that account grants roles to everyone else (Story Z-2).
 
-**Mail must reach people for that.** Sign-in by one-time code needs `SBL_SMTP_*`, or
-`SBL_BREVO_API_KEY` where the host blocks outbound SMTP (HTTPS to Brevo instead); without
-either, the code only reaches the api log (`compose.sh logs api`). The sender,
+**Mail must reach people for that.** Sign-in by one-time code needs `SBL_SMTP_*` (port 587 with STARTTLS; some hosts block 25 and 465); without it, the code only reaches the api log (`compose.sh logs api`). The sender,
 `SBL_MAIL_FROM`, must be verified with the mail provider, or codes are accepted and then
 silently dropped.
+
+Test the settings without sending anything — it connects, encrypts and signs in the way a
+send does — and, once that works, send yourself one login mail:
+
+```bash
+deploy/compose/compose.sh exec api python -m app.mail
+deploy/compose/compose.sh exec api python -m app.mail --send you@example.com
+```

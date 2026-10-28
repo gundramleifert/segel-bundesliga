@@ -14,5 +14,4 @@ export interface SmtpConfigOut {
   smtp_user: string;
   smtp_password_set: boolean;
   mail_from: string;
-  brevo_configured: boolean;
 }

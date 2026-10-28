@@ -148,9 +148,9 @@ async def dev_login(
 
 # ---------------------------------------------------------------------- SMTP diagnostics
 #
-# Added to debug a former hosted test deployment's SMTP/Brevo configuration without needing
+# Added to debug a former hosted test deployment's SMTP configuration without needing
 # dashboard/log access — confirmed working end to end (STRATO SMTP was blocked outbound by
-# the host, Brevo's HTTPS API was the live path). Disabled by default now that the question
+# the host). Disabled by default now that the question
 # is settled; flip _MAIL_DIAGNOSTICS_ENABLED back to True if a future deployment needs the
 # same investigation again, rather than rewriting this from scratch.
 _MAIL_DIAGNOSTICS_ENABLED = False
@@ -169,15 +169,12 @@ class SmtpConfigOut(BaseModel):
     smtp_user: str
     smtp_password_set: bool
     mail_from: str
-    brevo_configured: bool
 
 
 @router.get("/smtp-config", response_model=SmtpConfigOut, summary="What mail config is resolved")
 async def smtp_config() -> SmtpConfigOut:
     """Shows exactly what `app.config.settings` resolved to — from env vars, Secret
-    Files, or defaults, whichever won — without exposing the password/API key itself.
-    When `brevo_configured` is true, `app.mail` sends over Brevo's HTTPS API instead of
-    SMTP, and the SMTP fields below are irrelevant to what actually gets used."""
+    Files, or defaults, whichever won — without exposing the password itself."""
     _require_mail_diagnostics_enabled()
     return SmtpConfigOut(
         smtp_host=settings.smtp_host,
@@ -187,7 +184,6 @@ async def smtp_config() -> SmtpConfigOut:
         smtp_user=settings.smtp_user,
         smtp_password_set=bool(settings.smtp_password),
         mail_from=settings.mail_from,
-        brevo_configured=bool(settings.brevo_api_key),
     )
 
 
@@ -205,15 +201,15 @@ class TestEmailOut(BaseModel):
 async def test_email(request: TestEmail) -> TestEmailOut:
     """Sends a real message with a throwaway code to the given address right now, and
     reports the outcome directly in the response — the same send path
-    `app.services.login.request_email_code` uses (SMTP or Brevo, whichever
-    `app.mail.send_login_code` picks), just without needing a valid account or the
+    `app.services.login.request_email_code` uses (`app.mail.send_login_code`), just
+    without needing a valid account or the
     anti-enumeration silence that endpoint deliberately has."""
     _require_mail_diagnostics_enabled()
-    if not settings.smtp_host and not settings.brevo_api_key:
+    if not settings.smtp_host:
         return TestEmailOut(
             attempted=False,
             sent=False,
-            error="Neither SBL_SMTP_HOST nor SBL_BREVO_API_KEY is set.",
+            error="SBL_SMTP_HOST is not set.",
         )
     try:
         await send_login_code(request.email, "000000")

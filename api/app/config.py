@@ -129,14 +129,7 @@ class Settings(BaseSettings):
     # "segelbundesliga" is the name of one *series*, not of the association or this site
     # (see CLAUDE.md). Whatever stands here must also be verified as a sender with the mail
     # provider, or login codes are accepted and then silently dropped.
-    mail_from: str = "noreply@deutsche-segelliga.de"
-
-    # Alternate transport for hosts that block outbound SMTP entirely (a former hosted test
-    # deployment did — both port 465 and 587 timed out). Sends
-    # over Brevo's HTTPS API instead of smtplib when set; SMTP above stays the intended
-    # path for a real host that can reach an SMTP server. Opt-in and dev/test-only — not a
-    # replacement for SMTP, a workaround for one platform's egress firewall.
-    brevo_api_key: str = ""
+    mail_from: str = "website@deutsche-segelliga.de"
 
 
 settings = Settings()
