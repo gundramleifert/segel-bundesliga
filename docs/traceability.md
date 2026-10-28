@@ -78,8 +78,11 @@ here — this page says what *exists*, the report what *passed*.
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
 | J-3.1 | no account yet | V-9 | ● | W1 | — | `club-members`<br>`faq`<br>`journey-member` |
-| J-3.11 | invited by the club | V-4 | ● | — | `test_sailors_and_squads.py::test_only_the_club_admin_creates_people_for_their_own_club` | `club-members`<br>`journey-member`<br>`squad-and-lineup` |
-| J-3.12 | invited by the club | V-16 | ○ | — | — | — |
+| J-3.14 | invited by the club | V-16 | ○ | — | — | — |
+| J-3.15 | already invited | V-16 | ○ | — | — | — |
+| J-3.16 | already invited | V-16 | ○ | — | — | — |
+| J-3.11 | on record, no account | V-4 | ● | — | `test_sailors_and_squads.py::test_only_the_club_admin_creates_people_for_their_own_club` | `club-members`<br>`journey-member`<br>`squad-and-lineup` |
+| J-3.12 | on record, no account | V-16 | ○ | — | — | — |
 | J-3.13 | invited by the club | V-16 | ○ | — | — | — |
 | J-3.2 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
 | J-3.3 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
