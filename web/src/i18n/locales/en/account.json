@@ -75,13 +75,13 @@
     "publicOff": "Your page is hidden: only you, your club's leadership and the league office can open it. Your name still appears in squads, lineups and results — as plain text, without your photo."
   },
   "deleteAccount": {
-    "title": "Delete account",
-    "description": "For now, this removes the account outright — a convenience while accounts are still mostly test data, not the permanent behavior.",
-    "button": "Delete my account",
-    "confirmPrompt": "This cannot be undone. Delete the account permanently?",
-    "confirmButton": "Yes, delete permanently",
+    "title": "End account",
+    "description": "Your account is switched off: you can no longer sign in, and your roles go. Your person record and your club memberships stay — your club decides who is in it.",
+    "button": "End my account",
+    "confirmPrompt": "You can no longer sign in afterwards. End the account?",
+    "confirmButton": "Yes, end it",
     "cancelButton": "Cancel",
-    "deleting": "Deleting…"
+    "deleting": "Ending…"
   },
   "waiver": {
     "title": "Liability waiver",

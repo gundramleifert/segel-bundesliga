@@ -26,7 +26,16 @@ from datetime import datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, NamedTuple
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    String,
+    UniqueConstraint,
+    and_,
+)
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
 from app.models.base import Base, TimestampMixin
@@ -130,15 +139,17 @@ SITE = ObjectRef(ObjectType.SITE)
 #: members, organizers, the club's tuples (among its members, Story A-8) — the ``manager``
 #: decides who *sails* — squads, lineups, registrations. The league's site-wide race
 #: committee keeps the setup rights it always had (``manager: … or race_officer from
-#: site``); a race officer appointed for one event only runs its races. Membership is
-#: **not a tuple** (#40): a club's ``member`` is an account whose person holds an active
-#: ``ClubMembership`` there, handed to the interpreter as a *contextual* tuple
-#: (:data:`CONTEXTUAL`, `app/authz.py`) — as an FGA server would be sent one with the
-#: check — and never written. It implies nothing else. ``treasurer`` holds the money: the
-#: host club pays its events' costs, so the club's treasurer is that of every event it
-#: hosts (Story F-1). ``helper`` works one event's day and holds no power on it (Story
-#: VA-12). A person's ``manager`` is the organizer of a club they are an active member of
-#: (``club`` — the clubs of their active ``ClubMembership`` rows, Story V-4): who puts them
+#: site``); a race officer appointed for one event only runs its races. A club's
+#: ``member`` is a tuple like every other (#52, decided 2026-10-28: every person has an
+#: account), but it is **written only by the membership** — accepting writes it, leaving
+#: or removal deletes it (`app/services/participation.py`) — never through the tuple API
+#: (:data:`MEMBERSHIP`). Whether someone is invited or asked to join stays outside the
+#: model, on the ``ClubMembership`` row. ``member`` implies nothing else. ``treasurer``
+#: holds the money: the host club pays its events' costs, so the club's treasurer is
+#: that of every event it hosts (Story F-1). ``helper`` works one event's day and holds
+#: no power on it (Story VA-12). A person's ``manager`` is the organizer of a club they
+#: are an active member of (``club`` — the clubs of their active ``ClubMembership`` rows,
+#: Story V-4): who puts them
 #: in a squad, changes them, signs their waiver forms and links their parents.
 MODEL = """
 model
@@ -231,20 +242,20 @@ def _parse_model(text: str) -> dict[ObjectType, dict[Relation, tuple[Term, ...]]
 SCHEMA = _parse_model(MODEL)
 
 
-#: Relations the model types as ``[user]`` whose tuples nobody writes: they come from a
-#: row of their own with every check (`app/authz.py`). A club's ``member`` is the
-#: account's person's active ``ClubMembership`` (#40).
-CONTEXTUAL: frozenset[tuple[ObjectType, Relation]] = frozenset({(ObjectType.CLUB, Relation.MEMBER)})
+#: Relations the model types as ``[user]`` whose tuples only their own workflow writes,
+#: never the tuple API: a club's ``member`` comes and goes with the person's
+#: ``ClubMembership`` (#52).
+MEMBERSHIP: frozenset[tuple[ObjectType, Relation]] = frozenset({(ObjectType.CLUB, Relation.MEMBER)})
 
 
 def writable(object_type: ObjectType) -> list[Relation]:
-    """The relations a tuple can name on this object type: those with a ``[user]`` term,
-    less the contextual ones. A relation that is only derived (a person's ``admin``) is
-    not among them, nor a club's ``member`` (a membership, not a tuple)."""
+    """The relations the tuple API may write on this object type: those with a ``[user]``
+    term, less the membership's. A relation that is only derived (a person's ``admin``)
+    is not among them, nor a club's ``member`` (written by accepting a membership)."""
     return [
         relation
         for relation, terms in SCHEMA[object_type].items()
-        if any(term == "direct" for term, _ in terms) and (object_type, relation) not in CONTEXTUAL
+        if any(term == "direct" for term, _ in terms) and (object_type, relation) not in MEMBERSHIP
     ]
 
 
@@ -301,6 +312,19 @@ class User(Base, TimestampMixin):
     # Without this verification, the account cannot request membership.
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+    @hybrid_property
+    def signs_in(self) -> bool:
+        """The account can sign in: its address proven, not deactivated. Every person has
+        an account (#52) — one made by a club can't, until a code or the club's invitation
+        proves the address; one that was ended can't either. The one definition, in
+        Python and in SQL."""
+        return self.email_verified and self.is_active
+
+    @signs_in.inplace.expression
+    @classmethod
+    def _signs_in(cls):
+        return and_(cls.email_verified.is_(True), cls.is_active.is_(True))
 
     grants: Mapped[list[Grant]] = relationship(
         back_populates="user", cascade="all, delete-orphan", lazy="selectin"

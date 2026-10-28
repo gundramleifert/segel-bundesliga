@@ -14,9 +14,12 @@ in the suite).
 
 from uuid import uuid4
 
+from sqlalchemy import select
+
+from app import authz
 from app.db import SessionLocal
 from app.models import Club
-from app.models.auth import Role
+from app.models.auth import ObjectRef, ObjectType, Relation, Role, User
 from tests.stories.test_login_and_roles import (
     _admin_headers,
     _headers,
@@ -110,24 +113,76 @@ class TestMembers:
         assert refused.status_code == 422, refused.text
         assert _problem_code(refused) == "tuple-relation-invalid"
 
-    async def test_a_person_without_an_account_is_a_member_too(self, client, caplog):
-        """#40: a member is a person — a child the club's organizer created, with no
-        account, is in the roster like everyone else."""
+    async def test_a_person_the_club_creates_has_an_account_and_a_member_tuple(
+        self, client, caplog
+    ):
+        """#52: every person has an account — a child the club's admin creates gets one,
+        unverified, and is in the roster like everyone else, with the ``member`` tuple
+        written on their account."""
         club, admin = await _club_with_admin(client, caplog, "cm-admin-k@example.org")
+        email = f"kim-{uuid4().hex[:6]}@example.org"
         child = await client.post(
             "/api/admin/people",
             headers=admin,
-            json={
-                "first_name": "Kim",
-                "last_name": "Klein",
-                "email": f"kim-{uuid4().hex[:6]}@example.org",
-                "club_id": club,
-            },
+            json={"first_name": "Kim", "last_name": "Klein", "email": email, "club_id": club},
         )
         assert child.status_code == 201, child.text
         (entry,) = await _roster(client, admin, club)
-        assert (entry["display_name"], entry["user_id"]) == ("Kim Klein", None)
+        assert entry["display_name"] == "Kim Klein" and entry["user_id"] is not None
         assert entry["person_id"] == child.json()["id"]
+        async with SessionLocal() as session:
+            user = (await session.execute(select(User).where(User.email == email))).scalar_one()
+            assert user.email_verified is False
+            assert authz.read(user, Relation.MEMBER, ObjectRef(ObjectType.CLUB, club))
+
+    async def test_the_member_tuple_comes_and_goes_with_the_membership(self, client, caplog):
+        """#52: ``member`` is written only by the membership — asking writes nothing,
+        accepting writes the tuple, leaving deletes it."""
+        club, admin = await _club_with_admin(
+            client, caplog, f"cm-admin-{uuid4().hex[:6]}@example.org"
+        )
+        email = f"cm-tuple-{uuid4().hex[:6]}@example.org"
+        await make_user(email)
+        person = await _headers(client, caplog, email)
+        here = ObjectRef(ObjectType.CLUB, club)
+
+        async def holds() -> bool:
+            async with SessionLocal() as session:
+                user = (await session.execute(select(User).where(User.email == email))).scalar_one()
+                return authz.read(user, Relation.MEMBER, here)
+
+        asked = await client.post("/api/me/memberships", headers=person, json={"club_id": club})
+        assert asked.status_code == 201, asked.text
+        assert not await holds()
+        person_id = (await client.get("/api/people/me", headers=person)).json()["id"]
+        accepted = await client.post(f"/api/clubs/{club}/members/{person_id}/accept", headers=admin)
+        assert accepted.status_code == 200, accepted.text
+        assert await holds()
+        left = await client.delete(f"/api/me/memberships/{club}", headers=person)
+        assert left.status_code == 204, left.text
+        assert not await holds()
+
+    async def test_the_tuple_api_neither_lists_nor_deletes_a_membership(self, client, caplog):
+        """#52: the ``member`` tuple is the membership's alone — the club's tuples list it
+        not as a role, and deleting it as a tuple is refused (``tuple-is-membership``)."""
+        club, admin = await _club_with_admin(
+            client, caplog, f"cm-admin-{uuid4().hex[:6]}@example.org"
+        )
+        email = f"cm-row-{uuid4().hex[:6]}@example.org"
+        await make_user(email)
+        await _add(client, admin, email, club)
+        office = await _admin_headers(client, caplog, "cm-office@example.org")
+        listed = await client.get(
+            "/api/auth/tuples", headers=office, params={"object": f"club:{club}"}
+        )
+        assert listed.status_code == 200, listed.text
+        assert "member" not in {t["relation"] for t in listed.json()}
+        async with SessionLocal() as session:
+            user = (await session.execute(select(User).where(User.email == email))).scalar_one()
+            (row,) = [g for g in user.grants if g.relation == Relation.MEMBER]
+        refused = await client.delete(f"/api/auth/tuples/{row.id}", headers=office)
+        assert refused.status_code == 409, refused.text
+        assert _problem_code(refused) == "tuple-is-membership"
 
     async def test_a_clubs_manager_cannot_change_who_is_in(self, client, caplog):
         """Story V-8: the manager decides who *sails*, the admin who *belongs*."""

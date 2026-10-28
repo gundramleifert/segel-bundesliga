@@ -16,7 +16,7 @@ import type { Relation } from './relation';
  */
 export interface ClubPersonOut {
   person_id: number;
-  user_id?: number | null;
+  user_id: number;
   first_name: string;
   last_name: string;
   /** Empty for an organizer who is no member */
@@ -31,6 +31,8 @@ export interface ClubPersonOut {
   minor?: boolean | null;
   /** In one of the club's squads this year */
   in_squad?: boolean;
+  /** The account's address is proven — every person has an account (#52) */
+  signs_in?: boolean;
   /** The club's open invitation to an account — the organizers' */
   invitation?: InvitationOut | null;
 }

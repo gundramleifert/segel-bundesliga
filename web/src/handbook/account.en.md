@@ -53,15 +53,16 @@ confirmed — signing in with a code once does that.
 
 ![Sign-in methods without a password yet: the field ① and *Set password* ②](shot:help-account-password)
 
-### Delete your account {#account-delete}
+### End your account {#account-delete}
 
-[*Me* › *Profile & account*](place:profile.account) → *Delete my account* → *Yes, delete permanently*.
+[*Me* › *Profile & account*](place:profile.account) → *End my account* → *Yes, end it*.
 
-> **Careful:** This cannot be undone.
+> **Careful:** Afterwards you can no longer sign in. Every person has an account, so it is
+> switched off, not deleted.
 
 | Goes | Stays |
 |---|---|
-| the account, its sign-in methods and password | your person record: your name in squads, crews and results, your waiver confirmations, your club memberships |
+| signing in: its sign-in methods and password | the account, switched off, and your person record: your name in squads, crews and results, your waiver confirmations, your club memberships |
 | every role | claims already submitted, with the club that pays them |
 | your documents, bank account and unsubmitted claims | waiver confirmations you recorded for others |
 

@@ -41,7 +41,8 @@ async def _person(client, headers, club: int, first: str, last: str, birth: str 
 
 async def _club_of_four(client, caplog):
     """A club with its admin (no member), a member with an account who is its manager, an
-    adult and a child created by the club — no accounts — the child without a date."""
+    adult and a child created by the club — accounts nobody signed in to yet (#52) — the
+    child without a date."""
     club, admin = await _club_with_admin(client, caplog, f"cp-admin-{_tag()}@example.org")
     member_email = f"cp-mia-{_tag()}@example.org"
     await make_user(member_email)
@@ -78,6 +79,7 @@ class TestClubPeople:
         assert [p["email"] for p in await _people(client, admin, club, role="manager")] == [
             member_email
         ]
+        # Every person has an account (#52); "without" is one nobody has signed in to.
         assert {p["person_id"] for p in await _people(client, admin, club, account="false")} == {
             adult,
             child,

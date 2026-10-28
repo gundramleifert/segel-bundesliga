@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 5d2e734f4aef
+Revision ID: 8edace7753dc
 Revises: 
-Create Date: 2026-10-28 21:52:43.553964
+Create Date: 2026-10-28 22:40:32.014923
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '5d2e734f4aef'
+revision: str = '8edace7753dc'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -235,10 +235,10 @@ def upgrade() -> None:
     sa.Column('birth_date', sa.Date(), nullable=True),
     sa.Column('federation_id', sa.String(length=40), nullable=True),
     sa.Column('profile_public_choice', sa.Boolean(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_person_user_id_app_user'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_person_user_id_app_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_person')),
     sa.UniqueConstraint('user_id', name=op.f('uq_person_user_id'))
     )

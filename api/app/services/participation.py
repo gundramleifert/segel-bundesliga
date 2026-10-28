@@ -28,6 +28,7 @@ from app.models import (
     TeamStatus,
 )
 from app.problems import Problem
+from app.services import grants
 
 
 class ParticipationError(Problem):
@@ -100,16 +101,35 @@ def membership_of(person: Person, club_id: int) -> ClubMembership | None:
     return next((link for link in person.club_memberships if link.club_id == club_id), None)
 
 
-def connect_person(person: Person, club_id: int) -> None:
+async def activate(session: AsyncSession, person: Person, club_id: int) -> None:
     """The person is an active member of this club from now on (Stories V-4, Z-5) — and
-    sails for it: the ``club`` edge their permissions walk, and their account's ``member``.
-    An invitation or a request there becomes the membership. Idempotent; who may do it is
-    the caller's to check."""
-    for link in person.club_memberships:
-        if link.club_id == club_id:
-            link.status = MembershipStatus.ACTIVE
-            return
-    person.club_memberships.append(ClubMembership(club_id=club_id, status=MembershipStatus.ACTIVE))
+    sails for it: the ``club`` edge their permissions walk, and their account's ``member``
+    tuple (#52). An invitation or a request there becomes the membership. The one place
+    a row turns active, so row and tuple never disagree. Idempotent; who may do it is the
+    caller's to check."""
+    row = membership_of(person, club_id)
+    if row is not None and row.status == MembershipStatus.ACTIVE:
+        return  # and so its tuple is written already
+    if row is None:
+        person.club_memberships.append(
+            ClubMembership(club_id=club_id, status=MembershipStatus.ACTIVE)
+        )
+    else:
+        row.status = MembershipStatus.ACTIVE
+    await grants.set_member(session, person.user_id, club_id, member=True)
+
+
+async def end(session: AsyncSession, person: Person, club_id: int) -> ClubMembership | None:
+    """The person's row for the club goes, whatever its status — leaving, removed,
+    declined, withdrawn — and with an active one the ``member`` tuple. Returns the row
+    that went, ``None`` if there was none."""
+    row = membership_of(person, club_id)
+    if row is None:
+        return None
+    person.club_memberships = [link for link in person.club_memberships if link is not row]
+    if row.status == MembershipStatus.ACTIVE:
+        await grants.set_member(session, person.user_id, club_id, member=False)
+    return row
 
 
 async def squad_team(session: AsyncSession, team: Team) -> Team:

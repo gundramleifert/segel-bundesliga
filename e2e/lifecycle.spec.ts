@@ -652,7 +652,12 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     const response = await page.request.get("/api/dev/users");
     expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
     const accounts = (await response.json()) as { email: string; roles: string[] }[];
-    const manager = accounts.find((account) => account.roles.includes("team_manager"));
+    // A team manager who is not also the club's admin — an admin holds `team_manager` too,
+    // and sorts first (Gundram before Gunnar), but may do what this story says a team
+    // manager may not (Story V-4: no *New person*).
+    const manager = accounts.find(
+      (account) => account.roles.includes("team_manager") && !account.roles.includes("club_admin"),
+    );
     expect(manager, "the seed gives the test club a team manager").toBeTruthy();
     return manager!.email;
   }

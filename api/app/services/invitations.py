@@ -39,8 +39,9 @@ from app.models.auth import Relation, User
 from app.models.base import as_utc, utcnow
 from app.problems import Problem
 from app.schemas.public import InvitationOut
+from app.services import people
 from app.services.audit import EntityType, audit
-from app.services.participation import connect_person, membership_of
+from app.services.participation import activate, end, membership_of
 
 
 def hash_token(token: str) -> str:
@@ -122,20 +123,14 @@ async def invite(
     made for the invitation; their row in the club ``invited`` unless they are in it."""
     _ensure_admin(acting, club)
     email = email.strip().lower()
-    account = (await session.execute(select(User.id).where(User.email == email))).first()
-    person = (
-        await session.execute(select(Person).where(Person.email == email))
-    ).scalar_one_or_none()
-    _refuse_account(account is not None or (person is not None and person.user_id is not None))
+    person = await people.by_address(session, email)
+    _refuse_account(person is not None and await people.signs_in(session, person))
     created = person is None
     if person is None:
-        person = Person(
-            first_name=first_name.strip(),
-            last_name=last_name.strip(),
-            email=email,
-            club_memberships=[],
+        # With their account, unverified: the link is what proves the address (#52).
+        person = await people.new_person(
+            session, first_name=first_name.strip(), last_name=last_name.strip(), email=email
         )
-        session.add(person)
     return await _invite(session, club, person, acting, created=created)
 
 
@@ -146,7 +141,7 @@ async def invite_person(
     _ensure_admin(acting, club)
     if membership_of(person, club.id) is None:
         raise Problem(404, "membership-not-found", "This person is not in the club.")
-    _refuse_account(person.user_id is not None)
+    _refuse_account(await people.signs_in(session, person))
     if not person.email:
         raise Problem(
             422, "invitation-no-address", "This person has no address to send an invitation to."
@@ -217,7 +212,7 @@ async def _open(session: AsyncSession, club: Club, person_id: int, acting: User)
 async def resend(session: AsyncSession, club: Club, person_id: int, acting: User) -> InvitationOut:
     """J-3.16: a new link for the lifetime again; the earlier one is dead."""
     person, row = await _open(session, club, person_id, acting)
-    _refuse_account(person.user_id is not None)
+    _refuse_account(await people.signs_in(session, person))
     _refuse_pending(person, but=row)
     token = _issue(row, acting)
     audit(session, EntityType.PERSON, person.id, "invitation_resent", acting, club_id=club.id)
@@ -235,9 +230,14 @@ async def withdraw(session: AsyncSession, club: Club, person_id: int, acting: Us
     if row.status == MembershipStatus.ACTIVE:
         row.invitation_token_hash = row.invitation_expires_at = row.invited_by_id = None
     else:
-        person.club_memberships = [link for link in person.club_memberships if link is not row]
-        if row.created_for_invitation and person.user_id is None and not person.club_memberships:
+        await end(session, person, club.id)
+        account = await people.account_of(session, person)
+        if row.created_for_invitation and not person.club_memberships and not account.signs_in:
+            # Made only for this invitation, never signed in to: the person and the
+            # account made with them go together.
             await session.delete(person)
+            await session.flush()
+            await session.delete(account)
     await session.commit()
 
 
@@ -265,7 +265,7 @@ async def find(session: AsyncSession, token: str) -> Link:
     return Link(row, row.person, club)
 
 
-def refuse_unless_pending(link: Link) -> None:
+async def refuse_unless_pending(session: AsyncSession, link: Link) -> None:
     """An expired or used link says so and names the club to ask."""
     match state_of(link.row):
         case InvitationState.USED:
@@ -279,7 +279,7 @@ def refuse_unless_pending(link: Link) -> None:
                 "This link has lapsed; ask the club to send it again.",
                 club=link.club.name,
             )
-    if link.person.user_id is not None:
+    if await people.signs_in(session, link.person):
         raise Problem(
             409,
             "invitation-has-account",
@@ -295,11 +295,11 @@ async def redeem(session: AsyncSession, token: str, *, first_name: str, last_nam
     from app.services.login import sign_in_invited  # login imports the people service
 
     link = await find(session, token)
-    refuse_unless_pending(link)
+    await refuse_unless_pending(session, link)
     person = link.person
     person.first_name, person.last_name = first_name.strip(), last_name.strip()
     user = await sign_in_invited(session, person.email or "", person.full_name)
-    connect_person(person, link.club.id)
+    await activate(session, person, link.club.id)
     link.row.invitation_used_at = utcnow()
     # Every other club's lapsed link to this address is moot now; their rows stay, to be
     # accepted under My clubs (V-15).

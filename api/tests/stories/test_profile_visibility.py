@@ -14,7 +14,7 @@ from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.models import Club, Person, Series, Team, TeamMembership
-from app.models.auth import Role
+from app.models.auth import Role, User
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 from tests.stories.test_sailor_profile import (
@@ -59,6 +59,10 @@ async def _squad_person(email: str) -> AsyncIterator[SquadPerson]:
         ).one()
         original = (person.email, person.birth_date, person.profile_public_choice)
         person.email, person.birth_date, person.profile_public_choice = email, None, None
+        # The person's account too (#52): it is what the test signs in to.
+        account = await session.get(User, person.user_id)
+        original_address = account.email
+        account.email = email
         await session.commit()
         person_id = person.id
     try:
@@ -67,6 +71,7 @@ async def _squad_person(email: str) -> AsyncIterator[SquadPerson]:
         async with SessionLocal() as session:
             person = await session.get(Person, person_id)
             person.email, person.birth_date, person.profile_public_choice = original
+            (await session.get(User, person.user_id)).email = original_address
             await session.commit()
 
 

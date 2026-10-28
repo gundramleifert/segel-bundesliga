@@ -87,7 +87,8 @@ class TestTheClubAdminInvites:
         assert "invitation link" in caplog.records[-1].getMessage()
 
         row = (await _people(client, admin, club))[invitation["person_id"]]
-        assert (row["first_name"], row["status"], row["user_id"]) == ("Nina", "invited", None)
+        # Their account is made with them (#52), and cannot sign in until the link.
+        assert (row["first_name"], row["status"], row["signs_in"]) == ("Nina", "invited", False)
         assert row["invitation"]["state"] == "pending"
         assert invitation["person_id"] not in {m["person_id"] for m in await _roster(
             client, admin, club
@@ -108,10 +109,12 @@ class TestTheClubAdminInvites:
         assert sent.status_code == 201, sent.text and token
 
     async def test_an_address_with_an_account_is_refused(self, client, caplog):
-        """Story V-16: ``invitation-has-account`` — such a person is added by email."""
+        """Story V-16: ``invitation-has-account`` for an account someone signs in to —
+        such a person is added by email."""
         club, admin = await _club_with_admin(client, caplog, _address())
         email = _address()
         await make_user(email)
+        await _headers(client, caplog, email)  # signed in: the address is proven
         refused, _ = await _invite(client, caplog, admin, club, email)
         assert refused.status_code == 409, refused.text
         assert _problem_code(refused) == "invitation-has-account"

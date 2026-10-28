@@ -111,15 +111,13 @@ class Person(Base, TimestampMixin):
     # starts hidden and opens by itself on the eighteenth birthday unless they decided.
     # Only the sailor's own account writes this (`PATCH /api/people/me`).
     profile_public_choice: Mapped[bool | None] = mapped_column(default=None)
-    # The account this person signs in with (#40, `docs/PLAN_PEOPLE.md` §2): every account
-    # has exactly one person, a person need not have an account (a child, another club's
-    # sailor, an import). Linked by verified address (`app/services/people.py`); deleting
-    # the account clears it and keeps the person — results, squads and waivers point here.
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("app_user.id", ondelete="SET NULL"), unique=True, default=None
-    )
+    # The account this person signs in with — every person has one (#52, decided
+    # 2026-10-28), made with them (`app/services/people.py`), and every account has
+    # exactly one person. Never deleted: deleting an account deactivates it, so results,
+    # squads and waivers keep pointing at a person with an account.
+    user_id: Mapped[int] = mapped_column(ForeignKey("app_user.id"), unique=True)
 
-    user: Mapped[User | None] = relationship(back_populates="person", lazy="raise")
+    user: Mapped[User] = relationship(back_populates="person", lazy="raise")
     squad_places: Mapped[list[TeamMembership]] = relationship(back_populates="person")
     # The clubs this person is in, asked or invited to — the active ones are the ``club``
     # edge of a person in the permission model (``manager from club``,

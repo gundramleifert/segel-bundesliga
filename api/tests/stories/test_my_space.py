@@ -20,7 +20,6 @@ from app.db import SessionLocal
 from app.models import (
     Boat,
     Club,
-    ClubMembership,
     Event,
     EventCrew,
     Flight,
@@ -40,6 +39,8 @@ from app.models.competition import EventStatus
 from app.models.finance import PaymentStatus
 from app.models.org import TeamStatus
 from app.models.racing import RaceStatus
+from app.services import people
+from app.services.participation import activate
 from tests.stories.test_personal_space import upload
 from tests.stories.test_reimbursements import login, submitted
 
@@ -94,8 +95,7 @@ async def _person(email: str, *team_ids: int, birth_date: date | None = None) ->
             await session.execute(select(Person).where(Person.email == email))
         ).scalar_one_or_none()
         if person is None:
-            person = Person(email=email)
-            session.add(person)
+            person = await people.new_person(session, first_name="", last_name="", email=email)
         person.first_name, person.last_name, person.birth_date = "Sai", "Lor", birth_date
         await session.flush()
         session.add_all(TeamMembership(team_id=t, person_id=person.id) for t in team_ids)
@@ -318,14 +318,20 @@ def _need(entry: dict, code: str) -> dict | None:
 
 
 async def _club_person(club_id: int, birth_date: date | None) -> int:
-    """A sailor who sails for this club (`ClubMembership`, Story V-4), no account."""
+    """A sailor who sails for this club (`ClubMembership`, Story V-4), with an account
+    nobody signed in to (#52)."""
     async with SessionLocal() as session:
         # A capitalised surname: the admin's sailor list sorts in SQL, case-sensitively,
         # and its own test reads the seed's names (test_pagination).
-        person = Person(first_name=f"Kid {_tag()}", last_name="Kidd", birth_date=birth_date)
-        session.add(person)
-        await session.flush()
-        session.add(ClubMembership(person_id=person.id, club_id=club_id))
+        tag = _tag()
+        person = await people.new_person(
+            session,
+            first_name=f"Kid {tag}",
+            last_name="Kidd",
+            email=f"kid-{tag}@example.org",
+            birth_date=birth_date,
+        )
+        await activate(session, person, club_id)
         await session.commit()
         return person.id
 

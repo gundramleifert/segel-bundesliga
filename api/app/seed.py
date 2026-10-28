@@ -46,10 +46,13 @@ from app.models import (
     Venue,
     WaiverText,
 )
+from app.models.auth import Grant, Relation, User
 from app.models.racing import BOAT_COLORS
 from app.pairing import build_pairing
 from app.seed_junioren import seed_junioren
 from app.seed_posts import seed_posts
+from app.services import people
+from app.services.participation import activate
 from app.services.standings import recompute_series
 from app.text import slugify
 
@@ -380,7 +383,10 @@ async def seed() -> None:
                 first_name = rng.choice(FIRST_NAMES)
                 last_name = rng.choice(LAST_NAMES)
                 counter += 1
-                person = Person(
+                # With their account (#52), unverified: nobody signs in as an invented
+                # sailor, but every person has one.
+                person = await people.new_person(
+                    session,
                     first_name=first_name,
                     last_name=last_name,
                     # Unique via a sequential counter — names repeat
@@ -396,10 +402,8 @@ async def seed() -> None:
                         rng.randint(1, 28),
                     ),
                 )
-                session.add(person)
-                await session.flush()
                 squads[team.id].append(person)
-                session.add(ClubMembership(person_id=person.id, club_id=club.id))
+                await activate(session, person, club.id)
                 session.add(
                     TeamMembership(
                         team_id=team.id,
@@ -683,7 +687,8 @@ async def _junior_squads(session, juniors: Series) -> None:
     for counter, (team, club) in enumerate(registrations):
         for position in range(SQUAD_SIZE):
             first_name, last_name = rng.choice(FIRST_NAMES), rng.choice(LAST_NAMES)
-            person = Person(
+            person = await people.new_person(
+                session,
                 first_name=first_name,
                 last_name=last_name,
                 email=f"{slugify(first_name)}.{slugify(last_name)}.j{counter}x{position}"
@@ -691,9 +696,7 @@ async def _junior_squads(session, juniors: Series) -> None:
                 # Teenagers: several are minors on a 2026 matchday (Story S-2).
                 birth_date=date(rng.randint(2009, 2011), rng.randint(1, 12), rng.randint(1, 28)),
             )
-            session.add(person)
-            await session.flush()
-            session.add(ClubMembership(person_id=person.id, club_id=club.id))
+            await activate(session, person, club.id)
             session.add(
                 TeamMembership(
                     team_id=team.id,
@@ -710,6 +713,22 @@ async def _junior_squads(session, juniors: Series) -> None:
 
 
 async def _wipe(session) -> None:
+    # Every person has an account (#52): the accounts nobody ever signed in to — the
+    # invented sailors' — go with their people and their tuples, and every membership's
+    # ``member`` tuple with the memberships. Someone who signed in keeps their account and
+    # their person, in no club now.
+    unused = list(
+        (
+            await session.execute(
+                select(User.id).where(
+                    User.id.in_(select(Person.user_id)), User.email_verified.is_(False)
+                )
+            )
+        ).scalars()
+    )
+    await session.execute(
+        delete(Grant).where((Grant.relation == Relation.MEMBER) | Grant.user_id.in_(unused))
+    )
     # Order by foreign keys: Team points to Event and Series, so it must
     # be deleted before both. The import's links and runs go too: they name rows the wipe
     # removes (the juniors are imported, `app.seed_junioren`).
@@ -728,13 +747,14 @@ async def _wipe(session) -> None:
         Team,
         Event,
         ClubMembership,
-        Person,
         Club,
         Venue,
         Series,
         League,
     ):
         await session.execute(delete(model))
+    await session.execute(delete(Person).where(Person.user_id.in_(unused)))
+    await session.execute(delete(User).where(User.id.in_(unused)))
     await session.commit()
 
 

@@ -191,9 +191,7 @@ class ClubMemberOut(BaseModel):
     """
 
     person_id: int
-    user_id: int | None = Field(
-        default=None, description="The person's account — none for a child, for instance."
-    )
+    user_id: int = Field(description="The person's account — every person has one (#52)")
     display_name: str
     status: MembershipStatus = Field(
         default=MembershipStatus.ACTIVE,
@@ -221,7 +219,7 @@ class ClubPersonOut(BaseModel):
     (Story V-10), left empty for everyone else."""
 
     person_id: int
-    user_id: int | None = None
+    user_id: int
     first_name: str
     last_name: str
     status: MembershipStatus | None = Field(
@@ -238,6 +236,10 @@ class ClubPersonOut(BaseModel):
     birth_date: date | None = None
     minor: bool | None = Field(default=None, description="Empty without a date of birth")
     in_squad: bool = Field(default=False, description="In one of the club's squads this year")
+    signs_in: bool = Field(
+        default=False,
+        description="The account's address is proven — every person has an account (#52)",
+    )
     invitation: InvitationOut | None = Field(
         default=None, description="The club's open invitation to an account — the organizers'"
     )

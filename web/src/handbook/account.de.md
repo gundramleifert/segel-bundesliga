@@ -54,15 +54,16 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 
 ![Anmeldewege ohne Passwort: das Feld ① und *Passwort festlegen* ②](shot:help-account-password)
 
-### Konto löschen {#account-delete}
+### Konto beenden {#account-delete}
 
-[*Ich* › *Profil & Konto*](place:profile.account) → *Mein Konto löschen* → *Ja, endgültig löschen*.
+[*Ich* › *Profil & Konto*](place:profile.account) → *Mein Konto beenden* → *Ja, beenden*.
 
-> **Achtung:** Das lässt sich nicht rückgängig machen.
+> **Achtung:** Danach können Sie sich nicht mehr anmelden. Jede Person hat ein Konto, es
+> wird daher abgeschaltet, nicht gelöscht.
 
 | Geht | Bleibt |
 |---|---|
-| das Konto, seine Anmeldewege und das Passwort | Ihr Personendatensatz: Ihr Name in Kadern, Crews und Ergebnissen, Ihre Bestätigungen des Haftungsausschlusses, Ihre Vereinsmitgliedschaften |
+| die Anmeldung: Anmeldewege und Passwort | das Konto, abgeschaltet, und Ihr Personendatensatz: Ihr Name in Kadern, Crews und Ergebnissen, Ihre Bestätigungen des Haftungsausschlusses, Ihre Vereinsmitgliedschaften |
 | jede Rolle | bereits eingereichte Abrechnungen, beim Verein, der sie bezahlt |
 | Ihre Dokumente, Ihre Bankverbindung und nicht eingereichte Abrechnungen | Bestätigungen, die Sie für andere erfasst haben |
 

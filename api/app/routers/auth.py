@@ -379,41 +379,25 @@ async def delete_my_account(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> None:
-    """Deletes the signed-in account outright — deliberately different from
-    ``DELETE /api/auth/users/{id}`` (administration removing *someone else*, which keeps
-    the row for its history, see Story Z-6).
-
-    This is a temporary, testing-phase convenience (Story Z-7): while accounts are still
-    mostly test data, being able to clean up your own is worth more than an audit trail.
-    Once accounts are reachable from real season history (registrations, results, waiver
-    confirmations someone else relies on), a real delete stops being safe, and this should
-    become a deactivation too, or gain a precondition ("no active registrations"). Revisit
-    before real seasons depend on this data — don't just leave it as-is.
-
-    The account's ``Person`` stays, unlinked (#43): squads, results and waivers point at
-    the person, never at the account, so deleting the account never touches squad, series
-    or event history — only the account row and the administrative records that point at
-    it by id.
+    """Story Z-7: I end my account. Since #52 every person has an account, so it is
+    **deactivated**, never deleted: it can no longer sign in — its identities, password
+    and roles go, and so do my documents, bank account and unsent claims (Stories S-5,
+    S-6, F-2). The person and their memberships stay with their ``member`` tuples:
+    squads, results and waivers point at the person, and the club decides who is in it.
     """
     # A club this account is the last admin of would be left unmanaged (Story A-8) — the
-    # whole account going is one way past `grants.revoke`'s guard.
+    # account going is one way past `grants.revoke`'s guard.
     await grants.require_not_last_organizer(session, acting)
     # A waiver confirmation is someone else's evidence that they agreed to the waiver —
-    # it must not disappear just because the staff member who recorded it deleted their
+    # it must not disappear just because the staff member who recorded it ended their
     # own account. Drop the reference, keep the confirmation.
     await session.execute(
         update(WaiverConfirmation)
         .where(WaiverConfirmation.recorded_by_user_id == acting.id)
         .values(recorded_by_user_id=None)
     )
-    # Documents and their files, the bank account and unsent claims go; a submitted
-    # claim stays with the club that pays it, unlinked (Stories S-5, S-6, F-2).
     await personal.forget(session, acting)
-    # The person stays — results, squads and waivers point at it (#43).
-    people.unlink(acting)
-    # Grants, identities and the password credential cascade via the ORM relationships
-    # (cascade="all, delete-orphan").
-    await session.delete(acting)
+    await people.end_account(session, acting)
     await session.commit()
 
 

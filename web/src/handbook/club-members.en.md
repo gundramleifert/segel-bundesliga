@@ -37,14 +37,14 @@ You end your own membership with *Leave the club* instead.
 
 Someone in another club joins only with consent: *invited* until they accept in [*Me* ›
 *My clubs*](place:profile.clubs); *asks to join* until the club admin presses *Accept*
-or *Decline* in the row's *⋯*. Without an account, the league office adds them.
+or *Decline* in the row's *⋯*. Someone who cannot sign in yet, the league office adds.
 
 ### Invite someone to an account {#club-members-invite}
 
-An address nobody has — no record, no account — turns *Someone on record, by email* into
+An address nobody has turns *Someone on record, by email* into
 the invitation: first and last name, *Next*, read what follows, *Send the invitation*. A
-mail goes out; the person is *invitation pending* until they open its link, which creates
-their account and makes them a member. Someone on record without an account gets the same
+mail goes out; the person is *invitation pending* until they open its link, which unlocks
+their account and makes them a member. Someone on record who never signed in gets the same
 from their row's *⋯*, *Invite to an account*. The link works 14 days and once; while it
 does, no other club can invite the address. *Send invitation again* (a new link) and
 *Withdraw invitation* are in the row's *⋯*; a link that lapsed shows *invitation expired*

@@ -16,40 +16,36 @@ from app.models import (
     WaiverText,
 )
 from app.models.auth import Grant, IdentityProvider, LoginCode, Relation, Role, User
-from tests.accounts import forget, join
+from app.services import people
+from tests.accounts import account, join
 from tests.pages import all_items
 
 
 async def make_user(
     email: str, *roles: str, active: bool = True, club_id: int | None = None
 ) -> int:
-    # The account's tuples go with it, its person is reset (`tests/accounts.py`).
-    await forget(email)
-    async with SessionLocal() as session:
-        user = User(
-            email=email,
-            display_name=email.split("@")[0],
-            is_active=active,
-        )
-        # `Role.TEAM_MANAGER` with `club_id` means "manager of this club" — one tuple on
-        # the club; every other role here is a site relation (Story Z-2). A team manager
-        # without a club named organizes the first seeded club: a manager tuple needs an
-        # object, and these tests only care that the person organizes *some* club.
-        if (Role.TEAM_MANAGER in roles or Role.CLUB_ADMIN in roles) and club_id is None:
+    """An account holding exactly these roles, with its person (`tests/accounts.py`)."""
+    # `Role.TEAM_MANAGER` with `club_id` means "manager of this club" — one tuple on the
+    # club; every other role here is a site relation (Story Z-2). A team manager without
+    # a club named organizes the first seeded club: a manager tuple needs an object, and
+    # these tests only care that the person organizes *some* club.
+    if (Role.TEAM_MANAGER in roles or Role.CLUB_ADMIN in roles) and club_id is None:
+        async with SessionLocal() as session:
             club_id = (
                 await session.execute(select(Club.id).order_by(Club.id).limit(1))
             ).scalar_one()
-        user.grants = [
+    return await account(
+        email,
+        *(
             Grant(relation=Relation.MANAGER, club_id=club_id)
             if role == Role.TEAM_MANAGER
             else Grant(relation=Relation.ADMIN, club_id=club_id)
             if role == Role.CLUB_ADMIN
             else Grant(relation=Relation(role))
             for role in roles
-        ]
-        session.add(user)
-        await session.commit()
-        return user.id
+        ),
+        is_active=active,
+    )
 
 
 async def latest_code(email: str) -> str | None:
@@ -268,15 +264,14 @@ class TestRemoveAccount:
 
 
 class TestDeleteMyAccount:
-    """Story Z-7: a signed-in person can delete their own account outright — a
-    testing-phase convenience, unlike administration removing someone else (Z-6, which
-    deactivates and keeps the row)."""
+    """Story Z-7: a signed-in person ends their own account. Since #52 every person has
+    an account, so it is deactivated, never deleted — like administration removing
+    someone else (Z-6)."""
 
-    async def test_deleting_removes_the_row_its_tuples_and_its_token(self, client, caplog, ids):
-        """The row goes, the token stops working immediately, and every tuple of the
-        account goes with it — SQLite reuses ids, so a leftover row would belong to the
-        next account. The account's person stays, unlinked, with its membership: results,
-        squads and waivers point at the person, never at the account (#43)."""
+    async def test_ending_deactivates_drops_the_roles_and_the_token(self, client, caplog, ids):
+        """The token stops working at once, sign-in and roles go; the account and its
+        person stay with their membership and its ``member`` tuple — results, squads and
+        waivers point at the person, and the club decides who is in it (#52)."""
         user_id = await make_user("del-member@example.org")
         token = await login_as(client, "del-member@example.org", caplog)
         headers = {"Authorization": f"Bearer {token}"}
@@ -288,25 +283,17 @@ class TestDeleteMyAccount:
         response = await client.delete("/api/auth/me", headers=headers)
         assert response.status_code == 204
 
-        async with SessionLocal() as session:
-            gone = (
-                await session.execute(select(User).where(User.id == user_id))
-            ).scalar_one_or_none()
-            leftover = (
-                (await session.execute(select(Grant).where(Grant.user_id == user_id)))
-                .scalars()
-                .all()
-            )
-        assert gone is None
-        assert leftover == []
         assert (await client.get("/api/auth/me", headers=headers)).status_code == 401
         async with SessionLocal() as session:
+            user = (await session.execute(select(User).where(User.id == user_id))).scalar_one()
             person = (
-                await session.execute(
-                    select(Person).where(Person.email == "del-member@example.org")
-                )
+                await session.execute(select(Person).where(Person.user_id == user_id))
             ).scalar_one()
-        assert person.user_id is None
+        # Switched off, not unverified: the address was proven, the account just ends.
+        assert (user.is_active, user.email_verified, user.signs_in) == (False, True, False)
+        assert [(g.relation, g.club_id) for g in user.grants] == [
+            (Relation.MEMBER, ids.club("fsc"))
+        ]
         assert person.club_ids == [ids.club("fsc")]
 
     async def test_waiver_confirmations_survive_with_recorder_cleared(self, client, caplog, ids):
@@ -316,13 +303,13 @@ class TestDeleteMyAccount:
         token = await login_as(client, "del-recorder@example.org", caplog)
 
         async with SessionLocal() as session:
-            person = Person(
-                first_name="Del",
-                last_name="Tester",
-                email="del-tester-sailor@example.com",
+            person = (
+                await session.execute(
+                    select(Person).where(Person.email == "del-tester-sailor@example.com")
+                )
+            ).scalar_one_or_none() or await people.new_person(
+                session, first_name="Del", last_name="Tester", email="del-tester-sailor@example.com"
             )
-            session.add(person)
-            await session.flush()
             waiver = (
                 await session.execute(select(WaiverText).where(WaiverText.version == 1))
             ).scalar_one()

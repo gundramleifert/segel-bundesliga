@@ -21,7 +21,6 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app import authz
 from app.auth import current_user
@@ -45,7 +44,7 @@ from app.services import grants, invitations, people
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
-from app.services.participation import connect_person, membership_of
+from app.services.participation import activate, end, membership_of
 from app.services.waivers import is_minor
 
 router = APIRouter(tags=["clubs"])
@@ -70,7 +69,7 @@ async def _roster(
     order = list(Relation).index
     members = []
     for person, standing in rows:
-        held = roles.get(person.user_id, []) if person.user_id is not None else []
+        held = roles.get(person.user_id, [])
         active = standing == MembershipStatus.ACTIVE
         relations = sorted({Relation.MEMBER, *held} if active else set(held), key=order)
         members.append(
@@ -190,12 +189,15 @@ async def list_club_people(
     )
     # The accounts' addresses, for the organizers: a role is written to the account, whose
     # address need not be the person record's.
-    accounts: dict[int, str] = {}
-    if organizer:
-        ids = [p.user_id for p in persons if p.user_id is not None]
-        accounts = dict(
-            (await session.execute(select(User.id, User.email).where(User.id.in_(ids)))).all()
+    rows = (
+        await session.execute(
+            select(User.id, User.email, User.signs_in).where(
+                User.id.in_([p.user_id for p in persons])
+            )
         )
+    ).all()
+    accounts = {row.id: row.email for row in rows} if organizer else {}
+    signing_in = {row.id for row in rows if row.signs_in}
     return page_of(
         [
             ClubPersonOut(
@@ -204,14 +206,13 @@ async def list_club_people(
                 first_name=person.first_name,
                 last_name=person.last_name,
                 status=row.status if (row := membership_of(person, club.id)) else None,
-                roles=sorted(roles.get(person.user_id, []), key=order)
-                if person.user_id is not None
-                else [],
+                roles=sorted(roles.get(person.user_id, []), key=order),
                 email=person.email if organizer else None,
                 account_email=accounts.get(person.user_id),
                 birth_date=person.birth_date if organizer else None,
                 minor=is_minor(person.birth_date, today) if organizer else None,
                 in_squad=person.id in in_squad,
+                signs_in=person.user_id in signing_in,
                 invitation=invitations.out(row) if organizer and row else None,
             )
             for person in persons
@@ -247,17 +248,7 @@ async def add_club_member(
         title="Only the club's admin adds people to the club.",
     )
     email = request.email.strip().lower()
-    person = (
-        await session.execute(select(Person).where(Person.email == email))
-    ).scalar_one_or_none()
-    if person is None:
-        account = (
-            await session.execute(
-                select(User).options(selectinload(User.grants)).where(User.email == email)
-            )
-        ).scalar_one_or_none()
-        if account is not None:
-            person = await people.person_for(session, account)
+    person = await people.by_address(session, email)
     if person is None:
         raise Problem(
             404,
@@ -276,13 +267,13 @@ async def add_club_member(
     others = [c for c in person.club_ids if c != club.id]
     if row is not None or not others or authz.check(acting, Relation.ADMIN):
         # Asked themselves, in no club, or the league office: a member now.
-        connect_person(person, club.id)
+        await activate(session, person, club.id)
         audit(session, EntityType.PERSON, person.id, "join_club", acting, club_id=club.id)
-    elif person.user_id is None:
+    elif not await people.signs_in(session, person):
         raise Problem(
             409,
             "membership-needs-league-office",
-            "This person is in another club and has no account to accept an invitation; "
+            "This person is in another club and cannot sign in to accept an invitation; "
             "the league office adds them.",
             person_id=person.id,
         )
@@ -320,7 +311,7 @@ async def accept_club_member(
     row = membership_of(person, club.id)
     if row is None or row.status != MembershipStatus.REQUESTED:
         raise Problem(404, "membership-request-not-found", "This person has not asked to join.")
-    row.status = MembershipStatus.ACTIVE
+    await activate(session, person, club.id)
     audit(session, EntityType.PERSON, person.id, "accept", acting, club_id=club.id)
     await session.commit()
     return next(m for m in await _roster(session, club) if m.person_id == person.id)
@@ -343,7 +334,7 @@ async def remove_club_member(
     club are tuples and stay; whoever removes a member removes those one by one."""
     club = await get_or_404(session, Club, club_id)
     person = await get_or_404(session, Person, person_id)
-    leaving = person.user_id is not None and person.user_id == acting.id
+    leaving = person.user_id == acting.id
     if not leaving:
         authz.ensure(
             acting,
@@ -352,16 +343,15 @@ async def remove_club_member(
             code="membership-forbidden",
             title="Only the club's admin removes someone from the club.",
         )
-    _end(person, club.id, acting, session)
+    await _end(person, club.id, acting, session)
     await session.commit()
 
 
-def _end(person: Person, club_id: int, acting: User, session: AsyncSession) -> None:
+async def _end(person: Person, club_id: int, acting: User, session: AsyncSession) -> None:
     """Deletes the person's row for the club — leaving, removing, declining, withdrawing."""
-    row = membership_of(person, club_id)
+    row = await end(session, person, club_id)
     if row is None:
         raise Problem(404, "membership-not-found", "This person is not in the club.")
-    person.club_memberships = [link for link in person.club_memberships if link is not row]
     audit(
         session, EntityType.PERSON, person.id, "end_membership", acting,
         club_id=club_id, status=row.status,
@@ -452,7 +442,7 @@ async def ask_to_join(
             membership_status=row.status,
         )
     if row is not None:
-        row.status = MembershipStatus.ACTIVE
+        await activate(session, person, club.id)
         audit(session, EntityType.PERSON, person.id, "accept", acting, club_id=club.id)
     else:
         person.club_memberships.append(
@@ -478,7 +468,7 @@ async def accept_invitation(
         raise Problem(
             404, "membership-invitation-not-found", "There is no invitation from this club."
         )
-    row.status = MembershipStatus.ACTIVE
+    await activate(session, person, club_id)
     audit(session, EntityType.PERSON, person.id, "accept", acting, club_id=club_id)
     await session.commit()
     return await _mine(session, person)
@@ -495,5 +485,5 @@ async def end_my_membership(
     """Story V-15: I leave a club, decline its invitation or withdraw my request — the
     row is gone either way."""
     person = await require_linked_person(session, acting)
-    _end(person, club_id, acting, session)
+    await _end(person, club_id, acting, session)
     await session.commit()

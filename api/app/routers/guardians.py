@@ -117,7 +117,7 @@ async def link_guardian(
             "guardian-account-missing",
             "No account with this address — the parent registers first.",
         )
-    if person.user_id is not None and person.user_id == parent.id:
+    if person.user_id == parent.id:
         raise Problem(
             422,
             "guardian-is-the-person",

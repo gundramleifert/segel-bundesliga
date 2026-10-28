@@ -19,7 +19,16 @@ from sqlalchemy.orm import selectinload
 from app import authz
 from app.authz import ObjectRef
 from app.models import Club, Event, Person, Series
-from app.models.auth import GRANT_COLUMN, Grant, ObjectType, Relation, User, grant_names, writable
+from app.models.auth import (
+    GRANT_COLUMN,
+    MEMBERSHIP,
+    Grant,
+    ObjectType,
+    Relation,
+    User,
+    grant_names,
+    writable,
+)
 from app.problems import Problem
 from app.services.audit import EntityType, audit
 
@@ -120,6 +129,21 @@ async def grant(
     return row
 
 
+async def set_member(session: AsyncSession, user_id: int, club_id: int, *, member: bool) -> None:
+    """Writes or deletes ``user:member:club`` (#52) — called only by the membership
+    (`app/services/participation.py`), which logs the change itself. Through the loaded
+    account, so a check later in the same request sees it (expire_on_commit is off)."""
+    user = await session.get(User, user_id)
+    assert user is not None
+    held = next(
+        (g for g in user.grants if g.relation == Relation.MEMBER and g.club_id == club_id), None
+    )
+    if member and held is None:
+        user.grants.append(Grant(relation=Relation.MEMBER, club_id=club_id))
+    elif not member and held is not None:
+        user.grants = [g for g in user.grants if g is not held]
+
+
 async def require_not_last_organizer(session: AsyncSession, user: User) -> None:
     """Story A-8 for an account that goes as a whole — deleted or deactivated — rather than
     one tuple at a time through :func:`revoke`: refused while some club would be left
@@ -148,6 +172,14 @@ async def revoke(session: AsyncSession, target: User, row: Grant, *, actor: User
     """Deletes exactly this tuple (not yet committed) and logs it. Every other tuple of
     the person stays — an earlier "set roles" endpoint rebuilt the rows from a list of
     names and silently dropped every per-club grant on any edit."""
+    if (row.object_type, row.relation) in MEMBERSHIP:
+        # The membership writes and deletes it (#52): a membership without its tuple
+        # would be a member the model does not know.
+        raise Problem(
+            409,
+            "tuple-is-membership",
+            "Membership is ended through the club's people, not as a tuple.",
+        )
     if (
         row.relation == Relation.ADMIN
         and row.object_type is ObjectType.SITE
@@ -213,7 +245,9 @@ async def grants_on(
     relation: Relation | None = None,
 ) -> list[Grant]:
     """Every tuple written on this object (of this relation) — FGA ``Read`` by object, the
-    "who has access here" list. Named and with their accounts."""
+    "who has access here" list. Named and with their accounts. Without a relation named,
+    the memberships' ``member`` tuples are left out: membership is the club's people,
+    not a role (#52)."""
     stmt = (
         select(Grant)
         .options(selectinload(Grant.user), *grant_names())
@@ -225,6 +259,8 @@ async def grants_on(
         stmt = stmt.where(getattr(Grant, GRANT_COLUMN[object_type]) == object_id)
     if relation is not None:
         stmt = stmt.where(Grant.relation == relation)
+    elif object_type is ObjectType.CLUB:
+        stmt = stmt.where(Grant.relation != Relation.MEMBER)
     return list((await session.execute(stmt)).scalars().all())
 
 

@@ -18,8 +18,8 @@ import type { Relation } from './relation';
  */
 export interface ClubMemberOut {
   person_id: number;
-  /** The person's account — none for a child, for instance. */
-  user_id?: number | null;
+  /** The person's account — every person has one (#52) */
+  user_id: number;
   display_name: string;
   /** Only the club's admin sees `invited` and `requested` (Story V-15). */
   status?: MembershipStatus;

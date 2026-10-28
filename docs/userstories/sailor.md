@@ -76,7 +76,7 @@ As an **active club member** I want to **see who else belongs to my club**, so t
 **know who I'm sailing with** — without needing the leadership's admin view.
 
 Acceptance criteria:
-- Every active member of the club — a person, with or without an account — with what
+- Every active member of the club — a person, with their account (#52) — with what
   else their account is to it (manager,
   admin, race officer) so the organizers are recognizable — display name only, no
   email: contact data stays the club admin's business (the People panel,
@@ -99,7 +99,7 @@ Screen: the *People* section, `/me/club/:id/people` (Stories V-12, S-7, Z-10, #4
 read-only for a plain member; the roster stays on the public club page for a signed-in
 member as well.
 
-The roster is the club's **active** members — people, with or without an account — with
+The roster is the club's **active** members — people, each with an account (#52) — with
 their roles on the club; names only, no email and no date of birth, and no filter that
 would tell either (`club-people-filter-forbidden`). For the organizers the same section
 is the full list (V-8). An `invited` or `requested` person is not on it and does not see
@@ -413,25 +413,26 @@ organizers of a club they are an **active** member of.
 
 Tests: `api/tests/stories/test_profile_visibility.py::TestProfileVisibility`
 
-### Z-7 ● Delete my own account
+### Z-7 ● End my own account
 
-As a **signed-in person** I want to **delete my own account outright**,
-so that **cleaning up a test account doesn't need administration**.
+As a **signed-in person** I want to **end my own account**, so that **I can stop signing
+in without asking the administration**.
 
-Deliberately different from Z-6: this is a **testing-phase convenience**, not the
-permanent answer. While accounts are still mostly test data, self-service cleanup matters
-more than an audit trail — a real delete is safe because nothing in season history points
-at a `User` by foreign key today (`Person` is linked only by email). **Once accounts are
-reachable from real registrations, results, or waiver confirmations other people rely on,
-this stops being safe** and should become a deactivation too, or gain a precondition —
-revisit before real seasons depend on this data.
+Until 2026-10-28 this deleted the account row outright — a testing-phase convenience,
+safe while nothing pointed at an account. Since #52 **every person has an account**, so
+an account is never deleted: ending it **deactivates** it, like administration does for
+someone else (Z-6).
 
 Acceptance criteria:
-- `DELETE /api/auth/me` removes the account row itself, not just `is_active`.
-- Administrative rows that point at the account by id and have no ORM cascade are cleaned
-  up explicitly: club memberships (`ClubMember`) are deleted; a waiver confirmation the
-  account recorded for someone else keeps its row, with the reference cleared.
-- `Grant` (the tuples) and `Identity` rows go with the account (already cascaded).
+- `DELETE /api/auth/me` deactivates the account (`is_active`); the row stays, and so does
+  the fact that its address was proven — it only stops signing in (`User.signs_in`).
+- Sign-in goes: identities and the password. Roles go — every tuple but the
+  memberships' `member`. My documents, bank account and unsent claims go (S-5, S-6, F-2).
+- The person and their club memberships stay, with their `member` tuples: squads,
+  results and waivers point at the person, and the club decides who is in it.
+- A waiver confirmation the account recorded for someone else keeps its row, with the
+  reference cleared.
+- The club's last admin cannot end their account (A-8).
 - The now-invalid token stops working immediately, same as any other removed account.
 
 Endpoints: `DELETE /api/auth/me`

@@ -388,22 +388,15 @@ Contexts = dict[ContextKey, Context]
 
 
 async def linked_person(session: AsyncSession, user: User) -> Person | None:
-    """The account's person (``Person.user_id``, #40) — without a 404: an account whose
-    unverified address another person already uses has none yet
-    (`app/services/people.py`)."""
+    """The account's person (``Person.user_id``). Every account has one (#52) — made with
+    it at registration, enrollment or a club's entry — so ``None`` means a row the
+    invariant missed."""
     return user.person
 
 
 async def require_linked_person(session: AsyncSession, user: User) -> Person:
     """:func:`linked_person`, for a page about *my* person record — the profile, my
-    waivers — where having none is a 404.
-
-    Requires the address to be **verified**: an account that merely claims an email
-    proves nothing, and matching on it would let anyone view or edit any sailor's record
-    just by typing their address at sign-up. The 404 is worded the same whether the
-    reason is "no verified email at all" or "no sailor row uses this email" — a caller has
-    no legitimate use for telling those apart.
-    """
+    waivers. The 404 guards the invariant, it is not a state a person meets."""
     person = await linked_person(session, user)
     if person is None:
         raise Problem(

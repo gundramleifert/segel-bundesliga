@@ -129,7 +129,7 @@ async def read_invitation(
     """Story V-16: for the link's page. A lapsed or used link answers 410 naming the club
     to ask (``invitation-expired``, ``invitation-used``); one replaced by a resend 404."""
     link = await invitations.find(session, token)
-    invitations.refuse_unless_pending(link)
+    await invitations.refuse_unless_pending(session, link)
     person = link.person
     return InvitationLinkOut(
         club_id=link.club.id,

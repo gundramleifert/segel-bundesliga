@@ -24,14 +24,18 @@ signs in is two things to the system, and "is Anna in our club?" has two answers
   UI words; public `/sailors/:id` redirects to `/people/:id`): name, date of birth,
   contact email, federation id, the profile switch (S-4). It is what squads, crews,
   waivers, results and guardians point at, as `Sailor` is today.
-- **`Person.user_id`** — the account a person signs in with: optional, unique. **Every
-  account has exactly one person**: created with the account (registration, enrollment,
-  first sign-in), or the existing person with that **verified** address is linked to it.
-  A person without an account is normal (children, other clubs' sailors, imports).
+- **`Person.user_id`** — the account a person signs in with: unique, and since #52
+  (2026-10-28) **required — every person has an account**, with an address of its own,
+  children included. Person and account are made together (`people.new_person`); an
+  account made by a club is unverified until a code or the club's invitation proves the
+  address. *Until #52: optional — "a person without an account is normal (children,
+  other clubs' sailors, imports)".*
 - **`ClubMembership`** (today's `SailorClub`, plus a status) is **the** membership:
   `person · club · status` with status `active`, `invited` (the club asked, the person has
   not answered) or `requested` (the person asked, the club has not answered). The
-  `member` tuple on a club goes away; being a member is an `active` row.
+  `member` tuple on a club goes away; being a member is an `active` row. *Since #52 the
+  tuple is back, written only by the membership: an `active` row and its `member` tuple
+  come and go together (`participation.activate` / `end`).*
 - **Roles stay tuples on accounts** — `admin`, `manager`, `treasurer` on a club and every
   series, event and site relation: a role is exercised by signing in, so it needs an
   account. A role does not make anyone a member, and a member needs no role (as today).

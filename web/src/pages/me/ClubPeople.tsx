@@ -380,7 +380,7 @@ function PeopleTable({
                 <span className="text-xs text-muted">{t("members.you")}</span>
               )}
               {/* Only the organizers' (Story S-5) — a plain member would only be refused (#11). */}
-              {mayOrganize && row.original.user_id != null && !isSelf(row.original, account?.id) && (
+              {mayOrganize && !isSelf(row.original, account?.id) && (
                 <PersonDocuments
                   userId={row.original.user_id}
                   name={fullName(row.original)}
@@ -438,7 +438,8 @@ function PeopleTable({
           header: t("people.account"),
           enableSorting: false,
           meta: { filters: filters.account },
-          cell: ({ row }) => <span className="text-muted">{row.original.user_id != null ? "✓" : "—"}</span>,
+          // Every person has an account (#52): ✓ is one that signs in.
+          cell: ({ row }) => <span className="text-muted">{row.original.signs_in ? "✓" : "—"}</span>,
         }),
         column.accessor("in_squad", {
           header: t("people.squad"),
@@ -520,9 +521,9 @@ function pendingLabel(p: ClubPersonOut): { label: string; expired: boolean } | n
   return { label: p.invitation ? "invite.pending" : "members.statusInvited", expired: false };
 }
 
-/** A row's key in test ids: the account, else the person record. */
-const rowKey = (p: ClubPersonOut) => p.user_id ?? `person-${p.person_id}`;
-const isSelf = (p: ClubPersonOut, accountId: number | undefined) => p.user_id != null && p.user_id === accountId;
+/** A row's key in test ids: the account — every person has one (#52). */
+const rowKey = (p: ClubPersonOut) => p.user_id;
+const isSelf = (p: ClubPersonOut, accountId: number | undefined) => p.user_id === accountId;
 
 /** Every change to a row, behind one "⋯" (the club's admin's): accept or decline a
  * request, withdraw an invitation, give or take a role (an account's — a person without
@@ -558,7 +559,7 @@ function RowActions({ person, self }: { person: ClubPersonOut; self: boolean }) 
       danger: true,
       run: () => act(person, withdrawInvitation(clubId, id)),
     });
-  } else if (person.user_id == null && person.email && person.status === "active") {
+  } else if (!person.signs_in && person.email && person.status === "active") {
     // Journey step J-3.12: on record without an account — the link adds the account.
     items.push({
       key: "invite",
@@ -577,7 +578,7 @@ function RowActions({ person, self }: { person: ClubPersonOut; self: boolean }) 
     });
   }
   for (const relation of person.roles ?? []) {
-    const tupleId = person.user_id != null ? tupleOf.get(`${person.user_id}:${relation}`) : undefined;
+    const tupleId = tupleOf.get(`${person.user_id}:${relation}`);
     if (tupleId === undefined) continue;
     items.push({
       key: `revoke-${relation}`,

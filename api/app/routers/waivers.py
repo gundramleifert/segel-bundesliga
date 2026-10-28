@@ -960,7 +960,7 @@ async def _may_view_scan(
             acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event
         ):
             return True
-    if person.user_id is not None and person.user_id == acting.id:
+    if person.user_id == acting.id:
         return True
     return authz.check(acting, Relation.MANAGER, on=person)
 
@@ -977,7 +977,7 @@ async def _may_confirm_for(session: AsyncSession, acting: User, person: Person) 
     club's manager: the `team_manager` *summary* role once let one club sign for every
     sailor on the site. Returns which of the three it is — the first that applies."""
     # Their own account — linked to them by a verified address (`app/services/people.py`).
-    if person.user_id is not None and person.user_id == acting.id:
+    if person.user_id == acting.id:
         return OWN
     if authz.check(acting, Relation.MANAGER, on=person):
         return STAFF

@@ -248,7 +248,9 @@ class ClubPersonFilter(ListFilter):
         return Person.user_id.in_(holders)
 
     def where_account(self, account: bool):
-        return Person.user_id.is_not(None) if account else Person.user_id.is_(None)
+        # Every person has an account (#52): "with an account" is one that signs in.
+        signing_in = select(User.id).where(User.signs_in)
+        return Person.user_id.in_(signing_in) if account else Person.user_id.not_in(signing_in)
 
     def where_minor(self, minor: bool):
         since = _adult_since(date.today())

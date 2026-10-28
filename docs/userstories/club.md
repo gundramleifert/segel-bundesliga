@@ -107,7 +107,7 @@ Endpoints: `POST /api/auth/tuples`
 - A person in **no club** becomes an `active` member at once, as today. A person
   **already in another club** gets an invitation instead (`invited`), which they accept
   in *Me › My clubs* ([V-15](#v-15--join-a-second-club-with-consent-either-way-round));
-  without an account nobody could accept, so that case stays the league office's.
+  whose account cannot sign in nobody could accept, so that case stays the league office's.
 
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
@@ -124,8 +124,12 @@ corrects the club's people (a date of birth, a spelling) and puts **members** in
 Acceptance criteria:
 - First name, last name, and **email are all required** — someone created through this form
   must be reachable: the address is the bridge to the account, through which the person
-  signs in and submits their liability waiver (V-1, S-1). (A future manage2sail import may
-  still write a sailor without one, bypassing this form.)
+  signs in and submits their liability waiver (V-1, S-1).
+- **The person's account is created with them** (#52, decided 2026-10-28: every person
+  has an account, children included, each with an address of their own), **unverified**:
+  it cannot sign in until the address is proven — by a code (Z-4) or the club's invitation
+  (V-16). It counts as a member at once, with its `member` tuple on the club. An address
+  another account already has is refused (`email-taken`).
 - Birth date is captured as a **complete date**, not just a year — age-category eligibility
   (e.g. a youth series) needs the exact date. It stays optional and is never shown publicly.
 - **A person sails for clubs, and that is in the permission model** (decided 2026-10-25):
@@ -204,7 +208,7 @@ Endpoints: `GET /api/admin/people`, `POST /api/admin/people`,
 - **A second club is consent, no longer only the league office**: the club's admin
   invites, or the person asks, and the other side accepts
   ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)). A person in another
-  club without an account still goes through the league office — nobody could accept.
+  club whose account cannot sign in still goes through the league office — nobody could accept.
 - The squad rule stays: a squad takes only people with an active membership in its club.
 - The *Sailors* section went; its work is in *People* (V-8), filtered by *No date of
   birth* for the `person_without_birth_date` to-do.
@@ -235,7 +239,7 @@ Acceptance criteria:
   declines (deleted). A person in no club asking is accepted the same way.
 - An `invited` or `requested` row grants nothing: the person is not a member, not in the
   club's `manager from club` edge, not in a squad, and does not see the roster.
-- A person in another club **without an account** cannot be invited (nobody could
+- A person in another club **whose account cannot sign in** cannot be invited (nobody could
   accept); the league office adds them, as before.
 - Every change of a membership — invite, ask, accept, decline, leave, remove — is in the
   audit log.
@@ -255,7 +259,7 @@ Tests: `api/tests/stories/test_join_with_consent.py::TestTheClubInvites`,
 `e2e/join-consent.spec.ts`
 
 ### V-16 ● Invite someone to an account
-As a **club admin** I want to **invite someone who has no account by email**, so that
+As a **club admin** I want to **invite someone who cannot sign in yet by email**, so that
 **they get their account from the mail and then join our club** — without registering on
 their own first and without knowing that they have to.
 
@@ -269,15 +273,16 @@ site tells the person any of this; the club says it on the pontoon. Found drawin
 onboarding into Journey J-3 (2026-10-28).
 
 **Account first, then the club** (decided 2026-10-28): the invitation is a **pending**
-membership (`ClubMembership.status = invited`, as for V-15) of a person who has no
-account yet. Redeeming the link creates the account and makes the membership `active` —
-the person says yes by opening it. Squads stay the team manager's, afterwards (V-1).
+membership (`ClubMembership.status = invited`, as for V-15) of a person whose account
+cannot sign in yet — since #52 every person has one, made with them, unverified.
+Redeeming the link verifies that account and makes the membership `active` — the person
+says yes by opening it. Squads stay the team manager's, afterwards (V-1).
 
 Acceptance criteria:
 - **Where.** The club's `admin` invites from *＋ Person* › *Someone on record, by email*:
   when the address belongs to no account, the dialog offers *Send an invitation* instead
   of the 404 (J-3.1) — first and last name as the club knows them, the address already
-  filled in. A person of the club who is on record without an account is invited from
+  filled in. A person of the club whose account nobody has signed in to is invited from
   their row's "⋯". **Not the team manager** (decided 2026-10-28): the admin decides who
   is *in* the club, the team manager who *sails*.
 - **The admin acknowledges what follows** before anything is sent — a confirmation in the

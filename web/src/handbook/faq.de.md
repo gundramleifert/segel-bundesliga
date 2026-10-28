@@ -59,7 +59,7 @@ Die Person steht in einer Crew eines Spieltags. Ändern Sie zuerst die Aufstellu
 #### Das Mitglied, das ich eintragen möchte, hat kein Konto.
 Wer schon erfasst ist – eine Person, die Ihr Verein angelegt hat –, nehmen Sie über die
 Adresse unter *Jemand Bekanntes, per E-Mail* auf. Alle anderen legen Sie unter *Eine neue
-Person* an. Jemanden aus einem anderen Verein ohne Konto nimmt nur die Geschäftsstelle
+Person* an. Jemanden aus einem anderen Verein, der sich noch nicht anmelden kann, nimmt nur die Geschäftsstelle
 auf: [Mitglieder eintragen](#club-members-add).
 
 #### Warum ist jemand, den ich aufgenommen habe, nur *eingeladen*?

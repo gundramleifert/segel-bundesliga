@@ -77,7 +77,12 @@ async def list_test_users(
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
 ) -> list[TestUserOut]:
-    users = (await session.execute(select(User).order_by(User.display_name))).scalars().all()
+    # Accounts someone signs in to: the invented sailors' accounts (#52) are nobody's.
+    users = (
+        (await session.execute(select(User).where(User.signs_in).order_by(User.display_name)))
+        .scalars()
+        .all()
+    )
     clubs = {club.id: club.short_name for club in (await session.execute(select(Club))).scalars()}
 
     return [

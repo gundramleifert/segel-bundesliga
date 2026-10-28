@@ -136,9 +136,9 @@ member leaves by ending their own membership. The club's half is
 `/api/clubs/{id}/members`, the person's `/api/me/memberships` (*Me › My clubs*, *Ask to
 join* on the club page); either side deletes a waiting row to decline or withdraw.
 
-**Someone with no account is invited to one — account first, then the club** (Story
+**Someone who cannot sign in yet is invited — account first, then the club** (Story
 V-16, decided 2026-10-28, `app/services/invitations.py`). The club's admin sends a mail
-whose link creates the account, its address verified by the link, and makes the pending
+whose link verifies the account made with the person (#52) and makes the pending
 (`invited`) membership active; it works with registration closed and self-signup off,
 being the club's explicit enrollment. One valid invitation per address at a time
 (`invitation-pending`, naming no club), 14 days, single use, the token stored hashed; a
@@ -361,29 +361,34 @@ These points were deliberately decided this way; bypassing them costs a lot late
   route about one event. An object's admin sees and writes its tuples
   (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
-  silently dropped. Membership implies nothing else; it is a `ClubMembership` row, not a
-  tuple (#40): the model types `member` on a club, nobody writes it, and the facade
-  hands the account's person's active memberships to every check as *contextual* tuples
-  (`CONTEXTUAL` in `app/models/auth.py`) — so `check(user, member, club)` still answers.
+  silently dropped. A club's `member` is a written tuple like the others (#52, decided
+  2026-10-28), but **only the membership writes it**: `participation.activate` writes
+  it when a `ClubMembership` row turns active, `participation.end` deletes it with the
+  row — never the tuple API (`MEMBERSHIP` in `app/models/auth.py`). Whether someone is
+  invited or asked stays on the row, outside the model. Membership implies nothing else:
+  a club's `admin` need not be its member.
   A club always keeps one `admin` (Story A-8): removing the last one is refused even
   while managers remain, or nobody could add a member any more.
   Four foreign keys and one small interpreter are the whole model: no authorization
   service.
 - **A member and a sailor are one `Person`, and the model knows their clubs** (decided
-  2026-10-25, #40, `docs/PLAN_PEOPLE.md`; Stories V-4, Z-5, V-15). A person exists once,
-  may have an account (`Person.user_id` — every account has exactly one person, linked by
-  verified address), and an **active** `ClubMembership` is both "member" and "sails for";
+  2026-10-25, #40, `docs/PLAN_PEOPLE.md`; Stories V-4, Z-5, V-15). A person exists once
+  and **has an account, always, with an address of its own** (#52, decided 2026-10-28,
+  children included: `Person.user_id` is required, `people.new_person` makes both), and
+  an **active** `ClubMembership` is both "member" and "sails for";
   a person's `manager` is `manager from club` over those. That one answer decides who
   puts them in a squad, changes them, signs their waiver forms and links their parents.
   **Who is in a club is its `admin`'s, who sails its `manager`'s** (decided 2026-10-28):
   only the club's admin creates people for it (a new person is a member at once), adds,
   invites or removes them; the team manager completes and corrects the club's people and
   puts its **members** in squads — never someone in no club. A second club takes consent
-  (invited/requested, accepted by the other side), and a person in another club without
-  an account only the league office adds — no club can simply take anyone. The link is
-  made in `app/services/people.py` (registration, enrollment, every sign-in); deleting an
-  account keeps its person and clears `user_id`. An `invited` or `requested` row grants
-  nothing — only `active` rows are the edge and the `member`.
+  (invited/requested, accepted by the other side), and a person in another club whose
+  account cannot sign in yet only the league office adds — no club can simply take
+  anyone. An account made with a person is **unverified** and signs in once its address
+  is proven, by a code or the club's invitation; it counts as a member all the same.
+  Ending an account **deactivates** it (`DELETE /api/auth/me`): sign-in and roles go,
+  the account, the person and their memberships stay. An `invited` or `requested` row
+  grants nothing — only `active` rows are the edge and the `member`.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   and organizing (`manager` or `admin` on it) are both per
   club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which
@@ -543,7 +548,7 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Pairing lists, accounts | `admin` |
 | See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
-| Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club is invited and accepts, or asks and the club's admin accepts (V-15); one without an account only the site's `admin` adds |
+| Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club is invited and accepts, or asks and the club's admin accepts (V-15); one whose account cannot sign in yet only the site's `admin` adds |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
 | Create people (sailors) — a member of the club at once | `admin`; the club's `admin` for their own club — never its `manager` |
 | Change people (sailors) | `admin`; a club's `manager` (or `admin`) for its active members, or people in no club; an address once set: `admin` only |

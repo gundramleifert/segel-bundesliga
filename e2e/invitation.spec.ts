@@ -31,14 +31,15 @@ describeStory("V-16: a club's admin invites someone without an account", () => {
     const people = await request.get(`/api/clubs/${asvw}/people?q=${encodeURIComponent(email)}`, {
       headers: await bearer(request, BOARD),
     });
-    const row = ((await people.json()) as { items: { person_id: number }[] }).items[0];
-    await expect(page.getByTestId(`my-club-member-pending-person-${row.person_id}`)).toBeVisible();
+    // Every person has an account (#52), so the row's test ids carry the account's id.
+    const row = ((await people.json()) as { items: { person_id: number; user_id: number }[] }).items[0];
+    await expect(page.getByTestId(`my-club-member-pending-${row.user_id}`)).toBeVisible();
     await page.getByTestId(`my-club-member-actions-${row.person_id}`).click();
     await expect(page.getByTestId(`my-club-member-invitation-resend-${row.person_id}`)).toBeVisible();
 
     // Withdrawn, the person made only for the invitation is gone again.
     await page.getByTestId(`my-club-member-invitation-withdraw-${row.person_id}`).click();
-    await expect(page.getByTestId(`my-club-member-pending-person-${row.person_id}`)).toHaveCount(0);
+    await expect(page.getByTestId(`my-club-member-pending-${row.user_id}`)).toHaveCount(0);
   });
 
   test("a link that is not valid says so", async ({ page }) => {

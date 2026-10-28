@@ -1686,12 +1686,12 @@
   "anchor": "z-6--removing-an-account-deactivates-it"
  },
  "Z-7": {
-  "title": "Delete my own account",
+  "title": "End my own account",
   "status": "●",
   "role": "Sailor",
   "phase": "My profile",
   "file": "docs/userstories/sailor.md",
-  "anchor": "z-7--delete-my-own-account"
+  "anchor": "z-7--end-my-own-account"
  },
  "Z-8": {
   "title": "My space: everything I am part of, on one page",

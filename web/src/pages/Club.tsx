@@ -132,7 +132,7 @@ function Members({ clubId }: { clubId: number }) {
             {members.map((member: ClubMemberSummary) => (
               <li
                 key={member.person_id}
-                data-testid={`club-member-row-${member.user_id ?? `person-${member.person_id}`}`}
+                data-testid={`club-member-row-${member.user_id}`}
                 className="flex items-center justify-between gap-3 py-2"
               >
                 <span>{member.display_name}</span>

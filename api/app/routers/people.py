@@ -56,10 +56,10 @@ from app.pagination import (
 )
 from app.problems import Problem
 from app.schemas.public import MemberOut
-from app.services import is_minor, pictures
+from app.services import is_minor, people, pictures
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
-from app.services.participation import connect_person
+from app.services.participation import activate, end
 from app.storage import respond, storage
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
@@ -360,10 +360,11 @@ async def create_person(
             email=request.email,
         )
 
-    person = Person(**request.model_dump(exclude={"club_id"}), club_memberships=[])
+    # Every person has an account (#52): made with them, unverified until the address is
+    # proven — by a code, or by the club's invitation link (V-16).
+    person = await people.new_person(session, **request.model_dump(exclude={"club_id"}))
     if request.club_id is not None:
-        connect_person(person, request.club_id)
-    session.add(person)
+        await activate(session, person, request.club_id)
     await session.commit()
     return PersonAdminOut.model_validate(person)
 
@@ -403,6 +404,11 @@ async def update_person(
 
     for field, value in changes.items():
         setattr(person, field, value)
+    account = await people.account_of(session, person)
+    if email and not account.signs_in:
+        # An account nobody has signed in to yet is the person's address, nothing more
+        # (#52): it follows the record, so the code or the invitation goes to the new one.
+        account.email = email
 
     await session.commit()
     return PersonAdminOut.model_validate(person)
@@ -425,7 +431,7 @@ async def disconnect_person_from_club(
     person = await _person(session, person_id)
     if not authz.check(acting, Relation.ADMIN, on=ObjectRef(ObjectType.CLUB, club_id)):
         raise _not_yours(person)
-    person.club_memberships = [link for link in person.club_memberships if link.club_id != club_id]
+    await end(session, person, club_id)
     await session.commit()
     return PersonAdminOut.model_validate(person)
 
@@ -526,7 +532,7 @@ async def set_squad(
 
     await _not_removing_lined_up(session, team, set(desired))
     for person in joining:
-        connect_person(person, team.club_id)
+        await activate(session, person, team.club_id)
 
     await session.execute(delete(TeamMembership).where(TeamMembership.team_id == team.id))
     session.add_all(
@@ -706,7 +712,7 @@ async def connected_to_person(session: AsyncSession, acting: User | None, person
     """
     if acting is None:
         return False
-    if person.user_id is not None and person.user_id == acting.id:
+    if person.user_id == acting.id:
         return True
     return authz.check(acting, Relation.MANAGER, on=person)
 
@@ -770,10 +776,9 @@ async def _team(session: AsyncSession, team_id: int) -> Team:
 
 
 async def _email_taken(session: AsyncSession, email: str, *, except_id: int | None = None) -> bool:
-    stmt = select(Person.id).where(Person.email == email)
-    if except_id is not None:
-        stmt = stmt.where(Person.id != except_id)
-    return (await session.execute(stmt.limit(1))).scalar_one_or_none() is not None
+    """A person or an account already has the address — an account's is its sign-in."""
+    holder = await people.by_address(session, email)
+    return holder is not None and holder.id != except_id
 
 
 async def _all_exist(session: AsyncSession, person_ids: set[int]) -> None:

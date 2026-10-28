@@ -75,13 +75,13 @@
     "publicOff": "Ihre Seite ist verborgen: Nur Sie, die Leitung Ihres Vereins und die Ligageschäftsstelle können sie öffnen. Ihr Name steht weiter in Kader, Aufstellung und Ergebnissen — als reiner Text, ohne Foto."
   },
   "deleteAccount": {
-    "title": "Konto löschen",
-    "description": "Das Konto wird derzeit vollständig entfernt — eine Erleichterung, solange Konten größtenteils Testdaten sind, kein Dauerzustand.",
-    "button": "Mein Konto löschen",
-    "confirmPrompt": "Das lässt sich nicht rückgängig machen. Konto endgültig löschen?",
-    "confirmButton": "Ja, endgültig löschen",
+    "title": "Konto beenden",
+    "description": "Ihr Konto wird abgeschaltet: Sie können sich nicht mehr anmelden, und Ihre Rollen entfallen. Ihr Personendatensatz und Ihre Vereinsmitgliedschaften bleiben — wer im Verein ist, entscheidet Ihr Verein.",
+    "button": "Mein Konto beenden",
+    "confirmPrompt": "Danach können Sie sich nicht mehr anmelden. Konto beenden?",
+    "confirmButton": "Ja, beenden",
     "cancelButton": "Abbrechen",
-    "deleting": "Wird gelöscht…"
+    "deleting": "Wird beendet…"
   },
   "waiver": {
     "title": "Haftungsausschluss",

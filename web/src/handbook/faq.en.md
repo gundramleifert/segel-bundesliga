@@ -54,7 +54,7 @@ They are in an event crew. Change the crew first: [the crew](#squad-and-lineup-c
 #### The member I want to add has no account.
 Someone on record — a person your club created — is added by their address under
 *Someone on record, by email*. Anyone else you create under *A new person*. Someone in
-another club without an account only the league office adds: [add members](#club-members-add).
+another club who cannot sign in yet only the league office adds: [add members](#club-members-add).
 
 #### Why is someone I added only *invited*?
 They are already in another club, so they join only when they accept in *Me* › *My

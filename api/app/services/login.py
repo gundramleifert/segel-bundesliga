@@ -339,8 +339,8 @@ async def register(session: AsyncSession, email: str, display_name: str) -> None
         user = User(email=email, display_name=name, email_verified=False)
         session.add(user)
         await session.flush()
-        # A person of their own unless one already uses the address — that one becomes
-        # theirs when the code proves it (`app/services/people.py`).
+        # Every account has its person (#52); an address a club entered has its account
+        # already, made with the person, and does not come here.
         await people.person_for(session, user)
         await session.commit()
 
