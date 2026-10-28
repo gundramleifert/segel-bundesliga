@@ -130,6 +130,8 @@ class Settings(BaseSettings):
     # (see CLAUDE.md). Whatever stands here must also be verified as a sender with the mail
     # provider, or login codes are accepted and then silently dropped.
     mail_from: str = "website@deutsche-segelliga.de"
+    # The name a mail program shows for that address.
+    mail_from_name: str = "Deutsche Segel-Liga"
 
 
 settings = Settings()

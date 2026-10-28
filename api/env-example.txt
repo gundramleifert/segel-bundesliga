@@ -33,6 +33,7 @@ SBL_SMTP_PASSWORD=
 # Must also be verified as a sender with the mail provider, or login
 # codes are accepted and then silently dropped.
 SBL_MAIL_FROM=website@deutsche-segelliga.de
+SBL_MAIL_FROM_NAME=Deutsche Segel-Liga
 
 # Pairing generator: JAR from reference/PairingList, built with "mvn -DskipTests package"
 SBL_PAIRING_JAR=../reference/PairingList/target/pairing-list-1.0-SNAPSHOT-jar-with-dependencies.jar

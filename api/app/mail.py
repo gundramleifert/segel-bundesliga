@@ -12,6 +12,7 @@ import logging
 import smtplib
 import ssl
 from email.message import EmailMessage
+from email.utils import formataddr
 
 from app.config import settings
 
@@ -23,7 +24,7 @@ class MailError(Exception):
     smtplib/network error so callers don't need to know smtplib's exception zoo."""
 
 
-SUBJECT = "Your login code for Deutsche Segelliga"
+SUBJECT = "Your login code for Deutsche Segel-Liga"
 
 BODY = """Hello,
 
@@ -47,7 +48,7 @@ async def send_login_code(email: str, code: str) -> None:
 
     message = EmailMessage()
     message["Subject"] = SUBJECT
-    message["From"] = settings.mail_from
+    message["From"] = formataddr((settings.mail_from_name, settings.mail_from))
     message["To"] = email
     message.set_content(body)
 
