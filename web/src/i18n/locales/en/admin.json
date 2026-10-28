@@ -176,6 +176,7 @@
     "atMaxHint": "the maximum of {max} is reached",
     "fullReason": "Squad is full ({max})",
     "otherClub": "Sails for another club — the league office can add them",
+    "notMember": "Not a member of the club — the club's admin adds them",
     "newPerson": "New person for our club …",
     "newPersonCreate": "Create and add",
     "newPersonCancel": "Cancel",

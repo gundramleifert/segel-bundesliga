@@ -93,6 +93,9 @@ class TestCreatingSailors:
             client, caplog, "sg-foreign@example.com", Role.TEAM_MANAGER, club_id=other
         )
         own = await as_role(client, caplog, "sg-own@example.com", Role.TEAM_MANAGER, club_id=byc)
+        foreign_admin = await as_role(
+            client, caplog, "sg-foreign-admin@example.com", Role.CLUB_ADMIN, club_id=other
+        )
 
         refused = await client.patch(
             f"/api/admin/people/{byc_person}", headers=foreign, json={"first_name": "Hijacked"}
@@ -109,7 +112,7 @@ class TestCreatingSailors:
         # organizer cannot rename them, before any squad holds them.
         created = await client.post(
             "/api/admin/people",
-            headers=foreign,
+            headers=foreign_admin,
             json={
                 "first_name": "Neu",
                 "last_name": "Ling",
@@ -148,9 +151,12 @@ class TestCreatingSailors:
             client, caplog, "sg-mail@example.com", Role.TEAM_MANAGER, club_id=club
         )
         office = await as_role(client, caplog, "sg-mail-office@example.com", Role.ADMIN)
+        club_admin = await as_role(
+            client, caplog, "sg-mail-admin@example.com", Role.CLUB_ADMIN, club_id=club
+        )
         created = await client.post(
             "/api/admin/people",
-            headers=manager,
+            headers=club_admin,
             json={
                 "first_name": "Mia",
                 "last_name": "Mail",
@@ -272,13 +278,16 @@ class TestRegisteringASquad:
 
     async def test_a_new_squad_replaces_the_previous_one_completely(self, client, caplog):
         """The squad hangs off the series registration and is replaced as a whole. The
-        club leadership creates the sailors itself (V-4) — they know the spelling of names,
-        the head office doesn't."""
+        club's admin creates the sailors (V-4) — they know the spelling of names, the head
+        office doesn't — and the team manager registers them."""
         team_id, club_id = await series_registration()
         header = await as_role(
             client, caplog, "kd2@example.com", Role.TEAM_MANAGER, club_id=club_id
         )
-        people = await self._new_people(client, header, 4, "Er", club_id)
+        club_admin = await as_role(
+            client, caplog, "kd2-admin@example.com", Role.CLUB_ADMIN, club_id=club_id
+        )
+        people = await self._new_people(client, club_admin, 4, "Er", club_id)
         path = f"/api/admin/teams/{team_id}/members"
 
         first = await client.put(
@@ -490,10 +499,10 @@ class TestSquadRefusalsAreTyped:
 
 
 class TestASailorSailsForTheirClub:
-    """V-4, V-1: a club's organizer puts in a squad the people who sail for their club —
-    never someone another club has. A person may still sail for several clubs, but only
-    the league office adds them to a second (decided 2026-10-25: before, any club could
-    put anyone in its squad and so sign their waivers and link their parents)."""
+    """V-4, V-1: a club's organizer puts in a squad the club's own members — never someone
+    another club has, nor someone in no club: who is in the club is its admin's to decide,
+    the team manager's only who sails (decided 2026-10-28). Before 2026-10-25 any club
+    could put anyone in its squad and so sign their waivers and link their parents."""
 
     async def _two_clubs(self, tag: str) -> tuple[int, int, int, int]:
         """Two fresh clubs, each registered for a series of its own: (team A, club A,
@@ -516,9 +525,12 @@ class TestASailorSailsForTheirClub:
         team_a, club_a, team_b, club_b = await self._two_clubs("sfc1")
         a = await as_role(client, caplog, "sfc1-a@example.com", Role.TEAM_MANAGER, club_id=club_a)
         b = await as_role(client, caplog, "sfc1-b@example.com", Role.TEAM_MANAGER, club_id=club_b)
+        admin_a = await as_role(
+            client, caplog, "sfc1-admin-a@example.com", Role.CLUB_ADMIN, club_id=club_a
+        )
         created = await client.post(
             "/api/admin/people",
-            headers=a,
+            headers=admin_a,
             json={
                 "first_name": "Anna",
                 "last_name": "Eigen",
@@ -547,11 +559,16 @@ class TestASailorSailsForTheirClub:
     async def test_only_the_league_office_adds_a_second_club(self, client, caplog):
         team_a, club_a, team_b, club_b = await self._two_clubs("sfc2")
         office = await as_role(client, caplog, "sfc2-office@example.com", Role.ADMIN)
-        a = await as_role(client, caplog, "sfc2-a@example.com", Role.TEAM_MANAGER, club_id=club_a)
         b = await as_role(client, caplog, "sfc2-b@example.com", Role.TEAM_MANAGER, club_id=club_b)
+        admin_a = await as_role(
+            client, caplog, "sfc2-admin-a@example.com", Role.CLUB_ADMIN, club_id=club_a
+        )
+        admin_b = await as_role(
+            client, caplog, "sfc2-admin-b@example.com", Role.CLUB_ADMIN, club_id=club_b
+        )
         created = await client.post(
             "/api/admin/people",
-            headers=a,
+            headers=admin_a,
             json={
                 "first_name": "Ben",
                 "last_name": "Beide",
@@ -562,7 +579,7 @@ class TestASailorSailsForTheirClub:
         person = created.json()["id"]
 
         # No club hands a person to another — not even the one they sail for.
-        handed = await client.put(f"/api/admin/people/{person}/clubs/{club_b}", headers=a)
+        handed = await client.put(f"/api/admin/people/{person}/clubs/{club_b}", headers=admin_a)
         assert handed.status_code in (404, 405), handed.text
 
         joined = await client.put(
@@ -574,20 +591,28 @@ class TestASailorSailsForTheirClub:
         found = await client.get("/api/admin/people", headers=office, params={"q": "Beide"})
         assert found.json()["items"][0]["club_ids"] == sorted([club_a, club_b])
 
-        # Each club lets go of its own connection only.
-        cut = await client.delete(f"/api/admin/people/{person}/clubs/{club_a}", headers=b)
+        # Each club's admin lets go of its own connection only — never its team manager.
+        cut = await client.delete(f"/api/admin/people/{person}/clubs/{club_a}", headers=admin_b)
         assert cut.status_code == 403, cut.text
-        left = await client.delete(f"/api/admin/people/{person}/clubs/{club_b}", headers=b)
+        by_manager = await client.delete(f"/api/admin/people/{person}/clubs/{club_b}", headers=b)
+        assert by_manager.status_code == 403, by_manager.text
+        left = await client.delete(f"/api/admin/people/{person}/clubs/{club_b}", headers=admin_b)
         assert left.status_code == 200, left.text
         assert left.json()["club_ids"] == [club_a]
 
-    async def test_someone_who_sails_for_nobody_joins_the_club_with_the_squad(self, client, caplog):
-        """The league office creates people without a club (an import does too); the first
-        club to put them in a squad is the one they sail for."""
+    async def test_someone_in_no_club_joins_through_the_club_admin_not_the_squad(
+        self, client, caplog
+    ):
+        """The league office creates people without a club (an import does too). A team
+        manager cannot take them into the club through a squad (`squad-person-not-a-member`,
+        decided 2026-10-28) — the club's admin adds them, then they sail."""
         team_a, club_a, team_b, club_b = await self._two_clubs("sfc3")
         office = await as_role(client, caplog, "sfc3-office@example.com", Role.ADMIN)
         a = await as_role(client, caplog, "sfc3-a@example.com", Role.TEAM_MANAGER, club_id=club_a)
         b = await as_role(client, caplog, "sfc3-b@example.com", Role.TEAM_MANAGER, club_id=club_b)
+        admin_a = await as_role(
+            client, caplog, "sfc3-admin-a@example.com", Role.CLUB_ADMIN, club_id=club_a
+        )
         created = await client.post(
             "/api/admin/people",
             headers=office,
@@ -596,6 +621,19 @@ class TestASailorSailsForTheirClub:
         person = created.json()["id"]
         assert created.json()["club_ids"] == []
 
+        refused = await client.put(
+            f"/api/admin/teams/{team_a}/members",
+            headers=a,
+            json={"members": [{"person_id": person, "role": "crew"}]},
+        )
+        assert refused.status_code == 403, refused.text
+        assert refused.json()["type"] == "/errors/squad-person-not-a-member"
+        assert refused.json()["people"] == ["Cleo Frei"]
+
+        added = await client.post(
+            f"/api/clubs/{club_a}/members", headers=admin_a, json={"email": "sfc3-cleo@example.com"}
+        )
+        assert added.status_code == 201, added.text
         first = await client.put(
             f"/api/admin/teams/{team_a}/members",
             headers=a,
@@ -609,10 +647,22 @@ class TestASailorSailsForTheirClub:
         )
         assert second.status_code == 403, second.text
 
-    async def test_an_organizer_creates_people_for_their_own_club(self, client, caplog):
+    async def test_only_the_club_admin_creates_people_for_their_own_club(self, client, caplog):
+        """A new person is a member at once, so creating one is the club's admin's — the
+        team manager decides who sails, not who is in the club (decided 2026-10-28).
+
+        Journey step J-3.11."""
         _, club_a, _, club_b = await self._two_clubs("sfc4")
-        a = await as_role(client, caplog, "sfc4-a@example.com", Role.TEAM_MANAGER, club_id=club_a)
+        manager = await as_role(
+            client, caplog, "sfc4-m@example.com", Role.TEAM_MANAGER, club_id=club_a
+        )
+        a = await as_role(client, caplog, "sfc4-a@example.com", Role.CLUB_ADMIN, club_id=club_a)
         person = {"first_name": "Dora", "last_name": "Dort", "email": "sfc4-dora@example.com"}
+        by_manager = await client.post(
+            "/api/admin/people", headers=manager, json={**person, "club_id": club_a}
+        )
+        assert by_manager.status_code == 403, by_manager.text
+        assert by_manager.json()["type"] == "/errors/person-club-not-yours"
         without = await client.post("/api/admin/people", headers=a, json=person)
         assert without.status_code == 422, without.text
         assert without.json()["type"] == "/errors/person-needs-club"
@@ -621,6 +671,9 @@ class TestASailorSailsForTheirClub:
         )
         assert elsewhere.status_code == 403, elsewhere.text
         assert elsewhere.json()["type"] == "/errors/person-club-not-yours"
+        own = await client.post("/api/admin/people", headers=a, json={**person, "club_id": club_a})
+        assert own.status_code == 201, own.text
+        assert own.json()["club_ids"] == [club_a]
 
 
 class TestFindingTheRightPerson:

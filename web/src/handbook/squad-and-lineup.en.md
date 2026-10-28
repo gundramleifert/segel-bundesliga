@@ -26,11 +26,10 @@ takes it back.
 ### Find your sailors {#squad-and-lineup-sailors}
 
 The squad's search finds anyone by name or email address and shows where they sail. Your
-squad takes the people who sail for your club, and anyone who sails for no club yet —
-they then sail for yours. Someone who sails for another club is greyed out: a person may
-sail for several clubs, but only the league office adds them to a second one.
-Someone missing? *New person for our club …* creates them with their sign-in address and
-puts them in the squad; *＋ Person* › *A new person* in [*your club* › *People*](place:club.people) creates them for your club — a member at once, in no squad yet.
+squad takes your club's members. Anyone else is greyed out: someone in no club yet is
+added to the club by the club admin first; a person may sail for several clubs, but only
+the league office adds them to a second one. Someone missing? Ask your club admin:
+*＋ Person* › *A new person* in [*your club* › *People*](place:club.people) creates them for your club — a member at once — and as club admin you also find *New person for our club …* right here.
 
 ### Register the squad {#squad-and-lineup-squad}
 

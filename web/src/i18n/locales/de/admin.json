@@ -176,6 +176,7 @@
     "atMaxHint": "das Maximum von {max} ist erreicht",
     "fullReason": "Kader ist voll ({max})",
     "otherClub": "Segelt für einen anderen Verein — die Geschäftsstelle kann die Person hinzufügen",
+    "notMember": "Kein Mitglied des Vereins — die Vereinsverwaltung nimmt die Person auf",
     "newPerson": "Neue Person für unseren Verein …",
     "newPersonCreate": "Anlegen und hinzufügen",
     "newPersonCancel": "Abbrechen",

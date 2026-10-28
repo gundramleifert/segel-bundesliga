@@ -547,6 +547,48 @@
   "who": "club member",
   "what": "the membership is gone; the club is no longer in my space; the person record stays"
  },
+ "J-3.11": {
+  "journey": "J-3",
+  "story": "V-4",
+  "path": "on record, no account",
+  "who": "club admin",
+  "what": "a person of the club with an address and no account — an active member at once (a new person is in no club)"
+ },
+ "J-3.12": {
+  "journey": "J-3",
+  "story": "V-16",
+  "path": "on record, no account",
+  "who": "club admin",
+  "what": "an invitation mailed from the person's row — a one-use link for 14 days"
+ },
+ "J-3.13": {
+  "journey": "J-3",
+  "story": "V-16",
+  "path": "invited by the club",
+  "who": "person",
+  "what": "an account with the address verified by the link, linked to the club's person record; the membership `active` — account first, then the club; signed in"
+ },
+ "J-3.14": {
+  "journey": "J-3",
+  "story": "V-16",
+  "path": "invited by the club",
+  "who": "club admin",
+  "what": "after confirming what follows: a mail with a one-use link for 14 days; the person is on record, *pending* (`invited`) — in no squad, not a member"
+ },
+ "J-3.15": {
+  "journey": "J-3",
+  "story": "V-16",
+  "path": "already invited",
+  "who": "club admin",
+  "what": "another club's invitation to that address is refused (`invitation-pending`, 409), naming no club"
+ },
+ "J-3.16": {
+  "journey": "J-3",
+  "story": "V-16",
+  "path": "already invited",
+  "who": "club admin",
+  "what": "the inviting club's admin resends: a new link for 14 days, the earlier one dead"
+ },
  "J-3.2": {
   "journey": "J-3",
   "story": "Z-4",
@@ -1386,6 +1428,14 @@
   "phase": "Members",
   "file": "docs/userstories/club.md",
   "anchor": "v-15--join-a-second-club-with-consent-either-way-round"
+ },
+ "V-16": {
+  "title": "Invite someone to an account",
+  "status": "○",
+  "role": "Club: its admin and its team manager",
+  "phase": "Members",
+  "file": "docs/userstories/club.md",
+  "anchor": "v-16--invite-someone-to-an-account"
  },
  "V-2": {
   "title": "Select sailors for matchday",

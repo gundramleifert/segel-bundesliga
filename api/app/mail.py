@@ -15,6 +15,7 @@ from email.message import EmailMessage
 from email.utils import formataddr
 
 from app.config import settings
+from app.i18n import Locale, tr
 
 logger = logging.getLogger(__name__)
 
@@ -24,21 +25,88 @@ class MailError(Exception):
     smtplib/network error so callers don't need to know smtplib's exception zoo."""
 
 
-SUBJECT = "Your login code for Deutsche Segel-Liga"
+# Mails go out in **German** unless the caller knows the reader's language (decided
+# 2026-10-28): the site's readers are German clubs and sailors, and a mail — unlike a page —
+# has no language switcher. English is the second variant, through `tr` as everywhere.
+MAIL_LOCALE: Locale = "de"
 
-BODY = """Hello,
+# Every mail ends with the same footer: who sends it, why the reader gets it, where to
+# write to a person, and the privacy and legal pages. The sender is the association, not a
+# league — the same name as the site. The register court and number are not in it: they
+# are still «folgt» in the legal notice (`legal.json`) and are not to be invented. A mail
+# the site sends is transactional — something the reader or their club did — so it carries
+# no unsubscribe link; it says instead what caused it. `-- ` (with its space) is the
+# signature delimiter mail programs fold away in a reply.
+FOOTER_EN = """
+-- 
+Deutsche Segel-Liga e.V.
+c/o Düsseldorfer Yacht-Club · Rotterdamer Straße 30 · 40474 Düsseldorf
+
+You receive this email because {reason}.
+It was sent automatically — to reach a person, write to {contact}.
+
+Website: {site}
+Privacy: {site}/privacy · Legal notice: {site}/legal-notice
+"""
+
+FOOTER_DE = """
+-- 
+Deutsche Segel-Liga e.V.
+c/o Düsseldorfer Yacht-Club · Rotterdamer Straße 30 · 40474 Düsseldorf
+
+Sie erhalten diese E-Mail, weil {reason}.
+Sie wurde automatisch versandt — eine Person erreichen Sie unter {contact}.
+
+Website: {site}
+Datenschutz: {site}/privacy · Impressum: {site}/legal-notice
+"""
+
+
+def with_footer(body: str, reason: str, locale: Locale = MAIL_LOCALE) -> str:
+    """``body`` with the footer every mail of the site ends with; ``reason`` completes
+    "You receive this email because …" in ``locale``'s language."""
+    footer = tr(locale, en=FOOTER_EN, de=FOOTER_DE)
+    return body + footer.format(
+        reason=reason, contact=settings.mail_contact, site=settings.site_url
+    )
+
+
+async def send_login_code(email: str, code: str, locale: Locale = MAIL_LOCALE) -> None:
+    minutes = settings.otp_lifetime_minutes
+    subject = tr(
+        locale,
+        en="Your login code for Deutsche Segel-Liga",
+        de="Ihr Anmeldecode für die Deutsche Segel-Liga",
+    )
+    text = tr(
+        locale,
+        en="""Hello,
 
 Your login code is: {code}
 
 It is valid for {minutes} minutes and can only be used once.
 
 If you did not try to log in, you can ignore this message — nothing happens without the code.
-"""
+""",
+        de="""Hallo,
 
+Ihr Anmeldecode lautet: {code}
 
-async def send_login_code(email: str, code: str) -> None:
-    minutes = settings.otp_lifetime_minutes
-    body = BODY.format(code=code, minutes=minutes)
+Er gilt {minutes} Minuten und kann nur einmal verwendet werden.
+
+Wenn Sie sich nicht anmelden wollten, können Sie diese Nachricht ignorieren —
+ohne den Code geschieht nichts.
+""",
+    )
+    body = with_footer(
+        text.format(code=code, minutes=minutes),
+        tr(
+            locale,
+            en="a login code for this address was requested on our website",
+            de="auf unserer Website ein Anmeldecode für diese Adresse angefordert wurde",
+        ),
+        locale,
+    )
 
     if not settings.smtp_host:
         # No mail server configured: code goes to the log instead. Intended for development
@@ -47,7 +115,7 @@ async def send_login_code(email: str, code: str) -> None:
         return
 
     message = EmailMessage()
-    message["Subject"] = SUBJECT
+    message["Subject"] = subject
     message["From"] = formataddr((settings.mail_from_name, settings.mail_from))
     message["To"] = email
     message.set_content(body)

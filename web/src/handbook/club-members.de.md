@@ -24,7 +24,8 @@ Spaltenname sortiert.
 
 Drücken Sie *＋ Person* oben rechts:
 
-- *Eine neue Person* – sofort Mitglied. Vereinsverwaltung oder Teammanager.
+- *Eine neue Person* – sofort Mitglied. Nur die Vereinsverwaltung: Wer im Verein ist,
+  entscheidet sie, wer segelt der Teammanager.
 - *Jemand Bekanntes, per E-Mail* – Vereinsverwaltung: Adresse ①, Rollen unter *Als* ②,
   *Hinzufügen* ③.
 

@@ -45,10 +45,11 @@ describeStory("Z-10: the club's sections follow what I hold on the club", () => 
     await page.goto(`/me/club/${club}/club-page`);
     await expect(page.getByTestId("workspace-content-club-overview")).toBeVisible();
 
-    // *People*: the club's people, and the way to add one (#45).
+    // *People*: the club's people (#45) — and no way to add one: who is in the club is
+    // its admin's to decide, the team manager's only who sails (Story V-4, 2026-10-28).
     await openSection(page, "club", "people");
     await expect(page.getByTestId("my-club-people-table")).toBeVisible();
-    await expect(page.getByTestId(`my-club-access-${club}-open`)).toBeVisible();
+    await expect(page.getByTestId(`my-club-access-${club}-open`)).toHaveCount(0);
     // A filter sits in the header of the column it narrows, and lands in the address —
     // the server narrows, the table keeps its header when nothing is left.
     await page.getByTestId("my-club-people-filter-birth_date").click();

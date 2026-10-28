@@ -4,6 +4,11 @@ As a **club** I want **a new sailor to go from no account at all to a member of 
 with their own person record** — so that **the person can sign in, see their club and be
 put in a squad, without anyone at the league office doing it for them**.
 
+Two ways lead to the account: the person **registers themselves** (main path), or the
+club admin **sends an invitation** whose link creates the account and then makes them a
+member — account first, then the club (branch "invited by the club", Story V-16, not
+built yet). Both end in the same verified account linked to the person's record.
+
 Who: club admin, person, club member, team manager
 Starting point: the club exists and has a club admin and a team manager; the new sailor has
 no account and is on no record.
@@ -21,6 +26,7 @@ sequenceDiagram
   participant P as Site
 
   Note over CA,P: added before registering? — branch "no account yet"
+  Note over CA,P: the club invites instead? — branch "invited by the club"
   N->>P: [J-3.2] registers with email and name
   N->>P: [J-3.3] redeems the code from the email
   Note over N,P: prefers a password — branch "password"
@@ -34,7 +40,8 @@ sequenceDiagram
 
 ### Branch "no account yet" — the club admin is too early
 
-Before J-3.2: the person has to register first.
+Before J-3.2: the person has to register first. Once V-16 is built, the dialog offers
+the invitation here instead — branch "invited by the club".
 
 ```mermaid
 sequenceDiagram
@@ -43,6 +50,54 @@ sequenceDiagram
 
   CA->>P: [J-3.1] adds the person by email
   P-->>CA: not found — they register first
+```
+
+### Branch "invited by the club" — the club admin invites someone without an account
+
+Instead of J-3.2 to J-3.5: the club admin enters an address no account has, confirms what
+will follow, and sends the invitation; the person is *pending* until the link creates
+their account and makes them a member. Then the main path goes on at J-3.6. Inviting is
+the club admin's alone: the admin decides who is in the club, the team manager who sails
+(decided 2026-10-28).
+
+```mermaid
+sequenceDiagram
+  actor CA as Club admin
+  actor N as Person
+  participant P as Site
+
+  CA->>P: [J-3.14] enters the address, confirms what follows, sends the invitation
+  P-->>N: an email with a link — the person is pending
+  Note over CA,P: another club tries too, or the link lapses — branch "already invited"
+  N->>P: [J-3.13] opens the link, confirms the name — an account, then a member
+```
+
+### Branch "already invited" — one invitation at a time
+
+After J-3.14, while the person has not answered.
+
+```mermaid
+sequenceDiagram
+  actor CA as Club admin
+  participant P as Site
+
+  CA->>P: [J-3.15] another club's admin invites the same address
+  P-->>CA: refused — an invitation is pending
+  CA->>P: [J-3.16] the inviting club's admin resends — a new link, 14 days again
+```
+
+### Branch "on record, no account" — the club created the person earlier
+
+Instead of J-3.14: the person is already in the club, created by the admin (V-4), and gets
+the invitation from their row; the link then only adds the account. Goes on at J-3.13.
+
+```mermaid
+sequenceDiagram
+  actor CA as Club admin
+  participant P as Site
+
+  CA->>P: [J-3.11] creates the person for the club, with their email
+  CA->>P: [J-3.12] sends them an invitation from their row
 ```
 
 ### Branch "password" — a password instead of a code each time
@@ -72,6 +127,12 @@ sequenceDiagram
 | Step | Path | Story | Who | What is then true |
 |---|---|---|---|---|
 | J-3.1 | no account yet | V-9 | club admin | refused with 404 — nobody is on record under the address; nobody is added |
+| J-3.14 | invited by the club | V-16 | club admin | after confirming what follows: a mail with a one-use link for 14 days; the person is on record, *pending* (`invited`) — in no squad, not a member |
+| J-3.15 | already invited | V-16 | club admin | another club's invitation to that address is refused (`invitation-pending`, 409), naming no club |
+| J-3.16 | already invited | V-16 | club admin | the inviting club's admin resends: a new link for 14 days, the earlier one dead |
+| J-3.11 | on record, no account | V-4 | club admin | a person of the club with an address and no account — an active member at once (a new person is in no club) |
+| J-3.12 | on record, no account | V-16 | club admin | an invitation mailed from the person's row — a one-use link for 14 days |
+| J-3.13 | invited by the club | V-16 | person | an account with the address verified by the link, linked to the club's person record; the membership `active` — account first, then the club; signed in |
 | J-3.2 | main | Z-4 | person | an account exists, its address only claimed; a code is mailed — the same answer for a known address |
 | J-3.3 | main | Z-4 | person | the address is verified; the account has its own person record (#40), no role and no club |
 | J-3.4 | password | Z-9 | person | a password is set; signing in with it gives a token |
@@ -88,11 +149,16 @@ The person becomes a *club member* the moment the club admin adds them (J-3.5): 
 `ClubMembership` of their person, which every account has from its first verified sign-in
 (#40, `docs/PLAN_PEOPLE.md`) — until 2026-10-26 membership was a tuple on the account and
 the sailor record a separate row the team manager created, tied to it by the email address.
-◐ and not ●, because S-2 is ◐.
+◐ and not ●, because S-2 is ◐ — and V-16 is ○: the invitation is not built, so its
+branch is walked by nobody yet.
 
 Drawing this journey found that V-4 promised "an organizer creates only people of their
 own club" while any club's manager could *edit* anyone. Since 2026-10-17 creating stays
 open to every club's manager (a new person has no club yet), and changing a person
 (J-3.8 onwards) is for the managers of a club whose squad holds them (`sailor-not-yours`).
+Since 2026-10-28 creating a person is the club admin's alone (J-3.11): a new person is a
+member, and who is in the club is the admin's to decide — the team manager's is who sails.
+
+Open: none — J-3.1 offers the invitation once V-16 is built (decided 2026-10-28).
 
 Tests: `api/tests/stories/test_journey_member.py::TestASailorJoinsTheirClub::test_from_no_account_to_a_member_with_a_sailor_record`

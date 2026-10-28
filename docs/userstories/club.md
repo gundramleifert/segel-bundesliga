@@ -59,8 +59,9 @@ Acceptance criteria:
   name and email; filters role, account yes/no, minor, no date of birth, in a squad this
   year, status (active, invited, requested); sorted by name or date of birth; a page at a
   time, every filter in the address. The old addresses redirect.
-- *＋ Person* (top right, a dialog) creates a new person for the club — the organizers;
-  the club's admin also adds someone on record by email, with roles at once (V-9).
+- *＋ Person* (top right, a dialog) is the **club's admin's**: a new person for the
+  club, or someone on record by email, with roles at once (V-9). A new person is a
+  member, and who is in the club is the admin's to decide (decided 2026-10-28).
 - **Membership is no role.** It has its own column (member, invited, asks to join, or
   none for an organizer who is not a member), and the roles stand beside it as plain
   marks.
@@ -70,8 +71,10 @@ Acceptance criteria:
   on its own), end a membership. One's own membership is not ended there. That
   is *Leave*, with its confirmation. Someone already in another club is invited, not
   taken ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
-- A manager sees the whole list and adds new people, but cannot change who is in the
-  club. A plain member reads the roster (V-10).
+- A manager (team manager) sees the whole list and completes dates of birth, but adds
+  nobody and changes nobody's membership: the team manager decides who *sails*, the admin
+  who is *in* (decided 2026-10-28; until then a manager created new people, each a member
+  at once). A plain member reads the roster (V-10).
 - Every change is logged.
 
 Endpoints: `GET /api/clubs/{id}/people`, `POST`/`DELETE /api/clubs/{id}/members`,
@@ -109,8 +112,14 @@ Endpoints: `POST /api/auth/tuples`
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-4 ● Create sailors
-As a **team manager** I want to **create sailors in my club**,
-so that I **can register them in the squad**.
+As a **club admin** I want to **create sailors in my club**,
+so that **our team manager can register them in the squad**.
+
+**Who is in the club is the club admin's; who sails, the team manager's** (decided
+2026-10-28). A person created for a club is a member at once, so creating one is the
+admin's — until then this story was the team manager's, which let the team manager add
+members through the back door. The team manager still finds everyone, completes and
+corrects the club's people (a date of birth, a spelling) and puts **members** in squads.
 
 Acceptance criteria:
 - First name, last name, and **email are all required** — someone created through this form
@@ -126,20 +135,20 @@ Acceptance criteria:
   (V-13). Until 2026-10-25 putting someone in a squad was what made them a club's — and
   any club could put anyone in its squad, so it could then sign for another club's
   sailor and link itself as a child's guardian.
-  - **An organizer creates people for their own club** — `club_id` is required of them
-    (`sailor-needs-club`, 422), and must be a club they organize (`sailor-club-not-yours`,
-    403). The league office may create someone who sails for no club yet (an import
-    does too).
-  - **A squad takes only its own club's people** — or someone who sails for no club yet,
-    who then sails for this one. Anyone else is `squad-person-of-another-club` (403,
-    naming them); the squad screen greys them out with that reason, and lets the
-    organizer create a new person for the club right there.
+  - **The club's admin creates people for their own club** — `club_id` is required of
+    them (`person-needs-club`, 422), and must be a club they are admin of
+    (`person-club-not-yours`, 403 — a team manager gets it too). The league office may
+    create someone who sails for no club yet (an import does too).
+  - **A squad takes only its own club's members.** Someone in another club is
+    `squad-person-of-another-club`, someone in no club `squad-person-not-a-member` (403,
+    naming them — until 2026-10-28 the squad took them into the club); the squad screen
+    greys both out with the reason, and offers *New person* to the club's admin only.
   - **A second club only through the league office** (decided 2026-10-25): a club's
     organizer manages the sailors of their own club and nobody else's. The league office
     adds someone to a second club by putting them in its squad. (For a day an endpoint
     let the club a person sails for connect them to another; removed — no club decides
-    for another.) A club lets someone go with `DELETE …/sailors/{id}/clubs/{club_id}` —
-    its own connection only; the squads they are in stay, and the person sails for no
+    for another.) A club's admin lets someone go with `DELETE …/people/{id}/clubs/{club_id}` —
+    its own connection only, never its team manager (2026-10-28); the squads they are in stay, and the person sails for no
     club then, so a new club can take them.
   - **Any club's organizer still finds everyone** — that is how they see who sails
     elsewhere, and finding the existing record beats creating a second. **Changing** a
@@ -174,10 +183,11 @@ address to a person who has none; changing one would hand the person's waivers a
 to another account.
 
 **Screen** (Story Z-10, #45): the club's *People* section, `/me/club/:id/people`, for its
-organizers — everyone in the club, *＋ Person* creating someone for this club, and the date
-of birth set right on the row of a person who has none (the club's
+organizers — everyone in the club, *＋ Person* creating someone for this club (the admin
+only), and the date of birth set right on the row of a person who has none (the club's
 `person_without_birth_date` to-do lands on the list filtered to them). The squad screen
-keeps its own *New person* for the squad it is on.
+keeps its own *New person* for the squad it is on — for the club's admin and the league
+office, absent for a team manager.
 
 Endpoints: `GET /api/admin/people`, `POST /api/admin/people`,
 `PATCH /api/admin/people/{id}`, `DELETE /api/admin/people/{id}/clubs/{club_id}`
@@ -243,6 +253,71 @@ Tests: `api/tests/stories/test_join_with_consent.py::TestTheClubInvites`,
 `api/tests/stories/test_join_with_consent.py::TestEveryChangeIsLogged`,
 `api/tests/stories/test_club_members.py::TestMembers::test_someone_in_another_club_is_invited_or_added_by_the_league_office`,
 `e2e/join-consent.spec.ts`
+
+### V-16 ○ Invite someone to an account
+As a **club admin** I want to **invite someone who has no account by email**, so that
+**they get their account from the mail and then join our club** — without registering on
+their own first and without knowing that they have to.
+
+Today a club adds a new sailor in two halves that nothing joins: the club creates the
+person with their address (V-4, V-8), and the person has to find the site, register
+with **that same** address (Z-4) and redeem the code — only then does the account land
+on the record the club made (`people.person_for`). Signing in with a code instead is
+refused (`login-account-unknown`, `allow_self_signup` off), and the club admin adding
+someone by email before they registered gets a 404 (V-9, Journey J-3.1). Nobody on the
+site tells the person any of this; the club says it on the pontoon. Found drawing the
+onboarding into Journey J-3 (2026-10-28).
+
+**Account first, then the club** (decided 2026-10-28): the invitation is a **pending**
+membership (`ClubMembership.status = invited`, as for V-15) of a person who has no
+account yet. Redeeming the link creates the account and makes the membership `active` —
+the person says yes by opening it. Squads stay the team manager's, afterwards (V-1).
+
+Acceptance criteria:
+- **Where.** The club's `admin` invites from *＋ Person* › *Someone on record, by email*:
+  when the address belongs to no account, the dialog offers *Send an invitation* instead
+  of the 404 (J-3.1) — first and last name as the club knows them, the address already
+  filled in. A person of the club who is on record without an account is invited from
+  their row's "⋯". **Not the team manager** (decided 2026-10-28): the admin decides who
+  is *in* the club, the team manager who *sails*.
+- **The admin acknowledges what follows** before anything is sent — a confirmation in the
+  dialog saying, in this order: a mail goes to *this address*, naming the club and the
+  admin; the person is listed as *pending* in *People*; opening the link within 14 days
+  creates their account and makes them a member; until then nobody else can invite this
+  address. Nothing is sent without that confirmation.
+- **Pending.** Once sent, the person is on record with the membership `invited`: shown as
+  *pending* in the club's *People*, in no squad, not a member (an `invited` row grants
+  nothing, V-15). A person record is created if the address had none.
+- **Only one invitation at a time.** While an invitation to an address is valid, nobody
+  else can send one — another club's admin is refused with `invitation-pending` (409),
+  which names no club. The inviting club's admin may **resend** (a new link, 14 days
+  again, the earlier link dead) or **withdraw** it (the pending row and a person record
+  created only for it are deleted). The site's `admin` may do both too.
+- **The mail.** It names the club and who invited, and ends with the footer every mail of
+  the site carries (`app/mail.py::with_footer`: the association, why the mail came — here
+  "your club … invited you" —, whom to write to, privacy and legal notice; decided
+  2026-10-28). It is **German** by default (`MAIL_LOCALE`). The link is built on
+  `SBL_SITE_URL`. The token is random, stored only hashed, valid for **14 days** (decided
+  2026-10-28 — a sailor does not read mail daily off-season, and the link is single-use
+  and resent at will) and for **one** use.
+- **Redeeming.** Opening the link shows the name as the club entered it; the person
+  confirms or corrects it and gets an account: the address **verified** by the link — it
+  reached them — linked to **this** person (`Person.user_id`), the membership now
+  `active`. They are signed in, and may set a password then (Z-9). This works with
+  registration closed and `allow_self_signup` off: the invitation is the explicit
+  enrollment the club asks for, not a sign-up.
+- **Registering meanwhile.** If the person registers on their own while the invitation
+  is pending (Z-4), their verified account is linked to the same person and the
+  invitation waits in *Me › My clubs*, to accept like any other (V-15).
+- **Expired.** After 14 days the link is dead and the row shows *invitation expired*; it
+  no longer blocks another club. The admin can resend or withdraw. An expired or used
+  link says so and names the club to ask.
+- **Refused:** an address that already has an account (`invitation-has-account`, 409 —
+  add them by email, V-9, or they ask to join), anyone but the club's admin and the
+  site's — a team manager gets `invitation-forbidden` (403).
+- Every invitation sent, resent, withdrawn and redeemed is in the audit log.
+
+Tests: none yet
 
 ## Entering competitions
 
@@ -332,8 +407,9 @@ Acceptance criteria:
   is drawn from it per matchday ([V-2](#v-2--select-sailors-for-matchday)).
 - A registration replaces the previous one **completely** — it is the squad, not a supplement.
 - **The same person may be registered in multiple clubs**, but **within a series only once** —
-  otherwise they would start against themselves. A squad takes only people who sail for
-  its club, or for no club yet (V-4): `squad-person-of-another-club`.
+  otherwise they would start against themselves. A squad takes only the club's active
+  members (V-4): `squad-person-of-another-club`, or `squad-person-not-a-member` for
+  someone in no club — the club's admin adds them first (decided 2026-10-28).
 - No one appears twice in the same squad.
 - **Who is lined up for a matchday does not fall out of the squad.** Otherwise, a lineup would
   exist with no squad. Change the lineup first, then the squad. So the squad says it up

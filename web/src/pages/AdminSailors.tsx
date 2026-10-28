@@ -191,7 +191,7 @@ function SeriesSquad({ series }: { series: SeriesAdmin }) {
         </Select>
       </Field>
 
-      {selectedClub && <SquadPanel teamId={selectedClub.team_id} title={selectedClub.name} />}
+      {selectedClub && <SquadPanel teamId={selectedClub.team_id} title={selectedClub.name} mayAddPeople />}
     </>
   );
 }

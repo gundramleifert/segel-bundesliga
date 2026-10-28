@@ -92,6 +92,14 @@ class _Setting:
             Role.TEAM_MANAGER,
             club_id=self.club_id,
         )
+        # Who is in the club is its admin's to decide, not the team manager's (V-4).
+        self.club_admin = await _signed_in(
+            self.client,
+            self.caplog,
+            f"j5-club-admin-{self.tag}@example.com",
+            Role.CLUB_ADMIN,
+            club_id=self.club_id,
+        )
 
     async def series_matchday(self) -> None:
         """A published series the club is registered in, and one matchday of it."""
@@ -174,7 +182,7 @@ class _Setting:
         self.entry_team, self.squad_team = entry["team_id"], entry["squad_team_id"]
 
     async def people(self, *births: str | None) -> list[tuple[int, dict[str, str]]]:
-        """The club's sailors (Story V-4, by the team manager), each with an account."""
+        """The club's sailors (Story V-4, by the club's admin), each with an account."""
         out = []
         for n, birth in enumerate(births):
             email = f"j5-sailor-{n}-{self.tag}@example.com"
@@ -186,7 +194,9 @@ class _Setting:
             }
             if birth is not None:
                 body["birth_date"] = birth
-            created = await self.client.post("/api/admin/people", headers=self.manager, json=body)
+            created = await self.client.post(
+                "/api/admin/people", headers=self.club_admin, json=body
+            )
             assert created.status_code == 201, created.text
             out.append((created.json()["id"], await _signed_in(self.client, self.caplog, email)))
         return out

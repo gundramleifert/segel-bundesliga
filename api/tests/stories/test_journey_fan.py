@@ -173,11 +173,15 @@ class TestAFanFollowsAnAct:
         manager_email = f"j9-manager-{tag}@example.com"
         await make_user(manager_email, Role.TEAM_MANAGER, club_id=clubs[0])
         manager = auth_headers(await login_as(client, manager_email, caplog))
+        # The club's admin puts the sailors in the club, the team manager in the squad.
+        club_admin_email = f"j9-club-admin-{tag}@example.com"
+        await make_user(club_admin_email, Role.CLUB_ADMIN, club_id=clubs[0])
+        club_admin = auth_headers(await login_as(client, club_admin_email, caplog))
         people = []
         for n, born in enumerate((ADULT, ADULT, MINOR)):
             created = await client.post(
                 "/api/admin/people",
-                headers=manager,
+                headers=club_admin,
                 json={
                     "first_name": f"Fan{n}",
                     "last_name": tag,
