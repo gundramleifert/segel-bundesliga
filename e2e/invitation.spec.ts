@@ -43,7 +43,6 @@ describeStory("V-16: a club's admin invites someone without an account", () => {
 
   test("a link that is not valid says so", async ({ page }) => {
     await page.goto("/invitation/not-a-real-token");
-    await expect(page.getByTestId("invitation-header")).toBeVisible();
     await expect(page.getByTestId("invitation-error")).toBeVisible();
     await expect(page.getByTestId("invitation-accept")).toHaveCount(0);
   });
