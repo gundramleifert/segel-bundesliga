@@ -234,7 +234,8 @@ fresh** so a forgotten recalculation never shows wrong numbers anywhere.
 
 Low-point per World Sailing RRS Appendix A: finish position = points, lower is better.
 Non-scoring codes count number of starters + 1, percentage penalties add a surcharge,
-tie-break per A8. Discards and percentage depend on `Series.scoring`, not hardcoded.
+a tie is broken by places sailed — more firsts, then seconds, …, finally the last race (A8.2);
+a redress or penalty is no place. Discards and percentage depend on `Series.scoring`, not hardcoded.
 
 ### Series Scoring — And the Missing Clubs
 

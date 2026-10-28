@@ -12,7 +12,7 @@ import { describeStory, expect, test } from "./fixtures";
  * `VITE_DEV_TOOLS=true`; the endpoint is the same thing the button calls.
  */
 
-const LIVE_EVENT = 2; // dsbl-1-2026-act-2, live and two-thirds sailed
+const LIVE_EVENT = 2; // demo-1-2026-act-2, live and two-thirds sailed
 
 describeStory("L-1/L-2: as a spectator I watch a simulated race on the map", () => {
   test("the boats move, are ranked with a speed, finish, and the next race is up", async ({

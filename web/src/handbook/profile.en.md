@@ -29,7 +29,7 @@ it for you; your club's organizer may complete it, such as with your date of bir
   file. Otherwise only you, the league office's admin and editors, and the organizer of a
   club you sail for can open it.
 
-- *Public profile page* ①: off hides your page — photo, clubs, matchdays — from everyone
+- *Public profile page* ①: off hides your page — photo, clubs, events — from everyone
   but you, your club's leadership and the league office. Your name still appears in
   squads, lineups and results, as plain text without your photo. Only you can switch it.
   Until you do, it is on from 18 and off before.

@@ -192,6 +192,32 @@ class TestLibrary:
         served = await client.get(f"/api/media/{name}-960.webp")
         assert Image.open(io.BytesIO(served.content)).size == (300, 200)
 
+    async def test_every_size_a_srcset_offers_is_served(self, client, caplog):
+        """R-2: a picture between two sizes offers its own longest edge as its largest —
+        and that address answers, also once the cache lost it. It was a 404, so a desktop
+        browser, picking the largest, showed a 683 × 1024 picture as nothing at all."""
+        from app.services.media import _SERVED
+        from app.storage import storage
+
+        headers = await editor(client, caplog, "media-editor@example.com")
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("tall.jpg", picture("JPEG", (683, 1024)), "image/jpeg")},
+            )
+        ).json()
+        addresses = [entry.split()[0] for entry in item["srcset"].split(", ")]
+        assert addresses[-1].endswith("-1024.webp")
+        for address in addresses:
+            assert (await client.get(address)).status_code == 200, address
+
+        name = item["url"].removeprefix("/api/media/").removesuffix(".webp")
+        storage().delete(f"{_SERVED}/{name}-1024.webp")
+        again = await client.get(f"/api/media/{name}-1024.webp")
+        assert again.status_code == 200
+        assert Image.open(io.BytesIO(again.content)).size == (683, 1024)
+
     async def test_editorial_downloads_the_full_size_without_the_location(self, client, caplog):
         """R-2: for the press, the picture as large as it came — without its EXIF."""
         headers = await editor(client, caplog, "media-editor@example.com")

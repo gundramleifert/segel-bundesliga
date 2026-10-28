@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
@@ -257,7 +258,8 @@ class EventDocumentKind(StrEnum):
 
 class EventDocument(Base, TimestampMixin):
     """A document on an event's notice board — notice of race, sailing instructions, a
-    notice to competitors (Story A-14).
+    notice to competitors (Story A-14) — or on a **series'** notice board, the season's
+    own: the notice of race of a whole league year is no one act's. Exactly one of the two.
 
     A **link**, not a copy: the file stays where it was published (Manage2Sail today), so
     the version a competitor reads here is the one the organizer published there. An
@@ -265,9 +267,13 @@ class EventDocument(Base, TimestampMixin):
     """
 
     __tablename__ = "event_document"
+    __table_args__ = (
+        CheckConstraint("(event_id IS NULL) <> (series_id IS NULL)", name="one_owner"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), index=True)
+    event_id: Mapped[int | None] = mapped_column(ForeignKey("event.id"), index=True)
+    series_id: Mapped[int | None] = mapped_column(ForeignKey("series.id"), index=True)
     title: Mapped[str] = mapped_column(String(300))
     kind: Mapped[str] = mapped_column(String(32), default=EventDocumentKind.OTHER)
     url: Mapped[str] = mapped_column(String(500))
@@ -277,7 +283,7 @@ class EventDocument(Base, TimestampMixin):
     # The source's own order on its notice board.
     position: Mapped[int] = mapped_column(default=0)
 
-    event: Mapped[Event] = relationship(back_populates="documents")
+    event: Mapped[Event | None] = relationship(back_populates="documents")
 
 
 class AnnouncementIssuer(StrEnum):

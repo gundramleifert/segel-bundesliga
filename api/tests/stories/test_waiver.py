@@ -134,7 +134,7 @@ class TestVersioning:
         self, client, caplog, ids, version_two
     ):
         admin = await _admin(client, caplog)
-        person_id, _ = await _squad_person("dsbl-1-2026", offset=0)
+        person_id, _ = await _squad_person("demo-1-2026", offset=0)
 
         # The confirmation was for version 1; version 2 is now in force.
         async with SessionLocal() as session:
@@ -145,13 +145,13 @@ class TestVersioning:
                 WaiverConfirmation(
                     person_id=person_id,
                     waiver_text_id=v1.id,
-                    series_id=ids.series("dsbl-1-2026"),
+                    series_id=ids.series("demo-1-2026"),
                 )
             )
             await session.commit()
 
         checklist = await client.get(
-            f"/api/admin/events/{ids.event('dsbl-1-2026-act-1')}/waivers", headers=admin
+            f"/api/admin/events/{ids.event('demo-1-2026-act-1')}/waivers", headers=admin
         )
         row = _row(checklist, person_id)
         assert row["required_version"] == 2
@@ -162,11 +162,11 @@ class TestVersioning:
 class TestConfirming:
     async def test_a_series_confirmation_clears_every_event_of_it(self, client, caplog, ids):
         admin = await _admin(client, caplog)
-        person_id, email = await _squad_person("dsbl-1-2026", offset=10)
+        person_id, email = await _squad_person("demo-1-2026", offset=10)
         person = await _account_for(client, caplog, email)
 
         confirmed = await client.post(
-            f"/api/series/{ids.series('dsbl-1-2026')}/waiver",
+            f"/api/series/{ids.series('demo-1-2026')}/waiver",
             headers=person,
             json={"person_id": person_id, "locale_shown": "en"},
         )
@@ -179,7 +179,7 @@ class TestConfirming:
             "series",
         )
 
-        for act in ("dsbl-1-2026-act-1", "dsbl-1-2026-act-2", "dsbl-1-2026-act-3"):
+        for act in ("demo-1-2026-act-1", "demo-1-2026-act-2", "demo-1-2026-act-3"):
             checklist = await client.get(
                 f"/api/admin/events/{ids.event(act)}/waivers", headers=admin
             )
@@ -187,29 +187,29 @@ class TestConfirming:
 
     async def test_an_event_confirmation_leaves_the_other_events_open(self, client, caplog, ids):
         admin = await _admin(client, caplog)
-        person_id, email = await _squad_person("dsbl-1-2026", offset=20)
+        person_id, email = await _squad_person("demo-1-2026", offset=20)
         person = await _account_for(client, caplog, email)
 
         confirmed = await client.post(
-            f"/api/events/{ids.event('dsbl-1-2026-act-1')}/waiver",
+            f"/api/events/{ids.event('demo-1-2026-act-1')}/waiver",
             headers=person,
             json={"person_id": person_id},
         )
         assert confirmed.status_code == 201, confirmed.text
 
         first = await client.get(
-            f"/api/admin/events/{ids.event('dsbl-1-2026-act-1')}/waivers", headers=admin
+            f"/api/admin/events/{ids.event('demo-1-2026-act-1')}/waivers", headers=admin
         )
         second = await client.get(
-            f"/api/admin/events/{ids.event('dsbl-1-2026-act-2')}/waivers", headers=admin
+            f"/api/admin/events/{ids.event('demo-1-2026-act-2')}/waivers", headers=admin
         )
         assert _row(first, person_id)["status"] == "cleared"
         assert _row(second, person_id)["status"] == "missing"
 
     async def test_confirming_the_same_version_twice_is_rejected(self, client, caplog, ids):
-        person_id, email = await _squad_person("dsbl-1-2026", offset=30)
+        person_id, email = await _squad_person("demo-1-2026", offset=30)
         person = await _account_for(client, caplog, email)
-        url = f"/api/series/{ids.series('dsbl-1-2026')}/waiver"
+        url = f"/api/series/{ids.series('demo-1-2026')}/waiver"
 
         assert (
             await client.post(url, headers=person, json={"person_id": person_id})
@@ -225,9 +225,9 @@ class TestConfirming:
     async def test_you_can_only_confirm_for_yourself(self, client, caplog, ids):
         """The refusal is also the worked example of a typed RFC 9457 error
         (docs/concepts.md → Errors): a stable type, status, title and instance."""
-        person_id, _ = await _squad_person("dsbl-1-2026", offset=40)
+        person_id, _ = await _squad_person("demo-1-2026", offset=40)
         stranger = await _account_for(client, caplog, "wv-stranger@example.com")
-        url = f"/api/series/{ids.series('dsbl-1-2026')}/waiver"
+        url = f"/api/series/{ids.series('demo-1-2026')}/waiver"
 
         denied = await client.post(url, headers=stranger, json={"person_id": person_id})
         assert denied.status_code == 403
@@ -247,7 +247,7 @@ class TestConfirming:
         confirming, uploading a scan or printing a form for a sailor of another club is
         refused, as it is for any stranger. (Until 2026-10-17 any team manager on the site
         could sign for anybody; found by Journey J-5.)"""
-        person_id, _ = await _squad_person("dsbl-1-2026", offset=45)
+        person_id, _ = await _squad_person("demo-1-2026", offset=45)
         own_club = await _club_of(person_id)
         async with SessionLocal() as session:
             person_clubs = set(
@@ -264,7 +264,7 @@ class TestConfirming:
                     select(Club.id).where(Club.id.not_in(person_clubs)).order_by(Club.id).limit(1)
                 )
             ).scalar_one()
-        series_id = ids.series("dsbl-1-2026")
+        series_id = ids.series("demo-1-2026")
         url = f"/api/series/{series_id}/waiver"
         form = f"/api/waiver/form?scope=series&scope_id={series_id}&person_id={person_id}"
 
@@ -284,7 +284,7 @@ class TestConfirming:
     async def test_a_rejected_registration_signs_for_nobody(self, client, caplog, ids):
         """Stories S-1, S-3: a squad on a registration the league office rejected never
         became a participation, so it makes nobody that club's sailor to sign for."""
-        person_id, _ = await _squad_person("dsbl-1-2026", offset=46)
+        person_id, _ = await _squad_person("demo-1-2026", offset=46)
         async with SessionLocal() as session:
             club = Club(slug="wv-rejected", name="Rejected Waiver Club", short_name="RWC")
             series = Series(slug="wv-rejected-series", name="Rejected Waiver Cup", short_name="RWC")
@@ -300,7 +300,7 @@ class TestConfirming:
             club_id = club.id
         await make_user("wv-rejected-mgr@example.com", Role.TEAM_MANAGER, club_id=club_id)
         manager = auth_headers(await login_as(client, "wv-rejected-mgr@example.com", caplog))
-        series_id = ids.series("dsbl-1-2026")
+        series_id = ids.series("demo-1-2026")
         denied = await client.post(
             f"/api/series/{series_id}/waiver", headers=manager, json={"person_id": person_id}
         )
@@ -439,7 +439,7 @@ class TestProblemFormat:
     async def test_a_validation_error_is_typed(self, client, caplog, ids):
         admin = await _admin(client, caplog)
         response = await client.post(
-            f"/api/series/{ids.series('dsbl-1-2026')}/waiver",
+            f"/api/series/{ids.series('demo-1-2026')}/waiver",
             headers=admin,
             json={},  # missing person_id
         )
@@ -488,7 +488,7 @@ class TestSelfService:
     """Story S-1: a sailor sees, from their own account, what they still have to sign."""
 
     async def test_my_list_names_every_competition_i_must_sign_for(self, client, caplog, ids):
-        person_id, email = await _squad_person("dsbl-1-2026", offset=60)
+        person_id, email = await _squad_person("demo-1-2026", offset=60)
         me = await _account_for(client, caplog, email)
 
         response = await client.get("/api/waiver/me", headers=me)
@@ -498,19 +498,19 @@ class TestSelfService:
         assert body["required_version"] == 1
         assert body["birth_date_known"] is True
 
-        row = _mine(response, "series", ids.series("dsbl-1-2026"))
+        row = _mine(response, "series", ids.series("demo-1-2026"))
         assert row["status"] == "missing"
         assert row["minor"] is False
-        assert row["name"].startswith("1.")
+        assert row["name"] == "Demo 1. Liga 2026"
         # Only competitions this sailor is entered in: no juniors series, no other league.
         assert {r["scope_id"] for r in body["competitions"] if r["scope"] == "series"} == {
-            ids.series("dsbl-1-2026")
+            ids.series("demo-1-2026")
         }
 
     async def test_an_adult_confirms_online_from_their_own_account(self, client, caplog, ids):
-        person_id, email = await _squad_person("dsbl-1-2026", offset=63)
+        person_id, email = await _squad_person("demo-1-2026", offset=63)
         me = await _account_for(client, caplog, email)
-        series_id = ids.series("dsbl-1-2026")
+        series_id = ids.series("demo-1-2026")
 
         confirmed = await client.post(
             f"/api/series/{series_id}/waiver",
@@ -680,9 +680,9 @@ class TestScans:
         assert row["status"] == "missing"
 
     async def test_an_adult_does_not_upload_a_scan(self, client, caplog, ids):
-        person_id, email = await _squad_person("dsbl-1-2026", offset=66)
+        person_id, email = await _squad_person("demo-1-2026", offset=66)
         me = await _account_for(client, caplog, email)
-        response = await self._upload(client, me, ids.series("dsbl-1-2026"), person_id)
+        response = await self._upload(client, me, ids.series("demo-1-2026"), person_id)
         assert response.status_code == 422
         assert response.json()["type"] == "/errors/waiver-scan-not-needed"
 

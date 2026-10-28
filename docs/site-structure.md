@@ -174,10 +174,10 @@ snapping into place and the depth frames A band, B sheet, C split were removed.
   the pages' backgrounds and slideshows are the league's library pictures
   (`useBackdrops`), and with none the page has a plain background — pictures may be
   deleted at any time without breaking a page. No picture is linked from another site.
-- **The league office's press pictures** (SmugMug, credited "© DSBL GmbH", with Sven
-  Jürgensen's agreement) are copied **into the library, never into this repository**,
-  which is public: `app/seed_media.py` lists them, the seed downloads them into
-  `api/.seed-cache/` (git-ignored).
+- **Seeded pictures are Sven Jürgensen's only**, credited "Foto: Sven Jürgensen" — never
+  DSBL GmbH's press pictures — and copied **into the library, never into this
+  repository**, which is public: `app/seed_media.py` lists them (none yet), the seed
+  downloads them into `api/.seed-cache/` (git-ignored).
 - **The league's other website is not pointed to** (decided 2026-10-23): no link, no
   credit line, no "rewritten from". Its news were rewritten in our own words; its YouTube
   videos are embedded.

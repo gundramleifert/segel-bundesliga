@@ -10,6 +10,15 @@ has `KYC` for both the Kieler and the Konstanzer Yacht-Club, and `BYC` for the B
 and the Berliner. So a club's key here is code **and** M2S's own club name, and a code two
 clubs share is never used to find a club this site already has — those entries are
 reported as unassigned until ``--link`` says which club each is.
+
+**One Manage2Sail event can stand behind two here.** The league registers a weekend once,
+with one class per league (`1.Segel-Bundesliga`, `2.Segel-Bundesliga`), where this site has
+one act per league: ``regatta`` takes one class's entries and documents, and keys what it
+links by event *and* class. The season's own event — its notice of race — goes to a
+**series** (``to_series``), its entries ignored.
+
+``recorded_transport`` replays answers recorded by ``scripts/record-m2s.py``, so the seed
+imports without asking Manage2Sail (``app/seed_data/m2s-2026/``).
 """
 
 from __future__ import annotations
@@ -19,6 +28,7 @@ import re
 from collections import Counter
 from collections.abc import Mapping
 from datetime import UTC, date, datetime
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -73,6 +83,29 @@ def document_url(document_id: str) -> str:
     return f"{BASE_URL}/en-US/Home/DownloadDocument/{document_id}"
 
 
+def recorded_transport(folder: Path) -> httpx.MockTransport:
+    """Manage2Sail's public answers as ``scripts/record-m2s.py`` recorded them: per event
+    a folder with ``page.html`` (its title and bootstrap data), ``entries-<class>.json``
+    and ``documents-<owner>.json``. What was not recorded is a 404."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        parts = request.url.path.strip("/").split("/")
+        if parts[:2] == ["en-US", "event"] and len(parts) == 3:
+            name = f"{parts[2]}/page.html"
+        elif parts[:2] == ["api", "event"] and len(parts) == 4 and parts[3] == "regattaentry":
+            name = f"{parts[2]}/entries-{request.url.params.get('regattaId')}.json"
+        elif parts[:2] == ["api", "event"] and len(parts) == 5 and parts[3] == "document":
+            name = f"{parts[2]}/documents-{parts[4]}.json"
+        else:
+            return httpx.Response(404)
+        path = folder / name
+        if not path.is_file():
+            return httpx.Response(404)
+        return httpx.Response(200, content=path.read_bytes())
+
+    return httpx.MockTransport(handler)
+
+
 class Manage2SailClient:
     def __init__(self, http: httpx.AsyncClient, base_url: str = BASE_URL):
         self._http = http
@@ -116,21 +149,34 @@ async def import_m2s(
     matchday: int | None = None,
     links: Mapping[str, str] | None = None,
     publish: bool = False,
+    regatta: str | None = None,
+    to_series: str | None = None,
+    with_entries: bool = True,
     log=print,
 ) -> Report:
     """One Manage2Sail event → one event here, its entries and its documents.
 
     ``links`` maps a Manage2Sail club key (``CODE|Club name``, as an unassigned line
     prints it) to the slug of a club here — the way out of an ambiguous code.
+    ``regatta`` names the one class to take (its name at Manage2Sail); ``to_series`` puts
+    the documents on that series' notice board instead, and takes no entries; nor does
+    ``with_entries=False``, for an event whose teams came from elsewhere.
     """
     report = Report()
-    log(f"Manage2Sail: event {event_uuid}")
+    key = f"{event_uuid}|{regatta}" if regatta else event_uuid
+    log(f"Manage2Sail: event {key}")
     page = await client.event_page(event_uuid)
     classes = [c for c in page["classes"] if not c.get("IsCancelled")]
+    if regatta is not None:
+        names = [c.get("Name") for c in classes]
+        classes = [c for c in classes if c.get("Name") == regatta]
+        if not classes:
+            report.errors.append(f"{event_uuid}: no class {regatta!r} — it has {names}")
+            return report
     entries = [
         entry
         for cls in classes
-        if cls.get("HasEntries", True)
+        if to_series is None and with_entries and cls.get("HasEntries", True)
         for entry in await client.entries(event_uuid, cls["Id"])
     ]
     documents: dict[str, dict[str, Any]] = {}
@@ -139,10 +185,21 @@ async def import_m2s(
             documents.setdefault(document["Id"], document)
 
     async def work(session: AsyncSession, report: Report) -> None:
+        # A document is keyed by its owner too when a class is chosen: the weekend's
+        # event-wide documents reach both leagues' acts.
+        prefix = f"{key}/" if regatta else ""
+        if to_series is not None:
+            series = (
+                await session.execute(select(Series).where(Series.slug == to_series))
+            ).scalar_one_or_none()
+            if series is None:
+                raise ValueError(f"No series {to_series!r} here")
+            await _documents(session, report, {"series_id": series.id}, documents.values(), prefix)
+            return
         event = await _event(
             session,
             report,
-            event_uuid,
+            key,
             page,
             to_event,
             series_slug,
@@ -152,9 +209,9 @@ async def import_m2s(
         )
         await _links(session, report, links or {})
         await _entries(session, report, event, entries)
-        await _documents(session, report, event, documents.values())
+        await _documents(session, report, {"event_id": event.id}, documents.values(), prefix)
 
-    return await run_import(sessions, SOURCE, event_uuid, work, report)
+    return await run_import(sessions, SOURCE, key, work, report)
 
 
 def _same(stored: Any, value: Any) -> bool:
@@ -349,7 +406,10 @@ async def _team(
     await link(session, team, SOURCE, entry["EntryId"])
 
 
-async def _documents(session: AsyncSession, report: Report, event: Event, documents) -> None:
+async def _documents(
+    session: AsyncSession, report: Report, owner: dict[str, int], documents, prefix: str
+) -> None:
+    """``owner`` is ``{"event_id": …}`` or ``{"series_id": …}`` — whose notice board."""
     for document in documents:
         title = (document.get("Title") or "").strip() or document["Id"]
         values = {
@@ -365,12 +425,12 @@ async def _documents(session: AsyncSession, report: Report, event: Event, docume
             ),
             "position": int(document.get("Order") or 0),
         }
-        row = await linked(session, EventDocument, SOURCE, document["Id"])
+        row = await linked(session, EventDocument, SOURCE, prefix + document["Id"])
         if row is None:
-            row = EventDocument(event_id=event.id, **values)
+            row = EventDocument(**owner, **values)
             session.add(row)
             await session.flush()
-            await link(session, row, SOURCE, document["Id"])
+            await link(session, row, SOURCE, prefix + document["Id"])
             report.tally("created", "documents")
             continue
         changed = {
@@ -384,3 +444,62 @@ async def _documents(session: AsyncSession, report: Report, event: Event, docume
         for field, value in changed.items():
             setattr(row, field, value)
         report.tally("updated" if changed else "unchanged", "documents")
+
+
+FOLDER = Path(__file__).resolve().parent.parent / "seed_data" / "m2s-2026"
+
+
+async def import_recorded_league(
+    sessions: async_sessionmaker[AsyncSession],
+    folder: Path = FOLDER,
+    *,
+    year: int = 2026,
+    log=print,
+) -> Report:
+    """The 1. and 2. Liga's recorded Manage2Sail events onto what the TracTrac import made
+    (``scripts/record-m2s.py``, ``events.json``): the season's documents onto each
+    league's series, each weekend's class onto that league's act on those days, linked.
+
+    **Documents only.** The acts' teams came from TracTrac, and Manage2Sail's entries do
+    not name a club in a way to tie them by: its club code is shared (``KYC``), its sail
+    number is whatever the team typed (``GER SV03``, ``HA 072``). A class nobody sailed
+    that weekend (the 2. Liga on the 1. Liga's extra act) has no act and is passed over.
+    """
+    report = Report()
+    index = json.loads((folder / "events.json").read_text("utf-8"))
+    async with httpx.AsyncClient(transport=recorded_transport(folder)) as http:
+        client = Manage2SailClient(http)
+        for item in index:
+            event_uuid = item["event"]
+            page = await client.event_page(event_uuid)
+            days = {_day(d) for d in page["days"]}
+            for cls in page["classes"]:
+                name = cls["Name"]
+                slug = f"dsbl-{int(name.split('.', 1)[0])}-{year}"
+                if item["kind"] == "season":
+                    target = {"to_series": slug}
+                else:
+                    async with sessions() as session:
+                        act = (
+                            await session.execute(
+                                select(Event.id)
+                                .join(Series, Series.id == Event.series_id)
+                                .where(Series.slug == slug, Event.starts_on.in_(days))
+                            )
+                        ).scalar_one_or_none()
+                    if act is None:
+                        if await client.entries(event_uuid, cls["Id"]):
+                            report.warnings.append(f"{event_uuid} {name}: no act of {slug} then")
+                        continue
+                    target = {"to_event": act}
+                part = await import_m2s(
+                    sessions,
+                    client,
+                    event_uuid,
+                    regatta=name,
+                    with_entries=False,
+                    log=log,
+                    **target,
+                )
+                report.merge(part)
+    return report

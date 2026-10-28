@@ -1,0 +1,126 @@
+{
+  "TotalCount": 18,
+  "Pages": [
+    1
+  ],
+  "CurrentPage": 1,
+  "CurrentOrderAscending": true,
+  "RegattaName": "1.Segel-Bundesliga",
+  "HasCrew": true,
+  "HasSailNumbers": true,
+  "HcpName": "",
+  "Entries": [
+    {
+      "EntryId": "049c4c65-9133-4d88-a5d1-1032a84c3392",
+      "ClubCode": "PYC",
+      "ClubName": "Potsdamer Yacht Club e.V",
+      "SailNumber": "PYC"
+    },
+    {
+      "EntryId": "2ed9ee66-0ab5-4a9e-b251-1bc7ca6885d9",
+      "ClubCode": "MYC",
+      "ClubName": "Münchner Yacht-Club e. V.",
+      "SailNumber": "MYC"
+    },
+    {
+      "EntryId": "2fa4cd7e-8127-42cb-862e-280dc1ed4431",
+      "ClubCode": "BYC",
+      "ClubName": "Berliner Yacht-Club e.V.",
+      "SailNumber": "GER BYC (Be)"
+    },
+    {
+      "EntryId": "b986574b-214a-4a57-9bf3-570992266787",
+      "ClubCode": "MSC",
+      "ClubName": "Mühlenberger Segel-Club e.V.",
+      "SailNumber": "GER MSC"
+    },
+    {
+      "EntryId": "21c1b28a-af37-486e-85a5-5b3d3688d2c0",
+      "ClubCode": "BYC",
+      "ClubName": "Bayerischer Yacht-Club e. V.",
+      "SailNumber": "GER GER 001"
+    },
+    {
+      "EntryId": "87bbb2c0-267a-45ca-bd16-7bdfe57e6472",
+      "ClubCode": "BOH-YC",
+      "ClubName": "Bocholter Yacht Club e. V.",
+      "SailNumber": "BOH-YC"
+    },
+    {
+      "EntryId": "62056c50-2e2c-4ac4-b9ad-968c7d8f5b66",
+      "ClubCode": "KYC",
+      "ClubName": "Kieler Yacht-Club e. V.",
+      "SailNumber": "KYC (SH)"
+    },
+    {
+      "EntryId": "6b620500-bf91-4327-8b16-aeaab09a6a68",
+      "ClubCode": "DYC",
+      "ClubName": "Düsseldorfer Yachtclub e. V.",
+      "SailNumber": "DYC"
+    },
+    {
+      "EntryId": "164be1e5-8351-41d9-9ecd-b24b8791ceb8",
+      "ClubCode": "NRV",
+      "ClubName": "Norddeutscher Regatta Verein r. V.",
+      "SailNumber": "NRV"
+    },
+    {
+      "EntryId": "42001b7a-8cb8-4042-9310-c1dcf47370c8",
+      "ClubCode": "SMCUE",
+      "ClubName": "Segel- und Motorboot-Club Überlingen e. V.",
+      "SailNumber": "292 SMCÜ"
+    },
+    {
+      "EntryId": "fde89f54-ad38-4379-9ec5-c41e511a409d",
+      "ClubCode": "SVI",
+      "ClubName": "Segler-Vereinigung Itzehoe e. V.",
+      "SailNumber": "SVI"
+    },
+    {
+      "EntryId": "6f605a22-82cf-4710-84cd-c562a0caf92f",
+      "ClubCode": "BYCUE",
+      "ClubName": "Bodensee-Yacht-Club Überlingen e. V.",
+      "SailNumber": "BYCÜ"
+    },
+    {
+      "EntryId": "40853d02-09b4-4c79-b91f-c1681e7761ec",
+      "ClubCode": "KAR",
+      "ClubName": "Klub am Rupenhorn e. V.",
+      "SailNumber": "KAR"
+    },
+    {
+      "EntryId": "0b1da5ce-7116-4a39-87a4-3deee878e499",
+      "ClubCode": "ENSFR",
+      "ClubName": "Entdecker- und Seefahrerfördervereinigung e.V.",
+      "SailNumber": "HA 072"
+    },
+    {
+      "EntryId": "49942db5-55a5-4ae4-b87c-21cdba4bb0be",
+      "ClubCode": "WYC",
+      "ClubName": "Württembergischer Yacht-Club e. V.",
+      "SailNumber": "WYC"
+    },
+    {
+      "EntryId": "e96f1a47-9252-4b48-843c-14a3ca33d568",
+      "ClubCode": "SVWU",
+      "ClubName": "Segler-Vereinigung Wuppertal e. V.",
+      "SailNumber": "SVWu"
+    },
+    {
+      "EntryId": "60444a14-7c68-4ad6-bc11-6ce236c5b903",
+      "ClubCode": "JSC",
+      "ClubName": "Joersfelder Segel-Club e. V.",
+      "SailNumber": "JSC"
+    },
+    {
+      "EntryId": "48b2815e-0727-4d29-856f-4651d3663890",
+      "ClubCode": "BSC",
+      "ClubName": "Blankeneser Segel-Club e. V.",
+      "SailNumber": "BSC"
+    }
+  ],
+  "Countries": [
+    "GER",
+    "HA"
+  ]
+}

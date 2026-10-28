@@ -1,9 +1,10 @@
 """The posts the site starts with — Story R-1.
 
 What the public pages showed as static content before editorial could write on the site:
-the association's one real article, and examples that fill the pages and say so on them
-(``example``). Editorial deletes or replaces them; a fresh installation needs them so the
-league pages are not blank.
+the association's real articles and press releases, and examples that fill the pages and
+say so on them (``example``). The examples are **drafts** — a real site shows none of
+them (docs/PLAN_SEEDING.md); `app.seed.publish_demo` publishes them on staging and the
+test stacks, with the demo series.
 """
 
 from __future__ import annotations
@@ -394,7 +395,7 @@ def _paragraphs(text: str) -> str:
 
 
 async def seed_posts(session: AsyncSession) -> None:
-    """Adds the posts, published — every one of them is on a page today."""
+    """Adds the posts: the real ones published, the examples as drafts."""
     leagues = dict((await session.execute(select(League.slug, League.id))).tuples().all())
     for row in [*POSTS, *PRESS_RELEASES]:
         fields = dict(row)
@@ -412,7 +413,7 @@ async def seed_posts(session: AsyncSession) -> None:
                     if html_body is not None
                     else _paragraphs(fields["body"]),
                     "league_id": leagues.get(league),
-                    "published": True,
+                    "published": not fields.get("example", False),
                 },
             )
         )

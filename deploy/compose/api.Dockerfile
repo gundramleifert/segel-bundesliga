@@ -46,9 +46,8 @@ COPY api/app ./app
 COPY deploy/compose/api-init.sh /usr/local/bin/api-init
 RUN chmod +x /usr/local/bin/api-init
 
-ENV PATH="/app/.venv/bin:$PATH" \
-    SBL_UPLOADS_DIR=/data/uploads
-RUN mkdir -p /data/uploads
+# No uploads directory: in this stack every file is in S3 (compose.yaml, SBL_STORAGE).
+ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=5 \

@@ -89,7 +89,9 @@ class TestClubBankAccount:
 
         assert (await client.get(url, headers=treasurer)).json() is None
         saved = await client.put(
-            url, headers=treasurer, json={"holder": "Host SC", "iban": "de02 1203 0000 0000 2020 51"}
+            url,
+            headers=treasurer,
+            json={"holder": "Host SC", "iban": "de02 1203 0000 0000 2020 51"},
         )
         assert saved.json()["iban"] == CLUB_IBAN
 

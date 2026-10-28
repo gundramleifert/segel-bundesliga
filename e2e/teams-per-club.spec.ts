@@ -15,7 +15,7 @@ describeStory("VA-13: a club enters more than one team", () => {
     const series = (await (await request.get("/api/admin/series?limit=50", { headers })).json()) as {
       items: { id: number; slug: string }[];
     };
-    const second = series.items.find((s) => s.slug === "dsbl-2-2026")!;
+    const second = series.items.find((s) => s.slug === "demo-2-2026")!;
     // No act number: the server takes the next free one, so a second run on the same
     // stack (or the other browser project) makes its own act.
     const title = `Two teams e2e ${testInfo.project.name} ${Date.now()}`;

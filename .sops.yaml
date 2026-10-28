@@ -1,0 +1,18 @@
+# Who can decrypt the repository's secrets — deploy/compose/README.md, "Secrets".
+#
+# Recipients are SSH public keys (ssh-ed25519 or ssh-rsa): sops decrypts with the matching
+# private key, ~/.ssh/id_ed25519 by default (SOPS_AGE_SSH_PRIVATE_KEY_FILE for another).
+# No ssh-agent and no hardware keys; a machine that runs the stack gets a key of its own.
+#
+# Adding a key here does NOT re-key the files already encrypted — do that explicitly, or
+# the newcomer gets "no key could decrypt":
+#   sops updatekeys -y deploy/compose/secrets.sops.env
+# scripts/check-sops.py (part of scripts/check.sh) fails while a file and its rule differ.
+keys:
+  - &gundram "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGnDv5O4Zj5mzkGFtwbqN4GGmvNgdcTIq5ewYbouiMZ Gundram Leifert"
+
+creation_rules:
+  # The Compose stack's secrets, one dotenv file per installation, encrypted in full.
+  - path_regex: deploy/compose/[^/]*\.sops\.env$
+    age:
+      - *gundram

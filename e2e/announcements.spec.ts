@@ -1,8 +1,9 @@
 import { describeStory, expect, test } from "./fixtures";
 import { signIn } from "./session";
 
-// The seed's planned act of the 2. Liga, whose race officer is `regatta@` (app/seed_users.py).
-const BOARD = "/2-liga/2026/act-3/notice-board";
+// The demo's planned act of the 2. Liga (event 6), whose race officer is `regatta@`
+// (app/seed_users.py) — in the demo league, published on test stacks.
+const BOARD = "/demo/2026/act-3/notice-board?division=6";
 const OFFICER = "regatta@sbl.example.com";
 
 describeStory("VA-11: the race committee publishes an announcement on the notice board", () => {

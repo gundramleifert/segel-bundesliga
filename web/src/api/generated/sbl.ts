@@ -2348,6 +2348,110 @@ export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEven
 
 
 
+export const getListSeriesDocumentsUrl = (seriesId: number,) => {
+
+
+
+
+  return `/api/series/${seriesId}/documents`
+}
+
+/**
+ * The season's own documents — the notice of race of the whole league year — as links
+ * to where they were published (Story A-14); an act's are on the act. A draft series is a
+ * 404, as anywhere public.
+ * @summary The documents on a series' notice board
+ */
+export const listSeriesDocuments = async (seriesId: number, options?: RequestInit): Promise<EventDocumentOut[]> => {
+
+  return http<EventDocumentOut[]>(getListSeriesDocumentsUrl(seriesId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSeriesDocumentsQueryKey = (seriesId: number,) => {
+    return [
+    `/api/series/${seriesId}/documents`
+    ] as const;
+    }
+
+
+export const getListSeriesDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listSeriesDocuments>>, TError = ErrorType<ProblemDetails>>(seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeriesDocuments>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSeriesDocumentsQueryKey(seriesId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSeriesDocuments>>> = ({ signal }) => listSeriesDocuments(seriesId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: seriesId !== null && seriesId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSeriesDocuments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListSeriesDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listSeriesDocuments>>>
+export type ListSeriesDocumentsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListSeriesDocuments<TData = Awaited<ReturnType<typeof listSeriesDocuments>>, TError = ErrorType<ProblemDetails>>(
+ seriesId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeriesDocuments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSeriesDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof listSeriesDocuments>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSeriesDocuments<TData = Awaited<ReturnType<typeof listSeriesDocuments>>, TError = ErrorType<ProblemDetails>>(
+ seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeriesDocuments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listSeriesDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof listSeriesDocuments>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListSeriesDocuments<TData = Awaited<ReturnType<typeof listSeriesDocuments>>, TError = ErrorType<ProblemDetails>>(
+ seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeriesDocuments>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The documents on a series' notice board
+ */
+
+export function useListSeriesDocuments<TData = Awaited<ReturnType<typeof listSeriesDocuments>>, TError = ErrorType<ProblemDetails>>(
+ seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeriesDocuments>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListSeriesDocumentsQueryOptions(seriesId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListEventAnnouncementsUrl = (eventId: number,) => {
 
 

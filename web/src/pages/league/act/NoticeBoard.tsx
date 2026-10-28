@@ -218,12 +218,13 @@ function PublishForm({ eventId, issuers }: { eventId: number; issuers: Announcem
   );
 }
 
-/** Links to where each document was published (Story A-14) — the file stays there. */
-function Documents({ docs }: { docs: EventDocument[] }) {
+/** Links to where each document was published (Story A-14) — the file stays there. An
+ *  act's notice board and the season's (`/:league/notice-board`) list them alike. */
+export function Documents({ docs, testId = "site-act-document" }: { docs: EventDocument[]; testId?: string }) {
   return (
     <ul className="space-y-1.5">
       {docs.map((doc) => (
-        <li key={doc.id} className="flex items-center gap-3" data-testid={`site-act-document-${doc.id}`}>
+        <li key={doc.id} className="flex items-center gap-3" data-testid={`${testId}-${doc.id}`}>
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-default text-[10px] font-bold uppercase text-muted">
             {doc.extension ?? "—"}
           </span>

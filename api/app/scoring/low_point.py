@@ -113,23 +113,34 @@ class TiebreakKey(NamedTuple):
     """What a placement sorts by, in order: lower is better in each."""
 
     net: float
-    #: Counted points, best first — comparing these is A8.1's count of places.
-    points: list[float]
+    #: How many firsts, seconds, thirds … — negated, so more of a better place sorts first.
+    places: tuple[int, ...]
     #: Points in the last race sailed (A8.2).
     last_points: float
 
 
 def _tiebreak_key(score: TeamScore, results: list[RaceResult]) -> TiebreakKey:
-    """RRS A8: on a tie, the better series decides, finally the last race.
+    """On equal points: more first places win, then more seconds, and so on; finally the
+    last race (RRS A8.2).
 
-    A8.1 compares the count of first, second, third … places; A8.2 decides by
-    the result of the last race.
+    Only **places sailed** count — a finish, not a redress, a penalty or a did-not-finish:
+    those count towards the points, but they are no place. That is how the league's
+    scoring (TracTrac) ranks, and it differs from comparing scores (RRS A8.1 read
+    literally) only where such a result is involved — 2. Liga act 1 of 2026, where a
+    redress 3.0 would otherwise have counted as a third place (decided 2026-10-27).
+    Counted per place rather than as a sorted list, so a team that sailed fewer races does
+    not win a tie by having fewer.
     """
     counted = [r for r in results if r.race_id not in score.discarded_races and r.scored]
-    points = sorted(score.points_by_race[r.race_id] for r in counted)
+    counts: dict[int, int] = {}
+    for r in counted:
+        if r.code == ResultCode.FINISHED and r.finish_position is not None:
+            counts[r.finish_position] = counts.get(r.finish_position, 0) + 1
+    deepest = max([*counts, *(r.starters for r in results)], default=0)
+    places = tuple(-counts.get(place, 0) for place in range(1, deepest + 1))
     last = max(counted, key=lambda r: r.sequence, default=None)
     last_points = score.points_by_race[last.race_id] if last else 0.0
-    return TiebreakKey(score.net, points, last_points)
+    return TiebreakKey(score.net, places, last_points)
 
 
 def score_event(

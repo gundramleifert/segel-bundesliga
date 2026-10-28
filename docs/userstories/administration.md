@@ -85,6 +85,18 @@ Acceptance criteria:
   file stays at Manage2Sail; the site links it. `--to <event id>` attaches it to an event
   that already exists here — the usual case, since the SAP import or an organizer created
   it.
+- **One Manage2Sail event, two acts** (decided 2026-10-28): the league registers a weekend
+  once at Manage2Sail, one class per league (`1.Segel-Bundesliga`, `2.Segel-Bundesliga`).
+  `--regatta <class>` takes that class alone and keys the link by event *and* class, so
+  both leagues' acts link to the same weekend. The **season's own event** — the notice of
+  race of the whole year — goes to the **series' notice board** (`--to-series <slug>`,
+  shown at `/:league/notice-board`); `--no-entries` takes documents only.
+- **Notice boards come from Manage2Sail, never invented** (decided 2026-10-28): the seed
+  replays the 1. and 2. Liga 2026's public answers, recorded by `scripts/record-m2s.py`
+  into `app/seed_data/m2s-2026/` — **documents only**, since the teams came from TracTrac
+  and Manage2Sail's entries cannot be tied to a club (a shared club code, a sail number the
+  team typed); no person's name is recorded. Today that is the season's notice of race on
+  each league; the acts' own boards are empty at Manage2Sail.
 - **Matching is by `ExternalId`, never by name.** A club is keyed by its **club code**
   (SAP's `shortName`, M2S's `ClubCode` — `HSC`, `NRV`), case-insensitive, since both
   systems spell the names differently. A club this site already has with that code as its
@@ -106,17 +118,40 @@ Acceptance criteria:
   from `JUNIOR_SAP_BASE_URL` (default `hnv.sapsailing.com`), the same way.
 - Each run is an `ImportRun` row and prints what it created, updated, left unchanged,
   and what conflicted or failed.
+- **The 1. and 2. Liga 2026 from TracTrac** (decided 2026-10-27, `docs/PLAN_SEEDING.md`):
+  the league sailed 2026 on TracTrac, which has no open data. Its results come from what
+  is published — each act's **event scoreboard**, exported from TracTrac's viewer as a
+  PDF (per club its place in every flight, redress, the matchday penalty), and each act's
+  **pairing list** on deutsche-segelbundesliga.de (per flight which club sailed which boat
+  in which race). `scripts/record-dsbl-2026.py` records both into
+  `api/app/seed_data/dsbl-2026/`, one file per act and division, and refuses to write
+  unless every race holds places 1 to 6 once and every club's places, redress and
+  penalty add up to TracTrac's total. `uv run python -m app.imports tractrac` imports
+  those files:
+  - every act becomes an event of `1./2. Segel-Bundesliga 2026` with its clubs, boats,
+    all 16 flights of its pairing list and the results of the flights sailed; points are
+    derived here and compared with TracTrac's — a difference is a warning;
+  - a club is keyed by the **league's code** (`BOH-YC`, `KYC (BW)`); a code that differs
+    from this site's is mapped by a reviewed table (`app/imports/tractrac.py`), never by
+    name;
+  - an act already here under the same matchday is taken over only while it has no
+    result; one that has results is a conflict, reported and left alone;
+  - the same rules as SAP's: repeatable, the race committee wins, drafts unless
+    `--publish`, the matchday penalty as the team's (Story WL-4).
 - Sailors are **not** imported: SAP carries none for the league (its "sailor" is the club),
   and Manage2Sail's public list has names but no id to match them by. That is VA-1's job,
   with the check-in report's World Sailing ids.
 
-Open: show the imported documents on the matchday page (the notice board is still
-placeholder content, `web/src/content/`, issue #14's question 5); SAP's attribution notice
-under imported results (`docs/findings.md` §3).
+Open: **An act with two host clubs** (Starnberg (1): MRSV and DTYC) is imported without
+a host — the model has one per event.
+Also open: SAP's attribution notice under imported results (`docs/findings.md` §3). (The
+imported documents are on the act's and the season's notice boards since 2026-10-28.)
 
 Tests: `api/tests/stories/test_imports.py::TestSapImport`,
 `api/tests/stories/test_imports.py::TestJuniorenImport`,
 `api/tests/stories/test_imports.py::TestManage2SailImport`,
+`api/tests/stories/test_import_m2s_league.py`,
+`api/tests/stories/test_import_tractrac.py::TestTracTracImport`,
 `api/tests/unit/test_import_parsing.py`
 
 ## The series and who sails in it

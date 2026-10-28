@@ -17,7 +17,7 @@ import { bearer } from "./session";
  * find the seed the way they expect it.
  */
 
-const LIVE_EVENT = 2; // dsbl-1-2026-act-2
+const LIVE_EVENT = 2; // demo-1-2026-act-2
 const COMMITTEE = "admin@sbl.example.com";
 
 interface AdminRace {
@@ -84,7 +84,7 @@ describeStory("B-5: as a spectator I follow live updates", () => {
   test("/live leads to the running event", async ({ page }) => {
     await page.goto("/live");
     // Through the event's address to its act, which opens on the results while racing.
-    await expect(page).toHaveURL(new RegExp(`/1-liga/2026/act-2\\?division=${LIVE_EVENT}$`));
+    await expect(page).toHaveURL(new RegExp(`/demo/2026/act-2\\?division=${LIVE_EVENT}$`));
     await expect(page.getByTestId("matchday-live-badge")).toBeVisible();
   });
 });

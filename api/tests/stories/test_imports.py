@@ -564,3 +564,53 @@ class TestManage2SailImport:
         """Story A-14: --to an unknown event is an error, and nothing is written."""
         report = await _import_m2s(db, to_event=missing)
         assert report.errors and "No event" in report.errors[0]
+
+    async def test_one_class_of_an_event_is_taken_alone(self, db):
+        """Story A-14: the league registers a weekend once at Manage2Sail, one class per
+        league — `--regatta` takes one class, and keys the event by event and class, so the
+        other league's act can be linked to the same Manage2Sail event."""
+        name = "Deutsche Junioren Segel-Liga 2026, ACT 1"
+        report = await _import_m2s(db, regatta=name)
+        assert report.errors == [], report.render()
+        async with db() as session:
+            keys = (
+                await session.execute(
+                    select(ExternalId.external_key).where(
+                        ExternalId.source == Source.MANAGE2SAIL, ExternalId.entity_type == "event"
+                    )
+                )
+            ).scalars()
+            assert list(keys) == [f"{M2S_EVENT}|{name}"]
+
+        report = await _import_m2s(db, regatta="2.Segel-Bundesliga")
+        assert report.errors and "no class '2.Segel-Bundesliga'" in report.errors[0]
+
+    async def test_the_season_s_documents_go_to_a_series(self, db, client):
+        """Story A-14: the season's own Manage2Sail event — its notice of race — goes to the
+        series' notice board (`--to-series`); no event and no team is made of it."""
+        from app.schemas.admin import ScoringIn
+
+        async with db() as session:
+            session.add(
+                Series(
+                    slug="dsbl-1-2026",
+                    name="1. Segel-Bundesliga 2026",
+                    short_name="1. Liga 2026",
+                    year=2026,
+                    published=True,
+                    scoring=ScoringIn().model_dump(),
+                )
+            )
+            await session.commit()
+        report = await _import_m2s(db, to_series="dsbl-1-2026")
+        assert report.errors == [], report.render()
+        assert not report.created["events"] and not report.created["event entries"]
+        async with db() as session:
+            series = (
+                await session.execute(select(Series).where(Series.slug == "dsbl-1-2026"))
+            ).scalar_one()
+            assert (await session.execute(select(func.count()).select_from(Event))).scalar() == 0
+
+        documents = (await client.get(f"/api/series/{series.id}/documents")).json()
+        assert len(documents) == len(json.loads((FIXTURES / "m2s/documents.json").read_text()))
+        assert (await client.get("/api/series/999999/documents")).status_code == 404

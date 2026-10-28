@@ -1,0 +1,1615 @@
+{
+ "year": 2026,
+ "division": 1,
+ "act": 5,
+ "title": "5. Spieltag Deutsche Segel-Bundesliga 2026",
+ "city": "Berlin",
+ "hosts": [
+  "PYC"
+ ],
+ "starts_on": "2026-09-18",
+ "ends_on": "2026-09-20",
+ "boats": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6
+ ],
+ "sources": {
+  "scoreboard": "TracTrac event scoreboard, exported as PDF (5. Spieltag Deutsche Segel-Bundesliga 2026 - Event scoreboard.pdf)",
+  "pairing_list": "https://deutsche-segelbundesliga.de/wp-content/uploads/2025/11/Pairing-Liste-1.-Liga-PYC.pdf"
+ },
+ "flights_sailed": 16,
+ "pairing": [
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SMCÜ",
+     "NRV",
+     "KaR",
+     "JSC",
+     "PYC",
+     "EnSFr"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BYC (BE)",
+     "BYCÜ",
+     "MSC",
+     "KYC (SH)",
+     "DYC",
+     "SVWu"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "MYC",
+     "SVI",
+     "WYC",
+     "BSC",
+     "BYC (BA)",
+     "BOH-YC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "NRV",
+     "DYC",
+     "WYC",
+     "EnSFr",
+     "BYC (BA)",
+     "MSC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BSC",
+     "PYC",
+     "BYCÜ",
+     "SMCÜ",
+     "MYC",
+     "KYC (SH)"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "SVI",
+     "BOH-YC",
+     "BYC (BE)",
+     "SVWu",
+     "KaR",
+     "JSC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "KYC (SH)",
+     "BOH-YC",
+     "MYC",
+     "DYC",
+     "KaR",
+     "NRV"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "JSC",
+     "MSC",
+     "PYC",
+     "BYC (BE)",
+     "BSC",
+     "BYC (BA)"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "WYC",
+     "SVWu",
+     "EnSFr",
+     "SVI",
+     "SMCÜ",
+     "BYCÜ"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "DYC",
+     "SVWu",
+     "JSC",
+     "BYC (BA)",
+     "SMCÜ",
+     "MYC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BOH-YC",
+     "BYC (BE)",
+     "NRV",
+     "PYC",
+     "BYCÜ",
+     "WYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "MSC",
+     "EnSFr",
+     "KYC (SH)",
+     "KaR",
+     "SVI",
+     "BSC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "MSC",
+     "MYC",
+     "SVWu",
+     "KaR",
+     "WYC",
+     "PYC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BYC (BA)",
+     "KYC (SH)",
+     "SMCÜ",
+     "NRV",
+     "BYC (BE)",
+     "SVI"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "EnSFr",
+     "BSC",
+     "DYC",
+     "BYCÜ",
+     "JSC",
+     "BOH-YC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SVWu",
+     "BSC",
+     "BYC (BA)",
+     "BYCÜ",
+     "NRV",
+     "KaR"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "PYC",
+     "WYC",
+     "SVI",
+     "DYC",
+     "KYC (SH)",
+     "JSC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "EnSFr",
+     "SMCÜ",
+     "BOH-YC",
+     "MSC",
+     "MYC",
+     "BYC (BE)"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "NRV",
+     "BYCÜ",
+     "JSC",
+     "MSC",
+     "MYC",
+     "SVI"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "KYC (SH)",
+     "PYC",
+     "SVWu",
+     "BYC (BA)",
+     "BOH-YC",
+     "EnSFr"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "KaR",
+     "SMCÜ",
+     "BSC",
+     "WYC",
+     "BYC (BE)",
+     "DYC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "PYC",
+     "NRV",
+     "BSC",
+     "SVI",
+     "SVWu",
+     "DYC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BYC (BE)",
+     "JSC",
+     "EnSFr",
+     "WYC",
+     "KYC (SH)",
+     "MYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "BYCÜ",
+     "BYC (BA)",
+     "KaR",
+     "BOH-YC",
+     "MSC",
+     "SMCÜ"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SVWu",
+     "WYC",
+     "NRV",
+     "BSC",
+     "JSC",
+     "KYC (SH)"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BOH-YC",
+     "SVI",
+     "MSC",
+     "SMCÜ",
+     "DYC",
+     "PYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "BYC (BA)",
+     "KaR",
+     "BYC (BE)",
+     "MYC",
+     "EnSFr",
+     "BYCÜ"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "BSC",
+     "JSC",
+     "KYC (SH)",
+     "BOH-YC",
+     "MSC",
+     "SMCÜ"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BYCÜ",
+     "KaR",
+     "BYC (BA)",
+     "SVI",
+     "PYC",
+     "WYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "DYC",
+     "BYC (BE)",
+     "MYC",
+     "EnSFr",
+     "SVWu",
+     "NRV"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "BSC",
+     "BYC (BA)",
+     "MYC",
+     "PYC",
+     "BOH-YC",
+     "NRV"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "WYC",
+     "KYC (SH)",
+     "SMCÜ",
+     "SVWu",
+     "EnSFr",
+     "KaR"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "SVI",
+     "MSC",
+     "DYC",
+     "JSC",
+     "BYCÜ",
+     "BYC (BE)"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SMCÜ",
+     "MSC",
+     "BOH-YC",
+     "NRV",
+     "WYC",
+     "SVWu"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "MYC",
+     "EnSFr",
+     "PYC",
+     "BYC (BE)",
+     "SVI",
+     "BSC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "JSC",
+     "DYC",
+     "BYCÜ",
+     "KYC (SH)",
+     "KaR",
+     "BYC (BA)"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "PYC",
+     "EnSFr",
+     "BYCÜ",
+     "KYC (SH)",
+     "NRV",
+     "MSC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "JSC",
+     "SVWu",
+     "SVI",
+     "MYC",
+     "BYC (BA)",
+     "SMCÜ"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "KaR",
+     "DYC",
+     "WYC",
+     "BOH-YC",
+     "BSC",
+     "BYC (BE)"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "MSC",
+     "KYC (SH)",
+     "SVWu",
+     "BYC (BA)",
+     "BSC",
+     "BYC (BE)"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "NRV",
+     "SVI",
+     "JSC",
+     "EnSFr",
+     "BOH-YC",
+     "KaR"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "WYC",
+     "MYC",
+     "PYC",
+     "SMCÜ",
+     "BYCÜ",
+     "DYC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "WYC",
+     "BYC (BA)",
+     "MSC",
+     "BSC",
+     "EnSFr",
+     "DYC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "BYCÜ",
+     "BOH-YC",
+     "KYC (SH)",
+     "MYC",
+     "SVI",
+     "SVWu"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "BYC (BE)",
+     "NRV",
+     "KaR",
+     "PYC",
+     "SMCÜ",
+     "JSC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "MYC",
+     "WYC",
+     "KaR",
+     "MSC",
+     "KYC (SH)",
+     "JSC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "SVI",
+     "SMCÜ",
+     "BSC",
+     "BYC (BE)",
+     "NRV",
+     "BYCÜ"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "BYC (BA)",
+     "PYC",
+     "EnSFr",
+     "DYC",
+     "SVWu",
+     "BOH-YC"
+    ]
+   }
+  ]
+ ],
+ "scoreboard": [
+  {
+   "code": "NRV",
+   "name": "Norddeutscher Regatta Verein",
+   "rank": 1,
+   "points": 35.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "redress": 3.0
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    }
+   ]
+  },
+  {
+   "code": "BYC (BE)",
+   "name": "Berliner Yacht-Club",
+   "rank": 2,
+   "points": 38.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    }
+   ]
+  },
+  {
+   "code": "JSC",
+   "name": "Joersfelder Segel-Club",
+   "rank": 3,
+   "points": 43.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    }
+   ]
+  },
+  {
+   "code": "BYC (BA)",
+   "name": "Bayerischer Yacht-Club",
+   "rank": 4,
+   "points": 46.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    }
+   ]
+  },
+  {
+   "code": "MSC",
+   "name": "Mühlenberger Segel-Club",
+   "rank": 5,
+   "points": 47.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    }
+   ]
+  },
+  {
+   "code": "KaR",
+   "name": "Klub am Rupenhorn",
+   "rank": 6,
+   "points": 50.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 2
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    }
+   ]
+  },
+  {
+   "code": "KYC (SH)",
+   "name": "Kieler Yacht-Club",
+   "rank": 7,
+   "points": 51.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 6
+    }
+   ]
+  },
+  {
+   "code": "BYCÜ",
+   "name": "Bodensee-Yacht-Club Überlingen",
+   "rank": 8,
+   "points": 52.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    }
+   ]
+  },
+  {
+   "code": "SVI",
+   "name": "Seglervereinigung Itzehoe",
+   "rank": 9,
+   "points": 54.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    }
+   ]
+  },
+  {
+   "code": "BOH-YC",
+   "name": "Bocholter Yacht Club",
+   "rank": 10,
+   "points": 59.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    }
+   ]
+  },
+  {
+   "code": "MYC",
+   "name": "Münchner Yacht-Club",
+   "rank": 11,
+   "points": 62.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 4
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 1
+    }
+   ]
+  },
+  {
+   "code": "WYC",
+   "name": "Württembergischer Yacht-Club",
+   "rank": 12,
+   "points": 63.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    }
+   ]
+  },
+  {
+   "code": "EnSFr",
+   "name": "Entdecker - & Seefahrer Fördervereinigung",
+   "rank": 13,
+   "points": 63.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    }
+   ]
+  },
+  {
+   "code": "SVWu",
+   "name": "Segler-Vereinigung-Wuppertal",
+   "rank": 14,
+   "points": 65.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    }
+   ]
+  },
+  {
+   "code": "PYC",
+   "name": "Potsdamer Yacht Club",
+   "rank": 15,
+   "points": 68.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 1
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    }
+   ]
+  },
+  {
+   "code": "SMCÜ",
+   "name": "Segel- und Motorboot Club Überlingen",
+   "rank": 16,
+   "points": 68.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    }
+   ]
+  },
+  {
+   "code": "BSC",
+   "name": "Blankeneser Segel-Club",
+   "rank": 17,
+   "points": 72.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "redress": 5.0
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    }
+   ]
+  },
+  {
+   "code": "DYC",
+   "name": "Düsseldorfer Yachtclub",
+   "rank": 18,
+   "points": 74.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    }
+   ]
+  }
+ ]
+}

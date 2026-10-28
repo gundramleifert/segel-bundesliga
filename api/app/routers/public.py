@@ -953,6 +953,36 @@ async def list_event_documents(
 
 
 @router.get(
+    "/series/{series_id}/documents",
+    response_model=list[EventDocumentOut],
+    summary="The documents on a series' notice board",
+)
+async def list_series_documents(
+    series_id: int,
+    session: AsyncSession = Depends(get_session),
+) -> list[EventDocument]:
+    """The season's own documents — the notice of race of the whole league year — as links
+    to where they were published (Story A-14); an act's are on the act. A draft series is a
+    404, as anywhere public."""
+    series = (
+        await session.execute(
+            select(Series).where(Series.id == series_id, Series.published.is_(True))
+        )
+    ).scalar_one_or_none()
+    if series is None:
+        raise Problem(404, "series-not-found", f"Series {series_id} not found.", id=series_id)
+    return list(
+        (
+            await session.execute(
+                select(EventDocument)
+                .where(EventDocument.series_id == series.id)
+                .order_by(EventDocument.position, EventDocument.id)
+            )
+        ).scalars()
+    )
+
+
+@router.get(
     "/events/{event_id}/announcements",
     response_model=list[AnnouncementOut],
     summary="The announcements on an event's notice board",

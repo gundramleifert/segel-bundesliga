@@ -7,18 +7,19 @@
 name: segelliga
 
 x-api-env: &api-env
-  SBL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sbl}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/.env}@db:5432/${POSTGRES_DB:-sbl}
-  # Uploads: "s3" keeps them in SeaweedFS below, "local" in the `uploads` volume.
-  SBL_STORAGE: ${SBL_STORAGE:-s3}
-  SBL_UPLOADS_DIR: /data/uploads
+  SBL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sbl}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/secrets.sops.env (or .env)}@db:5432/${POSTGRES_DB:-sbl}
+  # Uploads are always in S3 here — SeaweedFS below by default, or any S3 provider named by
+  # the SBL_S3_* settings (README.md, "Uploads"). The containers keep no files of their own.
+  SBL_STORAGE: s3
   SBL_S3_ENDPOINT_URL: ${SBL_S3_ENDPOINT_URL:-http://storage:8333}
   SBL_S3_REGION: ${SBL_S3_REGION:-us-east-1}
   SBL_S3_BUCKET: ${SBL_S3_BUCKET:-sbl-uploads}
   SBL_S3_PREFIX: ${SBL_S3_PREFIX:-}
-  SBL_S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/compose/.env}
-  SBL_S3_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/compose/.env}
+  SBL_S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/compose/secrets.sops.env (or .env)}
+  SBL_S3_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/compose/secrets.sops.env (or .env)}
   SBL_S3_CACHE_SECONDS: ${SBL_S3_CACHE_SECONDS:-300}
-  SBL_JWT_SECRET: ${SBL_JWT_SECRET:?set SBL_JWT_SECRET in deploy/compose/.env}
+  SBL_S3_ADDRESSING_STYLE: ${SBL_S3_ADDRESSING_STYLE:-path}
+  SBL_JWT_SECRET: ${SBL_JWT_SECRET:?set SBL_JWT_SECRET in deploy/compose/secrets.sops.env (or .env)}
   SBL_JWT_LIFETIME_MINUTES: ${SBL_JWT_LIFETIME_MINUTES:-720}
   SBL_DEBUG: ${SBL_DEBUG:-false}
   SBL_DEV_LOGIN: ${SBL_DEV_LOGIN:-false}
@@ -49,7 +50,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-sbl}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/secrets.sops.env (or .env)}
       POSTGRES_DB: ${POSTGRES_DB:-sbl}
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -66,14 +67,16 @@ services:
       dockerfile: deploy/compose/api.Dockerfile
     image: segelliga-api:local
     command: ["api-init"]
-    environment: *api-env
-    volumes:
-      - uploads:/data/uploads
+    environment:
+      <<: *api-env
+      # true only on a demonstration server: publishes the invented demo series.
+      SEED_PUBLISH_DEMO: ${SEED_PUBLISH_DEMO:-false}
     depends_on:
       db:
         condition: service_healthy
       storage:
         condition: service_healthy
+        required: false # not started when an outside S3 provider is used
     restart: "no"
 
   api:
@@ -83,13 +86,12 @@ services:
     image: segelliga-api:local
     restart: unless-stopped
     environment: *api-env
-    volumes:
-      - uploads:/data/uploads
     depends_on:
       db:
         condition: service_healthy
       storage:
         condition: service_healthy
+        required: false # not started when an outside S3 provider is used
       db-setup:
         condition: service_completed_successfully
     healthcheck:
@@ -119,9 +121,12 @@ services:
       timeout: 3s
       retries: 5
 
-  # Object storage with an S3 gateway: where the uploads go while SBL_STORAGE=s3.
+  # Object storage with an S3 gateway: where the uploads go unless an outside provider does.
   storage:
     image: chrislusf/seaweedfs:3.97
+    # In the profile `seaweedfs`, which .env.example turns on (COMPOSE_PROFILES): leave it
+    # out there to use an outside S3 provider instead.
+    profiles: [seaweedfs]
     restart: unless-stopped
     command:
       - server
@@ -159,8 +164,8 @@ configs:
             "name": "sbl",
             "credentials": [
               {
-                "accessKey": "${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/compose/.env}",
-                "secretKey": "${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/compose/.env}"
+                "accessKey": "${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/compose/secrets.sops.env (or .env)}",
+                "secretKey": "${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/compose/secrets.sops.env (or .env)}"
               }
             ],
             "actions": ["Admin", "Read", "List", "Tagging", "Write"]
@@ -170,5 +175,4 @@ configs:
 
 volumes:
   db-data:
-  uploads:
   storage-data:

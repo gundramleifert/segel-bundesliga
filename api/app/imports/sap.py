@@ -33,16 +33,17 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.imports.common import (
     Report,
+    enter_team,
     link,
     link_key,
     linked,
     resolve_club,
     run_import,
     unique_slug,
+    venue_for_city,
 )
 from app.models import (
     Boat,
-    Club,
     Event,
     EventStanding,
     EventStatus,
@@ -53,11 +54,9 @@ from app.models import (
     Series,
     Source,
     Team,
-    Venue,
 )
 from app.models.racing import RaceStatus, ResultCode
 from app.schemas.admin import ScoringIn
-from app.services.participation import event_entry, team_name
 from app.services.standings import recompute_event
 from app.text import slugify
 
@@ -485,7 +484,7 @@ async def _import_regatta(
         if crest and not club.logo_url:
             club.logo_url = crest[:300]
             report.tally("updated", "clubs (crest)")
-        teams[competitor["id"]] = await _entry(session, report, club, series, event, number)
+        teams[competitor["id"]] = await enter_team(session, report, club, series, event, number)
 
     boats = await _boats(session, report, event, boats_seen)
     races = await _races(session, report, event, columns, fleet_names, fleets_by_column)
@@ -632,7 +631,7 @@ async def _event(
         title=title,
         matchday=matchday,
         series_id=series.id,
-        venue_id=(await _venue(session, report, regatta.city)).id if regatta.city else None,
+        venue_id=(await venue_for_city(session, report, regatta.city)).id if regatta.city else None,
         team_count=team_count or 18,
         boat_count=boat_count or 6,
         flight_count=flight_count or 16,
@@ -652,65 +651,6 @@ async def _event(
         if series.ends_on is None or days[1] > series.ends_on:
             series.ends_on = days[1]
     return event
-
-
-async def _venue(session: AsyncSession, report: Report, city: str) -> Venue:
-    """The venue named after the matchday's city — the seed's `Kiel`, or a new one."""
-    slug = slugify(city)
-    venue = (await session.execute(select(Venue).where(Venue.slug == slug))).scalar_one_or_none()
-    if venue is None:
-        # In Python, not SQL: SQLite's lower() would miss the Ü of Überlingen.
-        venue = next(
-            (
-                v
-                for v in (await session.execute(select(Venue))).scalars()
-                if v.city.casefold() == city.casefold()
-            ),
-            None,
-        )
-    if venue is None:
-        venue = Venue(slug=slug, name=city, city=city)
-        session.add(venue)
-        await session.flush()
-        report.tally("created", "venues")
-    return venue
-
-
-async def _entry(
-    session: AsyncSession, report: Report, club: Club, series: Series, event: Event, number: int
-) -> Team:
-    """The club's registration for the series and its team ``number`` in this act — both
-    rows the model asks for (Domain decisions: `Team` is the enrollment). A club's second
-    team (`KYC (SH) 2`) is an entry of its own, lined up from the club's one squad (Story
-    VA-13), so the club stays registered once."""
-    registration = (
-        await session.execute(
-            select(Team).where(
-                Team.club_id == club.id, Team.series_id == series.id, Team.event_id.is_(None)
-            )
-        )
-    ).scalar_one_or_none()
-    if registration is None:
-        session.add(Team(name=club.short_name, club_id=club.id, series_id=series.id))
-        report.tally("created", "series registrations")
-    entry = await event_entry(session, event.id, club.id, number)
-    if entry is None:
-        if number > event.teams_per_club:
-            event.teams_per_club = number
-            report.tally("updated", "events (teams per club)")
-        entry = Team(
-            name=team_name(club, number),
-            number=number,
-            club_id=club.id,
-            series_id=series.id,
-            event_id=event.id,
-        )
-        session.add(entry)
-        report.tally("created", "event entries")
-    else:
-        report.tally("unchanged", "event entries")
-    await session.flush()
-    return entry
 
 
 def boat_numbers(boats: dict[str, dict[str, Any]]) -> dict[str, int]:

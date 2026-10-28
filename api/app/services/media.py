@@ -153,8 +153,6 @@ def file_key(file_name: str) -> str | None:
     wanted = _parse(file_name)
     if wanted is None:
         return None
-    if wanted.edge is not None and wanted.edge not in EDGES:
-        return None
     if wanted.edge is not None:
         key = f"{_SERVED}/{_variant_name(wanted.name, wanted.edge)}"
         if storage().exists(key):
@@ -165,6 +163,10 @@ def file_key(file_name: str) -> str | None:
         return None
     image = pictures.upright(raw, code="media", edge=MASTER_EDGE)
     edges = edges_of(*image.size)
+    # One of the sizes, or the picture's own longer edge — the largest its srcset offers
+    # (a 683 × 1024 picture's is 1024). Any other number is no address of it.
+    if wanted.edge is not None and wanted.edge not in (*EDGES, edges[-1]):
+        return None
     # Larger than the picture is: the largest there is, never a blown-up copy.
     edge = edges[-1] if wanted.edge is None else min(wanted.edge, edges[-1])
     key = f"{_SERVED}/{_variant_name(wanted.name, edge)}"

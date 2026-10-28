@@ -38,7 +38,7 @@ switcher; its sections are grouped under *People*, *Racing* and *Money*, plus *C
   [register the squad](#squad-and-lineup-squad), within the
   [squad size](#squad-and-lineup-size) — team manager.
 
-### Before each matchday {#start-club-matchday}
+### Before each event {#start-club-matchday}
 
 - [Name the crew](#squad-and-lineup-crew) from the squad — team manager.
 - [See whose waivers are in](#club-waivers-overview) and
@@ -49,7 +49,7 @@ switcher; its sections are grouped under *People*, *Racing* and *Money*, plus *C
 - [A new club gets going and runs itself](#journey-club)
 - [A sailor joins their club](#journey-member)
 - [An organizer sets up a series](#journey-series)
-- [A club's crew is cleared for a matchday](#journey-crew-cleared)
+- [A club's crew is cleared for an event](#journey-crew-cleared)
 
 Who may do what: [roles](#roles-list).
 

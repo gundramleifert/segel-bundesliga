@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams } from "react-router-dom";
 
-import { useGetSeriesTable } from "../../api/generated/sbl";
+import { useGetSeriesTable, useListSeriesDocuments } from "../../api/generated/sbl";
 import type { LeagueSeason, Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
@@ -22,10 +22,8 @@ import {
   useLocalized,
   useNews,
   usePress,
-  useSeasonDocuments,
   useVideos,
   type ArticleSummary,
-  type DocGroup,
   type Paged,
   type TableMarks,
 } from "../../content";
@@ -33,7 +31,8 @@ import { formatDate, locationText } from "../../lib/format";
 import { currentAct, href } from "../../lib/site";
 import { RichText } from "../../components/RichText";
 import { ArticleView } from "./ArticleView";
-import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
+import { Documents } from "./act/NoticeBoard";
+import { LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
 
 // The depth pages behind a league's chapters (Story B-14), each a `DepthPage`.
 
@@ -180,10 +179,10 @@ export function SeasonPage() {
 
 // ---------------------------------------------------------------- notice board
 
-/** `/:league/notice-board` — the season's documents; the act's own notices are on its page. */
+/** `/:league/notice-board` — the season's documents, per division as Manage2Sail has them
+ *  (Story A-14); the act's own notices are on its page. */
 export function NoticeBoardPage() {
   const { t } = useTranslation("site");
-  const localized = useLocalized();
   const actTitle = useActTitle();
   return (
     <LeagueGate>
@@ -200,13 +199,12 @@ export function NoticeBoardPage() {
                 </Link>
               )}
             </TextCard>
-            <SeasonDocuments league={league.slug} render={(group) => (
-              <Card key={localized(group.title)} className="mb-4 px-4">
-                <Expand open summary={<span className="font-semibold">{localized(group.title)}</span>}>
-                  <DocList docs={group.docs} />
-                </Expand>
-              </Card>
-            )} />
+            {!data.season.series.length && <TextCard>{t("noticeBoard.none")}</TextCard>}
+            {data.season.series.map((s) => (
+              <Block key={s.id} title={s.name} testId={`site-season-documents-${s.slug}`}>
+                <SeasonDocuments series={s} />
+              </Block>
+            ))}
           </DepthPage>
         );
       }}
@@ -214,31 +212,17 @@ export function NoticeBoardPage() {
   );
 }
 
-function SeasonDocuments({ league, render }: { league: string; render: (group: DocGroup) => ReactNode }) {
-  const documents = useSeasonDocuments(league);
+function SeasonDocuments({ series }: { series: LeagueSeason["series"][number] }) {
+  const { t } = useTranslation("site");
+  const documents = useAsync(useListSeriesDocuments(series.id));
   return (
-    <Async state={documents} testId="site-season-documents">
-      {({ groups, example }) => (
-        <>
-          {example && <ExampleNote />}
-          {groups.map(render)}
-        </>
+    <Async state={documents} testId={`site-season-document-list-${series.slug}`} empty={t("noticeBoard.none")}>
+      {(docs) => (
+        <Card className="p-4">
+          <Documents docs={docs} testId="site-season-document" />
+        </Card>
       )}
     </Async>
-  );
-}
-
-function DocList({ docs }: { docs: string[] }) {
-  return (
-    <ul className="space-y-1.5">
-      {docs.map((doc) => (
-        <li key={doc} className="flex items-center gap-3">
-          <span className={`grid size-8 shrink-0 place-items-center rounded-md text-[10px] font-bold bg-default text-muted`}>PDF</span>
-          {/* No download mark until there is a file to download. */}
-          <span className={`flex-1 ${tone.text}`}>{doc}</span>
-        </li>
-      ))}
-    </ul>
   );
 }
 

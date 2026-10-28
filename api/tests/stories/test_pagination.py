@@ -363,8 +363,8 @@ class TestSearchingTheEventCalendar:
         ).json()
 
         found = {event["id"] for event in page["items"]}
-        assert ids.event("dsbl-1-2026-act-2") in found  # the act sailed in Kiel
-        assert ids.event("dsbl-1-2026-act-1") not in found
+        assert ids.event("dsbl-1-2026-act-3") in found  # the act sailed in Kiel
+        assert ids.event("dsbl-1-2026-act-1") not in found  # Starnberg
 
     async def test_a_draft_event_is_not_findable_by_searching(self, client, caplog):
         """The public calendar answers for published events only — search included."""

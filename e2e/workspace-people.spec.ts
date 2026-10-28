@@ -49,10 +49,10 @@ type Person = {
 
 const ME = ["overview", "account", "clubs", "waivers", "claims", "documents", "bank"];
 const ASVW: Ref = "club:asvw";
-const LIGA2: Ref = "series:dsbl-2-2026";
-const ACT1: Ref = "event:dsbl-2-2026-act-1";
-const ACT2: Ref = "event:dsbl-2-2026-act-2";
-const ACT3: Ref = "event:dsbl-2-2026-act-3";
+const LIGA2: Ref = "series:demo-2-2026";
+const ACT1: Ref = "event:demo-2-2026-act-1";
+const ACT2: Ref = "event:demo-2-2026-act-2";
+const ACT3: Ref = "event:demo-2-2026-act-3";
 const SERIES_ORGANIZER = ["overview", "events", "standings", "registrations", "dates", "scoring", "officials"];
 
 /** An adult of ASVW who sails the 2. Liga and is in its acts' crews — §5's first row. */

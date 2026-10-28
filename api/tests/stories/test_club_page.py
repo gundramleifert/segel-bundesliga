@@ -14,6 +14,12 @@ from app.models import Club
 CLUB = "asvw"
 
 
+def squad_team(club: dict) -> dict:
+    """The club's entry with a squad: the demo series' — the real 2026 series have none,
+    no source says who sailed (docs/PLAN_SEEDING.md)."""
+    return next(t for t in club["teams"] if t["series"]["slug"].startswith("demo-"))
+
+
 async def first_club() -> int:
     """The club ID — routes address via the primary key."""
     async with SessionLocal() as session:
@@ -41,7 +47,7 @@ class TestClubPage:
     async def test_page_shows_squad(self, client):
         """Names are on every results list anyway — email addresses are not."""
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
-        first = club["teams"][0]
+        first = squad_team(club)
 
         assert len(first["members"]) == 10, "Ten members per season (Story V-1)"
         # Helm first — the order a crew is announced.
@@ -66,7 +72,7 @@ class TestSailorPage:
 
     async def _first_person(self, client) -> dict:
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
-        return club["teams"][0]["members"][0]
+        return squad_team(club)["members"][0]
 
     async def test_page_names_club_and_series(self, client):
         member = await self._first_person(client)
@@ -94,7 +100,7 @@ class TestSailorPage:
     async def test_substitute_only_has_no_lineup(self, client):
         """Ten on the squad, four in the lineup — that's a difference."""
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
-        substitutes = [m for m in club["teams"][0]["members"] if m["role"] == "substitute"]
+        substitutes = [m for m in squad_team(club)["members"] if m["role"] == "substitute"]
         assert substitutes, "Seed should contain substitutes"
 
         person = (await client.get(f"/api/people/{substitutes[0]['id']}")).json()

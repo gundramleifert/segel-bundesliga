@@ -67,7 +67,7 @@ export UV_CACHE_DIR="${UV_CACHE_DIR:-${TMPDIR:-/tmp}/uv-cache}"
 if [[ "$RESEED" == 1 ]]; then
   echo "seeding api/e2e.db (fresh) …"
   (cd "$ROOT/api" && SBL_DATABASE_URL="sqlite+aiosqlite:///./e2e.db" \
-     uv run python -m app.seed_test_setup --reset > "$LOGS/seed.log" 2>&1) \
+     uv run python -m app.seed_test_setup --reset --publish-demo > "$LOGS/seed.log" 2>&1) \
     || { echo "seeding failed — see $LOGS/seed.log"; exit 1; }
   # Seeded once and copied, rather than seeded N times: the seed takes about ten seconds
   # and produces the same rows every time, so copying the file is the same result in

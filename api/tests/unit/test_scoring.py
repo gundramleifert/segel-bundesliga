@@ -91,6 +91,47 @@ def test_tie_is_broken_by_the_better_series_then_the_last_race():
     assert scores[0].net == scores[1].net == 3.0
 
 
+def redress(race_id: int, points: float) -> RaceResult:
+    return RaceResult(
+        race_id=race_id,
+        sequence=race_id,
+        starters=STARTERS,
+        code=ResultCode.RDG,
+        redress_points=points,
+    )
+
+
+def test_a_tie_counts_places_sailed_and_a_redress_is_none():
+    """On equal points, more first places win, then more seconds, … — places sailed only:
+    a redress counts towards the points but is no place. The 2. Liga's act 1 of 2026 as
+    TracTrac ranked it: RSN 3, 6, 6, 1, 4, 1, 1, 2 against Konstanz 1, 7*, 4, 2, 1, 5, 1,
+    3* — both 24, three firsts and one second each, and only RSN has a third place."""
+    rsn = [finished(r, p) for r, p in enumerate([3, 6, 6, 1, 4, 1, 1, 2], start=1)]
+    konstanz = [
+        finished(1, 1),
+        redress(2, 7.0),
+        finished(3, 4),
+        finished(4, 2),
+        finished(5, 1),
+        finished(6, 5),
+        finished(7, 1),
+        redress(8, 3.0),
+    ]
+    scores = score_event({10: rsn, 11: konstanz})
+    assert scores[0].net == scores[1].net == 24.0
+    assert [s.team_id for s in scores] == [10, 11]
+
+
+def test_a_tie_with_fewer_races_is_not_won_by_having_fewer():
+    """More seconds beat fewer, also when one team sailed fewer races: a missing race is
+    not a better place."""
+    two_firsts = [finished(1, 1), finished(2, 1), redress(3, 2.0)]
+    two_firsts_and_a_second = [finished(1, 1), finished(2, 1), finished(3, 2)]
+    scores = score_event({10: two_firsts, 11: two_firsts_and_a_second})
+    assert scores[0].net == scores[1].net == 4.0
+    assert scores[0].team_id == 11
+
+
 def test_discards_remove_the_worst_result_once_configured():
     config = ScoringConfig(discard_after=(4,))
     results = [finished(i, 1) for i in range(1, 4)] + [finished(4, 6)]

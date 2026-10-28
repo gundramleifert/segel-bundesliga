@@ -10,13 +10,13 @@ import { bearer } from "./session";
  */
 
 const EDITOR = "redaktion@sbl.example.com";
-const ACT = 3; // dsbl-1-2026-act-3, a published act of the 1. Liga
+const ACT = 3; // demo-1-2026-act-3 (published on test stacks)
 
 describeStory("R-3: the league's media page shows the library", () => {
   test("a picture delivered for an act is on the league's media page, full screen on a tap", async ({ page }, testInfo) => {
     const headers = await bearer(page.request, EDITOR);
     const alt = `Media page ${testInfo.project.name} ${Date.now()}`;
-    await page.goto("/1-liga/media");
+    await page.goto("/demo/media");
     // Two pictures, made in the browser, uploaded as editorial — the second one first, so
     // the newest is the first tile.
     const ids = await page.evaluate(

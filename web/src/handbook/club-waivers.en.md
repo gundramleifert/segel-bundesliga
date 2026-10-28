@@ -13,7 +13,7 @@ title: "Your sailors' waivers"
 ## Your sailors' waivers
 
 Every sailor confirms the liability waiver once per series they are in — that covers
-all its matchdays — and once for each event in no series. The club cannot confirm it
+all its events — and once for each event in no series. The club cannot confirm it
 for them on this page; it sees who is missing.
 
 ### Whose waivers are in {#club-waivers-overview}
@@ -53,12 +53,12 @@ upload of its own.
 
 You can name a crew before its waivers are in; nothing is locked. Instead:
 
-- *To do* on *Me* › *Overview*, and [*your club* › *Waivers*](place:club.waivers), count the upcoming matchdays
+- *To do* on *Me* › *Overview*, and [*your club* › *Waivers*](place:club.waivers), count the upcoming events
   where a crew member has no cleared waiver;
 - the sailor's own *Me* › *Overview*, and a linked parent's, says theirs is waiting;
 - the event's organizer sees everyone of your squad on the
   [check-in list](#event-checkin-list), cleared or not.
 
-Chase the missing ones before the matchday, not at check-in.
+Chase the missing ones before the event, not at check-in.
 
 [Open my space](place:space)

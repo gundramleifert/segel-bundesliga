@@ -2,8 +2,10 @@
 
 Taken over as they are, with the author's agreement (Sven Jürgensen, the association's
 press contact, 2026-10-23) — save the links to the league's other website, which the site
-does not point to (decided 2026-10-23). The body is the editor's HTML; `seed_posts` cleans
-it through `app.services.rich_text`, like every write.
+does not point to (decided 2026-10-23), and the paragraph offering the press pictures of
+the league's former company, which the site does not use (docs/PLAN_SEEDING.md). The
+body is the editor's HTML; `seed_posts` cleans it through `app.services.rich_text`, like
+every write.
 """
 
 from __future__ import annotations
@@ -115,14 +117,8 @@ PRESS_RELEASES: list[dict] = [
         "unten).</p><h2>Ausblick</h2><p>Das Saisonfinale der 1. und 2. "
         "Segel-Bundesliga findet vom 15. bis 17. Oktober 2026 ebenfalls auf dem "
         "Wannsee statt – Gastgeber ist dann der Verein Seglerhaus am "
-        "Wannsee.</p><h2>Bildmaterial</h2><p>Aktuelle Pressebilder des DSL e.V. aus "
-        "der laufenden Saison zur redaktionellen Nutzung im Zusammenhang mit der "
-        "Deutschen Segel-Bundesliga:</p><p><a "
-        'href="https://konzeptwerft.smugmug.com/Deutsche-Segel-Bundesliga/2026/03-Spielta'
-        'g-Kiel-Hotel-Kieler-Yacht-Club/PRESSE-c-DSBL/2-LIGA-c-DSBL">https://konzeptwerft'
-        ".smugmug.com/Deutsche-Segel-Bundesliga/2026/03-Spieltag-Kiel-Hotel-Kieler-Yacht-"
-        "Club/PRESSE-c-DSBL/2-LIGA-c-DSBL</a></p><p>Bildnachweis: "
-        "© DSBL GmbH</p><h2>Über die Deutsche Segel-Bundesliga</h2><p>Die Deutsche "
+        "Wannsee.</p>"
+        "<h2>Über die Deutsche Segel-Bundesliga</h2><p>Die Deutsche "
         "Segel-Bundesliga wurde 2013 gemeinsam mit 17 Segelvereinen gegründet. "
         "Veranstalter der Liga ist der Deutsche Segler-Verband (DSV), Ausrichter ist "
         "die Deutsche Segel-Liga e.V., die für die operative Organisation und "

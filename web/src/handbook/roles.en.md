@@ -67,7 +67,7 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
 | Find and create people | ✓ | — | — | — | — | — | — | own | own | — | — |
 | Change a sailor's details | ✓⁹ | — | — | — | — | — | — | squad²˒⁹ | squad²˒⁹ | — | self |
 | Register the squad | ✓ | — | — | — | — | — | — | own | own | — | — |
-| Name the crew for a matchday | ✓⁹ | — | ✓⁹ | series⁹ | own⁹ | own⁹ | — | own, hosted⁹ | own, hosted⁹ | — | — |
+| Name the crew for an event | ✓⁹ | — | ✓⁹ | series⁹ | own⁹ | own⁹ | — | own, hosted⁹ | own, hosted⁹ | — | — |
 | Link a guardian | ✓⁹ | — | — | — | — | — | — | own | own | — | — |
 | Confirm a waiver for a sailor | ✓⁹ | — | — | — | — | — | — | squad⁹ | squad⁹ | — | self³ |
 | See a signed waiver form | ✓ | — | ✓ | series⁴ | own⁴ | own⁴ | — | squad, hosted⁴ | squad, hosted⁴ | — | self |

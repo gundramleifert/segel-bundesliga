@@ -1,0 +1,1257 @@
+{
+ "year": 2026,
+ "division": 2,
+ "act": 2,
+ "title": "1. & 2. Bundesliga 2026 Starnberg (2)",
+ "city": "Starnberg",
+ "hosts": [
+  "BYC (BA)"
+ ],
+ "starts_on": "2026-05-01",
+ "ends_on": "2026-05-03",
+ "boats": [
+  7,
+  8,
+  9,
+  10,
+  11,
+  12
+ ],
+ "sources": {
+  "scoreboard": "TracTrac event scoreboard, exported as PDF (1. & 2. Bundesliga 2026 Starnberg (2) - Event scoreboard (1).pdf)",
+  "pairing_list": "https://deutsche-segelbundesliga.de/wp-content/uploads/2025/11/pairing_list_1.pdf"
+ },
+ "flights_sailed": 6,
+ "pairing": [
+  [
+   {
+    "race": 1,
+    "boats": [
+     "VSaW",
+     "ETUF",
+     "LYC",
+     "SCR",
+     "KYC (BW)",
+     "SV03"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "HSC",
+     "FSC",
+     "WSW",
+     "BuSC",
+     "ASVW",
+     "LSV"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "DTYC",
+     "RSN",
+     "FYC",
+     "MRSV",
+     "SHM",
+     "SCV"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "DTYC",
+     "LSV",
+     "HSC",
+     "LYC",
+     "SHM",
+     "ETUF"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "FSC",
+     "FYC",
+     "KYC (BW)",
+     "SCV",
+     "BuSC",
+     "VSaW"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "ASVW",
+     "MRSV",
+     "RSN",
+     "WSW",
+     "SV03",
+     "SCR"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "LYC",
+     "MRSV",
+     "BuSC",
+     "HSC",
+     "FYC",
+     "SCR"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "RSN",
+     "VSaW",
+     "DTYC",
+     "FSC",
+     "ETUF",
+     "ASVW"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "WSW",
+     "SV03",
+     "LSV",
+     "SHM",
+     "SCV",
+     "KYC (BW)"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "ETUF",
+     "SCR",
+     "LSV",
+     "RSN",
+     "SCV",
+     "BuSC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "FYC",
+     "ASVW",
+     "SHM",
+     "SV03",
+     "VSaW",
+     "HSC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "KYC (BW)",
+     "FSC",
+     "MRSV",
+     "DTYC",
+     "LYC",
+     "WSW"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "VSaW",
+     "HSC",
+     "SCV",
+     "DTYC",
+     "SCR",
+     "WSW"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "LSV",
+     "LYC",
+     "SV03",
+     "FYC",
+     "RSN",
+     "FSC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "BuSC",
+     "KYC (BW)",
+     "ASVW",
+     "ETUF",
+     "MRSV",
+     "SHM"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "BuSC",
+     "WSW",
+     "SV03",
+     "ETUF",
+     "DTYC",
+     "FYC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "SCR",
+     "SHM",
+     "FSC",
+     "KYC (BW)",
+     "HSC",
+     "RSN"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "MRSV",
+     "SCV",
+     "VSaW",
+     "ASVW",
+     "LSV",
+     "LYC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "MRSV",
+     "SCV",
+     "ETUF",
+     "SV03",
+     "FSC",
+     "HSC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "ASVW",
+     "KYC (BW)",
+     "SCR",
+     "LSV",
+     "FYC",
+     "DTYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "LYC",
+     "BuSC",
+     "VSaW",
+     "RSN",
+     "WSW",
+     "SHM"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "LYC",
+     "ETUF",
+     "SCV",
+     "FYC",
+     "WSW",
+     "ASVW"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "SHM",
+     "DTYC",
+     "FSC",
+     "BuSC",
+     "SCR",
+     "SV03"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "LSV",
+     "RSN",
+     "KYC (BW)",
+     "VSaW",
+     "HSC",
+     "MRSV"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SCV",
+     "LYC",
+     "SCR",
+     "SHM",
+     "ASVW",
+     "FSC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "KYC (BW)",
+     "FYC",
+     "HSC",
+     "WSW",
+     "RSN",
+     "ETUF"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "SV03",
+     "DTYC",
+     "BuSC",
+     "MRSV",
+     "VSaW",
+     "LSV"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "WSW",
+     "SHM",
+     "ETUF",
+     "MRSV",
+     "FSC",
+     "LSV"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "RSN",
+     "VSaW",
+     "FYC",
+     "SCR",
+     "SV03",
+     "LYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "SCV",
+     "BuSC",
+     "ASVW",
+     "HSC",
+     "DTYC",
+     "KYC (BW)"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "FYC",
+     "SCR",
+     "WSW",
+     "FSC",
+     "DTYC",
+     "MRSV"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "HSC",
+     "SV03",
+     "RSN",
+     "LYC",
+     "BuSC",
+     "SCV"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "ETUF",
+     "ASVW",
+     "SHM",
+     "KYC (BW)",
+     "LSV",
+     "VSaW"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SV03",
+     "ASVW",
+     "DTYC",
+     "KYC (BW)",
+     "LYC",
+     "RSN"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "SHM",
+     "HSC",
+     "SCR",
+     "LSV",
+     "MRSV",
+     "FYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "FSC",
+     "WSW",
+     "SCV",
+     "VSaW",
+     "ETUF",
+     "BuSC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SCR",
+     "RSN",
+     "MRSV",
+     "ASVW",
+     "ETUF",
+     "BuSC"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "VSaW",
+     "WSW",
+     "LYC",
+     "SHM",
+     "HSC",
+     "DTYC"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "SV03",
+     "LSV",
+     "FYC",
+     "SCV",
+     "KYC (BW)",
+     "FSC"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SCR",
+     "LSV",
+     "LYC",
+     "BuSC",
+     "KYC (BW)",
+     "WSW"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "RSN",
+     "DTYC",
+     "SHM",
+     "SCV",
+     "FYC",
+     "ETUF"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "FSC",
+     "SV03",
+     "VSaW",
+     "HSC",
+     "MRSV",
+     "ASVW"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "DTYC",
+     "SV03",
+     "ETUF",
+     "HSC",
+     "LSV",
+     "SCR"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "FYC",
+     "FSC",
+     "BuSC",
+     "LYC",
+     "ASVW",
+     "SHM"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "SCV",
+     "VSaW",
+     "KYC (BW)",
+     "WSW",
+     "RSN",
+     "MRSV"
+    ]
+   }
+  ],
+  [
+   {
+    "race": 1,
+    "boats": [
+     "SCV",
+     "SCR",
+     "ASVW",
+     "WSW",
+     "SHM",
+     "SV03"
+    ]
+   },
+   {
+    "race": 2,
+    "boats": [
+     "LSV",
+     "BuSC",
+     "DTYC",
+     "FSC",
+     "VSaW",
+     "RSN"
+    ]
+   },
+   {
+    "race": 3,
+    "boats": [
+     "KYC (BW)",
+     "FYC",
+     "MRSV",
+     "ETUF",
+     "LYC",
+     "HSC"
+    ]
+   }
+  ]
+ ],
+ "scoreboard": [
+  {
+   "code": "VSaW",
+   "name": "Verein Seglerhaus am Wannsee",
+   "rank": 1,
+   "points": 12.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "SCV",
+   "name": "Segel-Club Ville",
+   "rank": 2,
+   "points": 13.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "LSV",
+   "name": "Lübecker Segler-Verein von 1885",
+   "rank": 3,
+   "points": 14.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 4
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "FSC",
+   "name": "Flensburger Segel-Club",
+   "rank": 4,
+   "points": 14.33,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "code": "RDG",
+     "redress": 1.33,
+     "derived": true
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "KYC (BW)",
+   "name": "Konstanzer Yacht Club",
+   "rank": 5,
+   "points": 15.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 3
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "RSN",
+   "name": "Regatta-Segler-Neuruppin",
+   "rank": 6,
+   "points": 17.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "LYC",
+   "name": "Lübecker Yacht-Club",
+   "rank": 7,
+   "points": 17.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 4
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "HSC",
+   "name": "Hamburger Segelclub",
+   "rank": 8,
+   "points": 19.0,
+   "penalty": null,
+   "flights": [
+    {
+     "redress": 6.0
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 2
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "SV03",
+   "name": "Seglervereinigung 1903 Berlin",
+   "rank": 9,
+   "points": 22.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "BuSC",
+   "name": "Bucerius Sailing",
+   "rank": 10,
+   "points": 24.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "SCR",
+   "name": "Segelclub Rheingau",
+   "rank": 11,
+   "points": 24.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 1
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "DTYC",
+   "name": "Deutscher Touring Yacht Club",
+   "rank": 12,
+   "points": 24.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 3
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 1
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "WSW",
+   "name": "Wir sind Wir",
+   "rank": 13,
+   "points": 24.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 2
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "ETUF",
+   "name": "Essener Turn-& Fechtclub",
+   "rank": 14,
+   "points": 26.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 3
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "MRSV",
+   "name": "Münchener Ruder- und Segelverein \"Bayern\" von 1910",
+   "rank": 15,
+   "points": 26.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 4
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 3
+    },
+    {
+     "place": 6
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "ASVW",
+   "name": "Akademischer SegelVerein Warnemünde",
+   "rank": 16,
+   "points": 27.0,
+   "penalty": 3.0,
+   "flights": [
+    {
+     "place": 3
+    },
+    {
+     "place": 1
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 5
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "SHM",
+   "name": "Segelclub Hansa Münster",
+   "rank": 17,
+   "points": 29.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 2
+    },
+    {
+     "place": 4
+    },
+    {
+     "place": 6
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "code": "FYC",
+   "name": "Frankfurter Yachtclub",
+   "rank": 18,
+   "points": 30.0,
+   "penalty": null,
+   "flights": [
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 5
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 6
+    },
+    {
+     "place": 2
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+   ]
+  }
+ ]
+}

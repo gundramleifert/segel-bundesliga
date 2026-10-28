@@ -19,8 +19,8 @@ test.describe.configure({ mode: "serial" });
 
 const ADMIN = "admin@sbl.example.com";
 // The test club sails the 2. Liga (app.seed), whose acts follow the 1. Liga's three.
-const CLUB_ACTS = [4, 5, 6]; // dsbl-2-2026-act-1 … act-3
-const PLANNED_ACT = 6; // dsbl-2-2026-act-3, planned — the one still to be lined up
+const CLUB_ACTS = [4, 5, 6]; // demo-2-2026-act-1 … act-3
+const PLANNED_ACT = 6; // demo-2-2026-act-3, planned — the one still to be lined up
 
 async function aTeamManager(request: APIRequestContext): Promise<DevUser> {
   // ASVW is the test club (`app/seed_users.py`), with a team in every seeded series.

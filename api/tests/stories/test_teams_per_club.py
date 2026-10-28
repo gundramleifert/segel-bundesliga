@@ -16,7 +16,7 @@ from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
-SERIES = "dsbl-2-2026"
+SERIES = "demo-2-2026"
 
 
 async def _act(client, headers, ids, *, teams_per_club: int, team_count: int = 18) -> int:

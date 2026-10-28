@@ -129,6 +129,9 @@ describeStory("VA-5: as the organizer I only check off what is on file", () => {
     await signIn(page, ADMIN);
     await page.goto("/office/events");
     await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
+    // Searched for, not scrolled to: the list is paged, and with the real 2026 season in
+    // the seed this act is not on the first page (Story A-13).
+    await page.getByTestId("admin-manage-events-search-input").fill(`Juniors check-in e2e ${matchday}`);
     await page.getByTestId(`admin-manage-event-toggle-${eventId}`).click();
 
     await expect(page.getByTestId(`admin-manage-event-waivers-summary-${eventId}`)).toBeVisible();

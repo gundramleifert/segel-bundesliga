@@ -1,4 +1,5 @@
-"""Import from SAP Sailing Analytics and Manage2Sail (Story A-14).
+"""Import from SAP Sailing Analytics, Manage2Sail and TracTrac's recorded scoreboards
+(Story A-14).
 
     uv run python -m app.imports sap --year 2023            # both divisions of 2023
     uv run python -m app.imports sap --years 2021-2023      # a range (also 2019,2021-2023)
@@ -10,6 +11,11 @@
     uv run python -m app.imports m2s <uuid> --to 12         # attach to event 12 here
     uv run python -m app.imports m2s <uuid> --series junioren-2026 --matchday 1
     uv run python -m app.imports m2s <uuid> --link "KYC|Kieler Yacht-Club e. V.=kyc"
+    uv run python -m app.imports m2s <uuid> --regatta 1.Segel-Bundesliga --to 12  # one class
+    uv run python -m app.imports m2s <uuid> --to-series dsbl-1-2026   # the season's documents
+
+    uv run python -m app.imports tractrac                   # the 1./2. Liga 2026, recorded
+    uv run python -m app.imports tractrac --folder <dir>    # another recording
 
 SAP's address is ``https://www.sapsailing.com/sailingserver/api``, or ``SBL_SAP_BASE_URL``
 / ``--base-url`` for another SAP instance — the public one has no season after 2023.
@@ -24,6 +30,7 @@ import argparse
 import asyncio
 import os
 import sys
+from pathlib import Path
 
 import httpx
 
@@ -32,6 +39,8 @@ from app.imports.common import USER_AGENT, Report
 from app.imports.m2s import Manage2SailClient, import_m2s
 from app.imports.sap import BASE_URL as SAP_BASE_URL
 from app.imports.sap import SapClient, import_sap, parse_regatta_name, parse_years
+from app.imports.tractrac import FOLDER as TRACTRAC_FOLDER
+from app.imports.tractrac import import_tractrac
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -70,10 +79,30 @@ def _parser() -> argparse.ArgumentParser:
         help='tie a Manage2Sail club ("CODE|Club name") to a club here, repeatable',
     )
     m2s.add_argument("--publish", action="store_true", help="publish the event if it is new")
+    m2s.add_argument(
+        "--regatta", help='only this class, by its Manage2Sail name ("1.Segel-Bundesliga")'
+    )
+    m2s.add_argument(
+        "--no-entries", action="store_true", help="documents only — the teams came from elsewhere"
+    )
+    m2s.add_argument(
+        "--to-series", help="the season's notice board: its documents go to this series (slug)"
+    )
+
+    tractrac = sub.add_parser(
+        "tractrac",
+        help="the 1./2. Liga 2026 from TracTrac's scoreboards (scripts/record-dsbl-2026.py)",
+    )
+    tractrac.add_argument(
+        "--folder", default=str(TRACTRAC_FOLDER), help="the recorded acts (default: seed_data)"
+    )
+    tractrac.add_argument("--publish", action="store_true", help="publish what is imported")
     return parser
 
 
 async def _run(args: argparse.Namespace) -> Report | None:
+    if args.source == "tractrac":
+        return await import_tractrac(SessionLocal, Path(args.folder), publish=args.publish)
     async with httpx.AsyncClient(
         headers={"User-Agent": USER_AGENT}, timeout=60, follow_redirects=True
     ) as http:
@@ -114,6 +143,9 @@ async def _run(args: argparse.Namespace) -> Report | None:
             matchday=args.matchday,
             links=links,
             publish=args.publish,
+            regatta=args.regatta,
+            to_series=args.to_series,
+            with_entries=not args.no_entries,
         )
 
 

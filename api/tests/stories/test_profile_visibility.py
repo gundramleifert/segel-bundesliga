@@ -88,9 +88,7 @@ class TestProfileVisibility:
             await make_user(target.email)
             me = auth_headers(await login_as(client, target.email, caplog))
 
-            assert (await client.get("/api/people/me", headers=me)).json()[
-                "profile_public"
-            ] is True
+            assert (await client.get("/api/people/me", headers=me)).json()["profile_public"] is True
             assert (await client.get(f"/api/people/{target.person_id}")).status_code == 200
 
             await client.patch("/api/people/me", headers=me, json={"birth_date": _ADULT_BIRTH})

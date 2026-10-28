@@ -17,7 +17,7 @@ Who: the race officer, the editor, a photographer, a visitor.
 The race committee's results and a photographer's pictures become a report with its photos
 and a press release — the same evening, without a developer.
 
-Before: the matchday is published and being sailed; the editor has an account, the
+Before: the event is published and being sailed; the editor has an account, the
 photographer none.
 
 | Step | Who | What is then true | How |

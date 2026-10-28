@@ -14,6 +14,7 @@ class Source(StrEnum):
     SAP_SAILING = "sapsailing"
     MANAGE2SAIL = "m2s"
     CSV = "csv"
+    TRACTRAC = "tractrac"
 
 
 class ExternalId(Base, TimestampMixin):

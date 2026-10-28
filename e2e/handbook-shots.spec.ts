@@ -31,8 +31,8 @@ const EDITOR = "redaktion@sbl.example.com";
 const CLUB_ADMIN = "board@asvw.example.com";
 const TEAM_MANAGER = "teams@asvw.example.com";
 const TREASURER = "treasurer@asvw.example.com";
-const TEST_SERIES = "dsbl-1-2026";
-const TEST_EVENT = "dsbl-2-2026-act-3"; // the seed's planned act, the test club's (app/seed_users.py)
+const TEST_SERIES = "demo-1-2026";
+const TEST_EVENT = "demo-2-2026-act-3"; // the demo's planned act, the test club's (app/seed_users.py)
 
 type Ids = {
   clubId: number;

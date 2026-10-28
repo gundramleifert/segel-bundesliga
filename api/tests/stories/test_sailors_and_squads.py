@@ -84,7 +84,7 @@ class TestCreatingSailors:
         """Story V-4: any club's organizer finds people, but changes only those who sail for
         their club — or for no club yet. (Until 2026-10-17 any club's organizer could
         rename anyone; found by Journey J-3.)"""
-        team_id, squad = await squad_of("byc", "dsbl-1-2026")
+        team_id, squad = await squad_of("byc", "demo-1-2026")
         byc_person = squad[0]
         async with SessionLocal() as session:
             other = (await session.execute(select(Club.id).where(Club.slug == "fsc"))).scalar_one()
@@ -416,11 +416,11 @@ class TestSquadRefusalsAreTyped:
 
     async def test_dropping_someone_who_is_lined_up_names_the_matchday(self, client, caplog):
         admin = await as_role(client, caplog, "typed4@example.com", Role.ADMIN)
-        team_id, squad = await squad_of("byc", "dsbl-1-2026")
+        team_id, squad = await squad_of("byc", "demo-1-2026")
         assert len(squad) >= 4
 
         selected = await client.put(
-            f"/api/admin/events/{await act_id('dsbl-1-2026-act-3')}/crew",
+            f"/api/admin/events/{await act_id('demo-1-2026-act-3')}/crew",
             headers=admin,
             json={
                 "team_id": team_id,
@@ -444,7 +444,7 @@ class TestSquadRefusalsAreTyped:
 
         # The squad itself names the matchday beside each of the four — before anyone tries.
         read = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
-        act = await act_id("dsbl-1-2026-act-3")
+        act = await act_id("demo-1-2026-act-3")
         lined_up = {row["person_id"] for row in read["lineups"] if row["event_id"] == act}
         assert lined_up == set(squad[:4])
 

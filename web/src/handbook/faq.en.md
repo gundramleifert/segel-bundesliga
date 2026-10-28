@@ -49,7 +49,7 @@ The league office or the series' organizer sets a series' maximum; a standalone 
 Remove someone, or ask them: [squad size](#squad-and-lineup-size).
 
 #### Why can't I remove someone from the squad?
-They are in a matchday crew. Change the crew first: [the crew](#squad-and-lineup-crew).
+They are in an event crew. Change the crew first: [the crew](#squad-and-lineup-crew).
 
 #### The member I want to add has no account.
 Someone on record — a person your club created — is added by their address under
@@ -88,7 +88,7 @@ host club's admin, or the league office's: [people](#run-event-helpers).
 ### For the race committee {#faq-race-committee}
 
 #### Why can't I start a race?
-The matchday is not started (*Start matchday*), or another race is still running —
+The event is not started (*Start event*), or another race is still running —
 races run one at a time: [start](#race-control-start).
 
 #### Can I still correct a result after racing is over?

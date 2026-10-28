@@ -71,7 +71,7 @@
     "photoUploading": "Uploading…",
     "removePhoto": "Remove photo",
     "publicLabel": "Public profile page",
-    "publicOn": "Anyone can open your page with your photo, clubs and matchdays.",
+    "publicOn": "Anyone can open your page with your photo, clubs and events.",
     "publicOff": "Your page is hidden: only you, your club's leadership and the league office can open it. Your name still appears in squads, lineups and results — as plain text, without your photo."
   },
   "deleteAccount": {
@@ -85,7 +85,7 @@
   },
   "waiver": {
     "title": "Liability waiver",
-    "description": "One statement per series — or per event, when the event belongs to no series. It covers every matchday of that competition; a new wording asks for a new confirmation.",
+    "description": "One statement per series — or per event, when the event belongs to no series. It covers every event of that competition; a new wording asks for a new confirmation.",
     "none": "You are not entered in any competition yet, so there is nothing to sign.",
     "forCompetition": "Reference date {date}",
     "status": {

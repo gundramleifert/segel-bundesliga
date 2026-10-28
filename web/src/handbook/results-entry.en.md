@@ -43,16 +43,16 @@ follow live on the public pages.
 - The jury decides a protest but enters nothing itself — a race officer enters its
   decision here.
 
-### Penalty points for the matchday {#results-entry-penalty}
+### Penalty points for the event {#results-entry-penalty}
 
 For a penalty in no single race: a late crew list, a missed briefing, boat damage.
 
-1. Open *Penalty points for the matchday* below the races.
+1. Open *Penalty points for the event* below the races.
 2. Enter the team's points (more than 0, at most 100) and a *Reason (optional)*.
 3. *Save*.
 
-- Counted once, on top of the team's races, never discarded, this matchday only.
-- The matchday table shows *incl. … penalty*, the reason as a tooltip.
+- Counted once, on top of the team's races, never discarded, this event only.
+- The event table shows *incl. … penalty*, the reason as a tooltip.
 - Saving again replaces them; an empty field and *Save* removes them. A closed event
   still takes them.
 

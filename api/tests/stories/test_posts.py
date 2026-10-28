@@ -88,14 +88,38 @@ class TestReadPosts:
         article = (await client.get(f"/api/posts/{release['slug']}")).json()
         assert article["author"] == "Sven Jürgensen"
         body = article["body"]
-        assert body.count("<h2>") == 12 and body.count("<blockquote>") == 3
+        assert body.count("<h2>") == 11 and body.count("<blockquote>") == 3
         assert "Tobias Schadewaldt, Skipper NRV Bundesliga Team" in body
         assert 'href="mailto:presse@deutsche-segelliga.de"' in body
+        # No picture of the league's former company is offered (docs/PLAN_SEEDING.md).
+        assert "DSBL" not in body and "Bildnachweis" not in body
 
     async def test_an_unknown_article_is_not_found(self, client):
         response = await client.get("/api/posts/no-such-article")
         assert response.status_code == 404
         assert response.json()["type"].endswith("/post-not-found")
+
+
+class TestSeededPosts:
+    async def test_a_real_site_gets_the_examples_only_as_drafts(self):
+        """R-1: the seed's examples are invented, so a real site shows none of them — they
+        are drafts until `publish_demo` publishes them for staging and the tests
+        (docs/PLAN_SEEDING.md); the real articles and releases are published."""
+        from sqlalchemy import select
+
+        from app.db import SessionLocal
+        from app.models import Post
+        from app.seed_posts import seed_posts
+
+        async with SessionLocal() as session:
+            await session.execute(Post.__table__.delete())
+            await seed_posts(session)
+            await session.flush()
+            posts = (await session.execute(select(Post.example, Post.published))).all()
+            await session.rollback()
+
+        assert {example for example, _ in posts} == {True, False}
+        assert all(published == (not example) for example, published in posts)
 
 
 class TestWritePosts:
@@ -603,37 +627,45 @@ class TestRegattaGallery:
 
 
 class TestSeededPictures:
-    """R-2: the league office's press pictures of the 2026 Finale, in the library."""
+    """R-2: the pictures the site starts with, in the library — only Sven Jürgensen's."""
 
-    async def test_a_club_s_finale_picture_is_on_its_league_s_media_page(self, client):
-        """R-2: stored like an upload, credited "© DSBL GmbH", named after the club, under
-        its series; a second run finds the same entry instead of a copy, and a picture that
-        cannot be fetched is left out rather than failing the seed. Never fetched live: a
-        picture is made here instead."""
+    def test_no_picture_of_another_photographer_is_seeded(self):
+        """R-2: every seeded picture credits Sven Jürgensen, and none comes from a gallery
+        of the league's former company (docs/PLAN_SEEDING.md)."""
+        from app.seed_media import CREDIT, PICTURES
+
+        assert CREDIT == "Foto: Sven Jürgensen"
+        assert not any("DSBL" in picture.url for picture in PICTURES)
+
+    async def test_a_seeded_picture_is_on_its_league_s_media_page(self, client):
+        """R-2: stored like an upload, credited to the photographer, under its series; a
+        second run finds the same entry instead of a copy, and a picture that cannot be
+        fetched is left out rather than failing the seed. Never fetched live: a picture is
+        made here instead."""
         import io
 
         from PIL import Image
 
-        from app.seed_media import PICTURES, seed_media
+        from app.seed_media import SeedPicture, seed_media
 
         def made(colour: str) -> bytes:
             buffer = io.BytesIO()
             Image.new("RGB", (64, 48), colour).save(buffer, "JPEG")
             return buffer.getvalue()
 
-        nrv = next(p for p in PICTURES if p.club == "NRV")
-        asvw = next(p for p in PICTURES if p.club == "ASVW")
-        gone = next(p for p in PICTURES if p.club == "MYC")
-        pictures = {nrv.name: made("navy"), asvw.name: made("teal")}
+        first_league = SeedPicture("dsbl-1-2026", "one", "https://example.com/1.jpg", "Kiel")
+        second_league = SeedPicture("dsbl-2-2026", "two", "https://example.com/2.jpg", "Berlin")
+        gone = SeedPicture("dsbl-1-2026", "gone", "https://example.com/3.jpg", "Gone")
+        pictures = {first_league.name: made("navy"), second_league.name: made("teal")}
 
         def fetch(picture):
             return pictures.get(picture.name)
 
-        assert await seed_media([nrv, asvw, gone], fetch) == 2
-        assert await seed_media([nrv, asvw, gone], fetch) == 0
+        assert await seed_media([first_league, second_league, gone], fetch) == 2
+        assert await seed_media([first_league, second_league, gone], fetch) == 0
 
         first = (await client.get("/api/media", params={"league": "1-liga"})).json()["items"]
-        picture = next(p for p in first if "Norddeutscher Regatta Verein" in p["alt"])
-        assert picture["credit"] == "© DSBL GmbH"
+        picture = next(p for p in first if p["alt"] == "Kiel")
+        assert picture["credit"] == "Foto: Sven Jürgensen"
         second = (await client.get("/api/media", params={"league": "2-liga"})).json()["items"]
-        assert any("Akademischer Segelverein" in p["alt"] for p in second)
+        assert any(p["alt"] == "Berlin" for p in second)

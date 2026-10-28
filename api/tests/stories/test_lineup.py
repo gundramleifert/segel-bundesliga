@@ -11,7 +11,7 @@ from app.models import Event, Series, Team, TeamMembership
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
 
-MATCHDAY_SLUG = "dsbl-1-2026-act-3"
+MATCHDAY_SLUG = "demo-1-2026-act-3"
 
 
 async def matchday_id() -> int:
@@ -37,7 +37,7 @@ async def first_team() -> tuple[int, int, list[int]]:
             await session.execute(
                 select(Team)
                 .join(Series, Team.series_id == Series.id)
-                .where(Series.slug == "dsbl-1-2026", Team.event_id.is_(None))
+                .where(Series.slug == "demo-1-2026", Team.event_id.is_(None))
                 .where(Team.id.in_(select(TeamMembership.team_id)))
                 .order_by(Team.id.desc())
                 .limit(1)

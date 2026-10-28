@@ -29,7 +29,7 @@ account is for what is yours: your liability waiver, your profile, your club.
   [my space](#my-space-overview).
 - Sign the [liability waiver](#waiver-which) once per series: online from 18, with
   [a parent's signature](#waiver-minor-paper) under 18.
-- When your club names you in a matchday's crew, the event appears there too
+- When your club names you in an event's crew, the event appears there too
   ([your sections](#my-space-pages)).
 - Upload your licences once: [documents](#profile-documents). Save your
   [bank account](#profile-bank) before you file an expense claim.
@@ -38,7 +38,7 @@ account is for what is yours: your liability waiver, your profile, your club.
 
 - [A sailor joins their club](#journey-member) — what you, the club's admin and the team
   manager each do.
-- [A club's crew is cleared for a matchday](#journey-crew-cleared) — from the squad to a
+- [A club's crew is cleared for an event](#journey-crew-cleared) — from the squad to a
   signed waiver.
 
 [Open my space](place:space)

@@ -1,9 +1,10 @@
 """Common test setup.
 
-Each test run gets a fresh SQLite database with the complete seed: three matchdays,
-one finished, one live, one planned. Story tests check against realistic data volumes —
-18 teams and 48 races per matchday — rather than hand-crafted minimal cases where
-scoring errors would go unnoticed.
+Each test run gets a fresh SQLite database with the complete seed: the real 2026 season
+of every league, and the demo series' three invented matchdays — one finished, one live,
+one planned — with their made-up squads. Story tests check against realistic data
+volumes — 18 teams and 48 races per matchday — rather than hand-crafted minimal cases
+where scoring errors would go unnoticed.
 """
 
 import asyncio
@@ -41,7 +42,7 @@ async def seeded(database_url: str):
 
     from alembic import command
     from app.db import engine
-    from app.seed import seed
+    from app.seed import publish_demo, seed
 
     config = Config(str(Path(__file__).parent.parent / "alembic.ini"))
     config.set_main_option("script_location", str(Path(__file__).parent.parent / "alembic"))
@@ -56,6 +57,7 @@ async def seeded(database_url: str):
     await asyncio.to_thread(command.upgrade, config, "head")
 
     await seed()
+    await publish_demo()
     yield
     await engine.dispose()
 

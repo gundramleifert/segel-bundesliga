@@ -17,7 +17,7 @@ For the team manager or the club admin; other members only see squads and crews.
 ### How the club gets into a series or event {#squad-and-lineup-apply}
 
 The league office or the series' organizer (*the series* › *Clubs & registrations*)
-enters your club in a series, and with it in its matchdays not yet started and every
+enters your club in a series, and with it in its events not yet started and every
 later one. For an event in no series, its
 organizer enters the clubs. Or apply yourself: [*your club* › *Squads*](place:club.series)
 › *Apply for a series* — *waiting* until the series' organizer accepts; *Withdraw*
@@ -46,7 +46,7 @@ Your club is in the series.
 - Saving replaces the whole squad.
 - *Already sailing for … in this series* cannot be added.
 - *Sails for another club* cannot be added: ask the league office.
-- Someone lined up for a matchday stays until the lineup changes.
+- Someone lined up for an event stays until the lineup changes.
 - An event in no series has its own row in *Squads*, marked *Event outside a series*.
 
 ### Squad size {#squad-and-lineup-size}
@@ -69,10 +69,10 @@ The squad is registered.
 2. Move people from the squad ① to *Selected*; adjust *Role on the day* ②.
 3. Press *Save lineup* ③.
 
-![The lineup for one matchday: the squad ①, the role ②, *Save lineup* ③](shot:help-club-lineup)
+![The lineup for one event: the squad ①, the role ②, *Save lineup* ③](shot:help-club-lineup)
 
 Only the squad is offered; the number is free (*usually …*). Nobody sails for two teams
-on one matchday; an empty list removes the lineup. Only the club's team manager or
+on one event; an empty list removes the lineup. Only the club's team manager or
 admin names the crew on screen; anyone else asks the club. A [missing waiver](#club-waivers-missing) blocks nobody.
 
 Refused? See the [FAQ](#faq-club).

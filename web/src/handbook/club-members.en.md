@@ -69,7 +69,7 @@ parent; × beside the parent's name removes the link.
 Club admin only, in [*your club* › *Club page*](place:club.page). Tap the crest — *Upload crest* or *Replace crest* — and choose an image
 of at most 2 MB; transparency is kept, the longest edge becomes at most 512 px.
 *Remove crest* takes it off. It shows on the club's page, in the club list and
-on the matchday's crews.
+on the event's crews.
 
 Refused? See the [FAQ](#faq-club).
 

@@ -50,7 +50,7 @@ A club, series or event opened from here is its own context, with its own sectio
 
 ### Where this fits {#start-administration-journeys}
 
-- [From an empty series to a scored matchday](#journey-lifecycle)
+- [From an empty series to a scored event](#journey-lifecycle)
 - [A new club gets going and runs itself](#journey-club)
 - [An organizer sets up a series](#journey-series)
 

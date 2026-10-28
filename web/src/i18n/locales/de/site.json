@@ -110,7 +110,7 @@
   "noticeBoard": {
     "season": "Schwarzes Brett der Saison",
     "all": "Alle Dokumente",
-    "seasonPreview": "Ligaordnung, die Ausschreibung der Saison, Charterbedingungen und Meldefristen.",
+    "seasonPreview": "Die Ausschreibung der Saison und ihre Dokumente, wie auf Manage2Sail veröffentlicht.",
     "intro": "Dokumente für die ganze Saison. Die Aushänge eines Spieltags — Änderungen, Jury-Entscheidungen, die Protestliste — stehen auf seiner Seite:",
     "ofAct": "Schwarzes Brett von {act}",
     "announcements": "Aushänge",
@@ -122,6 +122,7 @@
     },
     "noAnnouncements": "Noch nichts ausgehängt.",
     "noDocuments": "Noch keine Dokumente.",
+    "none": "Für diese Saison ist noch nichts veröffentlicht.",
     "number": "Nr. {number}",
     "publish": {
       "title": "Aushang veröffentlichen",

@@ -13,7 +13,7 @@ import boto3
 import pytest
 from moto import mock_aws
 
-from app.storage import LocalStorage, S3Storage, disposition, valid_name
+from app.storage import LocalStorage, S3Storage, copy_all, disposition, valid_name
 
 
 @pytest.fixture(params=["local", "s3"])
@@ -104,3 +104,31 @@ def test_the_bucket_is_made_before_the_first_question_about_a_key():
         store = S3Storage(bucket="fresh", client=client)
         assert not store.exists("clubs/1.png")
         assert calls == ["HeadBucket", "CreateBucket", "HeadObject"]
+
+
+def test_every_file_copies_to_the_other_backend(store, tmp_path):
+    """Moving the uploads between the disk and S3, or between two providers, is a copy
+    under the same keys — and a copy into a directory is a backup (`app/storage_copy.py`)."""
+    store.put("clubs/3.png", b"crest")
+    store.put("media-originals/abc.jpg", b"original")
+    store.put("waivers/0123abcd.pdf", b"%PDF")
+    backup = LocalStorage(tmp_path / "backup")
+    assert copy_all(store, backup) == 3
+    assert backup.get("media-originals/abc.jpg") == b"original"
+    with mock_aws():
+        client = boto3.client("s3", region_name="eu-central-1")
+        other = S3Storage(bucket="moved", region="eu-central-1", client=client)
+        assert copy_all(backup, other) == 3
+        assert other.keys("") == ["clubs/3.png", "media-originals/abc.jpg", "waivers/0123abcd.pdf"]
+        assert other.get("waivers/0123abcd.pdf") == b"%PDF"
+
+
+def test_a_bucket_outside_us_east_1_is_created_where_it_belongs():
+    """AWS refuses a CreateBucket without a location everywhere but us-east-1."""
+    with mock_aws():
+        client = boto3.client("s3", region_name="eu-central-1")
+        store = S3Storage(bucket="frankfurt", region="eu-central-1", client=client)
+        store.put("clubs/1.png", b"crest")
+        assert (
+            client.get_bucket_location(Bucket="frankfurt")["LocationConstraint"] == "eu-central-1"
+        )

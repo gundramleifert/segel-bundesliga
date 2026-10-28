@@ -1,0 +1,58 @@
+[
+  {
+    "kind": "season",
+    "event": "682a8f18-b0a8-46d6-a11b-1a1e77c28482",
+    "classes": [
+      "1.Segel-Bundesliga",
+      "2.Segel-Bundesliga"
+    ]
+  },
+  {
+    "kind": "weekend",
+    "event": "d21aea23-44f4-4d1e-b910-cb9813b17535",
+    "classes": [
+      "1.Segel-Bundesliga",
+      "2.Segel-Bundesliga"
+    ]
+  },
+  {
+    "kind": "weekend",
+    "event": "564b3310-ef2c-412e-8e73-5002aeae8128",
+    "classes": [
+      "1.Segel-Bundesliga",
+      "2.Segel-Bundesliga"
+    ]
+  },
+  {
+    "kind": "weekend",
+    "event": "5d70628f-39fe-491a-a634-fb05066d504c",
+    "classes": [
+      "1.Segel-Bundesliga",
+      "2.Segel-Bundesliga"
+    ]
+  },
+  {
+    "kind": "weekend",
+    "event": "931d40a9-6bc7-4b45-a0a1-100992a25a21",
+    "classes": [
+      "1.Segel-Bundesliga",
+      "2.Segel-Bundesliga"
+    ]
+  },
+  {
+    "kind": "weekend",
+    "event": "e5db1982-5983-47a5-b3ae-8b1466ec7320",
+    "classes": [
+      "1.Segel-Bundesliga",
+      "2.Segel-Bundesliga"
+    ]
+  },
+  {
+    "kind": "weekend",
+    "event": "cfbabf9e-efe5-4fa2-b02a-82ef4103b8cf",
+    "classes": [
+      "1.Segel-Bundesliga",
+      "2.Segel-Bundesliga"
+    ]
+  }
+]

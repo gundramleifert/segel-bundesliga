@@ -32,7 +32,9 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
-| `deploy/compose/` | **The whole site in Docker Compose** — Postgres, API, the SPA behind Caddy, SeaweedFS; `README.md` there |
+| `docs/deploy-server.md` | **Running the site on a server** — the Compose stack's runbook: machine, first install with sops, HTTPS, updates, backups; what still makes it pre-production |
+| `deploy/compose/` | **The whole site in Docker Compose** — Postgres, API, the SPA behind Caddy, SeaweedFS; started with `compose.sh`, secrets sops-encrypted in `secrets.sops.env` (recipients: `.sops.yaml`); `README.md` there |
+| `docs/PLAN_SEEDING.md` | **What a fresh installation starts with** — the real 2022–2026 results, news, press and pictures, no examples; the site seed vs the demo layer, sources and their rights, phases S-0…S-6, open questions |
 | `docs/PLAN_MEDIA.md` | **Pictures** — the media library and the automatic layout (galleries, shapes, crops), the plan Story R-2 is written from |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |
 | `api/app/imports/` | **Imports** from SAP Sailing (past DSBL matchdays, results) and Manage2Sail (entries, notice-board documents) — `uv run python -m app.imports --help`, Story A-14 |
@@ -141,28 +143,34 @@ separate setting, not tied to `debug` — in a reachable environment this would 
 and the server warns on startup while it is on.
 
 `app.seed_users` creates a **small cast on one club, one series, one event** — 44 accounts
-(decided 2026-10-17; it was 370). The data stays whole — the **real 2026 line-ups** of
-the 1. and 2. Liga (36 clubs, decided 2026-10-22; sailors stay made up), the series and
-their events, each league's three acts on the same weekends — and **the Junioren-Liga's
-real 2026 season** (decided 2026-10-23): its four acts, clubs, second teams and results,
-imported by the SAP import from SAP's recorded answer (`app/seed_junioren.py`,
-`app/seed_data/junioren-2026/`), with made-up teenage squads for its real teams; staging
-refreshes it from SAP on every build. The people who sign in are concentrated:
+(decided 2026-10-17; it was 370). **The 2026 season is real** (decided 2026-10-27,
+`docs/PLAN_SEEDING.md`): the 1. and 2. Liga's 11 acts as sailed — clubs, pairing lists,
+results, dates — imported from TracTrac's recorded scoreboards
+(`app/seed_data/dsbl-2026/`, `app.imports tractrac`), and **the Junioren-Liga's** four acts
+(decided 2026-10-23) from SAP's recorded answer (`app/seed_junioren.py`,
+`app/seed_data/junioren-2026/`); staging refreshes the juniors from SAP on every build. No
+source names who sailed, so the real acts have no squads or crews. **Everything invented
+is in the demo series** `demo-1-2026` / `demo-2-2026` — the same 36 clubs with made-up
+squads and three made-up weekends each (one final, one live, one planned) — **never
+published by the seed**; `seed_test_setup --publish-demo` (`app.seed.publish_demo`)
+publishes them in a league of their own, `/demo`: the test suite, the e2e stacks and
+staging (`api/Dockerfile`, `PUBLISH_DEMO`), never a real site. The people who sign in are
+concentrated:
 
 - **club** ASVW, a 2. Liga club (decided 2026-10-21; it was NRV): `board@asvw.example.com` (its `admin`,
   Gundram Leifert), `teams@` (its `manager`, the team manager, Gunnar Voigt),
   `treasurer@`, and every ASVW sailor — all members of it. A sailor needs an
   account to sign a waiver; a sailor of any other club has none, and the specs pick their
   adults and juniors from ASVW's squad;
-- **series** 2. Segel-Bundesliga 2026, ASVW's: `serie@` (its `manager`, and of the 1.
-  Liga's 2027 draft); `presse@` (its `editor`, Paula Presse — writes about its matchdays,
-  organizes nothing);
+- **series** the demo's 2. Liga 2026 (`demo-2-2026`), ASVW's: `serie@` (its `manager`, and
+  of the 1. Liga's 2027 draft); `presse@` (its `editor`, Paula Presse — writes about its
+  matchdays, organizes nothing);
   `junioren@` (Jocki Hellmich, `manager` of the Junioren-Segelliga 2026 and its 2027
   draft);
-- **event** its act 3, still planned, **hosted by ASVW** — so its claims are ASVW's to pay
+- **event** its act 3 (`demo-2-2026-act-3`), still planned, **hosted by ASVW** — so its claims are ASVW's to pay
   and ASVW's officials are the event's too: `orga@` (manager, Peter Weichel), `regatta@`
   (race officer, Malte Rackow), `jury@` (Heiko Thölmann), `helfer@` (helper, Johannes
-  Machur). Every seeded act has a host club (DTYC, KYC, ASVW);
+  Machur). Every demo act has a host club (DTYC, KYC, ASVW);
 - the **league office** `admin@`, `redaktion@` (editor — the journalist, Sven Jürgensen,
   who writes and keeps pictures and organizes nothing), `wl@` (race officer, Christoph Zanter), and
   `gast@sbl.example.com` with no relation.
@@ -223,6 +231,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   Story S-4) — that hides the collection (photo, club and matchday history, the page
   itself), while the **name** stays on every competition record, as plain text instead of a
   link. So: a name in a result is never hidden, and a profile page is never forced.
+- **A tie is broken by places sailed: more firsts, then more seconds, …, finally the last
+  race** (decided 2026-10-27, `app/scoring/low_point.py::_tiebreak_key`). Only a finish
+  is a place — a redress, a penalty or a did-not-finish counts towards the points, never
+  as a place. That is how the league's scoring (TracTrac) ranks; comparing scores (RRS
+  A8.1 read literally) would count a redress 3.0 as a third place and ranked one tie of
+  2026 the other way.
 - **Who misses an Event gets that Event's participant count + 1 points.** Not showing up must
   never be better than showing up and finishing last
   (`app/services/standings.py::compute_series`).
@@ -236,8 +250,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
   says which division a series is. An **act** is the events of a league's year sharing a
   matchday number — one page, `/:league/:year/act-:n`. `Series.league_id` is optional:
   a series or event in no league keeps its own page at `/series/:id` / `/events/:id`.
-  The current year is asked **per league**. News, press, media and documents are static
-  content behind hooks (`web/src/content/`) until they have a backend.
+  The current year is asked **per league**. News, press, pictures and documents come from
+  the API; only the videos and the association's own texts are static content behind
+  hooks (`web/src/content/`). **Nothing invented is static content**: an example belongs
+  to the demo layer (`publish_demo`), and a notice board shows what Manage2Sail published
+  (Story A-14).
 - **An Event can belong to a Series, but need not.** `series_id` and `matchday`
   are optional. The normal case is an Event within a Series; a cup or training weekend stands
   alone, appears in the calendar, and scores in no Series ranking. The **Event number belongs to
@@ -462,7 +479,19 @@ These points were deliberately decided this way; bypassing them costs a lot late
   (`SBL_STORAGE=local` under `SBL_UPLOADS_DIR`, or `s3` with the `SBL_S3_*` settings,
   decided 2026-10-27). Callers speak in keys (`clubs/3.png`), never in paths: no `Path`,
   `open` or `FileResponse` on an upload outside that module. A file is served through
-  the endpoint that checks who asks, on S3 as on disk — no presigned links.
+  the endpoint that checks who asks, on S3 as on disk — no presigned links. **A deployment
+  keeps its files in S3, and the provider is interchangeable** (decided 2026-10-27):
+  `deploy/compose/` has no uploads volume, SeaweedFS is only its default provider, and a
+  key means the same file everywhere, so moving between disk and S3 or between providers
+  is `python -m app.storage_copy` — nothing provider-specific beyond the `SBL_S3_*`
+  settings. Local disk stays for development, the tests and staging.
+- **A deployment's secrets are sops-encrypted in the repository, for SSH public keys**
+  (decided 2026-10-27, `.sops.yaml`, `deploy/compose/secrets.sops.env`): no age keys to
+  hand out — a recipient decrypts with their `~/.ssh/id_ed25519`, as in the team's other
+  repositories. Only secrets go in the file; settings stay in `.env`. Decrypted values
+  reach `docker compose` as environment (`compose.sh`, `sops exec-env`), never as a file.
+  A new recipient means `sops updatekeys`; `scripts/check-sops.py` fails until it is done,
+  and on any value committed in plaintext.
 - **An upload's type is its content, never its name** (decided 2026-10-19,
   `app/services/uploads.py::sniffed`, libmagic): a browser declares a file's type from its
   extension, so neither the name nor `content_type` is read; the browser checks early by

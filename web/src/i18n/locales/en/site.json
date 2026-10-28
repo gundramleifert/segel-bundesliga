@@ -47,7 +47,7 @@
   },
   "act": {
     "title": "Act {n}",
-    "tabs": "Matchday",
+    "tabs": "Event",
     "division": "Division"
   },
   "hostedBy": "hosted by {host}",
@@ -62,8 +62,8 @@
   },
   "season": {
     "more": "Season & notice board",
-    "empty": "No matchdays published yet.",
-    "matchdays": "Matchdays",
+    "empty": "No events published yet.",
+    "matchdays": "Events",
     "calendar": "Season {year}"
   },
   "clubs": {
@@ -81,7 +81,7 @@
   },
   "media": {
     "more": "Photos & videos",
-    "preview": "{count, plural, one {One video and the galleries of every matchday.} other {# videos and the galleries of every matchday.}}",
+    "preview": "{count, plural, one {One video and the galleries of every event.} other {# videos and the galleries of every event.}}",
     "page": "Photos & videos",
     "videos": "Videos",
     "photos": "Photos",
@@ -98,7 +98,7 @@
     "photos": "Print photos",
     "photosText": "High resolution, free for editorial use",
     "accreditation": "Accreditation",
-    "accreditationText": "On the water or ashore, per matchday",
+    "accreditationText": "On the water or ashore, per event",
     "contact": "Contact",
     "older": "Show older releases"
   },
@@ -110,8 +110,8 @@
   "noticeBoard": {
     "season": "Season notice board",
     "all": "All documents",
-    "seasonPreview": "League regulations, the season's notice of race, charter terms and entry deadlines.",
-    "intro": "Documents for the whole season. A matchday's own notices — amendments, jury decisions, the protest list — are on its page:",
+    "seasonPreview": "The season's notice of race and documents, as published on Manage2Sail.",
+    "intro": "Documents for the whole season. An event's own notices — amendments, jury decisions, the protest list — are on its page:",
     "ofAct": "notice board of {act}",
     "announcements": "Announcements",
     "documents": "Documents",
@@ -122,6 +122,7 @@
     },
     "noAnnouncements": "Nothing announced yet.",
     "noDocuments": "No documents yet.",
+    "none": "Nothing published for this season yet.",
     "number": "No. {number}",
     "publish": {
       "title": "Publish an announcement",

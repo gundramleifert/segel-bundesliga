@@ -270,7 +270,8 @@ describeStory("R-1/Z-2: a series' editor writes about that series and organizes 
     await page.getByTestId("admin-post-publish-button").click();
     await expect(page.getByTestId("admin-post-save-success")).toBeVisible();
     await page.getByTestId("admin-post-view-link").click();
-    await expect(page).toHaveURL(/\/2-liga\/news\//);
+    // Her series is the demo's 2. Liga (app/seed_users.py), so the post is the demo league's.
+    await expect(page).toHaveURL(/\/demo\/news\//);
   });
 });
 

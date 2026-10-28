@@ -18,6 +18,8 @@ from datetime import date, timedelta
 from sqlalchemy import delete, select
 
 from app.db import SessionLocal
+from app.imports.m2s import import_recorded_league
+from app.imports.tractrac import import_tractrac
 from app.models import (
     Boat,
     Club,
@@ -248,7 +250,28 @@ async def seed() -> None:
             published=True,
             scoring=scoring,
         )
-        series_list = [first_league, second_league, juniors, champions]
+        # The invented season the test cast practises on (`app.seed_users`): the same
+        # clubs, made-up squads and three made-up weekends — in series of their own that
+        # are never published and belong to no league, so nothing invented reaches the
+        # public site or the real 2026 tables, which hold the league's real results
+        # (imported below, docs/PLAN_SEEDING.md).
+        demo = {
+            level: Series(
+                slug=f"demo-{level}-{YEAR}",
+                name=f"Demo {level}. Liga {YEAR}",
+                short_name=f"Demo {level}. Liga",
+                year=YEAR,
+                level=level,
+                published=False,
+                scoring=scoring,
+                description=(
+                    "Invented data to practise on — clubs real, sailors, weekends and "
+                    "results made up. Never published."
+                ),
+            )
+            for level in (1, 2)
+        }
+        series_list = [first_league, second_league, juniors, champions, *demo.values()]
         session.add_all(series_list)
         # Next year's juniors, being prepared: a draft with no events and no teams yet, so
         # the public site stays on this year (the current year is the newest one not in the
@@ -322,7 +345,9 @@ async def seed() -> None:
 
         # The teams of all leagues. A club can compete in several; each
         # team has its own roster — juniors are different people than the first.
-        division = {1: first_league, 2: second_league}
+        # The made-up squads hang from the demo series' registrations; the real series'
+        # registrations come with the import, without squads — no source says who sailed.
+        division = demo
         assignments: list[tuple[Series, Club]] = [
             *((division[level], club) for club, (_, _, _, level) in zip(clubs, CLUBS, strict=True)),
             # Not the juniors: their real 2026 field comes with their results, below.
@@ -344,7 +369,7 @@ async def seed() -> None:
         # the series; the participation in each act is created below per event.
         registrations = {
             series.id: [team for each, _, team in teams if each is series]
-            for series in (first_league, second_league)
+            for series in demo.values()
         }
 
         squads: dict[int, list[Person]] = {}
@@ -401,19 +426,19 @@ async def seed() -> None:
         ]
         for league_series, level, (matchday, (venue, host, status, day)) in (
             (league_series, level, act)
-            for league_series, level in ((first_league, 1), (second_league, 2))
+            for league_series, level in ((demo[1], 1), (demo[2], 2))
             for act in enumerate(weekends, start=1)
         ):
             roster = registrations[league_series.id]
             event = Event(
-                slug=f"dsbl-{level}-2026-act-{matchday}",
+                slug=f"demo-{level}-{YEAR}-act-{matchday}",
                 title=f"Act {matchday} {venue.city}",
                 matchday=matchday,
                 starts_on=day,
                 ends_on=day + timedelta(days=2),
                 status=status,
-                # Real matchdays of a running series: visible to visitors.
-                published=True,
+                # Invented: never shown to visitors (see `demo` above).
+                published=False,
                 team_count=len(roster),
                 boat_count=BOATS,
                 flight_count=FLIGHTS,
@@ -497,6 +522,18 @@ async def seed() -> None:
         await _junior_squads(session, juniors)
         await session.commit()
 
+        # The 1. and 2. Liga 2026 as they really sailed — every act, its clubs and results,
+        # from TracTrac's scoreboards and the league's pairing lists, recorded in
+        # `app/seed_data/dsbl-2026/` (Story A-14).
+        report = await import_tractrac(SessionLocal, publish=True, log=lambda _: None)
+        if report.errors or report.conflicts or report.warnings:
+            raise SystemExit(f"The 2026 import did not come in cleanly:\n{report.render()}")
+        # Their notice boards and entries from Manage2Sail — the only source of documents
+        # (decided 2026-10-28), recorded in `app/seed_data/m2s-2026/`.
+        report = await import_recorded_league(SessionLocal, log=lambda _: None)
+        if report.errors or report.conflicts or report.warnings or report.unassigned:
+            raise SystemExit(f"The Manage2Sail import did not come in cleanly:\n{report.render()}")
+
         # Points and standings are derived — build them once after creation.
         for series in series_list:
             await recompute_series(session, series.id)
@@ -507,10 +544,54 @@ async def seed() -> None:
         await session.commit()
 
     print(
-        f"Seed complete: {len(CLUBS)} clubs with {SQUAD_SIZE} members each, 4 series and "
-        f"two drafts for {YEAR + 1}, 3 acts in each division and {len(ACTS_2027)} draft acts, "
-        f"{FLIGHTS * 3} races per act"
+        f"Seed complete: {len(CLUBS)} clubs, the 1. and 2. Liga {YEAR} as sailed (11 acts) and "
+        f"the Junioren-Liga's; two demo series with {SQUAD_SIZE} made-up sailors per club and "
+        f"3 invented acts each (unpublished); two drafts for {YEAR + 1} with "
+        f"{len(ACTS_2027)} draft acts"
     )
+
+
+async def publish_demo() -> None:
+    """Publishes the demo series and their acts, in a league of their own (`/demo`), and
+    the example posts — staging, the test suite and the e2e stacks
+    (`seed_test_setup --publish-demo`), never a real site.
+
+    The seed keeps them unpublished and in no league, so a real site has no trace of them
+    (docs/PLAN_SEEDING.md). Staging and the tests need exactly that invented data in
+    public: a live act's interim standing and the league page that leads to it, a planned
+    act's pairing list, a squad on a club page — states the real 2026 season, sailed and
+    over, no longer has. The league is made here, not in the seed: the site lists every
+    league, so one that exists on a real site would be an empty entry in its navigation.
+    Repeatable.
+    """
+    async with SessionLocal() as session:
+        league = (
+            await session.execute(select(League).where(League.slug == "demo"))
+        ).scalar_one_or_none()
+        if league is None:
+            league = League(
+                slug="demo",
+                short_name="Demo",
+                name="Demo-Liga",
+                tagline="Invented clubs' squads, weekends and results — to try things on.",
+                position=9,
+            )
+            session.add(league)
+            await session.flush()
+        demo = (await session.execute(select(Series).where(Series.slug.like("demo-%")))).scalars()
+        ids = []
+        for series in demo:
+            series.published = True
+            series.league_id = league.id
+            ids.append(series.id)
+        for event in (
+            await session.execute(select(Event).where(Event.series_id.in_(ids)))
+        ).scalars():
+            event.published = True
+        # The example posts too: invented like the demo's weekends, drafts on a real site.
+        for post in (await session.execute(select(Post).where(Post.example))).scalars():
+            post.published = True
+        await session.commit()
 
 
 async def _seed_matchday(session, event, teams, rng, status) -> None:

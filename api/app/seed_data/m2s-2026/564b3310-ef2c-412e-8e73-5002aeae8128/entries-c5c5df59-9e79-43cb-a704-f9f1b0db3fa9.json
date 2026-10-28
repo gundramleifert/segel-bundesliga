@@ -1,0 +1,127 @@
+{
+  "TotalCount": 18,
+  "Pages": [
+    1
+  ],
+  "CurrentPage": 1,
+  "CurrentOrderAscending": true,
+  "RegattaName": "2.Segel-Bundesliga",
+  "HasCrew": true,
+  "HasSailNumbers": true,
+  "HcpName": "",
+  "Entries": [
+    {
+      "EntryId": "22cb268c-6d9b-4a9c-bb11-047d8e5ce0f1",
+      "ClubCode": "LYC",
+      "ClubName": "Lübecker Yacht-Club e. V.",
+      "SailNumber": "LYC"
+    },
+    {
+      "EntryId": "5b7415d0-5863-4f47-8002-08d85fb02f53",
+      "ClubCode": "SV 03",
+      "ClubName": "Seglervereinigung 1903 Berlin e. V.",
+      "SailNumber": "SV03"
+    },
+    {
+      "EntryId": "7f28a3b4-f959-47e4-8929-099b433564f8",
+      "ClubCode": "SCV",
+      "ClubName": "Segel-Club Ville e.V.",
+      "SailNumber": "SCV"
+    },
+    {
+      "EntryId": "1667483f-b95e-4207-bd45-0f32158778bf",
+      "ClubCode": "MRSV",
+      "ClubName": "Münchener Ruder- und Segelverein \"BAYERN\" von 1910 e.V.",
+      "SailNumber": "MRSV"
+    },
+    {
+      "EntryId": "775e1b65-a14f-475f-aad4-1d2356483e4e",
+      "ClubCode": "",
+      "ClubName": "",
+      "SailNumber": "DTYC"
+    },
+    {
+      "EntryId": "5ca3785e-94e0-463d-96ce-20a2f5d76d55",
+      "ClubCode": "KYC",
+      "ClubName": "Konstanzer Yachtclub e. V.",
+      "SailNumber": "GER KYC (BW)"
+    },
+    {
+      "EntryId": "1ade94d1-fda8-4ffd-bdd1-335987a0b0c9",
+      "ClubCode": "FSC",
+      "ClubName": "Flensburger Segel-Club e. V.",
+      "SailNumber": "GER 1337"
+    },
+    {
+      "EntryId": "82aef90c-65c6-41e7-8532-4657e96df375",
+      "ClubCode": "VSAW",
+      "ClubName": "Verein Seglerhaus am Wannsee e.V.",
+      "SailNumber": "VSaW"
+    },
+    {
+      "EntryId": "895f0abc-8a14-48b8-86de-4a8aeb61697f",
+      "ClubCode": "LSV",
+      "ClubName": "Lübecker Segler Verein von 1885 e. V.",
+      "SailNumber": "LSV LSV"
+    },
+    {
+      "EntryId": "6d7eadac-b288-4ea2-ba9f-55c5d71a28a2",
+      "ClubCode": "FYC",
+      "ClubName": "Frankfurter Yachtclub e.V.",
+      "SailNumber": "FYC"
+    },
+    {
+      "EntryId": "0da998c7-f305-4b3c-9356-573f3a5fa71d",
+      "ClubCode": "SCR",
+      "ClubName": "Segelclub Rheingau e. V.",
+      "SailNumber": "SCR"
+    },
+    {
+      "EntryId": "45508886-b541-48ff-8e75-68616ebaf307",
+      "ClubCode": "HSC",
+      "ClubName": "Hamburger Segel-Club e. V.",
+      "SailNumber": "HSC HSC"
+    },
+    {
+      "EntryId": "2e6d82d8-96c0-4c73-972b-6bb96dd3576b",
+      "ClubCode": "RSN",
+      "ClubName": "Regatta-Segler Neuruppin e.V.",
+      "SailNumber": "RSN"
+    },
+    {
+      "EntryId": "513eb54a-3a68-4096-9b88-acdf45400de8",
+      "ClubCode": "SHM",
+      "ClubName": "Segelclub Hansa Münster e. V.",
+      "SailNumber": "SHM"
+    },
+    {
+      "EntryId": "38683a49-7a1c-48f0-8f97-c21371258808",
+      "ClubCode": "WsW",
+      "ClubName": "Wir sind Wir Inclusion in Sailing e.V.",
+      "SailNumber": "GER 265"
+    },
+    {
+      "EntryId": "13e59313-6e75-429e-8398-e1808284dee8",
+      "ClubCode": "ASVW",
+      "ClubName": "Akademischer Segelverein Warnemünde e. V.",
+      "SailNumber": "ASVW"
+    },
+    {
+      "EntryId": "a7f14d84-9b62-4fa6-a34c-f50704c1a63f",
+      "ClubCode": "BUSC",
+      "ClubName": "Bucerius Segel Club e.V.",
+      "SailNumber": "BuSC"
+    },
+    {
+      "EntryId": "5cd4967c-83d8-4d3f-aa10-f58955140c4a",
+      "ClubCode": "ETUF",
+      "ClubName": "Essener Turn- und Fechtklub e. V.",
+      "SailNumber": "ETUF"
+    }
+  ],
+  "Countries": [
+    "GER",
+    "HSC",
+    "LSV"
+  ]
+}

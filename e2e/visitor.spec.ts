@@ -1,7 +1,7 @@
 import { describeStory, expect, test } from "./fixtures";
 
 import { chooseLanguage, expectNoSidewaysScroll, openUserMenu } from "./layout";
-import { signIn } from "./session";
+import { picturesFor, signIn } from "./session";
 
 /** E2E cut along the user stories — see docs/userstories/.
  *
@@ -16,10 +16,18 @@ import { signIn } from "./session";
  * series belongs to no league, so it keeps its own page.
  */
 
-const FINISHED_ACT = "/1-liga/2026/act-1"; // dsbl-1-2026-act-1, event 1
-const PLANNED_ACT = "/1-liga/2026/act-3"; // dsbl-1-2026-act-3, event 3
-const LIVE_ACT_RESULTS = "/1-liga/2026/act-2/results"; // dsbl-1-2026-act-2, event 2
+// The real 2026 acts are all sailed; a planned and a live act are the demo league's —
+// invented, published on test stacks and staging only (`seed_test_setup --publish-demo`).
+const FINISHED_ACT = "/1-liga/2026/act-1"; // dsbl-1-2026-act-1, Starnberg, as sailed
+const PLANNED_ACT = "/demo/2026/act-3"; // demo-1-2026-act-3, event 3, planned
+const LIVE_ACT_RESULTS = "/demo/2026/act-2/results"; // demo-1-2026-act-2, event 2, live
 const STANDINGS = "/1-liga/standings";
+
+// The pictures behind a page are the library's (Story R-3), and the seed has only Sven
+// Jürgensen's — none yet; the specs about those pictures put some there, on every stack.
+test.beforeAll(async ({ request }) => {
+  await picturesFor(request, "dsbl-1-2026");
+});
 const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
 
 /** Every public page, with the testid that means "this page has its data".
@@ -302,7 +310,8 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page.getByTestId("site-home-now")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
 
-    const names = ["Association", "1. Liga", "2. Liga", "Junioren", "DSL-Pokal"];
+    // "Demo" only where the demo is published — test stacks and staging, never a real site.
+    const names = ["Association", "1. Liga", "2. Liga", "Junioren", "DSL-Pokal", "Demo"];
     if ((page.viewportSize()?.width ?? 0) < 768) {
       await expect(page.getByTestId("site-leagues")).toBeHidden();
       await expect(page.getByTestId("site-menu").locator("summary")).toContainText("Association");
@@ -491,7 +500,7 @@ describeStory("B-13: one row of navigation names the leagues", () => {
 
 describeStory("B-14: a league's page in chapters", () => {
   test("the chapters lead to their own pages, Results first and titled so while a matchday is live", async ({ page }) => {
-    await page.goto("/1-liga");
+    await page.goto("/demo");
     // Act 2 is being sailed, so Results is there and opens the page; the seed has no
     // earlier year, so no Archive.
     const chapters = page.getByTestId("site-chapters").locator("section[data-chapter]");
@@ -506,17 +515,17 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-chapter-dots").getByRole("link")).toHaveCount(5);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Act 2");
     await expect(page.getByTestId("site-chapter-archive")).toHaveCount(0);
-    // The 1. Liga's first five, from the real table.
-    await expect(page.getByTestId("site-top-five-dsbl-1-2026").getByRole("listitem")).toHaveCount(5);
+    // The demo's 1. Liga first five, from its table.
+    await expect(page.getByTestId("site-top-five-demo-1-2026").getByRole("listitem")).toHaveCount(5);
 
     await page.getByTestId("site-chapter-standings-more").click();
-    await expect(page).toHaveURL(/\/1-liga\/standings$/);
+    await expect(page).toHaveURL(/\/demo\/standings$/);
   });
 
   test("Results is the running act", async ({ page }) => {
-    await page.goto("/1-liga");
+    await page.goto("/demo");
     await page.getByTestId("site-chapter-results-more").click();
-    await expect(page).toHaveURL(/\/1-liga\/2026\/act-2\/results$/);
+    await expect(page).toHaveURL(/\/demo\/2026\/act-2\/results$/);
     await expect(page.getByTestId("site-act-results")).toBeVisible();
   });
 
@@ -527,11 +536,14 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
     // With nothing live, Standings opens the page.
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Standings");
-    // The 2. Liga is a league of its own, sailing the same weekends: its act 2 is live.
+    // The 2. Liga's 2026 is sailed and over: no Results, but a full table.
     await page.goto("/2-liga");
-    await expect(page.getByTestId("site-chapter-results")).toHaveCount(1);
+    await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
     await expect(page.getByTestId("site-top-five-dsbl-2-2026")).toHaveCount(1);
     await expect(page.getByTestId("site-top-five-dsbl-2-2026").locator("[data-empty]")).toHaveCount(0);
+    // The demo league has an act under way.
+    await page.goto("/demo");
+    await expect(page.getByTestId("site-chapter-results")).toHaveCount(1);
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-about-clubs").getByRole("listitem").first()).toBeVisible();
   });
@@ -544,7 +556,8 @@ describeStory("B-14: a league's page in chapters", () => {
   });
 
   test("the dots claim their own column and nothing more", async ({ page }) => {
-    await page.goto("/1-liga");
+    // The demo's league: its act 2 is live, so the page has all five chapters.
+    await page.goto("/demo");
     const dots = page.getByTestId("site-chapter-dots");
     await expect(dots.getByRole("link")).toHaveCount(5);
     // The names are laid over the chapter; the touch area is the dots. It was 145 px of a
@@ -614,6 +627,8 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-news-tiles").getByRole("link").first()).toBeVisible();
     await expect(page.getByTestId("site-video-tiles").getByRole("listitem")).toHaveCount(3);
     await expect(page.getByTestId("site-about-facts").getByRole("listitem").first()).toBeVisible();
+    // Only while an act is live — the real 2026 is over; the demo's act 2 is live.
+    await page.goto("/demo");
     await expect(page.getByTestId("site-live-progress")).toHaveCount(1);
     await page.goto("/");
     await expect(page.getByTestId("site-home-services").getByRole("listitem")).toHaveCount(6);
@@ -630,9 +645,13 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-article-related").getByRole("listitem")).toHaveCount(3);
   });
 
-  test("placeholder season documents say they are examples, a matchday's board is real", async ({ page }) => {
+  test("the season's board is Manage2Sail's notice of race, a matchday's board is real", async ({ page }) => {
+    // Nothing invented on a notice board (Story A-14): the season's documents are the
+    // ones Manage2Sail publishes, linked there.
     await page.goto("/1-liga/notice-board");
-    await expect(page.getByTestId("site-example-note")).toBeVisible();
+    const season = page.getByTestId("site-season-documents-dsbl-1-2026");
+    await expect(season.getByRole("link", { name: /Notice of Race 2026/ })).toHaveAttribute("href", /manage2sail\.com/);
+    await expect(page.getByTestId("site-example-note")).toHaveCount(0);
     // A matchday's notices are the event's own since Story VA-11 — nothing invented there.
     await page.goto(PLANNED_ACT);
     await expect(page.getByTestId("site-act-announcements")).toBeVisible();
@@ -681,7 +700,7 @@ describeStory("B-15: the matchday page", () => {
   });
 
   test("the live tab leads to the map", async ({ page }) => {
-    await page.goto("/1-liga/2026/act-2/live");
+    await page.goto("/demo/2026/act-2/live");
     await page.getByTestId("matchday-live-map-link").click();
     await expect(page).toHaveURL(/\/events\/2\/live$/);
   });
@@ -690,9 +709,9 @@ describeStory("B-15: the matchday page", () => {
 describeStory("B-16: old addresses lead to the new pages", () => {
   test("an event's and a series' old address lead to the league's pages", async ({ page }) => {
     await page.goto("/events/1");
-    await expect(page).toHaveURL(/\/1-liga\/2026\/act-1\?division=1$/);
+    await expect(page).toHaveURL(/\/demo\/2026\/act-1\?division=1$/);
     await page.goto("/events/3?view=pairing");
-    await expect(page).toHaveURL(/\/1-liga\/2026\/act-3\/pairing\?division=3$/);
+    await expect(page).toHaveURL(/\/demo\/2026\/act-3\/pairing\?division=3$/);
     await page.goto("/series/1");
     await expect(page).toHaveURL(/\/1-liga\/2026\/standings$/);
   });
@@ -707,10 +726,11 @@ describeStory("B-16: old addresses lead to the new pages", () => {
   });
 
   test("the short paths go to the running act and the last results", async ({ page }) => {
-    await page.goto("/1-liga/live");
-    await expect(page).toHaveURL(/\/1-liga\/2026\/act-2\/live$/);
+    await page.goto("/demo/live");
+    await expect(page).toHaveURL(/\/demo\/2026\/act-2\/live$/);
+    // The last results the 1. Liga has: its Finale, act 6.
     await page.goto("/1-liga/results");
-    await expect(page).toHaveURL(/\/1-liga\/2026\/act-1\/results$/);
+    await expect(page).toHaveURL(/\/1-liga\/2026\/act-6\/results$/);
   });
 });
 

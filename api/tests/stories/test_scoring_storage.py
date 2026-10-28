@@ -19,7 +19,7 @@ from app.models import (
 from app.models.auth import Role
 from app.services import recompute_event
 
-LEAGUE = "dsbl-1-2026"
+LEAGUE = "demo-1-2026"
 
 
 async def matchday(number: int) -> int:
@@ -153,11 +153,11 @@ class TestSeriesStanding:
     async def _series(self) -> int:
         async with SessionLocal() as session:
             return (
-                await session.execute(select(Series.id).where(Series.slug == "dsbl-1-2026"))
+                await session.execute(select(Series.id).where(Series.slug == "demo-1-2026"))
             ).scalar_one()
 
     async def test_who_was_everywhere_stands_with_their_placements(self, client, ids):
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
+        table = (await client.get(f"/api/series/{ids.series('demo-1-2026')}/table")).json()
 
         assert len(table["rows"]) == 18
         for row in table["rows"]:
@@ -179,10 +179,10 @@ class TestSeriesStanding:
         await client.put(
             f"/api/admin/clubs/{club['id']}/series",
             headers=header,
-            json={"series": [ids.series("dsbl-1-2026")]},
+            json={"series": [ids.series("demo-1-2026")]},
         )
 
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
+        table = (await client.get(f"/api/series/{ids.series('demo-1-2026')}/table")).json()
         new_team = next(z for z in table["rows"] if z["team"]["club"]["slug"] == club["slug"])
 
         # 18 teams participated each time, so 19 per event.

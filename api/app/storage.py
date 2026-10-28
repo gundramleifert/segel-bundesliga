@@ -36,7 +36,7 @@ from urllib.parse import quote
 
 from fastapi.responses import FileResponse, Response
 
-from app.config import StorageBackend, settings
+from app.config import S3AddressingStyle, StorageBackend, settings
 
 
 class Storage(Protocol):
@@ -132,6 +132,7 @@ class S3Storage:
         secret_access_key: str = "",
         prefix: str = "",
         cache_seconds: float = 300,
+        addressing_style: S3AddressingStyle = S3AddressingStyle.PATH,
         client=None,
     ) -> None:
         if client is None:
@@ -144,12 +145,14 @@ class S3Storage:
                 region_name=region,
                 aws_access_key_id=access_key_id or None,
                 aws_secret_access_key=secret_access_key or None,
-                # Path-style: SeaweedFS and MinIO answer at one host, not one per bucket.
-                config=Config(s3={"addressing_style": "path"}, retries={"max_attempts": 3}),
+                config=Config(
+                    s3={"addressing_style": addressing_style.value}, retries={"max_attempts": 3}
+                ),
             )
         self.client = client
         self.bucket = bucket
         self.prefix = prefix.strip("/") + "/" if prefix.strip("/") else ""
+        self.region = region
         self.cache_seconds = cache_seconds
         self._known: dict[str, _Known] = {}
         self._lock = threading.Lock()
@@ -187,8 +190,15 @@ class S3Storage:
             except ClientError as error:
                 if not self._missing(error) and "NoSuchBucket" not in str(error):
                     raise
+                # Everywhere but us-east-1, AWS (and providers copying it) refuses a bucket
+                # created without saying where.
+                where = (
+                    {"CreateBucketConfiguration": {"LocationConstraint": self.region}}
+                    if self.region and self.region != "us-east-1"
+                    else {}
+                )
                 try:
-                    self.client.create_bucket(Bucket=self.bucket)
+                    self.client.create_bucket(Bucket=self.bucket, **where)
                 except ClientError as taken:
                     # Another process (the init container) made it a moment ago.
                     code = taken.response.get("Error", {}).get("Code", "")
@@ -285,8 +295,25 @@ def storage() -> Storage:
             secret_access_key=settings.s3_secret_access_key,
             prefix=settings.s3_prefix,
             cache_seconds=settings.s3_cache_seconds,
+            addressing_style=settings.s3_addressing_style,
         )
     return LocalStorage(settings.uploads_dir)
+
+
+def copy_all(source: Storage, target: Storage) -> int:
+    """Every file of ``source`` written to ``target`` under the same key; the count.
+
+    What makes the backends interchangeable: a key means the same file in each, so moving
+    the site from the disk to S3, or from one S3 provider to another, is this copy — and a
+    copy into a directory is a backup of every upload. Files already in ``target`` are
+    overwritten, files only there are left alone."""
+    count = 0
+    for key in source.keys(""):
+        data = source.get(key)
+        if data is not None:
+            target.put(key, data)
+            count += 1
+    return count
 
 
 def disposition(filename: str, kind: str = "inline") -> dict[str, str]:

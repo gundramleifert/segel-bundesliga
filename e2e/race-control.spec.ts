@@ -16,7 +16,7 @@ import { bearer, signIn } from "./session";
  * other specs' assumptions about the seed still hold under (an open race remains).
  */
 
-const LIVE_EVENT = 2; // dsbl-1-2026-act-2
+const LIVE_EVENT = 2; // demo-1-2026-act-2
 const COMMITTEE = "admin@sbl.example.com";
 
 describeStory("WL-3: as race committee I run one race at a time", () => {

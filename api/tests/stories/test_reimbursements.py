@@ -705,7 +705,9 @@ class TestPayingAClaim:
         early = await client.post(f"/api/claims/{claim['id']}/pay", headers=treasurer, json={})
         assert _problem_code(early) == "claim-not-approved"
 
-        await client.post(f"/api/claims/{claim['id']}/approve", headers=treasurer, json={"items": []})
+        await client.post(
+            f"/api/claims/{claim['id']}/approve", headers=treasurer, json={"items": []}
+        )
         paid = await client.post(
             f"/api/claims/{claim['id']}/pay", headers=treasurer, json={"reference": "Act 3 meals"}
         )

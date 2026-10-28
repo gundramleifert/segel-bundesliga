@@ -60,7 +60,7 @@
   "events": {
     "title": "Events",
     "nameLabel": "Name",
-    "namePlaceholder": "1st Matchday Kiel",
+    "namePlaceholder": "Act 1 Kiel",
     "startsLabel": "Starts on",
     "endsLabel": "Ends on",
     "endsHint": "optional",
@@ -296,7 +296,7 @@
     "reopenFinishedButton": "Resume racing",
     "reopenCancelledButton": "Reinstate the event",
     "printTitle": "How it prints",
-    "printHint": "The pairing list as a PDF: what crews take to the boat. Left empty, the font size follows the matchday's size — the sizes real league sheets are printed at.",
+    "printHint": "The pairing list as a PDF: what crews take to the boat. Left empty, the font size follows the event's size — the sizes real league sheets are printed at.",
     "printFontLabel": "Font size",
     "printFontHint": "Points. Empty means derived from flights and races.",
     "printFontAuto": "automatic",

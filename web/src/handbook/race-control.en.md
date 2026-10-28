@@ -28,7 +28,7 @@ but not this screen.
 3. Do what the biggest line says: next signal and countdown. 3-2-1-0: club flag up,
    preparatory flag up, preparatory flag down, club flag down — start recorded at zero.
 
-- The event must be live; a planned one offers *Start matchday* (needs a complete setup
+- The event must be live; a planned one offers *Start event* (needs a complete setup
   and a pairing list).
 - *Start*: records the start at the tap, no sequence.
 - *Abort sequence* stops it; a sequence button restarts it.

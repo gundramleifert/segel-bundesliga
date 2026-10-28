@@ -69,9 +69,15 @@ RUN cp render.env .env
 # used by the seed script to mint the sample tokens it prints; it is NOT the runtime
 # signing secret (set that as a real environment variable — SBL_JWT_SECRET — on the host).
 ARG SEED_JWT_SECRET=build-time-seed-only
+# The demo series — invented sailors, three made-up weekends, the test cast's acts — are
+# published here, on staging, so stakeholders can try a live and a planned act; never on
+# a real site (deploy/compose leaves them hidden). `--build-arg PUBLISH_DEMO=false` hides
+# them here too.
+ARG PUBLISH_DEMO=true
 RUN SBL_JWT_SECRET="$SEED_JWT_SECRET" \
     SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db" \
-    python -m app.seed_test_setup --reset
+    python -m app.seed_test_setup --reset \
+      $( [ "$PUBLISH_DEMO" = "true" ] && echo --publish-demo )
 
 # On top of the seed, the DSBL seasons of this year range from SAP Sailing (Story A-14),
 # published so staging shows them. Empty skips it: `--build-arg SAP_IMPORT_YEARS=`.

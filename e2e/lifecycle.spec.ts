@@ -681,7 +681,10 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     // says the right screen arrived; the squads are a section of the club (Story Z-10).
     await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
     await openSection(page, "club", "squads");
-    await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
+    // The club's entry with a squad: the demo's — the real 2026 registrations have none.
+    const sized = page.locator('[data-testid^="my-club-team-size-"]').filter({ hasText: /^[1-9]/ }).first();
+    const teamId = (await sized.getAttribute("data-testid"))!.replace("my-club-team-size-", "");
+    await page.getByTestId(`my-club-team-toggle-${teamId}`).click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes-selected-list")).toBeVisible();
 

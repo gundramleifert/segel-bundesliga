@@ -17,9 +17,11 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.models import Club, ExternalId, ImportRun
+from app.models import Club, Event, ExternalId, ImportRun, Series, Team, Venue
 from app.models.base import Base
 from app.services.lookup import unique_slug
+from app.services.participation import event_entry, team_name
+from app.text import slugify
 
 USER_AGENT = "dsl-website-import/1.0 (+https://sbl-web.onrender.com)"
 
@@ -231,3 +233,62 @@ async def resolve_club(
     await link(session, club, source, key)
     report.tally("created", "clubs")
     return club
+
+
+async def venue_for_city(session: AsyncSession, report: Report, city: str) -> Venue:
+    """The venue named after the matchday's city — the seed's `Kiel`, or a new one."""
+    slug = slugify(city)
+    venue = (await session.execute(select(Venue).where(Venue.slug == slug))).scalar_one_or_none()
+    if venue is None:
+        # In Python, not SQL: SQLite's lower() would miss the Ü of Überlingen.
+        venue = next(
+            (
+                v
+                for v in (await session.execute(select(Venue))).scalars()
+                if v.city.casefold() == city.casefold()
+            ),
+            None,
+        )
+    if venue is None:
+        venue = Venue(slug=slug, name=city, city=city)
+        session.add(venue)
+        await session.flush()
+        report.tally("created", "venues")
+    return venue
+
+
+async def enter_team(
+    session: AsyncSession, report: Report, club: Club, series: Series, event: Event, number: int
+) -> Team:
+    """The club's registration for the series and its team ``number`` in this act — both
+    rows the model asks for (Domain decisions: `Team` is the enrollment). A club's second
+    team (`KYC (SH) 2`) is an entry of its own, lined up from the club's one squad (Story
+    VA-13), so the club stays registered once."""
+    registration = (
+        await session.execute(
+            select(Team).where(
+                Team.club_id == club.id, Team.series_id == series.id, Team.event_id.is_(None)
+            )
+        )
+    ).scalar_one_or_none()
+    if registration is None:
+        session.add(Team(name=club.short_name, club_id=club.id, series_id=series.id))
+        report.tally("created", "series registrations")
+    entry = await event_entry(session, event.id, club.id, number)
+    if entry is None:
+        if number > event.teams_per_club:
+            event.teams_per_club = number
+            report.tally("updated", "events (teams per club)")
+        entry = Team(
+            name=team_name(club, number),
+            number=number,
+            club_id=club.id,
+            series_id=series.id,
+            event_id=event.id,
+        )
+        session.add(entry)
+        report.tally("created", "event entries")
+    else:
+        report.tally("unchanged", "event entries")
+    await session.flush()
+    return entry

@@ -3,8 +3,9 @@
 Goal: both halves reachable on the public internet, at no cost, for trying things out.
 **Not** production — no backup, the database resets on restart, and dev-login is on.
 
-To run the whole site on one machine instead — Postgres, the API, the SPA and SeaweedFS
-— see `deploy/compose/README.md`.
+To run the site on a server of our own instead — Postgres, the API, the SPA and SeaweedFS
+in Docker Compose — see **`docs/deploy-server.md`** (the runbook) and
+`deploy/compose/README.md` (the stack).
 
 ## What's in the box
 

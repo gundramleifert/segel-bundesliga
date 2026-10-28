@@ -284,7 +284,7 @@ export function useArticle(slug: string | undefined) {
   return { ...useAsync(query), notFound: query.error?.status === 404 };
 }
 
-export const PRESS_CONTACT = "presse@segelliga.example.com";
+export const PRESS_CONTACT = "presse@deutsche-segelliga.de";
 
 // ---------------------------------------------------------------- media
 
@@ -343,23 +343,6 @@ export function useGallery(league: string, size = GALLERY_PAGE): Paged<GalleryPh
     size,
     fromLibrary,
   );
-}
-
-// ---------------------------------------------------------------- documents and notices
-
-export type DocGroup = { title: Localized; docs: string[] };
-
-const SEASON_DOCUMENTS: DocGroup[] = [
-  { title: { en: "Rules", de: "Regeln" }, docs: ["League regulations", "Scoring and tie-breaks", "Promotion and relegation"] },
-  { title: { en: "Notice of race", de: "Ausschreibung" }, docs: ["Season notice of race", "Amendment 1 (dates)"] },
-  { title: { en: "Boats", de: "Boote" }, docs: ["J/70 charter terms", "Damage and deposit rules", "Boat handling guide"] },
-  { title: { en: "Entry", de: "Meldung" }, docs: ["Squad registration deadline", "Liability waiver", "Advertising rules"] },
-];
-
-/** `example`: what is returned is placeholder content, and a page showing it says so —
- *  invented documents and jury decisions must never read as a real notice board. */
-export function useSeasonDocuments(_league: string) {
-  return ready({ groups: SEASON_DOCUMENTS, example: true });
 }
 
 /** The association's members are the clubs of the 1. and 2. Liga

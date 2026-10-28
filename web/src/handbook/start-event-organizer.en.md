@@ -46,8 +46,8 @@ what is still missing; *Set up* and *Race day* hold the work.
 
 ### Where this fits {#start-event-organizer-journeys}
 
-- [From an empty series to a scored matchday](#journey-lifecycle)
+- [From an empty series to a scored event](#journey-lifecycle)
 - [An organizer sets up a series](#journey-series)
-- [A club's crew is cleared for a matchday](#journey-crew-cleared)
+- [A club's crew is cleared for an event](#journey-crew-cleared)
 
 [Open the event in My space](place:event.overview)
