@@ -17,7 +17,7 @@ seed had been cut to 42) was the clue that the backend was old.
 declares `[[tool.uv.index]] pypi … default = true`: a project index takes precedence over
 the workstation's user-level `~/.config/uv/uv.toml` (which names the mirror and is
 rewritten by `pai-workstation`), so a local `uv lock` / `uv sync` keeps the pypi.org URLs.
-`api/Dockerfile` then runs a plain `uv sync --frozen`. (The first fix, re-locking inside
+`deploy/compose/api.Dockerfile` runs a plain `uv sync --frozen` (Render's `api/Dockerfile`, where this was seen, is gone). (The first fix, re-locking inside
 the Dockerfile, was dropped on 2026-10-18: the lock in git still named an unreachable
 host.) When staging looks wrong, compare what the API answers with what `main` would
 answer before debugging the page.

@@ -138,8 +138,8 @@ External APIs are never called live in tests; recorded fixtures live under `api/
 
 Work is tracked as [GitHub issues](https://github.com/gundramleifert/segel-bundesliga/issues)
 and reaches `main` only through a pull request: **issue → branch → PR → merge → staging →
-stakeholder review → close**. `main` deploys to the staging instance
-(`https://sbl-web.onrender.com`); an issue is done when its stakeholder accepts it there,
+stakeholder review → close**. Staging runs `main`; an issue is done when its stakeholder
+accepts it there,
 so a PR refers to its issue and never closes it.
 
 ```bash
@@ -150,7 +150,7 @@ gh issue develop 42 --name 42-short-slug --checkout   # 2. branch, linked to the
 scripts/check.sh                                   # 3. everything must be green
 git push -u origin HEAD
 gh pr create --base main                           # 4. body starts with "Refs #42", not "Closes"
-gh pr merge --squash --delete-branch               # 5. merge → staging redeploys
+gh pr merge --squash --delete-branch               # 5. merge → staging runs it
 gh issue edit 42 --add-label in-stakeholder-review # 6. once it is live: label + comment
 gh issue comment 42                                #    (where to look, what to try)
 gh issue close 42 --comment "Accepted on staging"  # 7. accepted → close
@@ -172,16 +172,14 @@ One issue per branch and per PR; anything else found along the way becomes a new
 | `docs/gotchas/` | Things that surprised someone — read the index before debugging anything odd |
 | `docs/findings.md` | Research findings — external API formats, league format, open questions |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | Live data, tracking and race control — the agreed plan |
-| `docs/deploy.md` | The staging deployment |
+| `docs/deploy-server.md` | Running the site on a server (Docker Compose) |
 | `CLAUDE.md` | The detailed engineering reference — domain decisions, permissions, testing and i18n conventions, the issue workflow. Doubles as the instructions file for AI coding assistants working in this repo. |
 
 ## Deployment
 
-The Render instance described in `docs/deploy.md` (`render.yaml`, `api/Dockerfile`) is
-**staging**: it redeploys from `main`, and stakeholders review changes there. It is not
-production — no backup, the SQLite database resets to the seeded data on every restart, and
-dev login is on. Postgres remains the intended production database; the models avoid
-Postgres-only types so that migration stays straightforward.
+The site runs as one Docker Compose stack — Postgres, the API, the SPA behind Caddy,
+SeaweedFS for the uploads (`deploy/compose/`, runbook in `docs/deploy-server.md`). Prod
+and staging are two such stacks; staging publishes the demo series and has dev login on.
 
 ## Status and license
 

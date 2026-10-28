@@ -207,7 +207,7 @@ Acceptance criteria:
   until one was added, so the button sat there answering 503. The pairing response says
   `pdf_available`, and the page leaves the picker and the link out when it is false: an
   offer that cannot be honoured is worse than no offer. The deployment now builds the tool
-  from a pinned commit into its image (`api/Dockerfile`, `docs/deploy.md`), so the answer
+  from a pinned commit into its image (`deploy/compose/api.Dockerfile`), so the answer
   there is yes.
 
 Endpoints: `GET /api/events/{id}/pairing` (JSON),

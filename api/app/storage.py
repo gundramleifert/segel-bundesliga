@@ -102,8 +102,10 @@ class LocalStorage:
         base = self.root / prefix.rpartition("/")[0]
         if not base.is_dir():
             return []
-        found = (path.relative_to(self.root).as_posix() for path in base.rglob("*"))
-        return sorted(key for key in found if key.startswith(prefix) and self.exists(key))
+        found = (
+            path.relative_to(self.root).as_posix() for path in base.rglob("*") if path.is_file()
+        )
+        return sorted(key for key in found if key.startswith(prefix))
 
     def response(
         self, key: str, media_type: str, headers: dict[str, str] | None = None
@@ -168,7 +170,9 @@ class S3Storage:
 
     def _missing(self, error: Exception) -> bool:
         code = getattr(error, "response", {}).get("Error", {}).get("Code", "")
-        return code in {"404", "NoSuchKey", "NotFound"}
+        # NoSuchBucket: a fresh store before the first write, or SeaweedFS's stale mark
+        # (ensure_bucket) — either way the file is not there.
+        return code in {"404", "NoSuchKey", "NotFound", "NoSuchBucket"}
 
     def ensure_bucket(self) -> None:
         """Creates the bucket on first use, so a fresh object store needs no setup step.
@@ -188,7 +192,7 @@ class S3Storage:
             try:
                 self.client.head_bucket(Bucket=self.bucket)
             except ClientError as error:
-                if not self._missing(error) and "NoSuchBucket" not in str(error):
+                if not self._missing(error):
                     raise
                 # Everywhere but us-east-1, AWS (and providers copying it) refuses a bucket
                 # created without saying where.
@@ -200,7 +204,7 @@ class S3Storage:
                 try:
                     self.client.create_bucket(Bucket=self.bucket, **where)
                 except ClientError as taken:
-                    # Another process (the init container) made it a moment ago.
+                    # Another process (db-setup, a second worker) made it a moment ago.
                     code = taken.response.get("Error", {}).get("Code", "")
                     if code not in {"BucketAlreadyOwnedByYou", "BucketAlreadyExists"}:
                         raise
@@ -218,7 +222,7 @@ class S3Storage:
         try:
             answer = self.client.get_object(Bucket=self.bucket, Key=self._key(key))
         except ClientError as error:
-            if self._missing(error) or "NoSuchBucket" in str(error):
+            if self._missing(error):
                 self._remember(key, None)
                 return None
             raise
@@ -236,7 +240,7 @@ class S3Storage:
             head = self.client.head_object(Bucket=self.bucket, Key=self._key(key))
             stamp: int | None = int(head["LastModified"].timestamp())
         except ClientError as error:
-            if not self._missing(error) and "NoSuchBucket" not in str(error):
+            if not self._missing(error):
                 raise
             stamp = None
         self._remember(key, stamp)
@@ -252,7 +256,7 @@ class S3Storage:
         try:
             self.client.delete_object(Bucket=self.bucket, Key=self._key(key))
         except ClientError as error:
-            if not self._missing(error) and "NoSuchBucket" not in str(error):
+            if not self._missing(error):
                 raise
         self._remember(key, None)
 
@@ -268,7 +272,7 @@ class S3Storage:
             for page in pages:
                 found.extend(item["Key"][len(self.prefix) :] for item in page.get("Contents", []))
         except ClientError as error:
-            if "NoSuchBucket" not in str(error):
+            if not self._missing(error):
                 raise
         return sorted(found)
 

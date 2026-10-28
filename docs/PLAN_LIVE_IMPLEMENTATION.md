@@ -30,9 +30,8 @@ So of Story B-5's three views, two (live daily and live season standings) are tr
 work — the numbers are already right the moment someone reloads. The third ("which race is
 running") is a one-endpoint gap in race control, not a live-data gap.
 
-Deployment shape that matters (`render.yaml`, `api/Dockerfile`): one uvicorn process; the
-site is a **static site with a `/api/*` rewrite** to the API service; free instances sleep
-after 15 min idle.
+Deployment shape that matters (`deploy/compose/`): one uvicorn process; the site is a
+**static SPA behind Caddy, which proxies `/api`** to the API service.
 
 ---
 
@@ -175,8 +174,8 @@ Numbered so stories can cite them.
 | `Fix` | `tracker_id`, `t`, `lat`, `lon`, `sog`, `cog` | ~170k rows per matchday; unique `(tracker_id, t)` makes ingest idempotent |
 
 **Where fixes live is a decision phase A has to take, not defer.** The test deployment
-bakes its SQLite file into the image and **resets it on every sleep and redeploy**
-(`render.yaml`, `docs/deploy.md`) — fixes written there are gone before the replay is
+baked its SQLite file into the image and **reset it on every sleep and redeploy**
+(the former Render instance) — fixes written there are gone before the replay is
 watched. And SQLite's default `journal_mode=DELETE` takes an exclusive lock per ingest
 commit, which would block the RC's result PUT and every spectator GET. So, in phase A:
 `PRAGMA journal_mode=WAL` + `busy_timeout` in `app/db.py` for development; for any
@@ -437,7 +436,7 @@ parser as reference; wind estimation.
 | J/70 polar | ✅ ORC data in `api/app/tracking/polars/j70.csv` | `fit_polar` from own tracks later, for the league's real boats |
 | SAP branding clause on a self-hosted instance | verified present in both repos' API docs | irrelevant to a port; only matters if SAP ever becomes a runtime source |
 | SAP bus factor 1 | verified | reason not to self-host; no effect on the port or the oracle |
-| Fixes on the test deployment vanish on sleep/redeploy; SQLite exclusive locks on ingest | verified (`render.yaml`, `app/db.py` has no pragmas) | phase A storage decision, §4 |
+| Fixes on the test deployment vanish on sleep/redeploy; SQLite exclusive locks on ingest | verified (former Render instance, `app/db.py` has no pragmas) | phase A storage decision, §4 |
 | Race status is advisory today (no guard in the PUT, never read by scoring); recall un-freezes the event | verified (`admin.py`, `standings.py`, `event_readiness.py`) | WL-3's `race_state.py`, §7 |
 | `compute_event` runs on every GET | verified | fine for a league day's size; measure before caching |
 | Single uvicorn process | verified | `live.py` states the cost like `jobs.py`; LISTEN/NOTIFY when it changes |

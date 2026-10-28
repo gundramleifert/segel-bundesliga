@@ -1,6 +1,5 @@
 # The site for the Compose stack: the SPA built with Vite, served by Caddy, which also
-# proxies /api to the api service — the same split Render runs (a static site with an
-# /api/* rewrite to the API, render.yaml), so the browser stays same-origin.
+# proxies /api to the api service, so the browser stays same-origin.
 # Build context: repo root.
 
 FROM node:22.20.0-alpine AS build

@@ -5,7 +5,7 @@ production it goes via SMTP. Anyone trying the application locally should be abl
 without setting up a mail server.
 
 A second transport (Brevo's HTTPS API) exists purely as a workaround for platforms that
-block outbound SMTP entirely — confirmed on the Render test deployment via
+block outbound SMTP entirely — confirmed on a former hosted test deployment via
 `GET /api/dev/network-probe`: both port 465 and 587 to a real SMTP host time out, while
 HTTPS is unaffected (the platform itself depends on it). It is opt-in
 (`SBL_BREVO_API_KEY`) and dev/test-only, not a replacement for SMTP as the intended path.
@@ -70,7 +70,7 @@ async def send_login_code(email: str, code: str) -> None:
 
     # Silent on success and on failure alike before this: there was no way to tell, short
     # of reading someone's inbox, whether SBL_SMTP_* actually works. Log both outcomes —
-    # this is what "did the mail go out?" is checked against (e.g. Render's log viewer).
+    # this is what "did the mail go out?" is checked against (`compose.sh logs api`).
     try:
         # smtplib is blocking; run in a thread to keep the event loop free.
         await asyncio.to_thread(_send, message)

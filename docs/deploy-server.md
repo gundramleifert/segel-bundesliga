@@ -4,7 +4,7 @@ The site on one machine of our own, with Docker Compose: Postgres, the API, the 
 behind Caddy, and SeaweedFS for the uploads. This page is the runbook: what the machine
 needs, the first installation, updates, backups and what to watch.
 `deploy/compose/README.md` is the reference for the stack itself (services, settings,
-secrets, storage); the free Render test instance is `docs/deploy.md`.
+secrets, storage).
 
 ## Read this first — it is not ready for real data yet
 
@@ -94,7 +94,7 @@ In `deploy/compose/.env`, at least:
 |---|---|
 | `SBL_DEV_LOGIN` | `false` — `true` hands out admin tokens without any check |
 | `SBL_CORS_ORIGINS` | `["https://<your domain>"]` |
-| `SBL_ADMIN_EMAILS` | `["you@…"]` — the first admin, made on their first sign-in (`docs/deploy.md`, "Getting the first real admin") |
+| `SBL_ADMIN_EMAILS` | `["you@…"]` — the first admin, made on their first sign-in (below, "The first admin") |
 | `SBL_SMTP_HOST`, `_PORT`, `_USER`, `SBL_MAIL_FROM` | your mail server; without one, sign-in codes only reach the api log |
 | `SBL_ALLOW_REGISTRATION` | `false` until people may register themselves |
 | `WEB_PORT` | the port the TLS proxy (below) talks to, e.g. `8080` |
@@ -194,3 +194,18 @@ names.
 Interchangeable by configuration — `deploy/compose/README.md`, "Uploads": `export` with
 the old settings, change `SBL_S3_*` (and `COMPOSE_PROFILES` when SeaweedFS is no longer
 needed), `import`, `up -d`.
+
+## The first admin
+
+With dev login off, nothing in the interface can grant the very first `admin` — every
+role-granting endpoint needs an admin already. `SBL_ADMIN_EMAILS` solves that bootstrap:
+an address listed there (case-insensitive, a JSON list) becomes `admin` the moment it
+signs in through any method (`app.services.login._resolve_user`), checked on every
+sign-in, so an address added later takes effect on that person's next login. From there,
+that account grants roles to everyone else (Story Z-2).
+
+**Mail must reach people for that.** Sign-in by one-time code needs `SBL_SMTP_*`, or
+`SBL_BREVO_API_KEY` where the host blocks outbound SMTP (HTTPS to Brevo instead); without
+either, the code only reaches the api log (`compose.sh logs api`). The sender,
+`SBL_MAIL_FROM`, must be verified with the mail provider, or codes are accepted and then
+silently dropped.

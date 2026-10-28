@@ -1,5 +1,5 @@
 # The build context of deploy/compose/ is the repo root: keep it small and free of local
-# state. (api/Dockerfile, Render's, builds from api/ and has its own api/.dockerignore.)
+# state.
 .git
 .claude
 **/node_modules

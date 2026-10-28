@@ -23,7 +23,7 @@ from app.services.lookup import unique_slug
 from app.services.participation import event_entry, team_name
 from app.text import slugify
 
-USER_AGENT = "dsl-website-import/1.0 (+https://sbl-web.onrender.com)"
+USER_AGENT = "dsl-website-import/1.0 (+https://github.com/gundramleifert/segel-bundesliga)"
 
 
 @dataclass

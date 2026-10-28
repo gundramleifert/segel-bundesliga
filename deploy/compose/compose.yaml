@@ -6,43 +6,38 @@
 # See deploy/compose/README.md.
 name: segelliga
 
-x-api-env: &api-env
-  SBL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sbl}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/secrets.sops.env (or .env)}@db:5432/${POSTGRES_DB:-sbl}
-  # Uploads are always in S3 here — SeaweedFS below by default, or any S3 provider named by
-  # the SBL_S3_* settings (README.md, "Uploads"). The containers keep no files of their own.
-  SBL_STORAGE: s3
-  SBL_S3_ENDPOINT_URL: ${SBL_S3_ENDPOINT_URL:-http://storage:8333}
-  SBL_S3_REGION: ${SBL_S3_REGION:-us-east-1}
-  SBL_S3_BUCKET: ${SBL_S3_BUCKET:-sbl-uploads}
-  SBL_S3_PREFIX: ${SBL_S3_PREFIX:-}
-  SBL_S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/compose/secrets.sops.env (or .env)}
-  SBL_S3_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/compose/secrets.sops.env (or .env)}
-  SBL_S3_CACHE_SECONDS: ${SBL_S3_CACHE_SECONDS:-300}
-  SBL_S3_ADDRESSING_STYLE: ${SBL_S3_ADDRESSING_STYLE:-path}
-  SBL_JWT_SECRET: ${SBL_JWT_SECRET:?set SBL_JWT_SECRET in deploy/compose/secrets.sops.env (or .env)}
-  SBL_JWT_LIFETIME_MINUTES: ${SBL_JWT_LIFETIME_MINUTES:-720}
-  SBL_DEBUG: ${SBL_DEBUG:-false}
-  SBL_DEV_LOGIN: ${SBL_DEV_LOGIN:-false}
-  SBL_CORS_ORIGINS: ${SBL_CORS_ORIGINS:-["http://localhost:8080"]}
-  SBL_PAIRING_TIMEOUT_SECONDS: ${SBL_PAIRING_TIMEOUT_SECONDS:-1800}
-  SBL_GOOGLE_CLIENT_ID: ${SBL_GOOGLE_CLIENT_ID:-}
-  SBL_MICROSOFT_CLIENT_ID: ${SBL_MICROSOFT_CLIENT_ID:-}
-  SBL_MICROSOFT_TENANT: ${SBL_MICROSOFT_TENANT:-common}
-  SBL_OTP_LENGTH: ${SBL_OTP_LENGTH:-6}
-  SBL_OTP_LIFETIME_MINUTES: ${SBL_OTP_LIFETIME_MINUTES:-10}
-  SBL_OTP_MAX_ATTEMPTS: ${SBL_OTP_MAX_ATTEMPTS:-5}
-  SBL_ALLOW_SELF_SIGNUP: ${SBL_ALLOW_SELF_SIGNUP:-false}
-  SBL_ALLOW_REGISTRATION: ${SBL_ALLOW_REGISTRATION:-true}
-  SBL_ALLOW_PASSWORD_LOGIN: ${SBL_ALLOW_PASSWORD_LOGIN:-true}
-  SBL_ADMIN_EMAILS: ${SBL_ADMIN_EMAILS:-[]}
-  SBL_SMTP_HOST: ${SBL_SMTP_HOST:-}
-  SBL_SMTP_PORT: ${SBL_SMTP_PORT:-587}
-  SBL_SMTP_USER: ${SBL_SMTP_USER:-}
-  SBL_SMTP_PASSWORD: ${SBL_SMTP_PASSWORD:-}
-  SBL_SMTP_STARTTLS: ${SBL_SMTP_STARTTLS:-true}
-  SBL_SMTP_SSL: ${SBL_SMTP_SSL:-false}
-  SBL_MAIL_FROM: ${SBL_MAIL_FROM:-noreply@deutsche-segelliga.de}
-  SBL_BREVO_API_KEY: ${SBL_BREVO_API_KEY:-}
+# The API's settings: .env as it is (every SBL_* of api/app/config.py may go there, the
+# tracking constants included), plus what the stack decides itself and the secrets, which
+# compose.sh hands over as environment from secrets.sops.env rather than as a file.
+x-api: &api
+  build:
+    context: ../..
+    dockerfile: deploy/compose/api.Dockerfile
+  image: segelliga-api:local
+  env_file:
+    - path: .env
+      required: false
+  environment: &api-env
+    SBL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sbl}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/compose/secrets.sops.env (or .env)}@db:5432/${POSTGRES_DB:-sbl}
+    # Uploads are always in S3 here — SeaweedFS below by default, or any S3 provider named by
+    # the SBL_S3_* settings (README.md, "Uploads"). The containers keep no files of their own.
+    SBL_STORAGE: s3
+    SBL_S3_ENDPOINT_URL: ${SBL_S3_ENDPOINT_URL:-http://storage:8333}
+    SBL_S3_BUCKET: ${SBL_S3_BUCKET:-sbl-uploads}
+    SBL_S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?set S3_ACCESS_KEY in deploy/compose/secrets.sops.env (or .env)}
+    SBL_S3_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?set S3_SECRET_KEY in deploy/compose/secrets.sops.env (or .env)}
+    SBL_JWT_SECRET: ${SBL_JWT_SECRET:?set SBL_JWT_SECRET in deploy/compose/secrets.sops.env (or .env)}
+    SBL_SMTP_PASSWORD: ${SBL_SMTP_PASSWORD:-}
+    SBL_BREVO_API_KEY: ${SBL_BREVO_API_KEY:-}
+    # Differ from config.py's development defaults.
+    SBL_DEBUG: ${SBL_DEBUG:-false}
+    SBL_CORS_ORIGINS: ${SBL_CORS_ORIGINS:-["http://localhost:8080"]}
+  depends_on: &api-depends
+    db:
+      condition: service_healthy
+    storage:
+      condition: service_healthy
+      required: false # not started when an outside S3 provider is used
 
 services:
   db:
@@ -62,44 +57,22 @@ services:
 
   # One-shot: migrate, and seed an empty database (deploy/compose/api-init.sh).
   db-setup:
-    build:
-      context: ../..
-      dockerfile: deploy/compose/api.Dockerfile
-    image: segelliga-api:local
+    <<: *api
     command: ["api-init"]
     environment:
       <<: *api-env
       # true only on a demonstration server: publishes the invented demo series.
       SEED_PUBLISH_DEMO: ${SEED_PUBLISH_DEMO:-false}
-    depends_on:
-      db:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-        required: false # not started when an outside S3 provider is used
     restart: "no"
 
+  # Its healthcheck is the image's (api.Dockerfile).
   api:
-    build:
-      context: ../..
-      dockerfile: deploy/compose/api.Dockerfile
-    image: segelliga-api:local
+    <<: *api
     restart: unless-stopped
-    environment: *api-env
     depends_on:
-      db:
-        condition: service_healthy
-      storage:
-        condition: service_healthy
-        required: false # not started when an outside S3 provider is used
+      <<: *api-depends
       db-setup:
         condition: service_completed_successfully
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
-      interval: 10s
-      timeout: 3s
-      start_period: 20s
-      retries: 5
 
   web:
     build:

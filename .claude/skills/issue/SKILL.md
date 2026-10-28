@@ -184,12 +184,12 @@ Then `handover`.
 
 ## `handover <N>` — the stakeholder's turn
 
-Staging (`https://sbl-web.onrender.com`, docs/deploy.md) redeploys from `main` in a few
-minutes and **resets to the seeded data** on every deploy.
+Staging runs `main` — a Compose stack with the demo published and dev login on
+(`docs/deploy-server.md`). Not set up yet since Render was removed (2026-10-28): until it
+runs, say so on the issue and show the change on a local stack instead.
 
 1. **Check the change is live** before telling anyone — fetch the page or endpoint it is
-   about (add `sbl-web.onrender.com` to `allowed_domains`). Not there after ten minutes:
-   look at the deploy (the render plugin's skills), don't hand over.
+   about. Not there: look at the deploy, don't hand over.
 2. **Label** — created once, harmless when it exists:
    ```bash
    gh label create in-stakeholder-review --color FBCA04 \

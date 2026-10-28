@@ -1,13 +1,13 @@
 # Backend image for the Compose stack (deploy/compose/compose.yaml). Build context: repo root.
 #
-# Not api/Dockerfile, which is Render's: that one bakes a seeded SQLite database and
-# api/render.env (SBL_DEV_LOGIN=true, Render's mail settings) into the image. Here the
-# database is Postgres, the data lives in volumes, and every setting comes from the
-# environment — the image itself carries no state and no configuration.
+# The database is Postgres, the data lives in volumes and S3, and every setting comes from
+# the environment — the image itself carries no state and no configuration.
 
 # ----------------------------------------------------------------- the pairing tool
-# Same stage as api/Dockerfile: the printable pairing list (Story B-3) is rendered by the
-# Java tool, built from a pinned commit. Keep PAIRING_LIST_REF in step with api/Dockerfile.
+# The printable pairing list (Story B-3, app/pairing/pdf.py) is rendered by the Java tool,
+# which lives in its own repository: built here from a pinned commit rather than carrying a
+# 13 MB binary in git. Must be at least 7ba9bec: from that commit the tool reads hex colours
+# and picks the font size itself, which app/pairing/pdf.py relies on.
 FROM maven:3.9.11-eclipse-temurin-17 AS pairing
 ARG PAIRING_LIST_REF=7ba9bec2eeb4934cacc976d59719dbc4472ce1a4
 ADD https://codeload.github.com/gundramleifert/PairingList/tar.gz/${PAIRING_LIST_REF} /src.tar.gz
@@ -38,7 +38,8 @@ ENV UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1
 
 COPY api/pyproject.toml api/uv.lock ./
-RUN uv sync --frozen --no-dev
+# The cache mount keeps downloaded wheels across builds, so a lock change fetches only what changed.
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
 
 COPY api/alembic.ini ./
 COPY api/alembic ./alembic

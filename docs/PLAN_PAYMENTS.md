@@ -217,8 +217,7 @@ No new relation. The existing tuples cover it (`MODEL` in `app/models/auth.py`):
   still end right).
 - **e2e** with `fake`: the fake checkout is one page of our own that redirects back and
   fires the webhook. The browser walks booking → paying → "paid" without the network.
-- The free Render instance sleeps. A webhook wakes it, and Stripe retries for three days,
-  so nothing is lost. The return page polls once in case the webhook is still on its way.
+- If the API is down, Stripe retries a webhook for three days, so nothing is lost. The return page polls once in case the webhook is still on its way.
 
 ## 6. Paying claims out — why the provider does not do it
 

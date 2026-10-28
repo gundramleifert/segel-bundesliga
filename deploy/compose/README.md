@@ -9,14 +9,13 @@ HTTPS, updates, backups — is `docs/deploy-server.md`.
 | Service | Image | What it does |
 |---|---|---|
 | `db` | `postgres:17.6-alpine` | The database (volume `db-data`) |
-| `db-setup` | built from `api.Dockerfile` | One-shot: `alembic upgrade head`; on an **empty** database also `app.seed_test_setup` (`api-init.sh`) |
+| `db-setup` | built from `api.Dockerfile` | One-shot: `app.seed_test_setup --if-empty` — migrates, and seeds only an **empty** database (`api-init.sh`) |
 | `api` | built from `api.Dockerfile` | uvicorn, one process; starts after `db-setup` finished |
 | `web` | built from `web.Dockerfile` | The Vite build served by Caddy, which proxies `/api` to `api` |
 | `storage` | `chrislusf/seaweedfs:3.97` | `weed server -s3`, the uploads' bucket (volume `storage-data`); only in the profile `seaweedfs` — leave it out for an outside S3 provider |
 
-**Why Caddy serves the SPA, not the API.** That is how the site already runs on Render:
-a static site with an `/api/*` rewrite to the API (`render.yaml`), and the API has no
-static-file route. Caddy keeps that split, and the browser stays on one origin, so there
+**Why Caddy serves the SPA, not the API.** The API has no static-file route; Caddy serves
+the built SPA and proxies `/api`, and the browser stays on one origin, so there
 is no CORS to configure. Server-Sent Events (live results) pass through unbuffered.
 
 ## Start

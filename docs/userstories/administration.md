@@ -109,13 +109,9 @@ Acceptance criteria:
   **matchday penalty** (Story WL-4), under the same rule.
 - **Imported competitions start as drafts**, unless `--publish`: a past season appearing
   on the public site is a decision, not a side effect.
-- **Staging imports on every build** (`api/Dockerfile`): on top of the seed, the seasons
-  of the build argument `SAP_IMPORT_YEARS` — **`2025-2026` by default**, empty to skip —
-  published, from `SAP_BASE_URL` (default `www.sapsailing.com`). A failed or empty import
-  never fails the build. The public SAP server has no season after 2023, so the default
-  imports nothing until the newer seasons' SAP instance is known and set. **The
-  Junioren-Liga** follows (decided 2026-10-23): `JUNIOR_IMPORT_YEARS` (default `2026`)
-  from `JUNIOR_SAP_BASE_URL` (default `hnv.sapsailing.com`), the same way.
+- **The Junioren-Liga's acts** (decided 2026-10-23) come from their own SAP host:
+  `app.imports sap --base-url https://hnv.sapsailing.com/sailingserver/api --years 2026
+  --publish`. (Staging on Render ran this on every build; it was removed 2026-10-28.)
 - Each run is an `ImportRun` row and prints what it created, updated, left unchanged,
   and what conflicted or failed.
 - **The 1. and 2. Liga 2026 from TracTrac** (decided 2026-10-27, `docs/PLAN_SEEDING.md`):
@@ -339,7 +335,7 @@ Acceptance criteria:
 - **Bootstrap:** an address listed in `SBL_ADMIN_EMAILS` becomes `admin` automatically on
   its first successful sign-in (any provider) — otherwise a fresh deployment has no one
   who can write the first tuple at all. Checked on every sign-in, not just account
-  creation. See `docs/deploy.md`.
+  creation. See `docs/deploy-server.md`, "The first admin".
 
 **Summary roles.** The navigation and the help page still speak of roles; those are
 **derived** from the tuples (`User.roles`, `Role`): `admin`, `editor`, `race_officer`,

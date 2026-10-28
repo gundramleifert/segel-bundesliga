@@ -17,7 +17,7 @@ web/public/handbook/screenshots/<shot-id>_<locale>[_phone].png
 ```
 
 **Why under `web/src/`**: Vite's `import.meta.glob` reaches only the project root, and the
-web build (Render, `docs/deploy.md`) builds `web/`. Screenshots in `web/public/` are copied
+web build (`deploy/compose/web.Dockerfile`) builds `web/`. Screenshots in `web/public/` are copied
 into the bundle as they are.
 
 One flat directory; structure comes from frontmatter, not folders.

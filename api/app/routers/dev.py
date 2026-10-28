@@ -148,9 +148,9 @@ async def dev_login(
 
 # ---------------------------------------------------------------------- SMTP diagnostics
 #
-# Added to debug the Render test deployment's SMTP/Brevo configuration without needing
-# dashboard/log access — confirmed working end to end (STRATO SMTP is blocked outbound by
-# Render, Brevo's HTTPS API is the live path). Disabled by default now that the question
+# Added to debug a former hosted test deployment's SMTP/Brevo configuration without needing
+# dashboard/log access — confirmed working end to end (STRATO SMTP was blocked outbound by
+# the host, Brevo's HTTPS API was the live path). Disabled by default now that the question
 # is settled; flip _MAIL_DIAGNOSTICS_ENABLED back to True if a future deployment needs the
 # same investigation again, rather than rewriting this from scratch.
 _MAIL_DIAGNOSTICS_ENABLED = False

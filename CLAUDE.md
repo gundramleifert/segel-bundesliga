@@ -31,7 +31,6 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/components.md` | **The frontend's building blocks** — read before writing a page |
 | `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
-| `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `docs/deploy-server.md` | **Running the site on a server** — the Compose stack's runbook: machine, first install with sops, HTTPS, updates, backups; what still makes it pre-production |
 | `deploy/compose/` | **The whole site in Docker Compose** — Postgres, API, the SPA behind Caddy, SeaweedFS; started with `compose.sh`, secrets sops-encrypted in `secrets.sops.env` (recipients: `.sops.yaml`); `README.md` there |
 | `docs/PLAN_SEEDING.md` | **What a fresh installation starts with** — the real 2022–2026 results, news, press and pictures, no examples; the site seed vs the demo layer, sources and their rights, phases S-0…S-6, open questions |
@@ -148,13 +147,13 @@ and the server warns on startup while it is on.
 results, dates — imported from TracTrac's recorded scoreboards
 (`app/seed_data/dsbl-2026/`, `app.imports tractrac`), and **the Junioren-Liga's** four acts
 (decided 2026-10-23) from SAP's recorded answer (`app/seed_junioren.py`,
-`app/seed_data/junioren-2026/`); staging refreshes the juniors from SAP on every build. No
+`app/seed_data/junioren-2026/`); `app.imports sap` refreshes them from SAP. No
 source names who sailed, so the real acts have no squads or crews. **Everything invented
 is in the demo series** `demo-1-2026` / `demo-2-2026` — the same 36 clubs with made-up
 squads and three made-up weekends each (one final, one live, one planned) — **never
 published by the seed**; `seed_test_setup --publish-demo` (`app.seed.publish_demo`)
 publishes them in a league of their own, `/demo`: the test suite, the e2e stacks and
-staging (`api/Dockerfile`, `PUBLISH_DEMO`), never a real site. The people who sign in are
+staging (`SEED_PUBLISH_DEMO=true`, `deploy/compose/`), never a real site. The people who sign in are
 concentrated:
 
 - **club** ASVW, a 2. Liga club (decided 2026-10-21; it was NRV): `board@asvw.example.com` (its `admin`,
@@ -658,8 +657,8 @@ below — `start <N>`, `pr`, `merge` (only on the user's word), `handover`, `acc
 
 **An issue is done when its stakeholder accepts it on staging, not when its PR merges.**
 Many issues come from stakeholders, and they judge a change by using it, not by reading a
-diff — and the only place they can use it is **staging**: the Render instance
-(`https://sbl-web.onrender.com`, `docs/deploy.md`), which redeploys from `main`. So the
+diff — and the place they can use it is **staging**, which runs `main` (decided
+2026-10-28: the Render instance is gone; staging is to be a second Compose stack with the demo published and dev login on (`docs/deploy-server.md`); until it runs, a change is shown on a local stack). So the
 PR **refers** to the issue and never closes it, and between merge and close the issue
 carries the label **`in-stakeholder-review`**. While nothing is in production, `main` is
 allowed to hold changes not yet accepted; that changes when there is a production.

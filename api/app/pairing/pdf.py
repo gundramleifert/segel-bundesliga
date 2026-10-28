@@ -206,8 +206,8 @@ def _cache_key(files: dict[str, str], team_index: int | None) -> str:
 def renderer_available(jar: Path | None = None) -> bool:
     """Whether this installation can print at all: the JAR is there and Java can run it.
 
-    A deployment may legitimately have neither — the test image on Render carries no JRE
-    for a long time, and a developer without the tool built still runs the whole site. The
+    A deployment may legitimately have neither — an image built without the pairing
+    stage, or a developer without the tool built still runs the whole site. The
     screens ask this so they can leave the download out rather than offer a button whose
     only possible answer is 503 (Story B-3).
 

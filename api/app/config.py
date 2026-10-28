@@ -3,12 +3,12 @@ from enum import StrEnum
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Render (and Docker Secrets, Kubernetes) mount uploaded secret files here, one file per
+# Docker Secrets and Kubernetes mount secret files here, one file per
 # secret, named exactly like the env var it replaces (e.g. a file literally named
 # "SBL_JWT_SECRET"). pydantic-settings reads it under that name automatically — this is
 # the mechanism, not a convention invented here. Used only for the fields that are
 # genuine credentials (jwt_secret, smtp_password); everything else stays a plain,
-# non-sensitive env var — see docs/deploy.md. An explicit env var still wins if both are
+# non-sensitive env var. An explicit env var still wins if both are
 # set, and fields fall back to their defaults if the file is absent (e.g. local
 # development, where the directory itself usually doesn't exist at all). Guarded on
 # existence purely to skip pydantic-settings' otherwise-harmless "directory does not
@@ -128,11 +128,11 @@ class Settings(BaseSettings):
     # The association is the Deutsche Segel-Liga and its domain is deutsche-segelliga.de —
     # "segelbundesliga" is the name of one *series*, not of the association or this site
     # (see CLAUDE.md). Whatever stands here must also be verified as a sender with the mail
-    # provider, or login codes are accepted and then silently dropped (docs/deploy.md).
+    # provider, or login codes are accepted and then silently dropped.
     mail_from: str = "noreply@deutsche-segelliga.de"
 
-    # Alternate transport for hosts that block outbound SMTP entirely (confirmed on the
-    # Render test deployment — both port 465 and 587 time out; see docs/deploy.md). Sends
+    # Alternate transport for hosts that block outbound SMTP entirely (a former hosted test
+    # deployment did — both port 465 and 587 timed out). Sends
     # over Brevo's HTTPS API instead of smtplib when set; SMTP above stays the intended
     # path for a real host that can reach an SMTP server. Opt-in and dev/test-only — not a
     # replacement for SMTP, a workaround for one platform's egress firewall.

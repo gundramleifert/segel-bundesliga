@@ -65,8 +65,8 @@ post or a club its crest. `seed_site` only **adds what is missing**, matched by
 key): one mechanism for everything that came from outside (CLAUDE.md, "External systems
 are matched via `ExternalId`"). Run it on every start; it changes nothing the second time.
 
-`seed_test_setup` keeps running both layers, so development, the test suite, Render
-staging and the journeys behave as they do now. The Compose stack runs `seed_site` only
+`seed_test_setup` keeps running both layers, so development, the test suite, staging
+and the journeys behave as they do now. The Compose stack runs `seed_site` only
 (`SBL_SEED=site`, the default there; `demo` for a demonstration server).
 
 ## Two instances: prod and staging
@@ -88,8 +88,8 @@ own rows again on a second run, because it lands on a database it did not create
 **Done (2026-10-27):** the real 2026 season is in the seed (TracTrac and SAP recordings);
 everything invented moved into the unpublished demo series `demo-1-2026` / `demo-2-2026`;
 `seed_test_setup --publish-demo` publishes them in a league of their own (`/demo`) — on by
-default on staging (`api/Dockerfile`, `PUBLISH_DEMO`), off in the Compose stack
-(`SEED_PUBLISH_DEMO`), on in the test suite and the e2e stacks. The thirteen example
+on staging, off on prod (the Compose stack's
+`SEED_PUBLISH_DEMO`), on in the test suite and the e2e stacks. The thirteen example
 posts are drafts, published by `--publish-demo` with the demo (`app/seed_posts.py`). The
 DSBL press pictures of the Finale are out of the seed (`app/seed_media.py` lists none):
 they were not Sven's, so no credit to him would have been true. Nothing invented is on a notice board any

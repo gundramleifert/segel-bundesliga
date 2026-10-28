@@ -5,8 +5,8 @@ Its four acts as SAP Sailing recorded them on the juniors' own host
 really sail, their second teams, every result — imported by the import itself
 (`app.imports.sap`), from these files instead of the network, so the seed, the tests and a
 laptop offline all have the same season (decided 2026-10-23: the Junioren-Liga shows the
-real teams and results, not made-up ones). Staging then refreshes it from SAP on every
-build (`api/Dockerfile`), which a Finale still being sailed needs.
+real teams and results, not made-up ones). `python -m app.imports sap --base-url …` refreshes
+it from SAP, which a Finale still being sailed needs.
 
 Results are public sporting facts; the files hold no picture and no person — the juniors'
 squads are made up afterwards by the seed, like every other.
