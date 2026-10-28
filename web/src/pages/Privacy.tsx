@@ -13,7 +13,7 @@ import { LegalDraftNotice, LegalLastUpdated, LegalSections } from "../components
  *  The controller's own details are real — same legal entity as the Impressum. The
  *  document as a whole is still a **draft**: every point that depends on a decision
  *  nobody has made — retention periods, the deletion concept and consent wording for
- *  position data, whether a data protection officer is appointed — is marked as an open
+ *  position data, a host club's data processing agreement — is marked as an open
  *  question instead of being guessed at, and the banner says the page needs review
  *  before it goes live.
  */

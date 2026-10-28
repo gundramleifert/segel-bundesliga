@@ -7,7 +7,7 @@
   },
   "legalNotice": {
     "title": "Legal notice",
-    "lastUpdated": "Last updated: 10 September 2026",
+    "lastUpdated": "Last updated: 28 October 2026",
     "sections": [
       {
         "heading": "Provider",
@@ -18,7 +18,7 @@
       {
         "heading": "Represented by the board",
         "paragraphs": [
-          "Represented by the board of the Deutsche Segel-Liga e.V. The authorised representatives are named in the association's legal notice: https://deutsche-segelliga.de/impressum/"
+          "Chair: Peter Weichsel\nDeputy chair: Markus Westerwalbesloh\nTreasurer: Tom Lukas Voigt"
         ]
       },
       {
@@ -39,16 +39,15 @@
       {
         "heading": "Responsible for editorial content under § 18 (2) MStV",
         "paragraphs": [
-          "The board of the Deutsche Segel-Liga e.V.\nc/o Düsseldorfer Yacht-Club\nRotterdamer Straße 30\n40474 Düsseldorf\nGermany"
-        ],
-        "open": "Once the editorial team publishes its own articles, it needs to be settled whether the chair remains the person responsible under § 18 (2) MStV or whether a named editor-in-chief takes that role. § 18 (2) MStV requires a natural person with name and address; at the association's request the board stands here for now — before going live it has to be decided who is named."
+          "Peter Weichsel\nc/o Düsseldorfer Yacht-Club\nRotterdamer Straße 30\n40474 Düsseldorf\nGermany"
+        ]
       },
       {
         "heading": "Dispute resolution",
         "paragraphs": [
-          "The formerly mandatory reference to the European Commission's online dispute resolution platform no longer applies: that ODR platform was shut down in July 2025. Pointing to it would be incorrect today, and it is deliberately absent here."
-        ],
-        "open": "Whether to make a declaration under § 36 VSBG about taking part in consumer arbitration is the board's decision. An association of this size is usually not obliged to; the declaration is not pre-empted here."
+          "We are neither obliged nor willing to take part in dispute resolution proceedings before a consumer arbitration board.",
+          "The formerly mandatory reference to the European Commission's online dispute resolution platform no longer applies: that ODR platform was shut down in July 2025."
+        ]
       },
       {
         "heading": "Liability for content",
@@ -66,53 +65,55 @@
       {
         "heading": "Copyright",
         "paragraphs": [
-          "The content and works created by us on these pages are subject to German copyright law. Reproduction, adaptation and distribution beyond the limits of copyright require our written consent. Club crests, logos and photographs remain the property of their respective rights holders."
-        ],
-        "open": "On what terms may the press and the clubs reuse result lists and photographs? There is no explicit usage rule yet."
+          "Texts, result lists and standings that we publish on these pages may be used freely, including commercially, under the Creative Commons Attribution 4.0 International licence (CC BY 4.0, https://creativecommons.org/licenses/by/4.0/) — name the source “Deutsche Segel-Liga e.V.” and, online, link to the page. This includes our news and press releases.",
+          "Not covered: photographs remain the work of the photographers credited with them, and club crests and logos the property of their clubs. Their rights are not ours to grant; ask the rights holder."
+        ]
       }
     ]
   },
   "privacy": {
     "title": "Privacy policy",
-    "lastUpdated": "Last updated: 10 September 2026",
+    "lastUpdated": "Last updated: 28 October 2026",
     "sections": [
       {
         "heading": "Scope of this policy",
         "paragraphs": [
-          "This policy explains what personal data this website and the tools behind it process, and on what basis. The platform is operated by Deutsche Segel-Liga e.V. The policy covers this application only — the association's main site at deutsche-segelliga.de has its own privacy policy.",
-          "The application is used in several ways: visitors read public pages without an account; sailors and club officials sign in to maintain squads, profiles and waivers; the race committee enters results; and a club can organise an event of its own here. What we process depends on which of these applies to you."
+          "This policy explains what personal data this website and the tools behind it process, and on what basis. The website is operated by Deutsche Segel-Liga e.V.",
+          "It is used in several ways: visitors read public pages without an account; sailors and club officials sign in to maintain squads, profiles, waivers and expense claims; the race committee enters results; the editorial team publishes news, press releases and pictures; and a club can organise an event of its own here. What we process depends on which of these applies to you."
         ]
       },
       {
         "heading": "Controller",
         "paragraphs": [
           "Deutsche Segel-Liga e.V.\nc/o Düsseldorfer Yacht-Club\nRotterdamer Straße 30\n40474 Düsseldorf\nGermany",
-          "Authorised representatives: the board (see the legal notice)\nEmail: vorstand@deutsche-segelliga.de\nLegal notice: https://deutsche-segelliga.de/impressum/"
-        ],
-        "open": "No data protection officer is named. Whether the association has to appoint one, or wants to do so voluntarily, needs to be checked — an association of this size is often not required to, and none is currently published. If one is appointed, their contact details belong here."
+          "Authorised representatives: the board (see the legal notice)\nEmail: vorstand@deutsche-segelliga.de\nLegal notice: https://www.deutsche-segelliga.de/legal-notice",
+          "We have not appointed a data protection officer: the association is not obliged to (Art. 37 GDPR, § 38 BDSG). For any question about your data, write to the board at the address above."
+        ]
       },
       {
         "heading": "Who is responsible when a club runs its own event",
         "paragraphs": [
-          "Deutsche Segel-Liga e.V. operates this platform. It is not only a results page for the association's own series: a club can use it to organise an event of its own — a cup, a training weekend — and in doing so processes the personal data of the sailors taking part. The organising club and the association are two distinct actors, and this policy does not conflate them.",
-          "Which data protection role each of them holds for such an event has not been determined. There are three possibilities, and they carry different duties: the association as sole controller (Art. 4(7) GDPR); the association as a processor acting for the organising club (Art. 28 GDPR, which would require a data processing agreement with every participating club); or joint controllership (Art. 26 GDPR, which would require a joint-controller arrangement whose essence has to be made available to you)."
+          "A club can use this website to organise an event of its own that belongs to none of the association's series — a cup, a training weekend. For such an event, the host club is the controller of the participants' data: it decides who takes part, collects the entries, crews and waivers, and publishes the results. The association provides the website and processes that data on the club's behalf (Art. 28 GDPR). Address your rights concerning such an event to the host club named on the event's page.",
+          "For the events of the association's own series — even where a club hosts an act — and for everything across events (accounts, people, profiles, standings), Deutsche Segel-Liga e.V. is the controller."
         ],
-        "open": "This is the most important open question in this document, and it is one for the association's legal counsel, not a technical decision. Until it is answered, this policy cannot say who is accountable for the data of an event another club runs here, which agreements have to exist, or to whom you should address your rights for such an event. Nothing here should be read as having chosen one of the three roles."
+        "open": "The data processing agreement a host club accepts before running its own event here, and naming the host club as controller on the event's page, are decided but not built yet."
       },
       {
         "heading": "Categories of data we process",
         "paragraphs": [
-          "Depending on how you use the application:"
+          "Depending on how you use the website:"
         ],
         "items": [
           "Account data: email address, display name, whether that address has been verified, and the time of your last sign-in.",
-          "Sign-in data: which method you use (Google, Microsoft, or a code by email) and the provider's identifier for you; one-time codes, stored only as a hash.",
-          "Sailor master data: first and last name, date of birth, optionally an email address linking the profile to an account, and a federation number where one is on file.",
-          "A profile photo, where the sailor uploads one themselves.",
-          "Membership and role data: which club you belong to and what you are to each club, series and event your account holds a relation on (member, manager, admin, race officer, jury).",
+          "Sign-in data: which method you use (Google, Microsoft, a code by email, or a password) and the provider's identifier for you; one-time codes and passwords, stored only as hashes.",
+          "Person data: first and last name, date of birth, optionally an email address and a federation (DSV) number, whether the profile page is public, and a profile photo. A club may record a person who has no account — a child, a crew member who never signs in.",
+          "Membership and role data: which clubs you are a member of, and what you are to each club, series and event (for example manager, admin, race officer, jury, helper, treasurer, editor); for a parent, the link as guardian of a child.",
           "Sporting data: squad and lineup entries, boat assignments, and race results per team.",
-          "Waiver records: which version of the waiver text was confirmed, when, in which language, from which account, the browser identifier of that confirmation, and for minors the guardian's name and a reference to their signature.",
-          "Technical data: the IP address your device uses to reach the site, processed by our hosting provider in order to deliver the pages."
+          "Waiver records: which version of the waiver text was confirmed, when, in which language, by which method, from which account, the browser identifier of that confirmation, and for minors the guardian's name and the scan of their signed form.",
+          "Money: expense claims with their items and receipts, the name and IBAN of the account they are paid to, decisions on them, and payments; your saved bank account (holder, IBAN, BIC).",
+          "Personal documents you upload yourself: licences and certificates, with their kind, title and expiry date.",
+          "Editorial content: posts with the author's name as written, and pictures with the photographer's credit.",
+          "Technical data: the IP address your device uses to reach the site, the time and the address requested, in the server's request log."
         ]
       },
       {
@@ -122,9 +123,11 @@
         ],
         "items": [
           "Running the competition: registrations, squads, lineups, pairing lists, results and standings.",
-          "Publishing sporting results and who took part — the purpose of a public league site.",
-          "Sign-in and access control, so that only the right people can change data.",
+          "Publishing sporting results and who took part, and news, press releases and pictures about the regattas.",
+          "Sign-in and access control, so that only the right people can see and change data.",
           "Documenting liability waivers as evidence that they were given.",
+          "Reimbursing expenses: deciding claims and paying them to the right account.",
+          "Letting a club's or an event's organisers check the licences of the people working for them.",
           "Security, troubleshooting, and meeting statutory retention duties where they apply."
         ]
       },
@@ -136,6 +139,7 @@
         ],
         "items": [
           "Consent, Art. 6(1)(a) GDPR — where we ask for it specifically, in particular for the position tracking that is planned but not yet in use.",
+          "Contract and membership, Art. 6(1)(b) GDPR — reimbursing the expenses of those who work for a club or an event, and membership of a club.",
           "Legitimate interests, Art. 6(1)(f) GDPR — operating and securing the site, running the competition, and publishing sporting results and participation.",
           "Legal obligation, Art. 6(1)(c) GDPR — where commercial or tax law requires records to be kept."
         ],
@@ -150,37 +154,38 @@
           "Identity comes from Google, Microsoft, a one-time code sent by email, or a password you chose to set. A password is stored only as an Argon2id hash — never in readable form — and an account locks for a growing period after five wrong attempts.",
           "One-time codes are stored only as an Argon2 hash, expire after ten minutes, allow five attempts, and can be used once.",
           "All traffic runs over HTTPS (TLS).",
-          "Roles are checked against the database on every single request, so withdrawing a permission takes effect immediately rather than at the next sign-in.",
-          "Uploaded photos are re-encoded, which strips the original file's metadata — including any GPS coordinates the camera wrote into it.",
+          "Permissions are checked against the database on every single request, so withdrawing one takes effect immediately rather than at the next sign-in.",
+          "Waiver scans, receipts and personal documents are stored under random names, never at a public address, and are delivered only through one endpoint each that checks who asks. Every look at a waiver scan is logged, and so is every look at someone else's receipt or document.",
+          "Profile photos and the pictures shown on the site are re-encoded, which removes the original metadata — including any location the camera recorded. The editorial picture library keeps the uploaded original, with its metadata, privately and never shows it.",
           "A minor's profile photo is not served publicly at all (see below)."
         ]
       },
       {
         "heading": "Recipients and processors",
         "paragraphs": [
-          "We use service providers who process data on our behalf. They are bound by our instructions and may not use the data for their own purposes.",
-          "Beyond those providers, the officials of the club organising an event see the participants, lineups and waiver status for that event — they cannot run it otherwise. In which data protection role they do so is the open question set out above."
+          "We use service providers who process data on our behalf. They are bound by our instructions and may not use the data for their own purposes. The files uploaded here — photos, scans, receipts, documents — are stored on our own server, not with a further provider.",
+          "Beyond those providers, data is seen by those who need it for their task: a club's officials see their members, a club's or an event's organisers its participants, lineups, waiver status and the licences of those working there, a treasurer the claims they decide, and the race committee the waiver scans of an event."
         ],
         "items": [
-          "Render Services, Inc. — hosting of the application and its database.",
-          "STRATO AG — the mailbox and SMTP server used for outgoing mail."
+          "Hetzner Online GmbH, Gunzenhausen — the server that runs the website, its database and its files, in a data centre in Germany.",
+          "STRATO AG, Berlin — the mailbox and SMTP server used for outgoing mail."
         ],
         "open": "Whether a data processing agreement under Art. 28 GDPR exists with each of these providers has to be confirmed, and concluded where it is missing, before go-live."
       },
       {
         "heading": "Transfers to third countries",
         "paragraphs": [
-          "Render is a US company. Where personal data is processed outside the EU or the EEA, we rely on the safeguards the law requires — an adequacy decision such as the EU-US Data Privacy Framework, or the European Commission's standard contractual clauses."
-        ],
-        "open": "The hosting region is not fixed in our deployment configuration, so it currently follows the provider's default, which is in the United States. Before go-live it should be decided — and pinned down — whether the application and its database run in an EU region, and the transfer safeguards documented accordingly."
+          "The website, its database and its files are run in Germany, and our mail goes out through a German provider; we do not transfer your data to a country outside the EU or the EEA.",
+          "The one exception is your own choice: signing in with Google or Microsoft is processing by that provider and may involve a transfer to the United States (see below)."
+        ]
       },
       {
         "heading": "How long we keep data",
         "paragraphs": [
-          "We delete personal data once the purpose it was collected for no longer applies, unless a statutory duty requires us to keep it longer — commercial and tax records in particular have to be retained for up to ten years under German law.",
-          "You can delete your own account at any time; its roles and sign-in identities go with it. An account removed by the administration is deactivated rather than erased, so that the sporting record attached to it stays intact."
+          "We delete personal data once the purpose it was collected for no longer applies, unless a statutory duty requires us to keep it longer — commercial and tax records, such as paid expense claims, have to be retained for up to ten years under German law.",
+          "You can delete your own account at any time. Its sign-in identities, roles, password, personal documents and bank account go with it, as do claims you never submitted. Your person record stays, unlinked from the account, because results, squads and waivers are part of the sporting record; submitted claims keep the name and IBAN they were paid to, for the books. An account removed by the administration is deactivated rather than erased."
         ],
-        "open": "Concrete retention periods do not exist yet. Sign-in code records, the internal audit trail (which stores the acting person's email address), waiver confirmations and uploaded photos are currently kept indefinitely, because no deletion routine has been built. A deletion concept with a period per category of data still has to be decided and implemented; until then this section cannot state exact periods."
+        "open": "Concrete retention periods do not exist yet. Sign-in code records, the server's request log, the internal audit trail (which stores the acting person's email address), waiver confirmations and scans, receipts and uploaded photos are currently kept indefinitely, because no deletion routine has been built. A deletion concept with a period per category of data still has to be decided and implemented; until then this section cannot state exact periods."
       },
       {
         "heading": "Your rights",
@@ -201,10 +206,10 @@
       {
         "heading": "Providing the site",
         "paragraphs": [
-          "To deliver the pages, your device's IP address is processed — technically unavoidable, since without it no response could reach you. Our hosting provider processes it; we neither store it in our own database nor log it in the application.",
-          "The platform keeps standard server logs of requests. There is no analytics, no advertising, no tracking pixel and no profiling of visitors anywhere in this application."
+          "To deliver the pages, your device's IP address is processed — technically unavoidable, since without it no response could reach you.",
+          "The server's request log records, for every request, your IP address, the time and the address requested. It serves troubleshooting and security only, is read by nobody else, and is never evaluated for any other purpose. There is no analytics, no advertising, no tracking pixel and no profiling of visitors anywhere on this website."
         ],
-        "open": "How long the hosting provider retains its server logs has not been established and should be stated here."
+        "open": "The request log is not yet rotated: a short retention period — days, not months — has to be set before go-live."
       },
       {
         "heading": "Local storage instead of cookies",
@@ -220,7 +225,7 @@
       {
         "heading": "Account and sign-in",
         "paragraphs": [
-          "An account holds your email address (stored in lower case), your display name, whether that address is verified, the time of your last sign-in, your club, and your roles.",
+          "An account holds your email address (stored in lower case), your display name, whether that address is verified, and the time of your last sign-in. Every account has exactly one person record; your clubs and roles hang off that, not off the account.",
           "If you sign in with a code by email, we store the address, a hash of the code, its expiry, the number of attempts and whether it has been used. If you set a password, we store its Argon2id hash, when it was last changed, and the number of failed attempts and any lock that followed; setting, changing and removing it are logged without the password. After a successful sign-in, your browser holds an access token valid for twelve hours; it is not stored on our servers."
         ],
         "open": "Used and expired sign-in code records are currently not purged. A short deletion period — days, not years — should be set and implemented."
@@ -251,39 +256,53 @@
       {
         "heading": "Profile photos and the protection of minors",
         "paragraphs": [
-          "A photo can only be uploaded by the sailor themselves, from their own verified account, and they can delete it again at any time. It is stored on the application's server, scaled to 512×512 pixels and re-encoded, which removes the original metadata — including any location the camera recorded.",
-          "An adult's photo is publicly visible. A minor's photo is not: it is served only to that person themselves, to the administration and the editorial team, and to the manager of a club the person is registered with. Everyone else is refused, including a signed-in stranger.",
-          "Age is determined from the date of birth on the record, with 18 as the threshold."
-        ],
-        "open": "If no date of birth is recorded, the system cannot tell that someone is a minor, and the photo is treated as an adult's and published. That gap needs a decision: either treat an unknown date of birth as protected, or require the date before a photo may be shown."
+          "A photo can only be uploaded by the sailor themselves, from their own verified account, and they can delete it again at any time. It is scaled, cropped to a square and re-encoded, which removes the original metadata — including any location the camera recorded.",
+          "An adult's photo is publicly visible, unless they switched their profile page off. A minor's photo is not: it is served only to that person themselves, to the administration, and to the managers of the clubs the person is a member of. Everyone else is refused, including a signed-in stranger.",
+          "Age is determined from the date of birth on the record, with 18 as the threshold. Without a date of birth, a photo is protected as a minor's."
+        ]
       },
       {
         "heading": "Liability waivers",
         "paragraphs": [
           "When a waiver is confirmed for a series or an event, we keep a record of that confirmation as evidence. The record is not altered afterwards; a corrected waiver is a new confirmation. It holds:",
-          "People under 18 cannot confirm a waiver for themselves — without a guardian such a confirmation is legally ineffective — so a guardian's confirmation is required and recorded as such. No IP address is stored with a confirmation."
+          "People under 18 cannot confirm a waiver for themselves. Either a guardian signs the printed form and its scan is uploaded, or a parent whom the child's club linked to the child as guardian accepts online from their own account. No IP address is stored with a confirmation.",
+          "A scan is seen only by the sailor, the managers of their clubs, the event's organisers and race committee, and the administration — and every single look at it is logged."
         ],
         "items": [
           "which sailor, and which exact version of the waiver text;",
           "the time of the confirmation and the language the text was shown in;",
-          "whether it was confirmed online or recorded as a guardian's confirmation;",
+          "whether it was confirmed online, by a guardian online, or by a guardian on paper;",
           "which account recorded it, and the browser identifier it was submitted from;",
-          "for minors: the guardian's name and a reference to where their signature is held."
+          "for minors: the guardian's name and, for a paper form, the scan."
         ],
-        "open": "How long confirmations are kept, and whether scanned guardian signatures will be stored in the application at all, is undecided. If scans are introduced, access rules, logging of each retrieval and a deletion deadline after the end of the season have to be settled with them."
+        "open": "How long confirmations and scans are kept is undecided; a deletion deadline after the end of the season has to be set."
+      },
+      {
+        "heading": "Expense claims and bank details",
+        "paragraphs": [
+          "Whoever works at an event or is a member of a club can claim expenses. A claim holds its items (travel, accommodation, other costs), the receipts uploaded with it, and the decision on it with its date and note. When it is submitted, the name and IBAN of your saved bank account are copied onto it, so that a later change does not alter a claim already decided.",
+          "Your saved bank account is read by you alone. A claim, its receipts and the IBAN on it are seen by you and by those who decide it — the event's manager or treasurer, or the club's treasurer; looking at someone else's receipt is logged. The payment goes to the bank as a SEPA file the treasurer uploads to the club's online banking; the file is generated when downloaded and not stored, and we never log in to a bank."
+        ]
+      },
+      {
+        "heading": "Personal documents",
+        "paragraphs": [
+          "You can upload your licences and certificates — boat licences, radio certificate, first aid, jury or race officer licence — with an expiry date, so that you need not send them again for every event.",
+          "They are seen by you, by the managers of the clubs you are a member of, and by the managers of the events you work at. Every look by someone other than you is logged. An expired document is marked, not deleted."
+        ]
       },
       {
         "heading": "Emails we send",
         "paragraphs": [
-          "The application sends exactly one kind of email: sign-in and confirmation codes. There is no newsletter, no marketing and no notification mail.",
-          "Mail goes out through our own mailbox provider's SMTP server. The recipient address appears in the operating log for as long as that log is kept."
+          "The website sends exactly one kind of email: sign-in and confirmation codes. There is no newsletter, no marketing and no notification mail. Every mail says why it was sent and whom to write to.",
+          "Mail goes out through our mailbox provider's SMTP server. The recipient address appears in the operating log for as long as that log is kept."
         ]
       },
       {
         "heading": "Log data and the internal audit trail",
         "paragraphs": [
-          "The application writes no access log of its own and stores no IP addresses. The hosting platform keeps standard server logs, and our operating log records the recipient address of each email sent.",
-          "Administrative changes — reassigning someone to a different club, for instance — are written to an internal audit trail together with the email address of the person who made the change, so that such a change can be traced afterwards."
+          "The server's request log records the IP address, time and address of each request (see “Providing the site”); the operating log records the recipient address of each email sent.",
+          "Changes — to memberships, roles, waivers, claims and payments, for instance — and every look at a waiver scan or at someone else's receipt or document are written to an internal audit trail together with the email address of the account that acted, so that they can be traced afterwards. It stores no IP address."
         ],
         "open": "The audit trail has no retention limit and is never pruned. A period has to be set for it."
       },
@@ -293,28 +312,28 @@
           "Live tracking of the boats using participants' own phones is planned. It is not built: today no position data is collected, stored or transmitted.",
           "When it is built, it will process a device identifier, a timestamp, latitude, longitude, speed and heading during a race, and pass them to the timing and analysis system used for the league. Position data is movement data and can reveal considerably more than a race track — it will therefore rest on your explicit consent, given per event and revocable, and will never be switched on silently."
         ],
-        "open": "The deletion concept for position data, the exact wording of the consent in the tracker, and how long tracks may be kept for replays are all still open. They must be settled before the feature is switched on; nothing in this policy should be read as approval for it."
+        "open": "The deletion concept for position data, the exact wording of the consent in the tracker, and how long tracks may be kept for replays are all still open. They must be settled before the feature is switched on; nothing in this policy should be read as approval for it. Before it is switched on, a data protection impact assessment (Art. 35 GDPR) is due — and with it, under § 38 (1) BDSG, a data protection officer."
       },
       {
-        "heading": "Planned: imports, exports and editorial content",
+        "heading": "Imports, exports and editorial content",
         "paragraphs": [
-          "Two exchanges with external systems are planned but not implemented. Registrations would be imported from manage2sail — names and club assignments — and results would be sent to the league's timing and analysis system, where a competitor's name, sail number and nationality appear.",
-          "A news area in which the clubs write posts is planned as well. The decision taken there is deliberately one account per club rather than one per sailor, precisely to keep the amount of personal data small; posts are reviewed before publication, and whoever uploads a photograph of an identifiable person has to confirm that the necessary consent exists."
+          "Results, clubs and teams are imported from the league's scoring and from Manage2Sail. These imports carry clubs, team names, sail numbers and results — no names of sailors. A notice board links to the documents Manage2Sail publishes; we do not copy them.",
+          "The editorial team publishes news, press releases and pictures. A post names its author as written; a picture names its photographer. Photographers can deliver pictures through an upload link without an account; we store only the credit they are published under. Whoever publishes a photograph of an identifiable person has to make sure the necessary consent exists."
         ],
-        "open": "The scope and legal basis of both exchanges still have to be settled, as does the takedown route for a photo or a post someone objects to. Neither is active today."
+        "open": "A takedown route for a photo or a post someone objects to has to be settled. Sending results to an external timing and analysis system is planned and not active."
       },
       {
         "heading": "Current state of operation",
         "paragraphs": [
-          "This application is still being built. The instance currently reachable is a test instance: it holds synthetic data, its database is reset when the service restarts, and a development sign-in is enabled that issues access tokens without verification.",
-          "Real personal data should not be entered while that is the case."
+          "This website is still being built. A test instance may hold demonstration data, and offer a development sign-in that issues access tokens without verification.",
+          "Real personal data should not be entered into an instance where that sign-in is switched on."
         ],
-        "open": "The development sign-in has to be switched off, and the database made persistent, before real accounts, sailors or waivers are entered. This section is expected to disappear at go-live."
+        "open": "The development sign-in has to be switched off before real accounts, sailors or waivers are entered. This section is expected to disappear at go-live."
       },
       {
         "heading": "Changes to this policy",
         "paragraphs": [
-          "We adapt this policy when the application changes. While new features are still being added — position tracking and the news area in particular — it will keep changing; the date at the top tells you which version you are reading."
+          "We adapt this policy when the website changes. While new features are still being added — position tracking and the invitation of club members by mail in particular — it will keep changing; the date at the top tells you which version you are reading."
         ]
       },
       {
