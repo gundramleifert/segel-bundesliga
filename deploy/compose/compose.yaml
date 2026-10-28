@@ -30,6 +30,10 @@ x-api: &api
     SBL_SMTP_PASSWORD: ${SBL_SMTP_PASSWORD:-}
     # Differ from config.py's development defaults.
     SBL_DEBUG: ${SBL_DEBUG:-false}
+    # Never on in this stack — it runs production and staging, and /api/dev hands out
+    # tokens without any check (decided 2026-10-28). Fixed here, not read from .env, so no
+    # line there can switch it on; the dev login is for `tilt up` and scripts/dev-stack.sh.
+    SBL_DEV_LOGIN: "false"
     SBL_CORS_ORIGINS: ${SBL_CORS_ORIGINS:-["http://localhost:8080"]}
   depends_on: &api-depends
     db:
@@ -78,8 +82,8 @@ services:
       context: ../..
       dockerfile: deploy/compose/web.Dockerfile
       args:
-        # The role switcher is compiled in only together with the dev login.
-        VITE_DEV_TOOLS: ${SBL_DEV_LOGIN:-false}
+        # The role switcher is compiled in only together with the dev login — never here.
+        VITE_DEV_TOOLS: "false"
     image: segelliga-web:local
     restart: unless-stopped
     ports:

@@ -91,7 +91,6 @@ In `deploy/compose/.env`, at least:
 
 | Setting | Value on a server |
 |---|---|
-| `SBL_DEV_LOGIN` | `false` — `true` hands out admin tokens without any check |
 | `SBL_CORS_ORIGINS` | `["https://<your domain>"]` |
 | `SBL_ADMIN_EMAILS` | `["you@…"]` — the first admin, made on their first sign-in (below, "The first admin") |
 | `SBL_SMTP_HOST`, `_PORT`, `_USER`, `SBL_MAIL_FROM` | your mail server; without one, sign-in codes only reach the api log |

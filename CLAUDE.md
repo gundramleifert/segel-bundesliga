@@ -139,7 +139,9 @@ join* on the club page); either side deletes a waiting row to decline or withdra
 `SBL_DEV_LOGIN=true` enables `/api/dev`: there you can list test accounts and issue access tokens
 **without verification**. A role switcher then appears in the UI (bottom right). Deliberately a
 separate setting, not tied to `debug` — in a reachable environment this would be a security hole,
-and the server warns on startup while it is on.
+and the server warns on startup while it is on. **Never on in production or staging**
+(decided 2026-10-28): the Compose stack fixes it off in `compose.yaml`; it is for `tilt up`
+and `scripts/dev-stack.sh` only.
 
 `app.seed_users` creates a **small cast on one club, one series, one event** — 44 accounts
 (decided 2026-10-17; it was 370). **The 2026 season is real** (decided 2026-10-27,
@@ -658,7 +660,7 @@ below — `start <N>`, `pr`, `merge` (only on the user's word), `handover`, `acc
 **An issue is done when its stakeholder accepts it on staging, not when its PR merges.**
 Many issues come from stakeholders, and they judge a change by using it, not by reading a
 diff — and the place they can use it is **staging**, which runs `main` (decided
-2026-10-28: the Render instance is gone; staging is to be a second Compose stack with the demo published and dev login on (`docs/deploy-server.md`); until it runs, a change is shown on a local stack). So the
+2026-10-28: the Render instance is gone; staging is to be a second Compose stack with the demo published (`docs/deploy-server.md`) — and, like production, **without the dev login**, which `compose.yaml` fixes off (decided 2026-10-28); until it runs, a change is shown on a local stack). So the
 PR **refers** to the issue and never closes it, and between merge and close the issue
 carries the label **`in-stakeholder-review`**. While nothing is in production, `main` is
 allowed to hold changes not yet accepted; that changes when there is a production.
@@ -683,8 +685,8 @@ allowed to hold changes not yet accepted; that changes when there is a productio
 6. **Hand over to the stakeholder once staging runs the change** — the deploy takes a
    few minutes; check the change is visible there first. Then
    `gh issue edit <N> --add-label in-stakeholder-review` and comment on the issue
-   (`gh issue comment <N>`): the staging URL, which test account or role to pick in the
-   role switcher, and what to try. Staging resets to the seeded data on every deploy, so
+   (`gh issue comment <N>`): the staging URL, which role their own staging account
+   needs (granted to it there — staging has no role switcher), and what to try. Staging resets to the seeded data on every deploy, so
    say how to get to the state the change is about.
 7. **Accepted → close** — `gh issue close <N> --comment "Accepted on staging"` (or the
    stakeholder closes it). **Not accepted** → remove the label, and the feedback is a new

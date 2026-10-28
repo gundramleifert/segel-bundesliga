@@ -115,12 +115,12 @@ An old uploads directory (`SBL_UPLOADS_DIR` of a site on `SBL_STORAGE=local`) is
 such a directory: `import` it as it is. The same `export` is a backup of every upload.
 (`--no-deps` with SeaweedFS still needs `storage` running: `$C up -d storage` first.)
 
-## Dev login — off by default
+## Dev login — always off
 
-`SBL_DEV_LOGIN=true` in `.env` turns on `/api/dev`, which hands out access tokens
-**without any verification**, and builds the role switcher into the SPA. The API logs a
-warning at startup while it is on. Only for a stack nobody else can reach. It is a build
-argument of the web image too, so change it with `up --build`.
+`/api/dev` hands out access tokens **without any verification**, so this stack never
+mounts it: `compose.yaml` fixes `SBL_DEV_LOGIN=false` and builds the SPA without the role
+switcher, and no line in `.env` changes that (decided 2026-10-28 — the stack runs
+production and staging). The dev login is for `tilt up` and `scripts/dev-stack.sh`.
 
 Without it, sign in by one-time code: with no SMTP configured the code is written to the
 api log (`docker compose … logs api`). `SBL_ADMIN_EMAILS=["you@example.com"]` makes an
