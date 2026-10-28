@@ -109,6 +109,7 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
                         teamId={event.squad_team_id}
                         title={t("mine.standaloneSquad")}
                         readOnly={!entry.may_manage}
+                        mayAddPeople={entry.may_admin}
                       />
                     )}
                     <LineupPanel
@@ -218,6 +219,7 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
                     // change it. The controls are absent rather than disabled: a disabled
                     // button is a promise the server would not keep anyway.
                     readOnly={!entry.may_manage}
+                    mayAddPeople={entry.may_admin}
                   />
                 </div>
               )}
@@ -250,7 +252,12 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
               </div>
               {isOpen && (
                 <div className="mt-4">
-                  <SquadPanel teamId={event.squad_team_id} title={event.title} readOnly={!entry.may_manage} />
+                  <SquadPanel
+                    teamId={event.squad_team_id}
+                    title={event.title}
+                    readOnly={!entry.may_manage}
+                    mayAddPeople={entry.may_admin}
+                  />
                 </div>
               )}
             </li>

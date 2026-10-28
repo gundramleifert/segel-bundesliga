@@ -219,6 +219,7 @@
   "squad-on-first-team": "The club's squad for this event belongs to its first team.",
   "squad-registration-rejected": "This registration was rejected; it takes no squad.",
   "squad-person-of-another-club": "Sailing for another club: {people}. A club takes only its own sailors; the league office can add someone to a second club.",
+  "squad-person-not-a-member": "Not members of the club: {people}. The club's admin adds people to the club; the squad takes its members.",
   "sailor-needs-club": "Say which of your clubs this person sails for.",
   "sailor-club-not-yours": "You can only create people for a club you organize.",
   "context-not-found": "This is not part of your space — or it does not exist.",

@@ -365,7 +365,10 @@ These points were deliberately decided this way; bypassing them costs a lot late
   verified address), and an **active** `ClubMembership` is both "member" and "sails for";
   a person's `manager` is `manager from club` over those. That one answer decides who
   puts them in a squad, changes them, signs their waiver forms and links their parents.
-  A club's organizer creates people for their own club; a second club takes consent
+  **Who is in a club is its `admin`'s, who sails its `manager`'s** (decided 2026-10-28):
+  only the club's admin creates people for it (a new person is a member at once), adds,
+  invites or removes them; the team manager completes and corrects the club's people and
+  puts its **members** in squads — never someone in no club. A second club takes consent
   (invited/requested, accepted by the other side), and a person in another club without
   an account only the league office adds — no club can simply take anyone. The link is
   made in `app/services/people.py` (registration, enrollment, every sign-in); deleting an
@@ -532,8 +535,9 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
 | Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club is invited and accepts, or asks and the club's admin accepts (V-15); one without an account only the site's `admin` adds |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
-| Create and maintain people (sailors) | `admin`; a club's `manager` for their own club (changing one: its active members, or people in no club; an address once set: `admin` only) |
-| Put a person in a squad | the `manager` of a club they are an active member of (`manager from club`), or of any club while they are in none; site `admin` |
+| Create people (sailors) — a member of the club at once | `admin`; the club's `admin` for their own club — never its `manager` |
+| Change people (sailors) | `admin`; a club's `manager` (or `admin`) for its active members, or people in no club; an address once set: `admin` only |
+| Put a person in a squad | the `manager` of a club they are an active member of (`manager from club`); site `admin` (anyone, who then is a member) |
 | Accept an invitation, ask to join, leave | the person (their own account) |
 | Link a parent to a person as guardian | the manager or admin of a club the person is a member of; site `admin` |
 | Confirm a waiver for a person | the person; `admin`; the manager of a club they are a member of; their linked `guardian` while they are a minor |
@@ -827,6 +831,12 @@ default and source language.
 - `tr(locale, en=..., de=...)` — for user-facing strings a router builds directly, on routes
   not yet migrated to typed errors. Only literal runtime-visible text uses `tr()`; docstrings
   and Field descriptions are plain English.
+
+**Mails are German by default** (decided 2026-10-28, `app/mail.py::MAIL_LOCALE`): a
+mail has no language switcher and its readers are German clubs and sailors; English is
+the `tr()` variant for a caller that knows the reader's language. Every mail ends with
+`with_footer` — the association, why the mail came, whom to write to, privacy and legal
+notice, linked on `SBL_SITE_URL`.
 
 **Errors — RFC 9457 Problem Details** (`api/app/problems.py`, `web/src/api/problems.ts`,
 concept in `docs/concepts.md`): error responses are `application/problem+json`. A router

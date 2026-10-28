@@ -132,6 +132,12 @@ class Settings(BaseSettings):
     mail_from: str = "website@deutsche-segelliga.de"
     # The name a mail program shows for that address.
     mail_from_name: str = "Deutsche Segel-Liga"
+    # Where a reader of a mail can write to a person — the footer of every mail names it,
+    # because `mail_from` is a sending address nobody is promised to read.
+    mail_contact: str = "vorstand@deutsche-segelliga.de"
+    # The address this site is reached at, without a trailing slash: the links in a mail
+    # (privacy, legal notice) point here. The development frontend by default.
+    site_url: str = "http://localhost:5173"
 
 
 settings = Settings()

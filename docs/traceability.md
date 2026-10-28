@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**97 stories** — ● 72 implemented and tested · ◐ 15 partial · ○ 10 open. With backend tests: 79 · with browser tests: 54 · walked by a journey: 53 · **with no test at all: 9**.
+**98 stories** — ● 72 implemented and tested · ◐ 15 partial · ○ 11 open. With backend tests: 79 · with browser tests: 54 · walked by a journey: 54 · **with no test at all: 10**.
 
 ## Journeys
 
@@ -78,6 +78,9 @@ here — this page says what *exists*, the report what *passed*.
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
 | J-3.1 | no account yet | V-9 | ● | W1 | — | `club-members`<br>`faq`<br>`journey-member` |
+| J-3.11 | invited by the club | V-4 | ● | — | `test_sailors_and_squads.py::test_only_the_club_admin_creates_people_for_their_own_club` | `club-members`<br>`journey-member`<br>`squad-and-lineup` |
+| J-3.12 | invited by the club | V-16 | ○ | — | — | — |
+| J-3.13 | invited by the club | V-16 | ○ | — | — | — |
 | J-3.2 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
 | J-3.3 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
 | J-3.4 | password | Z-9 | ● | W1 | — | `account`<br>`journey-member` |

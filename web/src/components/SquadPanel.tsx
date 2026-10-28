@@ -35,9 +35,12 @@ import { RoleSelect } from "./RoleSelect";
  * directly (Story V-12). Two copies would drift, and the rules displayed here — the ten,
  * the single helm, which refusal means what — are the ones that took longest to get right.
  *
- * A club takes only **its own people** (Story V-4): someone who sails for another club is
- * shown greyed, with where they sail — only the league office adds them here. Who
- * is not in the register yet is created right here, for this club, and lands in the draft.
+ * A club takes only **its own members** (Story V-4): someone who sails for another club,
+ * or for none, is shown greyed with the reason — the league office adds them here, the
+ * club's admin to the club. Who is not in the register yet is created right here, for
+ * this club, and lands in the draft — by `mayAddPeople` alone (the club's admin, the
+ * league office), since a new person is a member and who is in the club is not the team
+ * manager's to decide (decided 2026-10-28).
  *
  * `readOnly` is what a club's member without organizer rights sees: the squad, and no
  * panes. Absent rather than disabled — a disabled button is a promise the server will
@@ -62,11 +65,14 @@ export function SquadPanel({
   teamId,
   title,
   readOnly = false,
+  mayAddPeople = false,
 }: {
   teamId: number;
   /** Names what this squad belongs to — a club on the admin screen, a series on `/club`. */
   title: string;
   readOnly?: boolean;
+  /** The club's admin or the league office: *New person* creates a member of the club. */
+  mayAddPeople?: boolean;
 }) {
   const { t } = useTranslation("admin");
   const squad = useAsync(useGetSquad(teamId));
@@ -122,9 +128,8 @@ export function SquadPanel({
   const { squad_min: squadMin, squad_max: squadMax } = squad.data;
   const full = draft.length >= squadMax;
   const clubId = squad.data.club_id;
-  /** Sails for a club, and not this one — the league office alone takes them anyway. */
-  const otherClubs = (person: Person) =>
-    !hasRole(Role.admin) && Boolean(person.club_ids?.length) && !person.club_ids?.includes(clubId);
+  /** Not a member of this club — the league office alone takes them anyway. */
+  const notMember = (person: Person) => !hasRole(Role.admin) && !person.club_ids?.includes(clubId);
 
   /** Where this person already sails, and whether that rules them out here.
    *
@@ -223,7 +228,7 @@ export function SquadPanel({
             disabledReason={(p) => {
               const taken = clash(p);
               if (taken) return t("squad.alreadyInSeries", { club: taken.club.name });
-              if (otherClubs(p)) return t("squad.otherClub");
+              if (notMember(p)) return p.club_ids?.length ? t("squad.otherClub") : t("squad.notMember");
               return null;
             }}
             filterValue={search}
@@ -241,7 +246,7 @@ export function SquadPanel({
               />
             )}
           />
-          {creating ? (
+          {!mayAddPeople ? null : creating ? (
             <NewPerson
               pending={createPerson.isPending}
               error={createPerson.isError ? errorText(createPerson.error) : null}

@@ -21,10 +21,11 @@ filters by it (role, account, squad, age), the column's name sorts.
 
 ### Add people {#club-members-add}
 
+Club admin only: who is in the club is yours to decide, who sails the team manager's.
 Press *＋ Person*, top-right:
 
-- *A new person* — a member at once. Club admin or team manager.
-- *Someone on record, by email* — club admin: address ①, roles under *As* ②, *Add* ③.
+- *A new person* — a member at once.
+- *Someone on record, by email* — address ①, roles under *As* ②, *Add* ③.
 
 ![*Add a person*, *Someone on record, by email*: address ①, *As* ②, *Add* ③](shot:help-club-people)
 

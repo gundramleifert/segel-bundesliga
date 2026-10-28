@@ -723,15 +723,20 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     await expect(
       page.locator('[data-testid^="admin-squad-panes-available-taken-"]').first(),
     ).toBeVisible();
-    // Someone not in the register yet is created right here, for this club, and lands in
-    // the draft.
-    await page.getByTestId("admin-squad-new-person").click();
+    // A new person is a member of the club, and who is in the club is its admin's to
+    // decide, never the team manager's (Story V-4, decided 2026-10-28): no *New person*
+    // here. The club's admin — the league office stands in — adds one, and the team
+    // manager finds them on the left and moves them into the draft.
+    await expect(page.getByTestId("admin-squad-new-person")).toHaveCount(0);
     const tag = Date.now().toString(36);
-    await page.getByTestId("admin-squad-new-first-name").fill("Nele");
-    await page.getByTestId("admin-squad-new-last-name").fill(`Neu${tag}`);
-    await page.getByTestId("admin-squad-new-email").fill(`nele.${tag}@example.com`);
-    await page.getByTestId("admin-squad-new-create").click();
-    await expect(page.getByTestId("admin-squad-new-person-form")).toHaveCount(0);
+    const created = await page.request.post("/api/admin/people", {
+      headers: await bearer(page.request, ADMIN),
+      data: { first_name: "Nele", last_name: `Neu${tag}`, email: `nele.${tag}@example.com`, club_id: clubId },
+    });
+    expect(created.ok(), await created.text()).toBeTruthy();
+    const nele = ((await created.json()) as { id: number }).id;
+    await page.getByTestId("admin-squad-panes-filter-input").fill(`Neu${tag}`);
+    await page.getByTestId(`admin-squad-panes-available-${nele}`).click();
     await expect(selected).toHaveCount(before + 1);
     // Moved, not yet written — Save is what writes the list, as for the clubs of an event.
     await expect(page.getByTestId("admin-squad-unsaved")).toBeVisible();

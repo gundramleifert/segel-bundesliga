@@ -219,6 +219,7 @@
   "squad-on-first-team": "Der Kader des Vereins für diese Veranstaltung gehört zu seinem ersten Team.",
   "squad-registration-rejected": "Diese Meldung wurde abgelehnt; sie hat keinen Kader.",
   "squad-person-of-another-club": "Segelt für einen anderen Verein: {people}. Ein Verein nimmt nur eigene Segler auf; einem zweiten Verein ordnet die Geschäftsstelle eine Person zu.",
+  "squad-person-not-a-member": "Keine Mitglieder des Vereins: {people}. Personen nimmt die Vereinsverwaltung in den Verein auf; in den Kader kommen seine Mitglieder.",
   "sailor-needs-club": "Bitte geben Sie an, für welchen Ihrer Vereine die Person segelt.",
   "sailor-club-not-yours": "Sie können Personen nur für einen Verein anlegen, den Sie organisieren.",
   "context-not-found": "Das gehört nicht zu Ihrem Bereich — oder es existiert nicht.",

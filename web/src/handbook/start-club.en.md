@@ -21,8 +21,8 @@ switcher; its sections are grouped under *People*, *Racing* and *Money*, plus *C
 
 ### Your club's people {#start-club-people}
 
-- [Add people](#club-members-add) at *People*: a new person — club admin or team manager —
-  or someone on record, by email — club admin.
+- [Add people](#club-members-add) at *People*: a new person, or someone on record, by
+  email — club admin.
 - [Answer requests to join](#club-members-requests) and invite people from other clubs —
   club admin.
 - [Name the organizers](#club-members-organizers): team manager, admin, treasurer — club

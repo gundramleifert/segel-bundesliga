@@ -67,7 +67,9 @@ export function ClubPeopleSection({
   clubId: number;
   /** The club's `admin` — who is in the club, and the roles. */
   mayAdmin: boolean;
-  /** `admin` or `manager` — the whole list, dates of birth, new people. */
+  /** `admin` or `manager` — the whole list and dates of birth. New people are the
+   *  admin's alone: a new person is a member, and who is in the club is the admin's to
+   *  decide, the team manager's only who sails (Story V-4, decided 2026-10-28). */
   mayOrganize: boolean;
   onLeft?: () => void;
 }) {
@@ -114,7 +116,7 @@ export function ClubPeopleSection({
         <h3 className="font-medium" data-testid={`${id}-count`}>
           {t("people.count", { count: people.data?.total ?? 0 })}
         </h3>
-        {mayOrganize && <AddPerson clubId={clubId} mayAdmin={mayAdmin} onAdded={refresh} />}
+        {mayAdmin && <AddPerson clubId={clubId} onAdded={refresh} />}
       </div>
       <Async state={people} testId={id}>
         {(page) => (
@@ -134,9 +136,9 @@ export function ClubPeopleSection({
   );
 }
 
-/** *＋ Person*: a new person for the club — or, for the club's admin, someone on record by
+/** *＋ Person*, the club's admin's: a new person for the club, or someone on record by
  *  email, with roles at once. */
-function AddPerson({ clubId, mayAdmin, onAdded }: { clubId: number; mayAdmin: boolean; onAdded: () => void }) {
+function AddPerson({ clubId, onAdded }: { clubId: number; onAdded: () => void }) {
   const { t } = useTranslation("club");
   const [mode, setMode] = useState<"new" | "email">("new");
   const create = useCreatePerson({ mutation: { onSuccess: onAdded } });
@@ -145,16 +147,14 @@ function AddPerson({ clubId, mayAdmin, onAdded }: { clubId: number; mayAdmin: bo
     <AddDialog label={t("people.newButton")} title={t("people.newTitle")} testId={testId}>
       {(close) => (
         <div className="flex flex-col gap-3">
-          {mayAdmin && (
-            <div className="flex flex-wrap gap-4 text-sm" role="radiogroup" data-testid={`${testId}-mode`}>
-              {(["new", "email"] as const).map((m) => (
-                <label key={m} className="flex items-center gap-2">
-                  <input type="radio" name={`${testId}-mode`} checked={mode === m} onChange={() => setMode(m)} data-testid={`${testId}-mode-${m}`} />
-                  {t(`people.mode.${m}`)}
-                </label>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-4 text-sm" role="radiogroup" data-testid={`${testId}-mode`}>
+            {(["new", "email"] as const).map((m) => (
+              <label key={m} className="flex items-center gap-2">
+                <input type="radio" name={`${testId}-mode`} checked={mode === m} onChange={() => setMode(m)} data-testid={`${testId}-mode-${m}`} />
+                {t(`people.mode.${m}`)}
+              </label>
+            ))}
+          </div>
           {mode === "new" ? (
             <NewPerson
               testIdPrefix="my-club-people-new"

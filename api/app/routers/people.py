@@ -328,11 +328,12 @@ async def create_person(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> PersonAdminOut:
-    """Create a person, sailing for `club_id` (Story V-4).
+    """Create a person, a member of `club_id` (Story V-4).
 
-    They don't belong to any competition yet — that comes with squad registration. A
-    club's organizer creates people for a club they organize; only the league office
-    creates someone who sails for no club yet.
+    They don't belong to any competition yet — that comes with squad registration. A new
+    person is a member of the club at once, so creating one is the club's ``admin``'s,
+    never its team manager's: the admin decides who is *in* the club, the manager who
+    *sails* (decided 2026-10-28). Only the league office creates someone in no club.
     """
     _can_manage_master_data(acting)
     if request.club_id is None:
@@ -343,13 +344,11 @@ async def create_person(
     else:
         if await session.get(Club, request.club_id) is None:
             raise Problem(404, "club-not-found", "No such club.")
-        if not authz.check(
-            acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, request.club_id)
-        ):
+        if not authz.check(acting, Relation.ADMIN, on=ObjectRef(ObjectType.CLUB, request.club_id)):
             raise Problem(
                 403,
                 "person-club-not-yours",
-                "You create people only for a club you organize.",
+                "Only the club's admin adds people to the club.",
                 club_id=request.club_id,
             )
 
@@ -421,9 +420,10 @@ async def disconnect_person_from_club(
     acting: User = Depends(current_user),
 ) -> PersonAdminOut:
     """Story V-4: a club lets someone go — its own connection, never another club's. The
-    squads they are in stay as they are; the club just stops being theirs to change."""
+    squads they are in stay as they are; the club just stops being theirs to change. The
+    club's admin's, as every change of who is in the club (decided 2026-10-28)."""
     person = await _person(session, person_id)
-    if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
+    if not authz.check(acting, Relation.ADMIN, on=ObjectRef(ObjectType.CLUB, club_id)):
         raise _not_yours(person)
     person.club_memberships = [link for link in person.club_memberships if link.club_id != club_id]
     await session.commit()
@@ -823,10 +823,10 @@ async def _not_already_in_series(session: AsyncSession, team: Team, person_ids: 
 async def _may_join(
     session: AsyncSession, acting: User, team: Team, desired: set[int]
 ) -> list[Person]:
-    """Who joins the squad with this save — refused if they sail for another club (Story
-    V-4). A club's organizer adds the people of their own club, and someone who sails for
-    nobody yet, who then sails for it. The league office adds anyone — the one way a
-    person comes to sail for a second club."""
+    """Who joins the squad with this save — refused unless they are active members of the
+    club (Story V-4). A club's organizer puts the club's own members in its squad, never
+    someone in no club: who is in the club is its admin's to decide, not the team
+    manager's (decided 2026-10-28). The league office adds anyone, who then is a member."""
     current = set(
         (
             await session.execute(
@@ -850,6 +850,15 @@ async def _may_join(
                 "Some of these people sail for another club.",
                 people=[s.full_name for s in foreign],
                 person_ids=[s.id for s in foreign],
+            )
+        outside = [s for s in joining if team.club_id not in s.club_ids]
+        if outside:
+            raise Problem(
+                403,
+                "squad-person-not-a-member",
+                "Some of these people are not members of the club.",
+                people=[s.full_name for s in outside],
+                person_ids=[s.id for s in outside],
             )
     return joining
 
