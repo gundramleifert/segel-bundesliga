@@ -136,6 +136,14 @@ member leaves by ending their own membership. The club's half is
 `/api/clubs/{id}/members`, the person's `/api/me/memberships` (*Me › My clubs*, *Ask to
 join* on the club page); either side deletes a waiting row to decline or withdraw.
 
+**Someone with no account is invited to one — account first, then the club** (Story
+V-16, decided 2026-10-28, `app/services/invitations.py`). The club's admin sends a mail
+whose link creates the account, its address verified by the link, and makes the pending
+(`invited`) membership active; it works with registration closed and self-signup off,
+being the club's explicit enrollment. One valid invitation per address at a time
+(`invitation-pending`, naming no club), 14 days, single use, the token stored hashed; a
+lapsed one is the admin's to-do `invitation_expired`.
+
 `SBL_DEV_LOGIN=true` enables `/api/dev`: there you can list test accounts and issue access tokens
 **without verification**. A role switcher then appears in the UI (bottom right). Deliberately a
 separate setting, not tied to `debug` — in a reachable environment this would be a security hole,
@@ -826,25 +834,34 @@ languages.
 A language switcher in the UI lets visitors choose English or German at runtime. English is the
 default and source language.
 
-**Backend:** `api/app/i18n.py` provides:
-- `Locale` — enum for supported languages
-- `resolve_locale(request)` — FastAPI dependency that reads `Accept-Language` header, defaults
-  to English
-- `tr(locale, en=..., de=...)` — for user-facing strings a router builds directly, on routes
-  not yet migrated to typed errors. Only literal runtime-visible text uses `tr()`; docstrings
-  and Field descriptions are plain English.
+**Backend** (decided 2026-10-28) — what the server words itself, in three places, never a
+sentence written twice at a call site:
+- **Errors** are typed Problems, worded by the frontend (below) — the backend sends a code.
+- **Mails** are **Jinja2 templates**, one file per mail and language,
+  `app/templates/mail/<lang>/<name>.txt`, each extending its language's `_base.txt` (the
+  footer every mail ends with — the association, why the mail came, whom to write to,
+  privacy and legal notice, linked on `SBL_SITE_URL`) and filling the blocks `subject`,
+  `reason` and `body`; `app/mail.py::render_mail` renders them, `StrictUndefined`, so a
+  missing value raises instead of leaving a hole. The common shape for mail in Python.
+- **The few sentences a route answers** are TOML catalogs,
+  `app/locales/<lang>/<namespace>.toml`, read by `t(locale, "auth.register.sent",
+  minutes=10)` (`app/i18n.py`); placeholders are `{name}`, the ICU simple argument the
+  frontend uses too. `resolve_locale` reads `Accept-Language` and defaults to English;
+  docstrings and Field descriptions stay plain English.
+
+`tests/unit/test_i18n.py` and `tests/unit/test_mail.py` are the gate, as `pnpm check:i18n`
+is the frontend's: every language has the same keys and mails with the same placeholders,
+and every key the code names exists.
 
 **Mails are German by default** (decided 2026-10-28, `app/mail.py::MAIL_LOCALE`): a
 mail has no language switcher and its readers are German clubs and sailors; English is
-the `tr()` variant for a caller that knows the reader's language. Every mail ends with
-`with_footer` — the association, why the mail came, whom to write to, privacy and legal
-notice, linked on `SBL_SITE_URL`.
+the other template, for a caller that knows the reader's language.
 
 **Errors — RFC 9457 Problem Details** (`api/app/problems.py`, `web/src/api/problems.ts`,
 concept in `docs/concepts.md`): error responses are `application/problem+json`. A router
 raises `Problem(status, code, title, **extra)`; the stable `type` (`/errors/<code>`) is the
 contract, and the frontend maps `<code>` to the `errors` i18n namespace. Typed errors carry
-**no** `tr()` sentence. Plain `HTTPException` / validation errors are also rendered as
+**no** sentence of their own. Plain `HTTPException` / validation errors are also rendered as
 problem+json (generic type, `detail` preserved). `app/routers/waivers.py` is the worked
 example; other routers migrate incrementally.
 

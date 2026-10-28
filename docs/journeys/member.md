@@ -6,8 +6,7 @@ put in a squad, without anyone at the league office doing it for them**.
 
 Two ways lead to the account: the person **registers themselves** (main path), or the
 club admin **sends an invitation** whose link creates the account and then makes them a
-member — account first, then the club (branch "invited by the club", Story V-16, not
-built yet). Both end in the same verified account linked to the person's record.
+member — account first, then the club (branch "invited by the club", Story V-16). Both end in the same verified account linked to the person's record.
 
 Who: club admin, person, club member, team manager
 Starting point: the club exists and has a club admin and a team manager; the new sailor has
@@ -40,8 +39,8 @@ sequenceDiagram
 
 ### Branch "no account yet" — the club admin is too early
 
-Before J-3.2: the person has to register first. Once V-16 is built, the dialog offers
-the invitation here instead — branch "invited by the club".
+Before J-3.2: the person has to register first — or, since V-16, the dialog offers the
+invitation for the address right here: branch "invited by the club".
 
 ```mermaid
 sequenceDiagram
@@ -126,7 +125,7 @@ sequenceDiagram
 
 | Step | Path | Story | Who | What is then true |
 |---|---|---|---|---|
-| J-3.1 | no account yet | V-9 | club admin | refused with 404 — nobody is on record under the address; nobody is added |
+| J-3.1 | no account yet | V-9 | club admin | refused with 404 — nobody is on record under the address; nobody is added, and the dialog offers the invitation (J-3.14) |
 | J-3.14 | invited by the club | V-16 | club admin | after confirming what follows: a mail with a one-use link for 14 days; the person is on record, *pending* (`invited`) — in no squad, not a member |
 | J-3.15 | already invited | V-16 | club admin | another club's invitation to that address is refused (`invitation-pending`, 409), naming no club |
 | J-3.16 | already invited | V-16 | club admin | the inviting club's admin resends: a new link for 14 days, the earlier one dead |
@@ -149,8 +148,9 @@ The person becomes a *club member* the moment the club admin adds them (J-3.5): 
 `ClubMembership` of their person, which every account has from its first verified sign-in
 (#40, `docs/PLAN_PEOPLE.md`) — until 2026-10-26 membership was a tuple on the account and
 the sailor record a separate row the team manager created, tied to it by the email address.
-◐ and not ●, because S-2 is ◐ — and V-16 is ○: the invitation is not built, so its
-branch is walked by nobody yet.
+◐ and not ●, because S-2 is ◐. The invitation's branches cannot be walked by the main
+path's test — they replace J-3.2 to J-3.5 — so `test_invitation.py` covers each of their
+steps by name.
 
 Drawing this journey found that V-4 promised "an organizer creates only people of their
 own club" while any club's manager could *edit* anyone. Since 2026-10-17 creating stays
@@ -159,6 +159,6 @@ open to every club's manager (a new person has no club yet), and changing a pers
 Since 2026-10-28 creating a person is the club admin's alone (J-3.11): a new person is a
 member, and who is in the club is the admin's to decide — the team manager's is who sails.
 
-Open: none — J-3.1 offers the invitation once V-16 is built (decided 2026-10-28).
+Open: none.
 
 Tests: `api/tests/stories/test_journey_member.py::TestASailorJoinsTheirClub::test_from_no_account_to_a_member_with_a_sailor_record`

@@ -52,6 +52,7 @@ from app.models import (
     WaiverText,
 )
 from app.models.auth import ObjectType, Relation, User
+from app.models.base import utcnow
 from app.models.competition import EventStatus
 from app.models.finance import PaymentStatus
 from app.models.org import MembershipStatus, TeamStatus
@@ -111,6 +112,7 @@ class NeedCode(StrEnum):
     IMPORTS_FAILED = "imports_failed"
     MEMBERSHIP_INVITED = "membership_invited"
     MEMBERSHIP_REQUESTED = "membership_requested"
+    INVITATION_EXPIRED = "invitation_expired"
 
 
 class Section(StrEnum):
@@ -201,6 +203,7 @@ SECTION_OF: dict[tuple[str, NeedCode], Section] = {
     ("office", NeedCode.IMPORTS_FAILED): Section.IMPORTS,
     ("me", NeedCode.MEMBERSHIP_INVITED): Section.CLUBS,
     ("club", NeedCode.MEMBERSHIP_REQUESTED): Section.PEOPLE,
+    ("club", NeedCode.INVITATION_EXPIRED): Section.PEOPLE,
 }
 
 #: Race day itself: the check-in and the results are always *now*.
@@ -219,6 +222,7 @@ WAITED_ON = {
     NeedCode.IMPORTS_FAILED,
     NeedCode.MEMBERSHIP_INVITED,
     NeedCode.MEMBERSHIP_REQUESTED,
+    NeedCode.INVITATION_EXPIRED,
 }
 #: A race day this close makes what it needs *now*; this close, *soon*.
 NOW_WITHIN = timedelta(days=7)
@@ -446,6 +450,7 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     await _organizer(session, user, required, contexts)
     await _club_people(session, user, contexts)
     await _membership_requests(session, user, contexts)
+    await _expired_invitations(session, user, contexts)
     await _payment_runs(session, user, contexts)
     await _events(session, user, required, contexts, loaded)
     await _series(session, user, contexts, loaded)
@@ -532,6 +537,7 @@ async def reached_context(
     await _organizer(session, user, required, contexts)
     await _club_people(session, user, contexts)
     await _membership_requests(session, user, contexts)
+    await _expired_invitations(session, user, contexts)
     await _payment_runs(session, user, contexts)
     await _events(session, user, required, contexts, loaded)
     await _series(session, user, contexts, loaded)
@@ -810,6 +816,26 @@ async def _membership_requests(session: AsyncSession, user: User, contexts: Cont
     ).scalars()
     for club_id in rows:
         contexts[("club", club_id)].need(NeedCode.MEMBERSHIP_REQUESTED)
+
+
+async def _expired_invitations(session: AsyncSession, user: User, contexts: Contexts) -> None:
+    """Story V-16, for a club's admin: an invitation to an account whose link lapsed
+    unopened — to resend or withdraw."""
+    clubs = _my_clubs(user, Relation.ADMIN, contexts)
+    if not clubs:
+        return
+    rows = (
+        await session.execute(
+            select(ClubMembership.club_id).where(
+                ClubMembership.club_id.in_(clubs),
+                ClubMembership.invitation_token_hash.is_not(None),
+                ClubMembership.invitation_used_at.is_(None),
+                ClubMembership.invitation_expires_at <= utcnow(),
+            )
+        )
+    ).scalars()
+    for club_id in rows:
+        contexts[("club", club_id)].need(NeedCode.INVITATION_EXPIRED)
 
 
 async def _payment_runs(session: AsyncSession, user: User, contexts: Contexts) -> None:

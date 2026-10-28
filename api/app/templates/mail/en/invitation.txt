@@ -1,0 +1,16 @@
+{#- Story V-16: a club invites someone to an account. -#}
+{% extends "en/_base.txt" %}
+{% block subject %}{{ club }} invites you to the Deutsche Segel-Liga{% endblock %}
+{% block reason %}your club {{ club }} invited you to an account on our website{% endblock %}
+{% block body %}
+Hello {{ first_name }},
+
+{{ inviter }} of {{ club }} invites you to the website of the Deutsche Segel-Liga. Open this
+link to get your account — your address is confirmed by it — and to become a member of
+{{ club }}:
+
+{{ link }}
+
+The link works for {{ days }} days and only once. If it has lapsed, ask {{ club }} to send it
+again. If you do not want an account, ignore this mail — nothing happens without the link.
+{% endblock %}

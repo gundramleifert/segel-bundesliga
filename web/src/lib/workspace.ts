@@ -315,6 +315,7 @@ export const RENAMED_SECTIONS: Partial<Record<WorkspaceKind, Record<string, stri
 export const NEED_FILTER: Record<string, string> = {
   person_without_birth_date: "no_birth_date=true",
   membership_requested: "status=requested",
+  invitation_expired: "invitation=expired",
 };
 
 /** Where a to-do is cleared: its section, narrowed when the section is a list. */

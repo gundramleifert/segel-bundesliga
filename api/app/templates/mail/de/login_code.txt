@@ -1,0 +1,13 @@
+{% extends "de/_base.txt" %}
+{% block subject %}Ihr Anmeldecode für die Deutsche Segel-Liga{% endblock %}
+{% block reason %}auf unserer Website ein Anmeldecode für diese Adresse angefordert wurde{% endblock %}
+{% block body %}
+Hallo,
+
+Ihr Anmeldecode lautet: {{ code }}
+
+Er gilt {{ minutes }} Minuten und kann nur einmal verwendet werden.
+
+Wenn Sie sich nicht anmelden wollten, können Sie diese Nachricht ignorieren —
+ohne den Code geschieht nichts.
+{% endblock %}

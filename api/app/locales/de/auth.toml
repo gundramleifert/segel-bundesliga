@@ -1,0 +1,7 @@
+# What the sign-in routes answer in their own words (app/routers/auth.py).
+
+[register]
+sent = "Wir haben einen Bestätigungscode geschickt. Er gilt {minutes} Minuten. Bestand zu dieser Adresse schon ein Konto, ist es der gewohnte Anmeldecode."
+
+[email_request]
+sent = "Falls zu dieser Adresse ein Konto besteht, ist ein Code unterwegs. Er gilt {minutes} Minuten."

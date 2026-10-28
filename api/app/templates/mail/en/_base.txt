@@ -1,0 +1,18 @@
+{#- Every mail extends this: its `body`, then the footer every mail of the site ends with —
+    who sends it, why the reader gets it (`reason` completes the sentence), where to write
+    to a person, the privacy and legal pages. The register court and number are not in it:
+    they are still «folgt» in the legal notice and are not to be invented. A mail the site
+    sends is transactional, so no unsubscribe link: it says what caused it instead.
+    `--{{ " " }}` is "-- " with its space, the signature delimiter a mail program folds
+    away in a reply — written so no editor strips the space. -#}
+{% block body %}{% endblock %}
+
+--{{ " " }}
+Deutsche Segel-Liga e.V.
+c/o Düsseldorfer Yacht-Club · Rotterdamer Straße 30 · 40474 Düsseldorf
+
+You receive this email because {% block reason %}{% endblock %}.
+It was sent automatically — to reach a person, write to {{ contact }}.
+
+Website: {{ site }}
+Privacy: {{ site }}/privacy · Legal notice: {{ site }}/legal-notice

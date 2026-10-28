@@ -1,0 +1,12 @@
+{% extends "en/_base.txt" %}
+{% block subject %}Your login code for Deutsche Segel-Liga{% endblock %}
+{% block reason %}a login code for this address was requested on our website{% endblock %}
+{% block body %}
+Hello,
+
+Your login code is: {{ code }}
+
+It is valid for {{ minutes }} minutes and can only be used once.
+
+If you did not try to log in, you can ignore this message — nothing happens without the code.
+{% endblock %}

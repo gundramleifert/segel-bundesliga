@@ -223,7 +223,8 @@
     "clubs_without_league": "{count, plural, one {1 club is in no league yet} other {# clubs are in no league yet}}",
     "imports_failed": "{count, plural, one {1 import failed} other {# imports failed}}",
     "membership_invited": "{count, plural, one {A club invites you to join} other {# clubs invite you to join}}",
-    "membership_requested": "{count, plural, one {1 person asks to join} other {# people ask to join}}"
+    "membership_requested": "{count, plural, one {1 person asks to join} other {# people ask to join}}",
+    "invitation_expired": "{count, plural, one {1 invitation lapsed unopened} other {# invitations lapsed unopened}}"
   },
   "overview": {
     "me": "Me",

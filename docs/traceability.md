@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**98 stories** — ● 72 implemented and tested · ◐ 15 partial · ○ 11 open. With backend tests: 79 · with browser tests: 54 · walked by a journey: 54 · **with no test at all: 10**.
+**98 stories** — ● 73 implemented and tested · ◐ 15 partial · ○ 10 open. With backend tests: 80 · with browser tests: 55 · walked by a journey: 54 · **with no test at all: 9**.
 
 ## Journeys
 
@@ -78,12 +78,12 @@ here — this page says what *exists*, the report what *passed*.
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
 | J-3.1 | no account yet | V-9 | ● | W1 | — | `club-members`<br>`faq`<br>`journey-member` |
-| J-3.14 | invited by the club | V-16 | ○ | — | — | — |
-| J-3.15 | already invited | V-16 | ○ | — | — | — |
-| J-3.16 | already invited | V-16 | ○ | — | — | — |
-| J-3.11 | on record, no account | V-4 | ● | — | `test_sailors_and_squads.py::test_only_the_club_admin_creates_people_for_their_own_club` | `club-members`<br>`journey-member`<br>`squad-and-lineup` |
-| J-3.12 | on record, no account | V-16 | ○ | — | — | — |
-| J-3.13 | invited by the club | V-16 | ○ | — | — | — |
+| J-3.14 | invited by the club | V-16 | ● | — | `test_invitation.py::test_the_person_is_pending_and_the_mail_names_club_and_inviter`<br>`invitation.spec.ts` | `club-members` |
+| J-3.15 | already invited | V-16 | ● | — | `test_invitation.py::test_another_club_is_refused_without_naming_the_club` | `club-members` |
+| J-3.16 | already invited | V-16 | ● | — | `test_invitation.py::test_resending_makes_a_new_link_and_kills_the_old` | `club-members` |
+| J-3.11 | on record, no account | V-4 | ● | — | `test_invitation.py::test_a_person_on_record_is_invited_from_their_row`<br>`test_sailors_and_squads.py::test_only_the_club_admin_creates_people_for_their_own_club` | `club-members`<br>`journey-member`<br>`squad-and-lineup` |
+| J-3.12 | on record, no account | V-16 | ● | — | `test_invitation.py::test_a_person_on_record_is_invited_from_their_row` | `club-members` |
+| J-3.13 | invited by the club | V-16 | ● | — | `test_invitation.py::test_the_link_creates_a_verified_account_and_a_member` | `club-members` |
 | J-3.2 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
 | J-3.3 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
 | J-3.4 | password | Z-9 | ● | W1 | — | `account`<br>`journey-member` |

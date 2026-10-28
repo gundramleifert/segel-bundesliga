@@ -40,6 +40,15 @@ class MembershipStatus(StrEnum):
     REQUESTED = "requested"
 
 
+class InvitationState(StrEnum):
+    """Where a club's invitation to an account stands (Story V-16) — its link works, has
+    lapsed, or was redeemed. Computed from the row, never stored."""
+
+    PENDING = "pending"
+    EXPIRED = "expired"
+    USED = "used"
+
+
 class TeamStatus(StrEnum):
     """How a participation came about, and where it stands.
 
@@ -252,6 +261,25 @@ class ClubMembership(Base, TimestampMixin):
     status: Mapped[MembershipStatus] = mapped_column(
         String(16), default=MembershipStatus.ACTIVE, server_default=MembershipStatus.ACTIVE
     )
+    # The club's invitation to an account (Story V-16), while there is one: a mail with a
+    # link that creates the person's account and makes this row active — or, on a row
+    # already active (J-3.12), only adds the account. On the row, not beside it, so that
+    # whatever ends the row — withdrawn, declined, removed — ends the link with it. The
+    # token is kept only as its SHA-256 hash: found by it, and random enough to need no
+    # salt. A redeemed one keeps `invitation_used_at`, so its link can say so.
+    invitation_token_hash: Mapped[str | None] = mapped_column(String(64), unique=True, default=None)
+    invitation_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    invitation_used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    invited_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="SET NULL"), default=None
+    )
+    # The person record was made for the invitation: withdrawing it takes the record too —
+    # a club must not leave strangers' addresses behind.
+    created_for_invitation: Mapped[bool] = mapped_column(default=False)
 
     person: Mapped[Person] = relationship(back_populates="club_memberships")
 

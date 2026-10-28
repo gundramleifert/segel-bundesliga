@@ -242,18 +242,44 @@ async def login_with_password(session: AsyncSession, email: str, password: str) 
     return user
 
 
+async def sign_in_invited(session: AsyncSession, email: str, display_name: str) -> User:
+    """Story V-16: the account a club's invitation link creates — or the one the person
+    registered meanwhile and never confirmed. The link reaching the address proves it, as
+    a redeemed code does; and the invitation is the enrollment, so self-signup being off
+    does not refuse it. Flushes, never commits."""
+    email = email.strip().lower()
+    user = await _resolve_user(
+        session,
+        email=email,
+        provider=IdentityProvider.EMAIL,
+        subject=email,
+        display_name=display_name,
+        enrolled=True,
+    )
+    user.display_name = display_name
+    return user
+
+
 async def _resolve_user(
-    session: AsyncSession, *, email: str, provider: str, subject: str, display_name: str
+    session: AsyncSession,
+    *,
+    email: str,
+    provider: str,
+    subject: str,
+    display_name: str,
+    enrolled: bool = False,
 ) -> User:
     user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
 
     if user is None:
-        if not settings.allow_self_signup:
+        if not settings.allow_self_signup and not enrolled:
             raise LoginError(
                 "login-account-unknown",
                 "There's no account for this address. Please contact the league office.",
             )
-        user = User(email=email, display_name=display_name)
+        # Its collections start empty rather than unloaded: reading one below would
+        # lazy-load outside the async context (MissingGreenlet).
+        user = User(email=email, display_name=display_name, identities=[], grants=[])
         session.add(user)
         await session.flush()
 

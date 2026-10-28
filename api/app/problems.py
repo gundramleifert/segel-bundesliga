@@ -7,7 +7,7 @@ the contract: ``title`` and ``detail`` are English, meant for logs, ``curl``, an
 fallback when a client doesn't recognize the type.
 
 So router code raises :class:`Problem` with a ``code`` and an English ``title`` — never a
-``tr(locale, …)`` sentence. Adding a language is then a frontend-only change.
+sentence from `app/locales/` (`app/i18n.py`). Adding a language is then a frontend-only change.
 
     raise Problem(422, "guardian-confirmation-needed",
                   "A sailor under 18 needs a guardian's signature.")

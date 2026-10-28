@@ -98,6 +98,10 @@ import type {
   ImportKeyOut,
   ImportedOut,
   Index200,
+  InvitationIn,
+  InvitationLinkOut,
+  InvitationOut,
+  InvitationRedeem,
   ItemCreate,
   JobOut,
   LeagueOut,
@@ -10350,6 +10354,527 @@ export const useEndMyMembership = <TError = ErrorType<ProblemDetails>,
       return useMutation(getEndMyMembershipMutationOptions(options), queryClient);
     }
 
+export const getInviteToAccountUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/invitations`
+}
+
+/**
+ * Story V-16, J-3.14: the club's admin invites an address no account has. The person
+ * is on record — created if the address had none — and *pending* (``invited``) until
+ * the link creates their account. ``invitation-has-account`` for an address with an
+ * account, ``invitation-pending`` while another invitation to it works.
+ * @summary Invite someone to an account
+ */
+export const inviteToAccount = async (clubId: number,
+    invitationIn: InvitationIn, options?: RequestInit): Promise<InvitationOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<InvitationOut>(getInviteToAccountUrl(clubId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(invitationIn)
+  }
+);}
+
+
+
+
+
+export const getInviteToAccountMutationKey = () => ['inviteToAccount'] as const;
+
+export const getInviteToAccountMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inviteToAccount>>, TError,InviteToAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof inviteToAccount>>, TError,InviteToAccountMutationVariables, TContext> => {
+
+const mutationKey = getInviteToAccountMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inviteToAccount>>, InviteToAccountMutationVariables> = (props) => {
+          const {clubId,data} = props ?? {};
+
+          return  inviteToAccount(clubId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InviteToAccountMutationResult = NonNullable<Awaited<ReturnType<typeof inviteToAccount>>>
+    export type InviteToAccountMutationBody = BodyType<InvitationIn>
+    export type InviteToAccountMutationError = ErrorType<ProblemDetails>
+    export type InviteToAccountMutationVariables = {clubId: number;data: BodyType<InvitationIn>}
+
+    /**
+ * @summary Invite someone to an account
+ */
+export const useInviteToAccount = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inviteToAccount>>, TError,InviteToAccountMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inviteToAccount>>,
+        TError,
+        InviteToAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInviteToAccountMutationOptions(options), queryClient);
+    }
+
+export const getInvitePersonToAccountUrl = (clubId: number,
+    personId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/people/${personId}/invitation`
+}
+
+/**
+ * Story V-16, J-3.12: a person of the club on record without an account, from their
+ * row — the link then only adds the account.
+ * @summary Invite a person of the club to an account
+ */
+export const invitePersonToAccount = async (clubId: number,
+    personId: number, options?: RequestInit): Promise<InvitationOut> => {
+
+  return http<InvitationOut>(getInvitePersonToAccountUrl(clubId,personId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getInvitePersonToAccountMutationKey = () => ['invitePersonToAccount'] as const;
+
+export const getInvitePersonToAccountMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invitePersonToAccount>>, TError,InvitePersonToAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof invitePersonToAccount>>, TError,InvitePersonToAccountMutationVariables, TContext> => {
+
+const mutationKey = getInvitePersonToAccountMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof invitePersonToAccount>>, InvitePersonToAccountMutationVariables> = (props) => {
+          const {clubId,personId} = props ?? {};
+
+          return  invitePersonToAccount(clubId,personId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InvitePersonToAccountMutationResult = NonNullable<Awaited<ReturnType<typeof invitePersonToAccount>>>
+
+    export type InvitePersonToAccountMutationError = ErrorType<ProblemDetails>
+    export type InvitePersonToAccountMutationVariables = {clubId: number;personId: number}
+
+    /**
+ * @summary Invite a person of the club to an account
+ */
+export const useInvitePersonToAccount = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof invitePersonToAccount>>, TError,InvitePersonToAccountMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof invitePersonToAccount>>,
+        TError,
+        InvitePersonToAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInvitePersonToAccountMutationOptions(options), queryClient);
+    }
+
+export const getWithdrawInvitationUrl = (clubId: number,
+    personId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/people/${personId}/invitation`
+}
+
+/**
+ * Story V-16: the invitation goes, with the pending row and a person record created
+ * only for it.
+ * @summary Withdraw an invitation
+ */
+export const withdrawInvitation = async (clubId: number,
+    personId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getWithdrawInvitationUrl(clubId,personId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getWithdrawInvitationMutationKey = () => ['withdrawInvitation'] as const;
+
+export const getWithdrawInvitationMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawInvitation>>, TError,WithdrawInvitationMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof withdrawInvitation>>, TError,WithdrawInvitationMutationVariables, TContext> => {
+
+const mutationKey = getWithdrawInvitationMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof withdrawInvitation>>, WithdrawInvitationMutationVariables> = (props) => {
+          const {clubId,personId} = props ?? {};
+
+          return  withdrawInvitation(clubId,personId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WithdrawInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawInvitation>>>
+
+    export type WithdrawInvitationMutationError = ErrorType<ProblemDetails>
+    export type WithdrawInvitationMutationVariables = {clubId: number;personId: number}
+
+    /**
+ * @summary Withdraw an invitation
+ */
+export const useWithdrawInvitation = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawInvitation>>, TError,WithdrawInvitationMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof withdrawInvitation>>,
+        TError,
+        WithdrawInvitationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWithdrawInvitationMutationOptions(options), queryClient);
+    }
+
+export const getResendInvitationUrl = (clubId: number,
+    personId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/people/${personId}/invitation/resend`
+}
+
+/**
+ * Story V-16, J-3.16: a new link, valid for 14 days again; the earlier one is dead.
+ * The inviting club's admin's, or the site's.
+ * @summary Send an invitation again
+ */
+export const resendInvitation = async (clubId: number,
+    personId: number, options?: RequestInit): Promise<InvitationOut> => {
+
+  return http<InvitationOut>(getResendInvitationUrl(clubId,personId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getResendInvitationMutationKey = () => ['resendInvitation'] as const;
+
+export const getResendInvitationMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendInvitation>>, TError,ResendInvitationMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof resendInvitation>>, TError,ResendInvitationMutationVariables, TContext> => {
+
+const mutationKey = getResendInvitationMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resendInvitation>>, ResendInvitationMutationVariables> = (props) => {
+          const {clubId,personId} = props ?? {};
+
+          return  resendInvitation(clubId,personId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResendInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof resendInvitation>>>
+
+    export type ResendInvitationMutationError = ErrorType<ProblemDetails>
+    export type ResendInvitationMutationVariables = {clubId: number;personId: number}
+
+    /**
+ * @summary Send an invitation again
+ */
+export const useResendInvitation = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resendInvitation>>, TError,ResendInvitationMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof resendInvitation>>,
+        TError,
+        ResendInvitationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getResendInvitationMutationOptions(options), queryClient);
+    }
+
+export const getReadInvitationUrl = (token: string,) => {
+
+
+
+
+  return `/api/invitations/${token}`
+}
+
+/**
+ * Story V-16: for the link's page. A lapsed or used link answers 410 naming the club
+ * to ask (``invitation-expired``, ``invitation-used``); one replaced by a resend 404.
+ * @summary Open an invitation
+ */
+export const readInvitation = async (token: string, options?: RequestInit): Promise<InvitationLinkOut> => {
+
+  return http<InvitationLinkOut>(getReadInvitationUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getReadInvitationQueryKey = (token: string,) => {
+    return [
+    `/api/invitations/${token}`
+    ] as const;
+    }
+
+
+export const getReadInvitationQueryOptions = <TData = Awaited<ReturnType<typeof readInvitation>>, TError = ErrorType<ProblemDetails>>(token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readInvitation>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReadInvitationQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof readInvitation>>> = ({ signal }) => readInvitation(token, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof readInvitation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReadInvitationQueryResult = NonNullable<Awaited<ReturnType<typeof readInvitation>>>
+export type ReadInvitationQueryError = ErrorType<ProblemDetails>
+
+
+export function useReadInvitation<TData = Awaited<ReturnType<typeof readInvitation>>, TError = ErrorType<ProblemDetails>>(
+ token: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof readInvitation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof readInvitation>>,
+          TError,
+          Awaited<ReturnType<typeof readInvitation>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReadInvitation<TData = Awaited<ReturnType<typeof readInvitation>>, TError = ErrorType<ProblemDetails>>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readInvitation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof readInvitation>>,
+          TError,
+          Awaited<ReturnType<typeof readInvitation>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReadInvitation<TData = Awaited<ReturnType<typeof readInvitation>>, TError = ErrorType<ProblemDetails>>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Open an invitation
+ */
+
+export function useReadInvitation<TData = Awaited<ReturnType<typeof readInvitation>>, TError = ErrorType<ProblemDetails>>(
+ token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readInvitation>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReadInvitationQueryOptions(token,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRedeemInvitationUrl = (token: string,) => {
+
+
+
+
+  return `/api/invitations/${token}/redeem`
+}
+
+/**
+ * Story V-16, J-3.13: the account, its address verified by the link, linked to the
+ * club's person record; the membership ``active``; signed in.
+ * @summary Accept an invitation
+ */
+export const redeemInvitation = async (token: string,
+    invitationRedeem: InvitationRedeem, options?: RequestInit): Promise<TokenOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<TokenOut>(getRedeemInvitationUrl(token),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(invitationRedeem)
+  }
+);}
+
+
+
+
+
+export const getRedeemInvitationMutationKey = () => ['redeemInvitation'] as const;
+
+export const getRedeemInvitationMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redeemInvitation>>, TError,RedeemInvitationMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof redeemInvitation>>, TError,RedeemInvitationMutationVariables, TContext> => {
+
+const mutationKey = getRedeemInvitationMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof redeemInvitation>>, RedeemInvitationMutationVariables> = (props) => {
+          const {token,data} = props ?? {};
+
+          return  redeemInvitation(token,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RedeemInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof redeemInvitation>>>
+    export type RedeemInvitationMutationBody = BodyType<InvitationRedeem>
+    export type RedeemInvitationMutationError = ErrorType<ProblemDetails>
+    export type RedeemInvitationMutationVariables = {token: string;data: BodyType<InvitationRedeem>}
+
+    /**
+ * @summary Accept an invitation
+ */
+export const useRedeemInvitation = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redeemInvitation>>, TError,RedeemInvitationMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof redeemInvitation>>,
+        TError,
+        RedeemInvitationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRedeemInvitationMutationOptions(options), queryClient);
+    }
+
 export const getListPeopleUrl = (params?: ListPeopleParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -10472,11 +10997,12 @@ export const getCreatePersonUrl = () => {
 }
 
 /**
- * Create a person, sailing for `club_id` (Story V-4).
+ * Create a person, a member of `club_id` (Story V-4).
  *
- * They don't belong to any competition yet — that comes with squad registration. A
- * club's organizer creates people for a club they organize; only the league office
- * creates someone who sails for no club yet.
+ * They don't belong to any competition yet — that comes with squad registration. A new
+ * person is a member of the club at once, so creating one is the club's ``admin``'s,
+ * never its team manager's: the admin decides who is *in* the club, the manager who
+ * *sails* (decided 2026-10-28). Only the league office creates someone in no club.
  * @summary Create person
  */
 export const createPerson = async (personCreate: PersonCreate, options?: RequestInit): Promise<PersonAdminOut> => {
@@ -10656,7 +11182,8 @@ export const getDisconnectPersonFromClubUrl = (personId: number,
 
 /**
  * Story V-4: a club lets someone go — its own connection, never another club's. The
- * squads they are in stay as they are; the club just stops being theirs to change.
+ * squads they are in stay as they are; the club just stops being theirs to change. The
+ * club's admin's, as every change of who is in the club (decided 2026-10-28).
  * @summary The person no longer sails for this club
  */
 export const disconnectPersonFromClub = async (personId: number,

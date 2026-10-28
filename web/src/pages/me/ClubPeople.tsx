@@ -12,7 +12,9 @@ import {
   getListMyMembershipsQueryKey,
   getListPeopleQueryKey,
   getReadTuplesQueryKey,
+  invitePersonToAccount,
   removeClubMember,
+  resendInvitation,
   useCreatePerson,
   useEndMyMembership,
   useGetClub,
@@ -20,12 +22,16 @@ import {
   useListMyMemberships,
   useReadTuples,
   useUpdateClub,
+  useInviteToAccount,
   useUpdatePerson,
+  withdrawInvitation,
   writeTuple,
 } from "../../api/generated/sbl";
 import type { ClubPersonOut } from "../../api/generated/model/clubPersonOut";
+import type { InvitationState } from "../../api/generated/model/invitationState";
 import type { MembershipStatus } from "../../api/generated/model/membershipStatus";
 import type { TupleOut } from "../../api/generated/model/tupleOut";
+import { ApiError } from "../../api/http";
 import { Relation, Role } from "../../api/types";
 import { useAccount, useAsync, useInvalidate } from "../../api/useApi";
 import { AddDialog } from "../../components/AddDialog";
@@ -92,6 +98,7 @@ export function ClubPeopleSection({
               minor: flag("minor"),
               no_birth_date: flag("no_birth_date"),
               status: (list.filter("status") || undefined) as MembershipStatus | undefined,
+              invitation: (list.filter("invitation") || undefined) as InvitationState | undefined,
             }
           : {}),
       },
@@ -137,10 +144,13 @@ export function ClubPeopleSection({
 }
 
 /** *＋ Person*, the club's admin's: a new person for the club, or someone on record by
- *  email, with roles at once. */
+ *  email, with roles at once. An address nobody has turns the dialog into the invitation
+ *  to an account (Story V-16, Journey step J-3.14) — instead of only refusing it. */
 function AddPerson({ clubId, onAdded }: { clubId: number; onAdded: () => void }) {
   const { t } = useTranslation("club");
   const [mode, setMode] = useState<"new" | "email">("new");
+  // The address no account and no record has: offer the invitation for it.
+  const [unknown, setUnknown] = useState<string | null>(null);
   const create = useCreatePerson({ mutation: { onSuccess: onAdded } });
   const testId = `my-club-access-${clubId}`;
   return (
@@ -163,13 +173,31 @@ function AddPerson({ clubId, onAdded }: { clubId: number; onAdded: () => void })
               onCancel={close}
               onCreate={(person) => create.mutate({ data: { ...person, club_id: clubId } }, { onSuccess: close })}
             />
+          ) : unknown ? (
+            <Invite
+              clubId={clubId}
+              email={unknown}
+              onCancel={() => setUnknown(null)}
+              onSent={() => {
+                setUnknown(null);
+                onAdded();
+                close();
+              }}
+            />
           ) : (
             <>
               <p className="text-sm text-muted">{t("members.addHint")}</p>
               <GrantForm
                 object={`club:${clubId}`}
                 testId={testId}
-                addMember={(email) => addClubMember(clubId, { email })}
+                addMember={(email) =>
+                  addClubMember(clubId, { email }).catch((error: unknown) => {
+                    if (error instanceof ApiError && error.code === "membership-address-unknown") {
+                      setUnknown(email.trim().toLowerCase());
+                    }
+                    throw error;
+                  })
+                }
                 onWritten={onAdded}
                 onDone={close}
               />
@@ -178,6 +206,75 @@ function AddPerson({ clubId, onAdded }: { clubId: number; onAdded: () => void })
         </div>
       )}
     </AddDialog>
+  );
+}
+
+/** Story V-16: the invitation to an account for an address nobody has — the name as the
+ *  club knows it, then what follows, acknowledged before anything is sent. */
+function Invite({
+  clubId,
+  email,
+  onCancel,
+  onSent,
+}: {
+  clubId: number;
+  email: string;
+  onCancel: () => void;
+  onSent: () => void;
+}) {
+  const { t } = useTranslation("club");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const invite = useInviteToAccount({ mutation: { onSuccess: onSent } });
+  const id = "my-club-invite";
+  const named = firstName.trim() !== "" && lastName.trim() !== "";
+  return (
+    <form
+      className="flex flex-col gap-3"
+      data-testid={id}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!confirming) {
+          setConfirming(true);
+          return;
+        }
+        invite.mutate({
+          clubId,
+          data: { email, first_name: firstName.trim(), last_name: lastName.trim() },
+        });
+      }}
+    >
+      <p className="text-sm" data-testid={`${id}-unknown`}>{t("invite.unknown", { email })}</p>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
+        <Field label={t("invite.firstName")} testId={`${id}-first-name`}>
+          <input className={INPUT_CLASS} required value={firstName} disabled={confirming} onChange={(e) => setFirstName(e.target.value)} data-testid={`${id}-first-name-input`} />
+        </Field>
+        <Field label={t("invite.lastName")} testId={`${id}-last-name`}>
+          <input className={INPUT_CLASS} required value={lastName} disabled={confirming} onChange={(e) => setLastName(e.target.value)} data-testid={`${id}-last-name-input`} />
+        </Field>
+      </div>
+      {confirming && (
+        <div className="rounded-md bg-warning-soft p-3 text-sm" data-testid={`${id}-consequences`}>
+          <p className="mb-1 font-medium">{t("invite.consequencesTitle")}</p>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>{t("invite.consequenceMail", { email })}</li>
+            <li>{t("invite.consequencePending")}</li>
+            <li>{t("invite.consequenceLink")}</li>
+            <li>{t("invite.consequenceBlocks")}</li>
+          </ol>
+        </div>
+      )}
+      {invite.isError && <ErrorMessage text={errorText(invite.error)} testId={`${id}-error`} />}
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button size="sm" variant="ghost" onPress={confirming ? () => setConfirming(false) : onCancel} data-testid={`${id}-back`}>
+          {t("invite.back")}
+        </Button>
+        <Button size="sm" type="submit" isDisabled={!named || invite.isPending} data-testid={confirming ? `${id}-send` : `${id}-next`}>
+          {confirming ? t("invite.send") : t("invite.next")}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -211,6 +308,14 @@ function useFilters(mayOrganize: boolean) {
             param: "status",
             label: t("people.filters.status"),
             options: ["active", "invited", "requested"].map((s) => ({ value: s, label: t(`join.status.${s}`) })),
+          },
+          {
+            param: "invitation",
+            label: t("people.filters.invitation"),
+            options: [
+              { value: "pending", label: t("people.filters.invitationPending") },
+              { value: "expired", label: t("people.filters.invitationExpired") },
+            ],
           },
         ]
       : [],
@@ -297,10 +402,14 @@ function PeopleTable({
             if (p.status === "active") {
               return <Badge tone="brand" testId={`my-club-member-relation-${key}-member`}>{t("members.relations.member")}</Badge>;
             }
-            if (p.status === "invited" || p.status === "requested") {
+            const pending = pendingLabel(p);
+            if (pending) {
               return (
-                <Badge tone="warning" testId={`my-club-member-pending-${key}`}>
-                  {p.status === "requested" ? t("members.statusRequested") : t("members.statusInvited")}
+                <Badge
+                  tone={pending.expired ? "danger" : "warning"}
+                  testId={pending.expired ? `my-club-member-invitation-expired-${key}` : `my-club-member-pending-${key}`}
+                >
+                  {t(pending.label)}
                 </Badge>
               );
             }
@@ -402,6 +511,15 @@ function useRow() {
 /** The roles a club's admin hands out from a row — what `members.relations` names. */
 const CLUB_ROLES = [Relation.admin, Relation.manager, Relation.treasurer] as const;
 
+/** What a waiting row says: a lapsed invitation first, then an invitation to an account,
+ *  a club's invitation (V-15) or a request — `null` for a row that waits for nothing. */
+function pendingLabel(p: ClubPersonOut): { label: string; expired: boolean } | null {
+  if (p.invitation?.state === "expired") return { label: "invite.expired", expired: true };
+  if (p.status === "requested") return { label: "members.statusRequested", expired: false };
+  if (p.status !== "invited") return null;
+  return { label: p.invitation ? "invite.pending" : "members.statusInvited", expired: false };
+}
+
 /** A row's key in test ids: the account, else the person record. */
 const rowKey = (p: ClubPersonOut) => p.user_id ?? `person-${p.person_id}`;
 const isSelf = (p: ClubPersonOut, accountId: number | undefined) => p.user_id != null && p.user_id === accountId;
@@ -424,7 +542,32 @@ function RowActions({ person, self }: { person: ClubPersonOut; self: boolean }) 
   if (person.status === "requested") {
     items.push({ key: "accept", label: t("members.accept"), testId: `my-club-member-accept-${id}`, run: onAccept });
   }
-  if (person.status === "requested" || person.status === "invited") {
+  const invitation = person.invitation;
+  if (invitation) {
+    // Story V-16: an invitation to an account — a new link, or withdrawn with its row.
+    items.push({
+      key: "resend",
+      label: t("invite.resend"),
+      testId: `my-club-member-invitation-resend-${id}`,
+      run: () => act(person, resendInvitation(clubId, id)),
+    });
+    items.push({
+      key: "withdraw",
+      label: t("members.withdrawInvitation"),
+      testId: `my-club-member-invitation-withdraw-${id}`,
+      danger: true,
+      run: () => act(person, withdrawInvitation(clubId, id)),
+    });
+  } else if (person.user_id == null && person.email && person.status === "active") {
+    // Journey step J-3.12: on record without an account — the link adds the account.
+    items.push({
+      key: "invite",
+      label: t("invite.toAccount"),
+      testId: `my-club-member-invite-${id}`,
+      run: () => act(person, invitePersonToAccount(clubId, id)),
+    });
+  }
+  if (!invitation && (person.status === "requested" || person.status === "invited")) {
     items.push({
       key: "decline",
       label: person.status === "requested" ? t("members.decline") : t("members.withdrawInvitation"),

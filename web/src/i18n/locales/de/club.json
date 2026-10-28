@@ -134,11 +134,31 @@
       "minorNo": "18 oder älter",
       "no_birth_date": "Geburtsdatum",
       "no_birth_dateYes": "Fehlt",
-      "no_birth_dateNo": "Angegeben"
+      "no_birth_dateNo": "Angegeben",
+      "invitation": "Einladung",
+      "invitationPending": "ausstehend",
+      "invitationExpired": "abgelaufen"
     },
     "squad": "Kader",
     "membership": "Mitgliedschaft",
     "actions": "Aktionen",
     "actionsFor": "Aktionen für {name}"
+  },
+  "invite": {
+    "unknown": "Zu {email} gibt es hier niemanden — weder erfasst noch mit Konto. Laden Sie die Person zu einem Konto ein: Der Link in der E-Mail legt es an und macht sie zum Mitglied.",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "next": "Weiter",
+    "back": "Zurück",
+    "send": "Einladung senden",
+    "consequencesTitle": "Was dann geschieht:",
+    "consequenceMail": "Eine E-Mail geht an {email} und nennt den Verein und Sie.",
+    "consequencePending": "Die Person steht unter Personen als ausstehend — Mitglied erst, wenn sie den Link öffnet.",
+    "consequenceLink": "Öffnet sie den Link innerhalb von 14 Tagen, wird ihr Konto angelegt und sie Mitglied.",
+    "consequenceBlocks": "Bis dahin kann niemand sonst diese Adresse einladen.",
+    "pending": "Einladung ausstehend",
+    "expired": "Einladung abgelaufen",
+    "resend": "Einladung erneut senden",
+    "toAccount": "Zu einem Konto einladen"
   }
 }

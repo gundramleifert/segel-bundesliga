@@ -1,0 +1,17 @@
+# The role switcher's test accounts (app/routers/dev.py).
+
+[accounts]
+no_permissions = "Angemeldet, aber ohne besondere Rechte."
+
+# One sentence per summary role, joined when an account has several.
+[roles]
+admin = "Sieht und darf alles: Stammdaten, Konten, Rollen, Pairing-Listen."
+editor = "Redaktion: News, Pressemitteilungen und Bilder — der Website, einer Serie oder einer Veranstaltung."
+race_officer = "Wettfahrtleitung: Ergebnisse erfassen und korrigieren."
+club_admin = "Entscheidet, wer im Verein ist: Mitglieder, Organisatoren."
+team_manager = "Entscheidet, wer für den Verein segelt: Kader, Aufstellungen, Meldungen."
+series_manager = "Organisiert eine Serie: ihre Vereine, ihre Veranstaltungen, ihre Veröffentlichung."
+event_manager = "Organisiert eine Veranstaltung: ihren Aufbau und ihre Vereine."
+jury = "Schiedsgericht einer Veranstaltung: Bekanntmachungen, Protestentscheidungen."
+treasurer = "Verwaltet das Geld eines Vereins: prüft und zahlt die Auslagen der Veranstaltungen, die er ausrichtet."
+helper = "Arbeitet am Tag einer Veranstaltung (RIB, Steg): darf Kosten einreichen, sonst nichts."

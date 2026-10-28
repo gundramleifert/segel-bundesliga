@@ -5,6 +5,7 @@ import { Layout, SiteShell } from "./components/Layout";
 import { LegacyRedirect, PrefixRedirect } from "./components/LegacyRedirect";
 import { HelpLanding, HelpPageView } from "./pages/Help";
 import { Account } from "./pages/Account";
+import { Invitation } from "./pages/Invitation";
 import { LegalNotice } from "./pages/LegalNotice";
 import { Privacy } from "./pages/Privacy";
 import { Sailor } from "./pages/Sailor";
@@ -108,6 +109,8 @@ export default function App() {
         <Route path="sailors/:id" element={<LegacyRedirect to="/people/:id" />} />
         {/* Signed out: the sign-in page. Signed in, it forwards to /me/profile. */}
         <Route path="account" element={<Account />} />
+        {/* Story V-16: a club's invitation link — the account, then the club. */}
+        <Route path="invitation/:token" element={<Invitation />} />
         {/* Stories Z-8, S-7, Z-10: my space — the workspace. Each context has its sections
             at their own address, its overview at the bare one; `?tab=` redirects. */}
         <Route path="me" element={<MeIndex />} />

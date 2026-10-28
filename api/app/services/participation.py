@@ -95,6 +95,11 @@ def team_name(club: Club, number: int = 1) -> str:
     return club.short_name if number == 1 else f"{club.short_name} {number}"
 
 
+def membership_of(person: Person, club_id: int) -> ClubMembership | None:
+    """The person's row for this club, whatever its status."""
+    return next((link for link in person.club_memberships if link.club_id == club_id), None)
+
+
 def connect_person(person: Person, club_id: int) -> None:
     """The person is an active member of this club from now on (Stories V-4, Z-5) — and
     sails for it: the ``club`` edge their permissions walk, and their account's ``member``.

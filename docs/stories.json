@@ -538,7 +538,7 @@
   "story": "V-9",
   "path": "no account yet",
   "who": "club admin",
-  "what": "refused with 404 — nobody is on record under the address; nobody is added"
+  "what": "refused with 404 — nobody is on record under the address; nobody is added, and the dialog offers the invitation (J-3.14)"
  },
  "J-3.10": {
   "journey": "J-3",
@@ -1431,7 +1431,7 @@
  },
  "V-16": {
   "title": "Invite someone to an account",
-  "status": "○",
+  "status": "●",
   "role": "Club: its admin and its team manager",
   "phase": "Members",
   "file": "docs/userstories/club.md",

@@ -3,7 +3,7 @@ id: club-members
 type: guide
 order: 80
 audience: [club]
-stories: [Z-3, Z-5, V-4, V-8, V-9, V-10, V-15, A-8, V-13, V-3]
+stories: [Z-3, Z-5, V-4, V-8, V-9, V-10, V-15, V-16, A-8, V-13, V-3]
 journey: null
 route: /me/club/:id
 tags: [membership, organizer, parent, guardian, crest, mitglieder, organisation, erziehungsberechtigte, stander, vereinsverwaltung]
@@ -38,6 +38,17 @@ You end your own membership with *Leave the club* instead.
 Someone in another club joins only with consent: *invited* until they accept in [*Me* ›
 *My clubs*](place:profile.clubs); *asks to join* until the club admin presses *Accept*
 or *Decline* in the row's *⋯*. Without an account, the league office adds them.
+
+### Invite someone to an account {#club-members-invite}
+
+An address nobody has — no record, no account — turns *Someone on record, by email* into
+the invitation: first and last name, *Next*, read what follows, *Send the invitation*. A
+mail goes out; the person is *invitation pending* until they open its link, which creates
+their account and makes them a member. Someone on record without an account gets the same
+from their row's *⋯*, *Invite to an account*. The link works 14 days and once; while it
+does, no other club can invite the address. *Send invitation again* (a new link) and
+*Withdraw invitation* are in the row's *⋯*; a link that lapsed shows *invitation expired*
+and is a to-do on your club's overview.
 
 ### Name the organizers {#club-members-organizers}
 

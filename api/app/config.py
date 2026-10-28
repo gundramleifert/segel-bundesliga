@@ -94,6 +94,9 @@ class Settings(BaseSettings):
     # One-time code via email
     otp_length: int = 6
     otp_lifetime_minutes: int = 10
+    # How long a club's invitation link works (Story V-16, decided 2026-10-28): a sailor
+    # does not read mail daily off-season, and the link is single-use and resent at will.
+    invitation_lifetime_days: int = 14
     otp_max_attempts: int = 5
 
     # Accounts normally arise through creation or import, not through login.

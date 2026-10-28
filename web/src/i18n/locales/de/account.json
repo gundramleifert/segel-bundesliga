@@ -127,5 +127,18 @@
       "agree": "Ich habe die obige Erklärung gelesen und nehme sie als Elternteil bzw. Erziehungsberechtigte(r) für {name} an.",
       "done": "Danke — Ihre Annahme für {name} ist erfasst."
     }
+  },
+  "invitation": {
+    "title": "Einladung",
+    "heading": "{club} lädt Sie ein",
+    "text": "Bestätigen oder korrigieren Sie Ihren Namen. Dann erhalten Sie Ihr Konto auf dieser Website — Ihre Adresse ist durch diesen Link bestätigt — und sind Mitglied von {club}.",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "email": "E-Mail-Adresse",
+    "accept": "Konto anlegen und beitreten",
+    "doneTitle": "Willkommen an Bord",
+    "doneText": "Ihr Konto ist eingerichtet und Sie sind angemeldet. Sie können jetzt ein Passwort festlegen, dann brauchen Sie beim nächsten Mal keinen Code.",
+    "toClub": "Zu meinem Verein",
+    "setPassword": "Passwort festlegen"
   }
 }

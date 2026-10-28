@@ -1,0 +1,17 @@
+{#- Story V-16: a club invites someone to an account. -#}
+{% extends "de/_base.txt" %}
+{% block subject %}{{ club }} lädt Sie zur Deutschen Segel-Liga ein{% endblock %}
+{% block reason %}Ihr Verein {{ club }} Sie zu einem Konto auf unserer Website eingeladen hat{% endblock %}
+{% block body %}
+Hallo {{ first_name }},
+
+{{ inviter }} von {{ club }} lädt Sie auf die Website der Deutschen Segel-Liga ein. Öffnen Sie
+diesen Link, um Ihr Konto zu erhalten — Ihre Adresse ist damit bestätigt — und Mitglied
+von {{ club }} zu werden:
+
+{{ link }}
+
+Der Link gilt {{ days }} Tage und nur einmal. Ist er abgelaufen, bitten Sie {{ club }}, ihn erneut
+zu senden. Wenn Sie kein Konto möchten, ignorieren Sie diese E-Mail — ohne den Link
+geschieht nichts.
+{% endblock %}

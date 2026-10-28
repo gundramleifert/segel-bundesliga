@@ -5,6 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { InvitationState } from './invitationState';
 import type { MembershipStatus } from './membershipStatus';
 import type { Relation } from './relation';
 
@@ -16,6 +17,7 @@ minor?: boolean | null;
 no_birth_date?: boolean | null;
 in_squad?: boolean | null;
 status?: MembershipStatus | null;
+invitation?: InvitationState | null;
 sort?: string | null;
 /**
  * Rows per page

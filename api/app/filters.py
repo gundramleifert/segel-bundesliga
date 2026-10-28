@@ -26,6 +26,7 @@ from app.models import (
     ClubMembership,
     Event,
     EventStatus,
+    InvitationState,
     League,
     MediaItem,
     MembershipStatus,
@@ -38,6 +39,7 @@ from app.models import (
     Venue,
 )
 from app.models.auth import Grant, Relation, User
+from app.models.base import utcnow
 from app.pagination import apply_search
 
 #: The ``league`` filter's value for the association's own posts.
@@ -219,6 +221,9 @@ class ClubPersonFilter(ListFilter):
     status: MembershipStatus | None = Field(
         default=None, description="Active, invited or requested (Story V-15)"
     )
+    invitation: InvitationState | None = Field(
+        default=None, description="With the club's invitation pending or expired (Story V-16)"
+    )
     order_by: list[str] | None = SORT
     _club_id: int = PrivateAttr(default=0)
 
@@ -268,6 +273,18 @@ class ClubPersonFilter(ListFilter):
 
     def where_status(self, status: MembershipStatus):
         return ClubMembership.status == status
+
+    def where_invitation(self, state: InvitationState):
+        # The club's own row, joined by the route; its invitation's columns (Story V-16).
+        if state == InvitationState.USED:
+            return ClubMembership.invitation_used_at.is_not(None)
+        now = utcnow()
+        lapsed = ClubMembership.invitation_expires_at <= now
+        return (
+            ClubMembership.invitation_token_hash.is_not(None)
+            & (ClubMembership.invitation_used_at.is_(None))
+            & (lapsed if state == InvitationState.EXPIRED else ~lapsed)
+        )
 
 
 class UserFilter(ListFilter):

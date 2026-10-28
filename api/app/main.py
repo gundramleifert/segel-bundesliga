@@ -33,6 +33,7 @@ from app.routers import (
     events,
     expenses,
     guardians,
+    invitations,
     me,
     media,
     payments,
@@ -142,6 +143,7 @@ app.include_router(series.router)
 app.include_router(applications.router)
 app.include_router(club_members.router)
 app.include_router(club_members.me_router)
+app.include_router(invitations.router)
 app.include_router(people.router)
 app.include_router(waivers.router)
 app.include_router(guardians.router)

@@ -28,6 +28,12 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+def as_utc(value: datetime) -> datetime:
+    """``value`` with its zone: SQLite hands back naive times even for a timezone-aware
+    column, and they were written in UTC."""
+    return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+
+
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

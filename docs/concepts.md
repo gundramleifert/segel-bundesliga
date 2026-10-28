@@ -308,7 +308,7 @@ the contract.
 ```
 
 **Backend** (`api/app/problems.py`): a router raises `Problem(status, code, title, **extra)`
-— never a `tr(locale, …)` sentence for a typed error. `title` is a fixed English summary
+— never a sentence from the backend's catalogs (`app/i18n.py`) for a typed error. `title` is a fixed English summary
 of the *type* (a fallback, and useful in logs); extension members carry the specifics.
 No router or guard raises a plain `HTTPException` — ruff's banned-api rule
 (`TID251` in `api/pyproject.toml`) refuses the import outside `app/main.py`. A load by id

@@ -231,5 +231,13 @@
   "membership-unverified": "Bestätigen Sie Ihre Adresse, bevor Sie um Aufnahme in einen Verein bitten.",
   "membership-request-not-found": "Diese Person hat nicht um Aufnahme gebeten.",
   "membership-invitation-not-found": "Von diesem Verein liegt keine Einladung vor.",
-  "club-people-filter-forbidden": "Nach Geburtsdatum und offenen Anfragen filtert nur die Vereinsleitung."
+  "club-people-filter-forbidden": "Nach Geburtsdatum und offenen Anfragen filtert nur die Vereinsleitung.",
+  "invitation-forbidden": "Nur der Admin des Vereins lädt jemanden zu einem Konto ein.",
+  "invitation-has-account": "Zu dieser Adresse gibt es ein Konto — fügen Sie die Person per E-Mail hinzu, oder sie bittet um Aufnahme.",
+  "invitation-pending": "Für diese Adresse steht eine Einladung aus. Eine weitere ist möglich, sobald sie abgelaufen ist.",
+  "invitation-no-address": "Diese Person hat keine E-Mail-Adresse, an die eine Einladung gehen könnte.",
+  "invitation-mail-failed": "Die Einladung ist gespeichert, die E-Mail konnte aber nicht gesendet werden. Senden Sie sie erneut.",
+  "invitation-not-found": "Dieser Link ist nicht gültig — vielleicht wurde ein neuerer geschickt. Fragen Sie den Verein, der Sie eingeladen hat.",
+  "invitation-used": "Dieser Link wurde bereits verwendet. Melden Sie sich an; fragen Sie {club}, wenn etwas fehlt.",
+  "invitation-expired": "Dieser Link ist abgelaufen. Bitten Sie {club}, ihn erneut zu senden."
 }

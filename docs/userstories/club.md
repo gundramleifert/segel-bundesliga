@@ -254,7 +254,7 @@ Tests: `api/tests/stories/test_join_with_consent.py::TestTheClubInvites`,
 `api/tests/stories/test_club_members.py::TestMembers::test_someone_in_another_club_is_invited_or_added_by_the_league_office`,
 `e2e/join-consent.spec.ts`
 
-### V-16 ○ Invite someone to an account
+### V-16 ● Invite someone to an account
 As a **club admin** I want to **invite someone who has no account by email**, so that
 **they get their account from the mail and then join our club** — without registering on
 their own first and without knowing that they have to.
@@ -316,8 +316,26 @@ Acceptance criteria:
   add them by email, V-9, or they ask to join), anyone but the club's admin and the
   site's — a team manager gets `invitation-forbidden` (403).
 - Every invitation sent, resent, withdrawn and redeemed is in the audit log.
+- **A lapsed invitation is a to-do** (decided 2026-10-28): the club's admin gets
+  `invitation_expired` on the club, landing on *People* filtered to those rows
+  (`?invitation=expired`), to resend or withdraw — the same "action required" every other
+  waiting thing uses (`app/services/contexts.py`), not a list of its own.
 
-Tests: none yet
+Endpoints: `POST /api/clubs/{id}/invitations` (an address); on a person's row `POST
+/api/clubs/{id}/people/{person_id}/invitation`, `…/invitation/resend` and `DELETE
+…/invitation`; the link's page `/invitation/:token` reads `GET /api/invitations/{token}`
+and redeems with `POST /api/invitations/{token}/redeem`. The invitation is **on the
+membership row** (`ClubMembership.invitation_*`, token only as a SHA-256 hash), so whatever
+ends the row — withdrawn, declined, removed — ends the link with it (found in review,
+2026-10-28: as a table of its own, a removed row's link still made the person a member).
+*People* shows each person's open invitation and filters by it. The mail is the template
+`app/templates/mail/<lang>/invitation.txt`.
+
+Tests: `api/tests/stories/test_invitation.py::TestTheClubAdminInvites`,
+`api/tests/stories/test_invitation.py::TestOneInvitationAtATime`,
+`api/tests/stories/test_invitation.py::TestRedeeming`,
+`api/tests/stories/test_invitation.py::TestEveryInvitationIsLogged`,
+`e2e/invitation.spec.ts`
 
 ## Entering competitions
 

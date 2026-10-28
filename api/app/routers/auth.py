@@ -17,9 +17,10 @@ from app.auth import (
     require_admin,
 )
 from app.authz import ObjectRef
+from app.config import settings
 from app.db import get_session
 from app.filters import UserFilter
-from app.i18n import Locale, resolve_locale, tr
+from app.i18n import Locale, resolve_locale, t
 from app.listing import ListDepends
 from app.models import WaiverConfirmation
 from app.models.auth import (
@@ -239,15 +240,7 @@ async def register_account(
     """
     # A refusal is a typed 400 (`LoginError`): registration closed, or no name.
     await register(session, request.email, request.display_name)
-    return {
-        "detail": tr(
-            locale,
-            en="We've sent a confirmation code. It's valid for ten minutes. "
-            "If an account already existed for this address, it's the usual sign-in code.",
-            de="Wir haben einen Bestätigungscode geschickt. Er gilt zehn Minuten. "
-            "Bestand zu dieser Adresse schon ein Konto, ist es der gewohnte Anmeldecode.",
-        )
-    }
+    return {"detail": t(locale, "auth.register.sent", minutes=settings.otp_lifetime_minutes)}
 
 
 @router.post(
@@ -265,19 +258,7 @@ async def email_request(
     Otherwise, this endpoint could be used to enumerate existing accounts.
     """
     await request_email_code(session, request.email)
-    return {
-        "detail": tr(
-            locale,
-            en=(
-                "If an account exists for this address, a code is on its way. "
-                "It's valid for ten minutes."
-            ),
-            de=(
-                "Falls zu dieser Adresse ein Konto besteht, ist ein Code unterwegs. "
-                "Er gilt zehn Minuten."
-            ),
-        )
-    }
+    return {"detail": t(locale, "auth.email_request.sent", minutes=settings.otp_lifetime_minutes)}
 
 
 @router.post("/email/verify", response_model=TokenOut, summary="Redeem a one-time code")

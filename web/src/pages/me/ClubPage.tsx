@@ -63,7 +63,7 @@ export function ClubPage() {
           {
             // One list where *Members* and *Sailors* were two (#45).
             key: "people",
-            needs: ["person_without_birth_date", "membership_requested"],
+            needs: ["person_without_birth_date", "membership_requested", "invitation_expired"],
             render: () => (
               <ClubPeopleSection
                 clubId={c.id}

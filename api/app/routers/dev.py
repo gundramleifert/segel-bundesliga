@@ -24,7 +24,7 @@ from app import authz
 from app.auth import create_access_token
 from app.config import settings
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
+from app.i18n import Locale, catalog, resolve_locale, t
 from app.jobs import jobs
 from app.mail import MailError, send_login_code
 from app.models import Club
@@ -72,20 +72,6 @@ class DevLogin(BaseModel):
     email: EmailStr
 
 
-DESCRIPTION: dict[str, str] = {
-    "admin": "Sees and can do everything: master data, accounts, roles, pairing lists.",
-    "editor": "Editorial: news, press releases and pictures — of the site, a series or an event.",
-    "race_officer": "Race officer: record and correct results.",
-    "club_admin": "Decides who is in the club: members, organizers.",
-    "team_manager": "Decides who sails for the club: squads, lineups, registrations.",
-    "series_manager": "Organizer of a series: its clubs, its events, its publication.",
-    "event_manager": "Organizer of an event: its setup and its clubs.",
-    "jury": "Protest committee of an event: announcements, protest decisions.",
-    "treasurer": "Holds a club's money: checks and pays the expense claims of the events it hosts.",
-    "helper": "Works an event's day (RIB, pontoon): may claim costs, nothing else.",
-}
-
-
 @router.get("/users", response_model=list[TestUserOut], summary="List test accounts")
 async def list_test_users(
     session: AsyncSession = Depends(get_session),
@@ -113,13 +99,12 @@ async def list_test_users(
             )
             or None,
             group=_group(user),
-            description=tr(
-                locale,
-                en=" ".join(DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION)
-                or "Signed in, but no special permissions.",
-                de=" ".join(DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION)
-                or "Angemeldet, aber ohne besondere Rechte.",
-            ),
+            description=" ".join(
+                t(locale, f"dev.roles.{role}")
+                for role in sorted(user.roles)
+                if f"dev.roles.{role}" in catalog(locale)
+            )
+            or t(locale, "dev.accounts.no_permissions"),
         )
         for user in users
     ]

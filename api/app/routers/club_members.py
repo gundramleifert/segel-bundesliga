@@ -41,11 +41,11 @@ from app.models.auth import Grant, ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubMemberIn, ClubMemberOut, ClubPersonOut
-from app.services import grants, people
+from app.services import grants, invitations, people
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
-from app.services.participation import connect_person
+from app.services.participation import connect_person, membership_of
 from app.services.waivers import is_minor
 
 router = APIRouter(tags=["clubs"])
@@ -203,7 +203,7 @@ async def list_club_people(
                 user_id=person.user_id,
                 first_name=person.first_name,
                 last_name=person.last_name,
-                status=row.status if (row := _row(person, club.id)) else None,
+                status=row.status if (row := membership_of(person, club.id)) else None,
                 roles=sorted(roles.get(person.user_id, []), key=order)
                 if person.user_id is not None
                 else [],
@@ -212,6 +212,7 @@ async def list_club_people(
                 birth_date=person.birth_date if organizer else None,
                 minor=is_minor(person.birth_date, today) if organizer else None,
                 in_squad=person.id in in_squad,
+                invitation=invitations.out(row) if organizer and row else None,
             )
             for person in persons
         ],
@@ -264,7 +265,7 @@ async def add_club_member(
             "Nobody here has this address.",
             email=email,
         )
-    row = _row(person, club.id)
+    row = membership_of(person, club.id)
     if row is not None and row.status != MembershipStatus.REQUESTED:
         raise Problem(
             409,
@@ -316,7 +317,7 @@ async def accept_club_member(
         title="Only the club's admin accepts a request to join.",
     )
     person = await get_or_404(session, Person, person_id)
-    row = _row(person, club.id)
+    row = membership_of(person, club.id)
     if row is None or row.status != MembershipStatus.REQUESTED:
         raise Problem(404, "membership-request-not-found", "This person has not asked to join.")
     row.status = MembershipStatus.ACTIVE
@@ -355,14 +356,9 @@ async def remove_club_member(
     await session.commit()
 
 
-def _row(person: Person, club_id: int) -> ClubMembership | None:
-    """The person's row for this club, whatever its status."""
-    return next((link for link in person.club_memberships if link.club_id == club_id), None)
-
-
 def _end(person: Person, club_id: int, acting: User, session: AsyncSession) -> None:
     """Deletes the person's row for the club — leaving, removing, declining, withdrawing."""
-    row = _row(person, club_id)
+    row = membership_of(person, club_id)
     if row is None:
         raise Problem(404, "membership-not-found", "This person is not in the club.")
     person.club_memberships = [link for link in person.club_memberships if link is not row]
@@ -447,7 +443,7 @@ async def ask_to_join(
         )
     club = await get_or_404(session, Club, request.club_id)
     person = await require_linked_person(session, acting)
-    row = _row(person, club.id)
+    row = membership_of(person, club.id)
     if row is not None and row.status != MembershipStatus.INVITED:
         raise Problem(
             409,
@@ -477,7 +473,7 @@ async def accept_invitation(
 ) -> list[MyMembershipOut]:
     """Story V-15: I accept a club's invitation — a member now."""
     person = await require_linked_person(session, acting)
-    row = _row(person, club_id)
+    row = membership_of(person, club_id)
     if row is None or row.status != MembershipStatus.INVITED:
         raise Problem(
             404, "membership-invitation-not-found", "There is no invitation from this club."

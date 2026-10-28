@@ -10,12 +10,12 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from typing import Any, Literal, NamedTuple
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.crests import crest_url
 from app.models.auth import Relation
 from app.models.competition import AnnouncementIssuer, EventDocumentKind, EventStatus
-from app.models.org import CrewRole, MembershipStatus, Person
+from app.models.org import CrewRole, InvitationState, MembershipStatus, Person
 from app.models.racing import PreparatoryFlag, RaceStatus
 
 
@@ -206,6 +206,15 @@ class ClubMemberOut(BaseModel):
     admin: bool = False
 
 
+class InvitationOut(BaseModel):
+    """A club's invitation to an account (Story V-16), as the club sees it."""
+
+    club_id: int
+    person_id: int
+    expires_at: datetime
+    state: InvitationState
+
+
 class ClubPersonOut(BaseModel):
     """One row of *Club › People* (#45). For a plain member the row is the roster's —
     name, account and roles; the address and the date of birth are the organizers'
@@ -229,6 +238,18 @@ class ClubPersonOut(BaseModel):
     birth_date: date | None = None
     minor: bool | None = Field(default=None, description="Empty without a date of birth")
     in_squad: bool = Field(default=False, description="In one of the club's squads this year")
+    invitation: InvitationOut | None = Field(
+        default=None, description="The club's open invitation to an account — the organizers'"
+    )
+
+
+class InvitationIn(BaseModel):
+    """Whom the club's admin invites: an address no account has, and the name the club
+    knows them by."""
+
+    email: EmailStr
+    first_name: str = Field(min_length=1, max_length=80)
+    last_name: str = Field(min_length=1, max_length=80)
 
 
 class ClubMemberIn(BaseModel):

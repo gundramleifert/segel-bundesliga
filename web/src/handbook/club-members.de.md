@@ -3,7 +3,7 @@ id: club-members
 type: guide
 order: 80
 audience: [club]
-stories: [Z-3, Z-5, V-4, V-8, V-9, V-10, V-15, A-8, V-13, V-3]
+stories: [Z-3, Z-5, V-4, V-8, V-9, V-10, V-15, V-16, A-8, V-13, V-3]
 journey: null
 route: /me/club/:id
 tags: [membership, organizer, parent, guardian, crest, mitglieder, organisation, erziehungsberechtigte, stander, vereinsverwaltung]
@@ -41,6 +41,18 @@ Wer schon in einem anderen Verein ist, kommt nur mit Zustimmung dazu: *eingelade
 die Person unter [*Ich* › *Meine Vereine*](place:profile.clubs) annimmt; *möchte
 aufgenommen werden*, bis die Vereinsverwaltung im *⋯* der Zeile *Aufnehmen* oder *Ablehnen* wählt.
 Ohne Konto trägt die Geschäftsstelle die Person ein.
+
+### Zu einem Konto einladen {#club-members-invite}
+
+Eine Adresse, die niemand hat — weder erfasst noch mit Konto —, macht aus *Jemand
+Bekanntes, per E-Mail* die Einladung: Vor- und Nachname, *Weiter*, lesen, was dann
+geschieht, *Einladung senden*. Eine E-Mail geht hinaus; die Person ist *Einladung
+ausstehend*, bis sie den Link öffnet, der ihr Konto anlegt und sie zum Mitglied macht.
+Wer erfasst ist, aber kein Konto hat, bekommt dasselbe über das *⋯* der Zeile, *Zu einem
+Konto einladen*. Der Link gilt 14 Tage und einmal; solange er gilt, kann kein anderer
+Verein die Adresse einladen. *Einladung erneut senden* (ein neuer Link) und *Einladung
+zurückziehen* stehen im *⋯* der Zeile; ein abgelaufener Link zeigt *Einladung abgelaufen*
+und ist eine Aufgabe in der Übersicht Ihres Vereins.
 
 ### Die Organisation benennen {#club-members-organizers}
 

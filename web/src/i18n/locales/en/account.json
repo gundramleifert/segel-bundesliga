@@ -127,5 +127,18 @@
       "agree": "I have read the statement above and accept it for {name}, as their parent or legal guardian.",
       "done": "Thank you — your acceptance for {name} is recorded."
     }
+  },
+  "invitation": {
+    "title": "Invitation",
+    "heading": "{club} invites you",
+    "text": "Confirm or correct your name. You then get your account on this site — your address is confirmed by this link — and are a member of {club}.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email address",
+    "accept": "Create my account and join",
+    "doneTitle": "Welcome aboard",
+    "doneText": "Your account is ready and you are signed in. You can set a password now, so you need no code next time.",
+    "toClub": "To my club",
+    "setPassword": "Set a password"
   }
 }

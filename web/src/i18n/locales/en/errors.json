@@ -231,5 +231,13 @@
   "membership-unverified": "Confirm your address before asking to join a club.",
   "membership-request-not-found": "This person has not asked to join.",
   "membership-invitation-not-found": "There is no invitation from this club.",
-  "club-people-filter-forbidden": "Dates of birth and waiting requests are the club's organizers' to filter by."
+  "club-people-filter-forbidden": "Dates of birth and waiting requests are the club's organizers' to filter by.",
+  "invitation-forbidden": "Only the club's admin invites someone to an account.",
+  "invitation-has-account": "This address has an account — add the person by email, or they ask to join.",
+  "invitation-pending": "This address has a pending invitation. Another can be sent once it lapses.",
+  "invitation-no-address": "This person has no email address to send an invitation to.",
+  "invitation-mail-failed": "The invitation is saved, but its mail could not be sent. Try sending it again.",
+  "invitation-not-found": "This link is not valid — perhaps a newer one was sent. Ask the club that invited you.",
+  "invitation-used": "This link was used already. Sign in; ask {club} if something is missing.",
+  "invitation-expired": "This link has lapsed. Ask {club} to send it again."
 }

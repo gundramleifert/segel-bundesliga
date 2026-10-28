@@ -1,4 +1,4 @@
-"""Sending login emails.
+"""Sending the site's emails — login codes and club invitations.
 
 Intentionally behind a narrow interface: in development the code goes to the log, in
 production it goes via SMTP. Anyone trying the application locally should be able to log in
@@ -13,9 +13,13 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 from email.utils import formataddr
+from pathlib import Path
+from typing import NamedTuple
+
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from app.config import settings
-from app.i18n import Locale, tr
+from app.i18n import Locale
 
 logger = logging.getLogger(__name__)
 
@@ -27,98 +31,85 @@ class MailError(Exception):
 
 # Mails go out in **German** unless the caller knows the reader's language (decided
 # 2026-10-28): the site's readers are German clubs and sailors, and a mail — unlike a page —
-# has no language switcher. English is the second variant, through `tr` as everywhere.
+# has no language switcher. English is the second variant, from the same catalog.
 MAIL_LOCALE: Locale = "de"
 
-# Every mail ends with the same footer: who sends it, why the reader gets it, where to
-# write to a person, and the privacy and legal pages. The sender is the association, not a
-# league — the same name as the site. The register court and number are not in it: they
-# are still «folgt» in the legal notice (`legal.json`) and are not to be invented. A mail
-# the site sends is transactional — something the reader or their club did — so it carries
-# no unsubscribe link; it says instead what caused it. `-- ` (with its space) is the
-# signature delimiter mail programs fold away in a reply.
-FOOTER_EN = """
--- 
-Deutsche Segel-Liga e.V.
-c/o Düsseldorfer Yacht-Club · Rotterdamer Straße 30 · 40474 Düsseldorf
-
-You receive this email because {reason}.
-It was sent automatically — to reach a person, write to {contact}.
-
-Website: {site}
-Privacy: {site}/privacy · Legal notice: {site}/legal-notice
-"""
-
-FOOTER_DE = """
--- 
-Deutsche Segel-Liga e.V.
-c/o Düsseldorfer Yacht-Club · Rotterdamer Straße 30 · 40474 Düsseldorf
-
-Sie erhalten diese E-Mail, weil {reason}.
-Sie wurde automatisch versandt — eine Person erreichen Sie unter {contact}.
-
-Website: {site}
-Datenschutz: {site}/privacy · Impressum: {site}/legal-notice
-"""
+# A mail is a Jinja2 template per language, `app/templates/mail/<lang>/<name>.txt`
+# (decided 2026-10-28 — what Python mail code commonly does; short sentences stay in the
+# `app/locales/` catalogs). Each extends its language's `_base.txt`, which is the footer
+# every mail ends with, and fills the blocks `subject`, `reason` (completing "You receive
+# this email because …") and `body`. Plain text, so nothing is escaped; an undefined
+# value raises rather than leaving a hole in a mail. `tests/unit/test_mail.py` holds both
+# languages to the same templates and the same variables.
+TEMPLATES = Path(__file__).parent / "templates" / "mail"
+_env = Environment(
+    loader=FileSystemLoader(TEMPLATES),
+    undefined=StrictUndefined,
+    autoescape=False,
+    trim_blocks=True,
+    keep_trailing_newline=True,
+)
 
 
-def with_footer(body: str, reason: str, locale: Locale = MAIL_LOCALE) -> str:
-    """``body`` with the footer every mail of the site ends with; ``reason`` completes
-    "You receive this email because …" in ``locale``'s language."""
-    footer = tr(locale, en=FOOTER_EN, de=FOOTER_DE)
-    return body + footer.format(
-        reason=reason, contact=settings.mail_contact, site=settings.site_url
+class Mail(NamedTuple):
+    subject: str
+    body: str
+
+
+def render_mail(name: str, locale: Locale = MAIL_LOCALE, /, **values: object) -> Mail:
+    """Mail ``name`` in ``locale``, filled with ``values`` and the footer's own (the
+    contact address, the site)."""
+    template = _env.get_template(f"{locale}/{name}.txt")
+    context = template.new_context(
+        {"contact": settings.mail_contact, "site": settings.site_url, **values}
     )
+    subject = "".join(template.blocks["subject"](context)).strip()
+    return Mail(subject=subject, body=template.render(context.get_all()))
 
 
 async def send_login_code(email: str, code: str, locale: Locale = MAIL_LOCALE) -> None:
-    minutes = settings.otp_lifetime_minutes
-    subject = tr(
+    mail = render_mail("login_code", locale, code=code, minutes=settings.otp_lifetime_minutes)
+    await _deliver(email, mail, what="login code", secret=code)
+
+
+async def send_invitation(
+    email: str,
+    *,
+    club: str,
+    inviter: str,
+    first_name: str,
+    link: str,
+    locale: Locale = MAIL_LOCALE,
+) -> None:
+    """Story V-16: the club's invitation to an account — the link creates it and makes
+    the reader a member of ``club``. Names the club and who invited, as the story asks."""
+    mail = render_mail(
+        "invitation",
         locale,
-        en="Your login code for Deutsche Segel-Liga",
-        de="Ihr Anmeldecode für die Deutsche Segel-Liga",
+        club=club,
+        inviter=inviter,
+        first_name=first_name,
+        link=link,
+        days=settings.invitation_lifetime_days,
     )
-    text = tr(
-        locale,
-        en="""Hello,
+    await _deliver(email, mail, what="invitation link", secret=link)
 
-Your login code is: {code}
 
-It is valid for {minutes} minutes and can only be used once.
-
-If you did not try to log in, you can ignore this message — nothing happens without the code.
-""",
-        de="""Hallo,
-
-Ihr Anmeldecode lautet: {code}
-
-Er gilt {minutes} Minuten und kann nur einmal verwendet werden.
-
-Wenn Sie sich nicht anmelden wollten, können Sie diese Nachricht ignorieren —
-ohne den Code geschieht nichts.
-""",
-    )
-    body = with_footer(
-        text.format(code=code, minutes=minutes),
-        tr(
-            locale,
-            en="a login code for this address was requested on our website",
-            de="auf unserer Website ein Anmeldecode für diese Adresse angefordert wurde",
-        ),
-        locale,
-    )
-
+async def _deliver(email: str, mail: Mail, *, what: str, secret: str) -> None:
+    """Hands one mail to SBL_SMTP_HOST — or, without one, logs ``secret`` (the code, the
+    link) instead, so the site works locally without a mail server. The secret is the
+    log record's last argument: that is what the tests read."""
     if not settings.smtp_host:
-        # No mail server configured: code goes to the log instead. Intended for development
-        # — in production SBL_SMTP_HOST must be set.
-        logger.warning("No SMTP configured. Login code for %s is: %s", email, code)
+        # No mail server configured: the secret goes to the log instead. Intended for
+        # development — in production SBL_SMTP_HOST must be set.
+        logger.warning("No SMTP configured. The %s for %s is: %s", what, email, secret)
         return
 
     message = EmailMessage()
-    message["Subject"] = subject
+    message["Subject"] = mail.subject
     message["From"] = formataddr((settings.mail_from_name, settings.mail_from))
     message["To"] = email
-    message.set_content(body)
+    message.set_content(mail.body)
 
     # Silent on success and on failure alike before this: there was no way to tell, short
     # of reading someone's inbox, whether SBL_SMTP_* actually works. Log both outcomes —
@@ -128,14 +119,17 @@ ohne den Code geschieht nichts.
         await asyncio.to_thread(_send, message)
     except Exception as exc:
         logger.error(
-            "Sending the login email to %s via %s:%s failed: %s",
+            "Sending the %s email to %s via %s:%s failed: %s",
+            what,
             email,
             settings.smtp_host,
             settings.smtp_port,
             exc,
         )
         raise MailError(str(exc)) from exc
-    logger.info("Login email sent to %s via %s:%s", email, settings.smtp_host, settings.smtp_port)
+    logger.info(
+        "The %s email was sent to %s via %s:%s", what, email, settings.smtp_host, settings.smtp_port
+    )
 
 
 def _connect() -> smtplib.SMTP:
