@@ -17,6 +17,9 @@
     uv run python -m app.imports tractrac                   # the 1./2. Liga 2026, recorded
     uv run python -m app.imports tractrac --folder <dir>    # another recording
 
+    uv run python -m app.imports sap-send <event-slug> --base-url <api> --boats boats.json
+                                                            # the event and its draw TO SAP
+
 SAP's address is ``https://www.sapsailing.com/sailingserver/api``, or ``SBL_SAP_BASE_URL``
 / ``--base-url`` for another SAP instance — the public one has no season after 2023.
 
@@ -39,6 +42,7 @@ from app.imports.common import USER_AGENT, Report
 from app.imports.m2s import Manage2SailClient, import_m2s
 from app.imports.sap import BASE_URL as SAP_BASE_URL
 from app.imports.sap import SapClient, import_sap, parse_regatta_name, parse_years
+from app.imports.sap_send import SapWriter, load_boats, send_event
 from app.imports.tractrac import FOLDER as TRACTRAC_FOLDER
 from app.imports.tractrac import import_tractrac
 
@@ -89,6 +93,22 @@ def _parser() -> argparse.ArgumentParser:
         "--to-series", help="the season's notice board: its documents go to this series (slug)"
     )
 
+    send = sub.add_parser(
+        "sap-send", help="an event and its pairing list TO SAP Sailing (Story VA-15)"
+    )
+    send.add_argument("event", help="the event's slug here")
+    send.add_argument(
+        "--base-url",
+        default=os.environ.get("SBL_SAP_BASE_URL") or SAP_BASE_URL,
+        help="the SAP server's API root (default: www.sapsailing.com, or SBL_SAP_BASE_URL)",
+    )
+    send.add_argument(
+        "--boats", required=True, type=Path, help="our boat colour → SAP's boat id (boats.json)"
+    )
+    send.add_argument(
+        "--user", default=os.environ.get("SBL_SAP_USER", "admin"), help="SAP account (SBL_SAP_USER)"
+    )
+
     tractrac = sub.add_parser(
         "tractrac",
         help="the 1./2. Liga 2026 from TracTrac's scoreboards (scripts/record-dsbl-2026.py)",
@@ -103,6 +123,20 @@ def _parser() -> argparse.ArgumentParser:
 async def _run(args: argparse.Namespace) -> Report | None:
     if args.source == "tractrac":
         return await import_tractrac(SessionLocal, Path(args.folder), publish=args.publish)
+    if args.source == "sap-send":
+        # The password from the environment only — never a command-line argument, which
+        # the process list shows.
+        auth = (args.user, os.environ.get("SBL_SAP_PASSWORD", "admin"))
+        async with httpx.AsyncClient(
+            headers={"User-Agent": USER_AGENT}, timeout=60, auth=auth
+        ) as http:
+            sent = await send_event(
+                SessionLocal, SapWriter(http, args.base_url), args.event, load_boats(args.boats)
+            )
+        print(sent.render())
+        if sent.errors:
+            raise SystemExit(1)
+        return None
     async with httpx.AsyncClient(
         headers={"User-Agent": USER_AGENT}, timeout=60, follow_redirects=True
     ) as http:

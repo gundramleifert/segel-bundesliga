@@ -43,7 +43,7 @@ from app.services.participation import activate
 TEST_CLUB = "asvw"
 TEST_SERIES = "demo-2-2026"
 #: …and next year's, a draft to practise preparing a season on.
-TEST_SERIES_ALL = [TEST_SERIES, "dsbl-1-2027"]
+TEST_SERIES_ALL = [TEST_SERIES, "dsbl-1-2027", "dsbl-2-2027"]
 TEST_EVENT = "demo-2-2026-act-3"
 
 #: The league office and a guest: (email, name, site relations).

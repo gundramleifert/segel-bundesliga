@@ -173,7 +173,7 @@ concentrated:
   account to sign a waiver; a sailor of any other club has none, and the specs pick their
   adults and juniors from ASVW's squad;
 - **series** the demo's 2. Liga 2026 (`demo-2-2026`), ASVW's: `serie@` (its `manager`, and
-  of the 1. Liga's 2027 draft); `presse@` (its `editor`, Paula Presse — writes about its
+  of the 1. and 2. Liga's 2027 drafts); `presse@` (its `editor`, Paula Presse — writes about its
   matchdays, organizes nothing);
   `junioren@` (Jocki Hellmich, `manager` of the Junioren-Segelliga 2026 and its 2027
   draft);
@@ -185,13 +185,16 @@ concentrated:
   who writes and keeps pictures and organizes nothing), `wl@` (race officer, Christoph Zanter), and
   `gast@sbl.example.com` with no relation.
 
-**Next year, to practise on** (`app.seed`, decided 2026-10-22): the 1. Segel-Bundesliga
-2027 and the Junioren-Segelliga 2027 are **drafts**, so the public site stays on 2026.
-The 1. Liga's has its six announced acts — Friedrichshafen (act 1, 16–18 April) and
-Hamburg (act 6, 14–16 October) with dates, Überlingen, Berlin, Strande and Warnemünde
-without (none announced) — and no clubs yet: entering them, the squads and a draw is
-what there is to practise. **ASVW hosts Warnemünde 2027**, so its officials are that
-event's organizers. Only what was announced is seeded; nothing invented.
+**Next year, to practise on** (`app.seed`, decided 2026-10-22): the 1. and 2.
+Segel-Bundesliga 2027 (the 2. since 2026-11-01, for the SAP send) and the
+Junioren-Segelliga 2027 are **drafts**, so the public site stays on 2026.
+Six weekends, with hosts (league office, 2026-11-01): Friedrichshafen (WYC with KYC,
+act 1, 16–18 April), Überlingen (BYCÜ with SMCÜ, 2), Berlin (BYCB, 3), Kiel/Strande (KYC,
+4 — **the 1. Liga's alone**: the 2. Liga sails one act fewer, as every year since 2018,
+so it counts Warnemünde as 4 and Hamburg as 5), Warnemünde (ASVW, 5), Hamburg (NRV, 6,
+14–16 October); only the first and last have dates. No clubs yet: entering them, the
+squads and a draw is what there is to practise. **ASVW hosts Warnemünde 2027**, so its
+officials are that event's organizers. Only what was announced is seeded; nothing invented.
 
 The role switcher groups them the same way (league office · series · event · club ·
 sailors · guest, the `group` of `/api/dev/users`), the sailors folded until searched.
@@ -337,7 +340,10 @@ These points were deliberately decided this way; bypassing them costs a lot late
   `?team=` renders one crew's own page, and `renderer_available()` says whether this
   installation can print at all, so the page can leave the download out.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
-  protest decision just entered.
+  protest decision just entered. For an event **scored on SAP Sailing** (VA-14) there is
+  no conflict to win: SAP is that event's one source of results, the race committee
+  enters everything there, and the site refuses result entry (`event-scored-on-sap`,
+  WL-5) — two places to type a result would be two results.
 - **Permissions are relation tuples, `user:relation:object`, and the model is OpenFGA's
   DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`, the facade
   `app/authz.py`, the writes `app/services/grants.py`). Object types `site`, `club`, `series`, `event`, `sailor`; relations
@@ -525,10 +531,25 @@ These points were deliberately decided this way; bypassing them costs a lot late
   from it, a cache rebuilt from the original when a size is missing (decided
   2026-10-20). A post's text stores only the address; alt text, size and credit come
   from the library when it is read (`media.for_readers`).
-- **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
-  boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
-  Mövenstein dataset and its detectors are used once, locally, to check ours
-  (`docs/PLAN_LIVE_IMPLEMENTATION.md` §2).
+- **SAP Sailing Analytics: an offline oracle for tracking, the live scoring for 2027,
+  hosted by SAP** (decided 2026-11-01). For **tracking and analytics** it stays an oracle,
+  never our runtime: self-hosting it for six boats is the wrong size (8 GB, MongoDB,
+  RabbitMQ, one maintainer); its recorded Mövenstein dataset and its detectors are used
+  once, locally, to check ours (`docs/PLAN_LIVE_IMPLEMENTATION.md` §2). For **scoring**,
+  SAP runs it for the league, and the 2027 season is scored there; our own scoring stays
+  for every event not scored on SAP. **Configuration flows to SAP, results flow back** —
+  the two directions carry disjoint data, so neither can overwrite the other.
+  **DSL→SAP** (Story VA-15): "Send to SAP Sailing", before the first race and again after
+  a new draw or a withdrawal, sends the event, its teams (club code as short name), boats
+  with colours and **our pairing list** race by race through SAP's REST API — refused once
+  the first race froze the event (VA-8), because SAP's draw must be the one sailed.
+  **SAP→DSL** (Story WL-5): every 10–30 s while live, and on request for a final event
+  after a protest, the site takes raw results only through `app/imports/sap.py`; points
+  are still derived here (`recompute_event`), SAP's net points only compared. The SAP
+  **leaderboard name**, stored on the event as an `ExternalId` (VA-14), is the link
+  between both; the season table stays ours. Embedding SAP's race viewer (B-20) needs SAP
+  to list our domains in its frame-ancestors setting. Tried against a local SAP:
+  `deploy/sap-local/`.
 
 ## Logged in or guest
 

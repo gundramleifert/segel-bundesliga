@@ -1,0 +1,32 @@
+{
+  "BLACK": {
+    "id": "2932e81d-932d-5881-ba83-147d0ba2ff9e",
+    "color": "#000000",
+    "sailId": "GER 701"
+  },
+  "GREEN": {
+    "id": "5e69a167-45c9-5fed-90d1-785a40240608",
+    "color": "#008000",
+    "sailId": "GER 702"
+  },
+  "DARKBLUE": {
+    "id": "2d94009c-f9cd-5562-8db8-b16d8a5577a7",
+    "color": "#00008B",
+    "sailId": "GER 703"
+  },
+  "RED": {
+    "id": "51f675a6-2be3-57f0-bb5e-905972255dbc",
+    "color": "#FF0000",
+    "sailId": "GER 704"
+  },
+  "GRAY": {
+    "id": "6e0026e3-6536-580b-9c99-031a56683b84",
+    "color": "#808080",
+    "sailId": "GER 705"
+  },
+  "ORANGE": {
+    "id": "f8b2d4cf-9ca2-533c-b4b4-50c57446d786",
+    "color": "#FFA500",
+    "sailId": "GER 706"
+  }
+}

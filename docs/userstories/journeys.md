@@ -30,6 +30,7 @@ stakeholders can read and a step table the tests are held to. The chain it start
 | J-7 From a claim to the bank | [money.md](../journeys/money.md) | club admin, treasurer, helper, event organizer |
 | J-8 A club hosts its own event | [hosted-event.md](../journeys/hosted-event.md) | team manager, club admin, event organizer, league office, race officer, visitor |
 | J-9 A fan follows an act | [fan.md](../journeys/fan.md) | visitor |
+| J-10 A matchday scored live on SAP Sailing | [sap-scored.md](../journeys/sap-scored.md) | event organizer, race officer, jury, visitor, sap sailing |
 
 ## Actors
 
@@ -59,6 +60,7 @@ sails), and a journey shows them as the actor of each step.
 | editor | ED | writes the site's news and press releases and keeps its pictures | `editor` on the site, a series or an event (their `admin` too) — organizes nothing | [editorial.md](editorial.md) | administration |
 | photographer | PH | delivers pictures through an upload link, without an account | — (an import key, Story R-2) | [editorial.md](editorial.md) | — |
 | site | P | the system itself — answers, refuses, shows | — | — | — |
+| sap sailing | SAP | SAP Sailing Analytics, hosted by SAP — the league's live scoring from 2027; results are entered there and the site sends it the event and its pairing list and takes the results back (VA-14, VA-15, WL-5) | — | [race-committee.md](race-committee.md) | race-committee |
 
 In the diagram an actor is `actor <Alias> as <Actor>` (`site` is `participant P as Site`),
 capitalised as a name. In the table, a step done by either of two actors says

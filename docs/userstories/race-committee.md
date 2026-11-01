@@ -263,3 +263,36 @@ Open: no browser test covers the entry form yet.
 
 Tests: `api/tests/stories/test_result_entry.py::TestMatchdayPenalty`,
 `api/tests/unit/test_scoring.py::test_a_matchday_penalty_counts_once_and_is_never_discarded`
+
+### WL-5 ◐ The race committee scores in SAP Sailing, the site follows
+As **race committee** of an event scored on SAP Sailing (VA-14) I want to **enter results,
+penalties and protest decisions in SAP Sailing alone**, so that **there is one source of
+results on the day, and the site, its tables and its live pages follow by themselves**.
+
+Acceptance criteria:
+- **While the event is live, the site asks SAP every 10–30 s** for the leaderboard and
+  takes what changed: finish position, code (DNF, OCS, …), redress, and the team's
+  carried points (WL-4) — **raw data only**. The points are derived here as for every
+  event (`recompute_event`), and SAP's net points are compared with ours; a difference is
+  reported to the event's race officers and the league office, never silently taken.
+- **Every open page follows** through the live stream (B-5), published after the commit.
+- **SAP is the source for this event**: entering or changing a result here is refused
+  (`event-scored-on-sap`), the result screens say where results are entered and link to
+  the leaderboard. A protest decision weeks later is made in SAP too, and the site takes
+  it on its next ask — for a `final` event a race officer asks for it once.
+- **SAP unreachable:** the site keeps the last results it took and says since when
+  ("results as of 14:32") — never an empty table, never stale data passed off as current.
+- One asker per event on the server, never one per visitor against SAP.
+- The event's status still changes only through its transitions (VA-8, VA-10) — closing
+  the day is a declaration here, whatever SAP shows.
+
+Planned: a background job like `app/jobs.py` on top of `app/imports/sap.py`, which already
+reads the same leaderboard for past seasons (A-14). Tried against SAP Sailing on one
+machine: `deploy/sap-local/README.md`; the tests use recorded answers.
+
+What is built: the import taking a sent event's results back once
+(`python -m app.imports sap --regatta <leaderboard>`), onto the teams, boats and races of
+our draw through the links the send stored. Still open: asking every 10–30 s while live,
+refusing result entry here, "results as of".
+
+Tests: `api/tests/stories/test_sap_send.py::TestBothDirections`

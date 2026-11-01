@@ -463,6 +463,12 @@ async def _import_regatta(
     for competitor in competitors:
         if competitor in placeholders:
             continue
+        # A team we sent (Story VA-15) is known by its link — its short name may carry a
+        # team number (`KYC 2`) that is no club code.
+        sent = await linked(session, Team, SOURCE, competitor["id"])
+        if sent is not None and sent.event_id == event.id:
+            teams[competitor["id"]] = sent
+            continue
         short = (competitor.get("shortName") or competitor.get("name") or "").strip()
         if not short:
             report.unassigned.append(f"{regatta.name}: a competitor without a club code")
@@ -653,6 +659,12 @@ async def _event(
     return event
 
 
+def boat_key(leaderboard: str, boat_id: str) -> str:
+    """How a boat of ours is linked to SAP's: the league's boats sail every event, so SAP's
+    id alone would name six boats of every act — the leaderboard makes it this event's."""
+    return f"{leaderboard}#{boat_id}"
+
+
 def boat_numbers(boats: dict[str, dict[str, Any]]) -> dict[str, int]:
     """SAP boat id → our boat number: the sail number, else the number in the name
     (`Boot 5`), else the next free one — the same answer on every run."""
@@ -684,7 +696,9 @@ async def _boats(
     boats: dict[str, Boat] = {}
     for boat_id, number in boat_numbers(seen).items():
         data = seen[boat_id]
-        boat = existing.get(number)
+        # A boat we sent (Story VA-15) is known by its link; the number is for the rest.
+        boat = await linked(session, Boat, SOURCE, boat_key(event.sap_leaderboard or "", boat_id))
+        boat = boat if boat is not None and boat.event_id == event.id else existing.get(number)
         if boat is None:
             boat = Boat(
                 event_id=event.id,

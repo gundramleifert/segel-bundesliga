@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import random
 from datetime import date, timedelta
+from typing import NamedTuple
 
 from sqlalchemy import delete, select
 
@@ -123,18 +124,34 @@ VENUES: list[tuple[str, str, str, float, float]] = [
     ("Hamburg-Alster", "Hamburg", "Außenalster", 53.565, 10.003),
 ]
 
-# The 1. Liga's 2027 as announced (yacht.de, 18 Oct 2026): it opens at Friedrichshafen and
-# ends in Hamburg; Überlingen, Berlin, Kiel/Strande and Warnemünde lie between, with no
-# dates or order yet — so those carry neither, the normal early state of an event. Hosts
-# are not announced; Warnemünde's is the test club, so its people have a season to
-# prepare (`seed_users`). (venue, act, first day, host's code)
-ACTS_2027: list[tuple[str, int | None, date | None, str | None]] = [
-    ("Friedrichshafen", 1, date(2027, 4, 16), None),
-    ("Überlingen", None, None, None),
-    ("Berlin-Wannsee", None, None, None),
-    ("Kiel-Strande", None, None, None),
-    ("Warnemünde", None, None, "ASVW"),
-    ("Hamburg-Alster", 6, date(2027, 10, 14), None),
+
+class Act2027(NamedTuple):
+    """One weekend of the 2027 season, as announced."""
+
+    place: str
+    #: Its act number in the 1. Liga, and in the 2. Liga — None where it does not sail.
+    first: int
+    second: int | None
+    #: The first day, where announced.
+    starts_on: date | None
+    #: The host clubs' codes; the first is the event's host club, a co-host is named in
+    #: the comment only — an event has one host (`Event.host_club_id`).
+    hosts: tuple[str, ...]
+
+
+# The 2027 season as announced (yacht.de, 18 Oct 2026; acts and hosts from the league
+# office, 2026-11-01). The 2. Liga sails the same weekends but one act fewer, as every
+# year since 2018: Kiel/Strande is the 1. Liga's alone, so from Warnemünde on the 2. Liga
+# counts one lower. Only the first and the last weekend have dates yet. Friedrichshafen
+# is hosted by WYC with KYC (Konstanz), Überlingen by BYCÜ with SMCÜ. Warnemünde's host
+# is the test club, so its people have a season to prepare (`seed_users`).
+ACTS_2027: list[Act2027] = [
+    Act2027("Friedrichshafen", 1, 1, date(2027, 4, 16), ("WYC", "KYC (BA)")),
+    Act2027("Überlingen", 2, 2, None, ("BYCÜ", "SMCÜ")),
+    Act2027("Berlin-Wannsee", 3, 3, None, ("BYCB",)),
+    Act2027("Kiel-Strande", 4, None, None, ("KYC (SH)",)),
+    Act2027("Warnemünde", 5, 4, None, ("ASVW",)),
+    Act2027("Hamburg-Alster", 6, 5, date(2027, 10, 14), ("NRV",)),
 ]
 
 
@@ -481,41 +498,46 @@ async def seed() -> None:
                         )
                     )
 
-        # Next year's 1. Liga, being prepared: a draft series with its announced acts, no
-        # clubs yet — registering them is what there is to practise. Drafts, so the public
-        # site stays on this year.
-        next_year = Series(
-            slug=f"dsbl-1-{YEAR + 1}",
-            name=f"1. Segel-Bundesliga {YEAR + 1}",
-            short_name=f"1. Liga {YEAR + 1}",
-            year=YEAR + 1,
-            level=1,
-            league_id=first_division.id,
-            published=False,
-            scoring=scoring,
-        )
-        session.add(next_year)
-        await session.flush()
+        # Next year's 1. and 2. Liga, being prepared: a draft series each with its announced
+        # acts and no clubs yet — registering them (after promotion and relegation) is what
+        # there is to practise. Drafts, so the public site stays on this year.
         venue_by_slug = {venue.slug: venue for venue in venues}
-        for place, act, day, host in ACTS_2027:
-            venue = venue_by_slug[slugify(place)]
-            session.add(
-                Event(
-                    slug=f"dsbl-1-{YEAR + 1}-{venue.slug}",
-                    title=f"Act {act} {venue.city}" if act else f"{venue.city} {YEAR + 1}",
-                    matchday=act,
-                    starts_on=day,
-                    ends_on=day + timedelta(days=2) if day else None,
-                    status=EventStatus.PLANNED,
-                    published=False,
-                    team_count=sum(1 for *_, level in CLUBS if level == 1),
-                    boat_count=BOATS,
-                    flight_count=FLIGHTS,
-                    series_id=next_year.id,
-                    venue_id=venue.id,
-                    host_club_id=by_short[host].id if host else None,
-                )
+        for level, league in ((1, first_division), (2, second_division)):
+            next_year = Series(
+                slug=f"dsbl-{level}-{YEAR + 1}",
+                name=f"{level}. Segel-Bundesliga {YEAR + 1}",
+                short_name=f"{level}. Liga {YEAR + 1}",
+                year=YEAR + 1,
+                level=level,
+                league_id=league.id,
+                published=False,
+                scoring=scoring,
             )
+            session.add(next_year)
+            await session.flush()
+            for planned in ACTS_2027:
+                act = planned.first if level == 1 else planned.second
+                if act is None:
+                    continue
+                venue = venue_by_slug[slugify(planned.place)]
+                day = planned.starts_on
+                session.add(
+                    Event(
+                        slug=f"dsbl-{level}-{YEAR + 1}-{venue.slug}",
+                        title=f"Act {act} {venue.city}",
+                        matchday=act,
+                        starts_on=day,
+                        ends_on=day + timedelta(days=2) if day else None,
+                        status=EventStatus.PLANNED,
+                        published=False,
+                        team_count=sum(1 for *_, lvl in CLUBS if lvl == level),
+                        boat_count=BOATS,
+                        flight_count=FLIGHTS,
+                        series_id=next_year.id,
+                        venue_id=venue.id,
+                        host_club_id=by_short[planned.hosts[0]].id,
+                    )
+                )
 
         await session.commit()
 
@@ -550,8 +572,8 @@ async def seed() -> None:
     print(
         f"Seed complete: {len(CLUBS)} clubs, the 1. and 2. Liga {YEAR} as sailed (11 acts) and "
         f"the Junioren-Liga's; two demo series with {SQUAD_SIZE} made-up sailors per club and "
-        f"3 invented acts each (unpublished); two drafts for {YEAR + 1} with "
-        f"{len(ACTS_2027)} draft acts"
+        f"3 invented acts each (unpublished); the 1. and 2. Liga {YEAR + 1} as drafts with "
+        f"{len(ACTS_2027)} and {sum(a.second is not None for a in ACTS_2027)} acts"
     )
 
 

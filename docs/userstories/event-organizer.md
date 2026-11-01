@@ -203,6 +203,85 @@ Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
 `api/tests/stories/test_complete_lifecycle.py::TestTheAdminEventList`,
 `e2e/lifecycle.spec.ts::VA-8: from a draft to a running event`
 
+### VA-14 ○ The event is scored on SAP Sailing
+As the **organizer of an event** I want to **say that this event's results come from SAP
+Sailing Analytics**, so that **the race committee works in the scoring system the league
+agreed on, and the site still shows every result without anyone typing it twice**.
+
+SAP hosts SAP Sailing Analytics for the league and it is the live scoring for the 2027
+season (agreed 2026-11-01). Our own result entry (WL-2, WL-3) stays for every event that
+is not scored there — a club's own regatta, a cup.
+
+Acceptance criteria:
+- **One setting on the event: where its results come from** — this site (the default) or
+  SAP Sailing, then with the SAP **leaderboard** it is (host and name), stored as an
+  `ExternalId`, like every bridge to an outside system — never matched by name.
+- **Sending the event to SAP sets it** (VA-15): the leaderboard the send creates is the
+  one named, nothing to type.
+- **An event SAP set up itself** can still be pointed at its leaderboard by hand. Only
+  then is it checked: the leaderboard exists, and each of its competitors is one of the
+  event's teams by **club code** (A-14's bridge). What does not match is named —
+  "KYC (SH): no team in this event" — and the setting is saved anyway (VA-8: saving
+  never requires validity); the event's readiness lists it.
+- **Who may:** whoever may edit the event (VA-6). Switching back to this site keeps the
+  results already taken from SAP; from then on they are entered here.
+- The configuration still belongs to the event (teams, boats, flights) and freezes with
+  the first race as before (VA-8).
+
+Planned: a field in the event's settings, a reason code in `event_readiness.py`.
+
+Tests: none yet
+
+### VA-15 ◐ Send the event and its pairing list to SAP Sailing
+As the **organizer of an event** scored on SAP Sailing I want to **send the event, its
+teams, its boats and its pairing list to SAP with one button**, so that **SAP's
+leaderboard is set up from what we decided — nobody types the clubs or the draw a second
+time, and the race committee scores the races the pairing list says**.
+
+The rule (decided 2026-11-01): **configuration flows to SAP, results flow back** (WL-5).
+The two directions carry disjoint data; the season table stays ours. SAP takes our pairing
+list (confirmed with SAP), so the draw is made here (A-4) and only sent.
+
+Acceptance criteria:
+- **Who may:** whoever may edit the event (VA-6). The button is **"Send to SAP Sailing"**
+  on the event's settings.
+- **What is sent:** the event (name, dates, venue, boat class J/70, its flights), its
+  teams with the **club code as SAP's short name**, the boats with their colours, and
+  **our pairing list race by race** — which team sails which boat in which race. A flight
+  is one race column on SAP, its three races are that column's fleets.
+- **Built on SAP's REST API:** `POST /api/v1/events/createEvent`,
+  `/api/v1/regattas/updateOrCreateSeries`, `/api/v1/regattas/{name}/competitors/createandadd…`,
+  `/api/v1/boats`, `POST /api/v1/mark/addCompetitorToRace` (leaderboard, race column,
+  fleet, competitor → boat).
+- **It creates the SAP leaderboard and stores its name on the event as an `ExternalId`**
+  — that sets VA-14's setting, and it is the link WL-5 reads results through.
+- **Sending again is safe, and replaces SAP's draw**: after a new draw or a team
+  withdrawing the organizer sends again, and SAP's teams and race-by-race assignment are
+  ours again — never a second leaderboard, never a duplicate competitor.
+- **Refused once the event is frozen by its first race** (VA-8): SAP's draw must be the
+  one that is sailed, and from then on results flow only back.
+- **What fails is named** — SAP unreachable, refused permission on SAP's server, a call
+  SAP rejected, with the step it failed at — and the site keeps nothing half-sent as
+  "sent"; the next send starts over.
+- **The six boats are SAP's already**: a league's boats sail every event, and SAP's REST
+  API makes a boat only with a team — so they are made once per server (SAP's admin
+  console; locally `deploy/sap-local/boats.sh`) and the send takes our colour → SAP's
+  boat id. A team and a boat sent are linked (`ExternalId`; a boat by leaderboard and
+  SAP id together, as SAP's boats sail every act), which is how WL-5 puts each result on
+  the team and boat of our draw — a club's second team is no club code (`KYC 2`).
+- Shown on SAP's site only while the event is published here.
+- Tried against SAP Sailing on one machine first: `deploy/sap-local/` — the whole draw of
+  `demo-2-2026-act-3` (18 teams, 48 races, 288 team-on-boat pairs) arrived as sent
+  (2026-11-01).
+
+What is built: `app/imports/sap_send.py`, run as `python -m app.imports sap-send <event>
+--boats boats.json` (account from `SBL_SAP_USER`/`SBL_SAP_PASSWORD`). Still open: the
+button, the season's leaderboard group on SAP (one per season, as SAP keeps the league —
+no REST call creates one yet), and SAP's real account for us.
+
+Tests: `api/tests/stories/test_sap_send.py::TestSendTheEventToSap`,
+`api/tests/stories/test_sap_send.py::TestBothDirections`
+
 ## Participants and their waivers
 
 ### VA-13 ● A club enters more than one team

@@ -207,6 +207,14 @@
   "file": "docs/userstories/visitor.md",
   "anchor": "b-2--review-matchday-results"
  },
+ "B-20": {
+  "title": "Watch the race in SAP Sailing's viewer on the act's page",
+  "status": "○",
+  "role": "Visitor and Fans",
+  "phase": "The matchday",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-20--watch-the-race-in-sap-sailings-viewer-on-the-acts-page"
+ },
  "B-3": {
   "title": "View pairing list",
   "status": "●",
@@ -446,6 +454,112 @@
   "path": "main",
   "who": "event organizer",
   "what": "the event is `live`"
+ },
+ "J-10": {
+  "title": "A matchday scored live on SAP Sailing",
+  "status": "○",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/sap-scored.md",
+  "anchor": ""
+ },
+ "J-10.1": {
+  "journey": "J-10",
+  "story": "VA-14",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the event's results are to come from SAP Sailing"
+ },
+ "J-10.10": {
+  "journey": "J-10",
+  "story": "B-5",
+  "path": "main",
+  "who": "visitor",
+  "what": "the open pages show the result without reloading"
+ },
+ "J-10.11": {
+  "journey": "J-10",
+  "story": "B-20",
+  "path": "main",
+  "who": "visitor",
+  "what": "the race is on the act's page in SAP's viewer"
+ },
+ "J-10.12": {
+  "journey": "J-10",
+  "story": "VA-10",
+  "path": "main",
+  "who": "race officer",
+  "what": "the event is final"
+ },
+ "J-10.13": {
+  "journey": "J-10",
+  "story": "WL-5",
+  "path": "protest later",
+  "who": "jury (offline)",
+  "what": "the decision is in SAP Sailing"
+ },
+ "J-10.14": {
+  "journey": "J-10",
+  "story": "WL-5",
+  "path": "protest later",
+  "who": "race officer",
+  "what": "the final event's results include the decision"
+ },
+ "J-10.15": {
+  "journey": "J-10",
+  "story": "B-1",
+  "path": "main",
+  "who": "visitor",
+  "what": "the year's table includes the act"
+ },
+ "J-10.16": {
+  "journey": "J-10",
+  "story": "VA-15",
+  "path": "main",
+  "who": "event organizer",
+  "what": "SAP has the event, its teams, boats and our pairing list; the leaderboard's name is stored on the event"
+ },
+ "J-10.4": {
+  "journey": "J-10",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the event is live"
+ },
+ "J-10.5": {
+  "journey": "J-10",
+  "story": "WL-5",
+  "path": "main",
+  "who": "race officer (offline)",
+  "what": "a race's result is in SAP Sailing"
+ },
+ "J-10.6": {
+  "journey": "J-10",
+  "story": "WL-5",
+  "path": "entered here",
+  "who": "race officer",
+  "what": "refused with `event-scored-on-sap`, nothing changed here"
+ },
+ "J-10.7": {
+  "journey": "J-10",
+  "story": "WL-5",
+  "path": "main",
+  "who": "site",
+  "what": "within 30 s the raw result is here and the points derived"
+ },
+ "J-10.8": {
+  "journey": "J-10",
+  "story": "WL-5",
+  "path": "SAP unreachable",
+  "who": "site",
+  "what": "the last results stay, \"as of 14:32\""
+ },
+ "J-10.9": {
+  "journey": "J-10",
+  "story": "WL-5",
+  "path": "points differ",
+  "who": "site",
+  "what": "the difference is reported, the site's points stand"
  },
  "J-2": {
   "title": "A new club gets going and runs itself",
@@ -1533,6 +1647,22 @@
   "file": "docs/userstories/event-organizer.md",
   "anchor": "va-13--a-club-enters-more-than-one-team"
  },
+ "VA-14": {
+  "title": "The event is scored on SAP Sailing",
+  "status": "○",
+  "role": "Event Organizer",
+  "phase": "Setting the event up",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-14--the-event-is-scored-on-sap-sailing"
+ },
+ "VA-15": {
+  "title": "Send the event and its pairing list to SAP Sailing",
+  "status": "◐",
+  "role": "Event Organizer",
+  "phase": "Setting the event up",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-15--send-the-event-and-its-pairing-list-to-sap-sailing"
+ },
  "VA-2": {
   "title": "Self check-in with liability waiver",
   "status": "○",
@@ -1628,6 +1758,14 @@
   "phase": "Results",
   "file": "docs/userstories/race-committee.md",
   "anchor": "wl-4--penalty-points-for-a-team-on-a-matchday"
+ },
+ "WL-5": {
+  "title": "The race committee scores in SAP Sailing, the site follows",
+  "status": "◐",
+  "role": "Race Committee",
+  "phase": "Results",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "wl-5--the-race-committee-scores-in-sap-sailing-the-site-follows"
  },
  "Z-1": {
   "title": "Sign in with Google, Microsoft or a one-time code",

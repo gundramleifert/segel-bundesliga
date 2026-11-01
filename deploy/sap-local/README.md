@@ -36,12 +36,44 @@ curl -s http://127.0.0.1:8888/gwt/status        # JSON with the build version on
 
 Everything listens on `127.0.0.1` only: the admin password is the published default.
 
+## Let our site embed it
+
+```bash
+deploy/sap-local/configure.sh
+```
+
+Lets the dev site (`localhost:5173`) and the e2e stacks (`5173+n`) show SAP's race viewer
+and leaderboard in a frame — SAP sends `frame-ancestors` with only the origins listed.
+That list is the one setting SAP's REST API does not offer (only the admin console's
+*Local Server Management › CORS and CSP "frame-ancestors"*), so the script writes the
+MongoDB document behind it and restarts the server. Everything else — events, regattas,
+competitors, the boats per race — goes through the REST API, which takes `admin:admin`
+as basic auth here. SAP's hosted server is configured by SAP: they add our domains.
+
 ## Stop and reset
 
 ```bash
 docker compose -f deploy/sap-local/compose.yaml down       # stop; regattas stay
 docker compose -f deploy/sap-local/compose.yaml down -v    # stop and forget everything
 ```
+
+## Send an event to it (DSL→SAP, Story VA-15)
+
+```bash
+deploy/sap-local/boats.sh          # once: the league's six J/70s, ids in boats.json
+cd api && uv run python -m app.imports sap-send demo-2-2026-act-3 \
+    --base-url http://127.0.0.1:8888/sailingserver/api --boats ../deploy/sap-local/boats.json
+```
+
+Creates the event, a flight per race column (`F1`…) with its races as fleets
+(`Race 1`…), the teams under their club codes, and our pairing list race by race. Sending
+again keeps the teams and replaces the draw; an event whose first race was sailed is
+refused. The six boats come first because SAP's REST API makes a boat only together with
+a team — on SAP's server they are made once in its admin console. The account is
+`SBL_SAP_USER` / `SBL_SAP_PASSWORD` (here `admin`/`admin`, the default).
+
+Enter results for it in the admin console, then read them back with the import below
+(`--regatta` with the leaderboard name the send printed).
 
 ## Testing our import against it
 

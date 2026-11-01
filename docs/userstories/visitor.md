@@ -332,6 +332,26 @@ Tests: `api/tests/unit/test_live_hub.py`,
 `api/tests/stories/test_live_updates.py`,
 `e2e/live.spec.ts::B-5: as a spectator I follow live updates`
 
+### B-20 ○ Watch the race in SAP Sailing's viewer on the act's page
+As a **spectator** I want to **see the boats on the water and the live leaderboard of the
+race being sailed, on the act's page**, so that **I follow a race as it happens, not only
+its result**.
+
+Acceptance criteria:
+- For an event scored on SAP Sailing (VA-14), the act's page shows SAP's race viewer for
+  the running race — embedded, or as a link where SAP does not allow embedding — and
+  after the day the replay of each race.
+- Results, the draw and the tables stay the site's own pages (B-2, B-3, B-5): the viewer
+  is added beside them, never instead.
+- An event not on SAP shows no viewer, and no empty space where one would be.
+- The map is SAP's, with their Google Maps key — the site holds no map key of its own
+  for it.
+
+Open: whether SAP allows the viewer to be embedded on our domain, and its address per
+race — questions for SAP.
+
+Tests: none yet
+
 ## The leagues
 
 The site's structure is option E of issue #14, recorded in `docs/site-structure.md`:
