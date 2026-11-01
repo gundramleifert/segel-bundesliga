@@ -102,3 +102,6 @@ api/.claude/
 
 # Pictures the seed downloads (app/seed_media.py) — not ours to publish in this repository
 api/.seed-cache/
+
+# A local API key (deploy/sap-local/README.md) — never committed
+key.txt

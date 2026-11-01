@@ -1,0 +1,30 @@
+# SAP Sailing Analytics on this machine, to try the live-scoring integration against
+# (SAP will host the real one). Their own docker/docker-compose-25.yml, plus the Maps key.
+#
+#   sops exec-env deploy/compose/secrets.sops.env 'docker compose -f deploy/sap-local/compose.yaml up -d'
+#
+# Then http://127.0.0.1:8888/gwt/AdminConsole.html, user admin, password admin.
+# Without GOOGLE_MAPS_KEY everything works except the map in the race viewer.
+name: sap-sailing
+services:
+  sailing-analytics:
+    image: "ghcr.io/sap/sailing-analytics:latest-25"
+    ports:
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:14888:14888"
+    environment:
+      MONGODB_URI: mongodb://mongo/test
+      SERVER_NAME: test
+      REPLICATION_HOST: rabbitmq
+      REPLICATION_CHANNEL: test
+      REPLICATION_PORT: 5672
+      GOOGLE_MAPS_AUTHENTICATION_PARAMS: "key=${GOOGLE_MAPS_KEY:-}"
+    depends_on: [mongo, rabbitmq]
+  mongo:
+    # From ECR: the Docker Hub proxy here refuses mongo's layers.
+    image: "public.ecr.aws/docker/library/mongo:7"
+    volumes: [mongo:/data/db]
+  rabbitmq:
+    image: "rabbitmq:3.13"
+volumes:
+  mongo:
