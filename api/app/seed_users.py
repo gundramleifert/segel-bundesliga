@@ -49,8 +49,9 @@ TEST_EVENT = "demo-2-2026-act-3"
 TEST_EVENTS = [TEST_EVENT, "dsbl-1-2027-warnemuende"]
 
 #: The league office and a guest: (email, name, site relations). Every name here is a
-#: pseudonym — `{Alice,Bob}<n> <club code>`, DSL for the league office — save "Alina Admin"
-#: and "Tom Teammanager"; sailors are numbered from 10 (`app.seed.pseudonym`).
+#: pseudonym — `{Alice,Bob}<n> <club code>`, DSL for the league office — save the cast named for
+#: its role — Alina Admin, Tom Teammanager, Martin Manager, Willy Wettfahrtleiter, Jan Jury,
+#: Holger Helfer; sailors are numbered from 10 (`app.seed.pseudonym`).
 SITE_ACCOUNTS: list[tuple[str, str, list[Relation]]] = [
     ("admin@sbl.example.com", "Alina Admin", [Relation.ADMIN]),
     ("redaktion@sbl.example.com", "Alice1 DSL", [Relation.EDITOR]),
@@ -75,10 +76,10 @@ JUNIOR_ACCOUNTS: list[tuple[str, str, Relation, list[str]]] = [
 ]
 #: One tuple each on the test event (Story Z-2).
 EVENT_ACCOUNTS: list[tuple[str, str, Relation]] = [
-    ("regatta@sbl.example.com", "Alice2 ASVW", Relation.RACE_OFFICER),
-    ("orga@sbl.example.com", "Bob2 ASVW", Relation.MANAGER),
-    ("jury@sbl.example.com", "Alice3 ASVW", Relation.JURY),
-    ("helfer@sbl.example.com", "Bob3 ASVW", Relation.HELPER),
+    ("regatta@sbl.example.com", "Willy Wettfahrtleiter", Relation.RACE_OFFICER),
+    ("orga@sbl.example.com", "Martin Manager", Relation.MANAGER),
+    ("jury@sbl.example.com", "Jan Jury", Relation.JURY),
+    ("helfer@sbl.example.com", "Holger Helfer", Relation.HELPER),
 ]
 #: The test club's officials: (address before the @, what they are, their name — else
 #: what they are and the club's code — relation).
