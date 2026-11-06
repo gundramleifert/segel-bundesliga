@@ -22,6 +22,54 @@ from app.text import slugify
 
 POSTS: list[dict] = [
     {
+        # Copied from deutsche-segelliga.de (WordPress post 432), without its picture, which
+        # is the association's site's, and the PDF link.
+        "kind": "news",
+        "slug": "termine-2027-segel-bundesliga-junioren-liga-und-pokal",
+        "title": "Termine 2027: Segel-Bundesliga, Junioren-Liga und Pokal",
+        "published_on": "2026-10-13",
+        "league": None,
+        "teaser": "Die Termine für die Saison 2027 stehen fest: alle Spieltage der 1. und 2. "
+        "Segel-Bundesliga, die ACTs der Deutschen Junioren Segel-Liga und der gemeinsame Pokal.",
+        "body_html": (
+            "<p>Die Termine für die Saison 2027 stehen fest. Hier der Überblick über alle Spi"
+            "eltage der 1. und 2. Segel-Bundesliga, die ACTs der Deutschen Junioren Segel-Lig"
+            "a sowie den gemeinsamen Pokal.</p><h2>1. und 2. Segel-Bundesliga (DSBL)</h2><p><"
+            "em>Regatten jeweils Freitag bis Sonntag</em></p><table><thead><tr><th>Spieltag</"
+            "th><th>Termin</th><th>Ort / Revier</th><th>Ausrichter</th><th>Liga</th></tr></th"
+            "ead><tbody><tr><td>1</td><td>16.–18.04.2027</td><td>Friedrichshafen / Bodensee</"
+            "td><td>Württembergischer Yacht-Club / Konstanzer Yacht-Club</td><td>1. + 2. Liga"
+            "</td></tr><tr><td>2</td><td>30.04.–02.05.2027</td><td>Überlingen / Bodensee</td>"
+            "<td>Bodensee Yacht-Club Überlingen / Segel- und Motorbootclub Überlingen</td><td"
+            ">1. + 2. Liga</td></tr><tr><td>3</td><td>02.–04.07.2027</td><td>Berlin / Wannsee"
+            ", Havel</td><td>Berliner Yacht-Club</td><td>1. + 2. Liga</td></tr><tr><td>4</td>"
+            "<td>30.07.–01.08.2027</td><td>Strande / Kieler Außenförde</td><td>Kieler Yacht-C"
+            "lub</td><td>1. Liga</td></tr><tr><td>5</td><td>17.–19.09.2027</td><td>Warnemünde"
+            " / Ostsee</td><td>Akademischer Segelverein Warnemünde</td><td>1. + 2. Liga</td><"
+            "/tr><tr><td>6 (Finale)</td><td>14.–16.10.2027</td><td>Hamburg / Außenalster</td>"
+            "<td>Norddeutscher Regatta Verein</td><td>1. + 2. Liga</td></tr></tbody></table><"
+            "h2>Deutsche Junioren Segel-Liga (DJSL)</h2><p><em>Freitag nur Training, Regatten"
+            " Samstag und Sonntag</em></p><table><thead><tr><th>ACT</th><th>Termin</th><th>Or"
+            "t / Revier</th><th>Ausrichter</th></tr></thead><tbody><tr><td>ACT 1</td><td>07.–"
+            "09.05.2027</td><td>Konstanz / Bodensee</td><td>Konstanzer Yacht-Club / Schüler S"
+            "egel-Club Konstanz</td></tr><tr><td>ACT 2</td><td>09.–11.07.2027</td><td>Berlin "
+            "/ Wannsee</td><td>Potsdamer Yacht-Club</td></tr><tr><td>ACT 3</td><td>13.–15.08."
+            "2027</td><td>Borgwedel / Schlei</td><td>Schulsportverein Louisenlund</td></tr><t"
+            "r><td>ACT 4</td><td>10.–12.09.2027</td><td>Warnemünde / Ostsee</td><td>Akademisc"
+            "her Segelverein Warnemünde</td></tr></tbody></table><h2>Gemeinsamer Pokal: DSL-P"
+            "okal und DJSL-Pokal</h2><p><strong>Termin:</strong> 22.–24.10.2027<br><strong>Or"
+            "t / Revier:</strong> Hamburg / Außenalster<br><strong>Ausrichter:</strong> Nordd"
+            "eutscher Regatta Verein</p><p><em>Derzeitige Planung: Freitag nur Training, Rega"
+            "tten Samstag und Sonntag. Aus Kapazitätsgründen ist eine Anpassung auf Regatten "
+            "von Freitag bis Samstag möglich.</em></p><p><strong>Vorbehaltlich etwaiger Änder"
+            "ungen bis zur Veröffentlichung der endgültigen Ausschreibung.</strong></p>"
+        ),
+        "author": "Redaktion",
+        "photo_url": None,
+        "photo_credit": None,
+        "example": False,
+    },
+    {
         "kind": "news",
         "slug": "neuer-vorstand-gewaehlt",
         "title": "Neuer Vorstand gewählt – es geht los!",
