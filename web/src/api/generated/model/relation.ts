@@ -21,5 +21,7 @@ export const Relation = {
   member: 'member',
   guardian: 'guardian',
   helper: 'helper',
+  jury_organizer: 'jury_organizer',
+  judge: 'judge',
   treasurer: 'treasurer',
 } as const;

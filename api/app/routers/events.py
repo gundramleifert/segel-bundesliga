@@ -33,6 +33,7 @@ from app.models import (
     Club,
     Event,
     EventStatus,
+    ResultsSource,
     Series,
     Team,
     TeamStatus,
@@ -206,6 +207,9 @@ class EventUpdate(BaseModel):
     squad_min: int | None = Field(default=None, ge=1, le=50)
     squad_max: int | None = Field(default=None, ge=1, le=50)
     print_settings: PrintSettingsIn | None = None
+    # Story VA-14: results entered here or taken from SAP Sailing. Not configuration — an
+    # event may move to SAP's scoring until it is sent there, and back.
+    results_source: ResultsSource | None = None
     boats: list[BoatSpec] | None = Field(
         default=None,
         description="The event's boats as they are now — matched by number: an existing one "

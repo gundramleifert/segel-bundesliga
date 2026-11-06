@@ -29,4 +29,6 @@ export const Role = {
   jury: 'jury',
   treasurer: 'treasurer',
   helper: 'helper',
+  jury_organizer: 'jury_organizer',
+  judge: 'judge',
 } as const;

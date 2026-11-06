@@ -57,6 +57,33 @@ docker compose -f deploy/sap-local/compose.yaml down       # stop; regattas stay
 docker compose -f deploy/sap-local/compose.yaml down -v    # stop and forget everything
 ```
 
+Empty it without forgetting the six boats and the settings — every test run and every
+send leaves events behind:
+
+```bash
+deploy/sap-local/clean.sh
+```
+
+## A whole season on it
+
+`scripts/sap-season.py` plays the 1. Liga 2027 on this SAP, through the site as an
+organizer and a race committee would — `tilt up` must run, its backend talks to this SAP:
+
+```bash
+scripts/sap-season.py seed                                   # 1: reseed the site, empty SAP
+scripts/sap-season.py send --series dsbl-1-2027              # 2: every act to SAP …
+scripts/sap-season.py send --event dsbl-1-2027-friedrichshafen   # … or one
+scripts/sap-season.py sail --event dsbl-1-2027-friedrichshafen   # 3: sail it at SAP, live
+scripts/sap-season.py all                                    # the three in a row
+```
+
+Stage 2 gives an act without announced dates practice dates (only in the local database)
+and a draw from the catalog, marks it scored on SAP and sends it. Stage 3 publishes and
+starts the act, then posts one race every `--every` seconds (default 10) to SAP the way
+the Race Manager app does — a random order, now and then a DSQ; the site takes each one by
+itself while the act is live (`SBL_SAP_POLL_SECONDS`, 5 under Tilt), so
+http://localhost:5173/1-liga/2027/act-1/results fills race by race.
+
 ## Send an event to it (DSL→SAP, Story VA-15)
 
 ```bash

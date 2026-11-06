@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**102 stories** — ● 73 implemented and tested · ◐ 17 partial · ○ 12 open. With backend tests: 82 · with browser tests: 55 · walked by a journey: 59 · **with no test at all: 11**.
+**103 stories** — ● 74 implemented and tested · ◐ 19 partial · ○ 10 open. With backend tests: 85 · with browser tests: 59 · walked by a journey: 59 · **with no test at all: 9**.
 
 ## Journeys
 
@@ -24,7 +24,7 @@ here — this page says what *exists*, the report what *passed*.
 - [J-7 ● From a claim to the bank](#j-7--from-a-claim-to-the-bank)
 - [J-8 ◐ A club hosts its own event](#j-8--a-club-hosts-its-own-event)
 - [J-9 ● A fan follows an act](#j-9--a-fan-follows-an-act)
-- [J-10 ○ A matchday scored live on SAP Sailing](#j-10--a-matchday-scored-live-on-sap-sailing)
+- [J-10 ◐ A matchday scored live on SAP Sailing](#j-10--a-matchday-scored-live-on-sap-sailing)
 
 ### J-1 ◐ From an empty series to a scored matchday
 
@@ -233,25 +233,25 @@ here — this page says what *exists*, the report what *passed*.
 | J-9.8 | main | B-1 | ● | W1 | — | `journey-lifecycle`<br>`journey-series` |
 | J-9.9 | missed an act | A-5 | ● | W1 | — | `terms` |
 
-### J-10 ○ A matchday scored live on SAP Sailing
+### J-10 ◐ A matchday scored live on SAP Sailing
 
 [sap-scored.md](journeys/sap-scored.md) · help: — · report: Allure → story *J-10 · A matchday scored live on SAP Sailing*, one step per row below
 
-- no walk yet
+- **W1** `test_journey_sap_scored.py::TestAMatchdayScoredOnSap::test_from_the_send_to_the_years_table`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-10.1 | main | VA-14 | ○ | — | — | — |
-| J-10.16 | main | VA-15 | ◐ | — | `test_sap_send.py::test_sap_holds_the_event_its_teams_and_our_draw` | — |
-| J-10.4 | main | VA-8 | ● | — | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-10.1 | main | VA-14 | ◐ | W1 | — | — |
+| J-10.16 | main | VA-15 | ◐ | W1 | `test_sap_send.py::test_sap_holds_the_event_its_teams_and_our_draw` | — |
+| J-10.4 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
 | J-10.5 | main | WL-5 | ◐ | *(offline)* | — | — |
-| J-10.6 | entered here | WL-5 | ◐ | — | — | — |
-| J-10.7 | main | WL-5 | ◐ | — | `test_sap_send.py::test_the_draw_goes_to_sap_and_the_results_come_back` | — |
-| J-10.8 | SAP unreachable | WL-5 | ◐ | — | — | — |
-| J-10.9 | points differ | WL-5 | ◐ | — | — | — |
-| J-10.10 | main | B-5 | ◐ | — | — | — |
-| J-10.11 | main | B-20 | ○ | — | — | — |
-| J-10.12 | main | VA-10 | ● | — | — | `close-event`<br>`journey-lifecycle`<br>`terms` |
+| J-10.6 | entered here | WL-5 | ◐ | W1 | — | — |
+| J-10.7 | main | WL-5 | ◐ | W1 | `test_sap_send.py::test_the_draw_goes_to_sap_and_the_results_come_back` | — |
+| J-10.8 | SAP unreachable | WL-5 | ◐ | W1 | — | — |
+| J-10.9 | points differ | WL-5 | ◐ | — | `test_sap_send.py::test_points_that_differ_at_sap_are_reported_and_ours_stand` | — |
+| J-10.10 | main | B-5 | ◐ | W1 | — | — |
+| J-10.11 | main | B-20 | ◐ | W1 | — | — |
+| J-10.12 | main | VA-10 | ● | W1 | — | `close-event`<br>`journey-lifecycle`<br>`terms` |
 | J-10.13 | protest later | WL-5 | ◐ | *(offline)* | — | — |
-| J-10.14 | protest later | WL-5 | ◐ | — | — | — |
-| J-10.15 | main | B-1 | ● | — | — | `journey-lifecycle`<br>`journey-series` |
+| J-10.14 | protest later | WL-5 | ◐ | W1 | — | — |
+| J-10.15 | main | B-1 | ● | W1 | — | `journey-lifecycle`<br>`journey-series` |

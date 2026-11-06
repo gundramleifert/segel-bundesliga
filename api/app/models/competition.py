@@ -42,6 +42,15 @@ class EventStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class ResultsSource(StrEnum):
+    """Where an event's results come from (Story VA-14) — entered here, or scored on SAP
+    Sailing and taken from there (Story WL-5). For an event on SAP the site refuses result
+    entry: two places to type a result would be two results."""
+
+    SITE = "site"
+    SAP = "sap"
+
+
 class League(Base, TimestampMixin):
     """A competition that runs year after year: DSBL, Junioren-Liga, DSL-Pokal.
 
@@ -215,6 +224,16 @@ class Event(Base, TimestampMixin):
 
     # SAP Sailing access is a value per regatta, not a global secret.
     sap_leaderboard: Mapped[str | None] = mapped_column(String(200), default=None)
+    # The SAP server that leaderboard lives on — its site, ``https://hnv.sapsailing.com``:
+    # an imported act's is the host it came from, a sent one's our configured server. The
+    # credit under the act links its results there (Story B-21).
+    sap_server: Mapped[str | None] = mapped_column(String(200), default=None)
+    # SAP's id of the event the leaderboard belongs to — its event page is where the credit
+    # leads (B-21): kept from ``createEvent`` on a send, found in the event list on import.
+    sap_event_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    results_source: Mapped[str] = mapped_column(
+        String(8), default=ResultsSource.SITE, server_default=ResultsSource.SITE
+    )
 
     @property
     def races_per_flight(self) -> int:

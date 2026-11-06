@@ -100,6 +100,7 @@ const EVENT_GROUPS = [
       clubs: { for: ORGANIZERS },
       boats: { for: ORGANIZERS },
       pairing: { for: ORGANIZERS },
+      scoring: { for: ORGANIZERS },
       publication: { for: ORGANIZERS },
       people: { for: ORGANIZERS },
     },

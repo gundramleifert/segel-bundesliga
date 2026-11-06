@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { useGetAdminEvent, useGetReadiness } from "../../../api/generated/sbl";
-import { ContextRelation, EventStatus, type EventSummary, type MyContext } from "../../../api/types";
+import { ContextRelation, EventStatus, ResultsSource, type EventSummary, type MyContext } from "../../../api/types";
 import { useAsync } from "../../../api/useApi";
 import { AccessPanel } from "../../../components/AccessPanel";
 import { Async } from "../../../components/Async";
@@ -23,6 +23,7 @@ import {
 } from "../../admin/events/EventPanel";
 import { ReadinessReasons } from "../../admin/events/ReadinessReasons";
 import { EventBoatsForm, EventGeneralForm } from "./EventSetupForms";
+import { EventScoring } from "./EventScoring";
 import { WaiverChecklist } from "../../admin/events/WaiverChecklist";
 import { NoticeBoard } from "../../league/act/NoticeBoard";
 import { Door } from "../ContextFrame";
@@ -120,6 +121,16 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
       ),
     },
     {
+      key: "scoring",
+      render: () => (
+        <Panel title={t("eventSections.scoring")} testId="me-event-scoring">
+          <WithEvent id={id} testId="me-event-scoring">
+            {(event) => <EventScoring event={event} />}
+          </WithEvent>
+        </Panel>
+      ),
+    },
+    {
       key: "publication",
       needs: ["event_unpublished"],
       render: () => (
@@ -165,15 +176,21 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
       key: "race-control",
       render: () => (
         <Panel title={t("eventSections.raceControl")} testId="me-event-race-control">
-          <Door
-            text={t("eventSections.raceControlScreen")}
-            to={`/events/${id}/race-control`}
-            label={t("eventSections.raceControlLink")}
-            testId="me-event-race-control-screen"
-          />
           <WithEvent id={id} testId="me-event-race-control">
             {(event) => (
               <>
+                {/* On SAP, its Race Manager app is the race control (VA-14); the day's
+                    start and close stay here — they say when the site asks SAP. */}
+                {event.results_source === ResultsSource.sap ? (
+                  <OnSap testId="me-event-race-control-on-sap" />
+                ) : (
+                  <Door
+                    text={t("eventSections.raceControlScreen")}
+                    to={`/events/${id}/race-control`}
+                    label={t("eventSections.raceControlLink")}
+                    testId="me-event-race-control-screen"
+                  />
+                )}
                 <EventLifecycle event={event} parts={{ start: true }} />
                 <EventClosing event={event} />
               </>
@@ -187,18 +204,9 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
       needs: ["results_missing"],
       render: () => (
         <Panel title={t("eventSections.results")} testId="me-event-results">
-          {c.published ? (
-            <Door
-              text={t("eventSections.resultsText")}
-              to={`/events/${id}/entry`}
-              label={t("eventSections.resultsLink")}
-              testId="me-event-results-entry"
-            />
-          ) : (
-            <p className="text-sm text-muted" data-testid="me-event-results-draft">
-              {t("eventSections.resultsDraft")}
-            </p>
-          )}
+          <WithEvent id={id} testId="me-event-results">
+            {(event) => (event.results_source === ResultsSource.sap ? <EventScoring event={event} /> : <ResultsDoorOf id={id} published={Boolean(c.published)} />)}
+          </WithEvent>
         </Panel>
       ),
     },
@@ -244,4 +252,30 @@ function NotReady({ context }: { context: MyContext }) {
       </Link>
     </section>
   );
+}
+
+/** The race committee's door to our result entry — on an event scored here, once published. */
+function ResultsDoorOf({ id, published }: { id: number; published: boolean }) {
+  const { t } = useTranslation("space");
+  if (!published) {
+    return (
+      <p className="text-sm text-muted" data-testid="me-event-results-draft">
+        {t("eventSections.resultsDraft")}
+      </p>
+    );
+  }
+  return (
+    <Door
+      text={t("eventSections.resultsText")}
+      to={`/events/${id}/entry`}
+      label={t("eventSections.resultsLink")}
+      testId="me-event-results-entry"
+    />
+  );
+}
+
+/** Where the race committee of an event scored on SAP works instead (VA-14, WL-5). */
+function OnSap({ testId }: { testId: string }) {
+  const { t } = useTranslation("space");
+  return <p className="text-sm text-muted" data-testid={testId}>{t("scoring.raceManager")}</p>;
 }

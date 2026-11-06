@@ -239,5 +239,12 @@
   "invitation-mail-failed": "Die Einladung ist gespeichert, die E-Mail konnte aber nicht gesendet werden. Senden Sie sie erneut.",
   "invitation-not-found": "Dieser Link ist nicht gültig — vielleicht wurde ein neuerer geschickt. Fragen Sie den Verein, der Sie eingeladen hat.",
   "invitation-used": "Dieser Link wurde bereits verwendet. Melden Sie sich an; fragen Sie {club}, wenn etwas fehlt.",
-  "invitation-expired": "Dieser Link ist abgelaufen. Bitten Sie {club}, ihn erneut zu senden."
+  "invitation-expired": "Dieser Link ist abgelaufen. Bitten Sie {club}, ihn erneut zu senden.",
+  "event-scored-on-sap": "Diese Veranstaltung wird in SAP Sailing gewertet — Ergebnisse werden dort eingegeben und aus {leaderboard} übernommen.",
+  "event-not-scored-on-sap": "Die Ergebnisse dieser Veranstaltung werden hier eingegeben, nicht in SAP Sailing.",
+  "event-not-sent-to-sap": "Die Veranstaltung wurde noch nicht an SAP Sailing gesendet.",
+  "sap-not-configured": "Auf diesem Server ist keine Verbindung zu SAP Sailing eingerichtet.",
+  "sap-unreachable": "SAP Sailing antwortet nicht. Bereits übernommene Ergebnisse bleiben; gleich noch einmal versuchen.",
+  "sap-refused": "SAP Sailing hat einen Schritt abgelehnt. Nichts gilt als gesendet; nach der Korrektur erneut senden.",
+  "sap-boat-missing": "Für eines der Boote der Veranstaltung gibt es kein Boot in SAP Sailing."
 }

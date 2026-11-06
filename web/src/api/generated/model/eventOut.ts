@@ -8,6 +8,7 @@
 import type { ClubOut } from './clubOut';
 import type { EventOutPrintSettings } from './eventOutPrintSettings';
 import type { EventStatus } from './eventStatus';
+import type { ResultsSource } from './resultsSource';
 import type { SeriesOut } from './seriesOut';
 import type { VenueOut } from './venueOut';
 
@@ -34,4 +35,9 @@ export interface EventOut {
   squad_min?: number;
   squad_max?: number;
   print_settings?: EventOutPrintSettings;
+  results_source?: ResultsSource;
+  sap_leaderboard?: string | null;
+  sap_viewer_url?: string | null;
+  results_from_sap?: boolean;
+  sap_leaderboard_url?: string | null;
 }

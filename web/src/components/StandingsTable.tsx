@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import type { EventSummary, SeriesTable } from "../api/types";
 import { formatPoints, teamLabel } from "../lib/format";
 import { TableFrame } from "./Blocks";
+import { SapAttribution } from "./SapAttribution";
 import { Tip } from "./Tip";
 
 /** Where a table marks promotion, relegation and requalification — by rank. */
@@ -145,6 +146,7 @@ export function StandingsTable({
             ))}
         </ul>
       )}
+      <SapAttribution when={data.events.some((e) => e.results_from_sap)} testId={`${testId}-sap-attribution`} />
     </>
   );
 }

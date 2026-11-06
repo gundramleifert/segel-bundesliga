@@ -7,6 +7,7 @@ import { eventDates } from "../../lib/format";
 import { href, type Act } from "../../lib/site";
 import { useActTitle, useCurrentActs } from "./acts";
 import { Card, CardRow, TextCard } from "./Cards";
+import { SapAttribution } from "../SapAttribution";
 import { useLeagues } from "./Frame";
 
 /** The official pages' footer: the last band on the picture, built from the same pieces
@@ -65,7 +66,11 @@ export function GlassFooter() {
             <Link to="/legal-notice" className={link} data-testid="site-footer-legal-notice">{tc("userMenu.legalNotice")}</Link>
             <Link to="/privacy" className={link}>{tc("userMenu.privacy")}</Link>
           </p>
-          <p>{t("footer.credits")}</p>
+          <div className="space-y-1">
+            <p>{t("footer.credits")}</p>
+            {/* SAP requires its credit on every page while the site uses SAP Sailing (B-21). */}
+            <SapAttribution className="mt-2" testId="site-footer-sap-attribution" />
+          </div>
         </div>
       </div>
     </footer>

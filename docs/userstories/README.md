@@ -10,7 +10,7 @@ per phase.
 | File | Who |
 |---|---|
 | [administration.md](administration.md) | Administration: clubs, series, accounts and roles, the admin screens |
-| [race-committee.md](race-committee.md) | Race committee: running races, entering results |
+| [race-committee.md](race-committee.md) | Race committee and jury: the pool of judges and who sits on which jury, running races, entering results |
 | [event-organizer.md](event-organizer.md) | Event organizer: one event from draft to closing |
 | [club.md](club.md) | Club admin and team manager: members, competitions, squad and lineup, the club page |
 | [sailor.md](sailor.md) | Sailor: account, club, waiver, profile |
@@ -22,7 +22,7 @@ per phase.
 
 **Identifiers are permanent, files are not.** The letter records where a story was
 first told (`B` Visitor/Fan · `WL` Race Committee · `VA` Event Organizer · `V` Club
-· `S` Sailor · `Z` Access · `A` Administration · `L` Live and tracking · `R` Editorial · `F` Finance · `J` Journey) and
+· `S` Sailor · `Z` Access · `A` Administration · `L` Live and tracking · `R` Editorial · `F` Finance · `JU` Jury · `J` Journey) and
 never changes, because tests carry it. A story sits in the file of the person who tells
 it, so `A-5` is read in `visitor.md` and `Z-2` in `administration.md`. `scripts/check-docs.py`
 reads the whole folder: every `Tests:` reference must resolve, every story a test names

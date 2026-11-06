@@ -14,7 +14,12 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, mo
 
 from app.crests import crest_url
 from app.models.auth import Relation
-from app.models.competition import AnnouncementIssuer, EventDocumentKind, EventStatus
+from app.models.competition import (
+    AnnouncementIssuer,
+    EventDocumentKind,
+    EventStatus,
+    ResultsSource,
+)
 from app.models.org import CrewRole, InvitationState, MembershipStatus, Person
 from app.models.racing import PreparatoryFlag, RaceStatus
 
@@ -337,6 +342,16 @@ class EventOut(BaseModel):
     # How the pairing list is printed (Story B-3). Empty is the normal case and means the
     # defaults the configuration implies; the organizer's screen shows what is set here.
     print_settings: dict[str, Any] | None = None
+    # Where the results come from (Story VA-14): entered here, or taken from SAP Sailing's
+    # leaderboard, named once the event was sent there (Story VA-15).
+    results_source: ResultsSource = ResultsSource.SITE
+    sap_leaderboard: str | None = None
+    # SAP's live view of the event for the act's page (Story B-20) — set while SAP scores it.
+    sap_viewer_url: str | None = None
+    # Its results came from SAP Sailing, so every page showing them credits SAP (B-21).
+    results_from_sap: bool = False
+    # Its results on SAP's own site, where the credit under the act leads (B-21).
+    sap_leaderboard_url: str | None = None
 
 
 class EventStandingRow(BaseModel):
@@ -377,11 +392,15 @@ class EventAccess(BaseModel):
 
     #: The race committee's tools: results, race control, the course, trackers
     #: (``race_officer`` on the event — directly or through its series, host club, site).
+    #: Never on an event scored on SAP: its committee works in SAP's app (VA-14).
     record_results: bool = False
     #: Start, finish, cancel and reopen the day (``manager`` or ``race_officer``).
     control: bool = False
     #: The organizer's setup screen (``manager`` on the event).
     manage: bool = False
+    #: Whether *Set up › Scoring* offers SAP Sailing (Story VA-14): the organizer, on an
+    #: installation that has SAP's credentials.
+    sap: bool = False
     #: Whom this person may publish announcements as on the notice board (Story VA-11) —
     #: each issuer is a relation on the event. Empty: no form.
     announce_as: list[AnnouncementIssuer] = Field(default_factory=list)

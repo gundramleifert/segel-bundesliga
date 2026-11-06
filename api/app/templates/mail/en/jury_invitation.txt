@@ -1,0 +1,21 @@
+{#- Story JU-3: the jury organizer asks a judge for events. -#}
+{% extends "en/_base.txt" %}
+{% block subject %}Jury request: {{ events|length }} {{ "event" if events|length == 1 else "events" }}{% endblock %}
+{% block reason %}you are in the Deutsche Segel-Liga's pool of judges{% endblock %}
+{% block body %}
+Hello {{ name }},
+
+{{ organizer }} asks whether you can sit on the jury of {{ "this event" if events|length == 1 else "these events" }}:
+
+{% for event in events %}
+- {{ event }}
+{% endfor %}
+{% if note %}
+
+{{ note }}
+{% endif %}
+
+Please say on the website whether you can — "I can" is your application:
+
+{{ link }}
+{% endblock %}

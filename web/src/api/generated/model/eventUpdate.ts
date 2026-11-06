@@ -7,6 +7,7 @@
  */
 import type { BoatSpec } from './boatSpec';
 import type { PrintSettingsIn } from './printSettingsIn';
+import type { ResultsSource } from './resultsSource';
 
 /**
  * All fields optional — only those provided will be set.
@@ -29,6 +30,7 @@ export interface EventUpdate {
   squad_min?: number | null;
   squad_max?: number | null;
   print_settings?: PrintSettingsIn | null;
+  results_source?: ResultsSource | null;
   /** The event's boats as they are now — matched by number: an existing one is renamed or recoloured, a new number added, a missing one removed. Sets boat_count. Configuration: frozen by the first race. */
   boats?: BoatSpec[] | null;
 }

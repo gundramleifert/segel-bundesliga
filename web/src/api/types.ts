@@ -120,6 +120,7 @@ export type { ClaimTarget } from "./generated/model/claimTarget";
 export type { UnavailableEvent } from "./generated/model/unavailableEvent";
 export { UnclaimableReason } from "./generated/model/unclaimableReason";
 export { ExpenseKind } from "./generated/model/expenseKind";
+export { ResultsSource } from "./generated/model/resultsSource";
 
 /** The closed sets the backend types as enums. Each is a type *and* a constant object
  *  (`EventStatus.live`), so a comparison names a member the compiler knows — a typo or a

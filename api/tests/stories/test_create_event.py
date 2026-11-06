@@ -235,7 +235,8 @@ class TestWhoPlacesAnEvent:
         """A PATCH places an event as creating does: a taken matchday is a 409, not a
         database error, and outside a series there is no matchday."""
         office = await admin(client, caplog, "va6-move@example.com")
-        draft = await series_id("1. Segel-Bundesliga 2027")  # no clubs yet: nothing entered
+        # No clubs registered yet (the 1. Liga 2027 has its 18): nothing is entered.
+        draft = await series_id("2. Segel-Bundesliga 2027")
         created = (
             await client.post(
                 "/api/admin/events", headers=office, json={"title": "Moved Act", "series": draft}

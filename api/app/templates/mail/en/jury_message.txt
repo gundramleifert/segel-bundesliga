@@ -1,0 +1,11 @@
+{#- Story JU-3: the jury organizer writes to judges. -#}
+{% extends "en/_base.txt" %}
+{% block subject %}{{ subject }}{% endblock %}
+{% block reason %}you are in the Deutsche Segel-Liga's pool of judges{% endblock %}
+{% block body %}
+Hello {{ name }},
+
+{{ text }}
+
+{{ organizer }}
+{% endblock %}

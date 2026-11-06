@@ -50,9 +50,12 @@ from app.models import (
 from app.models.auth import Grant, Relation, User
 from app.models.racing import BOAT_COLORS
 from app.pairing import build_pairing
+from app.pairing.catalog import load_entry, shuffle_pairing
 from app.seed_junioren import seed_junioren
 from app.seed_posts import seed_posts
 from app.services import people
+from app.services.event_readiness import event_readiness
+from app.services.pairing_service import PairingDraft, publish_pairing
 from app.services.participation import activate
 from app.services.standings import recompute_series
 from app.text import slugify
@@ -499,8 +502,9 @@ async def seed() -> None:
                     )
 
         # Next year's 1. and 2. Liga, being prepared: a draft series each with its announced
-        # acts and no clubs yet — registering them (after promotion and relegation) is what
-        # there is to practise. Drafts, so the public site stays on this year.
+        # acts — the 1. Liga's clubs follow from this year's tables once they are in
+        # (`_first_division_next_year`); the 2. Liga's are still to be entered. Drafts, so
+        # the public site stays on this year.
         venue_by_slug = {venue.slug: venue for venue in venues}
         for level, league in ((1, first_division), (2, second_division)):
             next_year = Series(
@@ -565,6 +569,10 @@ async def seed() -> None:
             await recompute_series(session, series.id)
         await session.commit()
 
+        # The 1. Liga 2027 is the 2026 tables' outcome, so its clubs are known.
+        await _first_division_next_year(session)
+        await session.commit()
+
         # What the news and press pages showed when they were static content (Story R-1).
         await seed_posts(session)
         await session.commit()
@@ -618,6 +626,69 @@ async def publish_demo() -> None:
         for post in (await session.execute(select(Post).where(Post.example))).scalars():
             post.published = True
         await session.commit()
+
+
+# The league's rule (deutsche-segelliga.de/wettbewerbe, `web/src/content/index.ts`): the 1.
+# Liga's last four go down, the 2. Liga's first four come up.
+STAY_UP = 14
+GO_UP = 4
+
+
+async def _ranked_clubs(session, slug: str) -> list[Club]:
+    """A series' clubs in the order of its final table."""
+    return list(
+        (
+            await session.execute(
+                select(Club)
+                .join(Team, Team.club_id == Club.id)
+                .join(SeriesStanding, SeriesStanding.team_id == Team.id)
+                .join(Series, Series.id == SeriesStanding.series_id)
+                .where(Series.slug == slug)
+                .order_by(SeriesStanding.rank)
+            )
+        ).scalars()
+    )
+
+
+async def _first_division_next_year(session) -> None:
+    """The 1. Liga 2027 with its clubs: places 1–14 of the 1. Liga 2026 and 1–4 of the 2.
+    Liga 2026, registered for the series and entered in every act, each act with its six
+    boats. An act with announced dates also has its pairing list from the catalog, as
+    `pairing/from-catalog` draws it — an act without dates is not ready for a draw (VA-8),
+    and no date is invented. Still drafts. The 2. Liga 2027 waits: its places 13–18 of 2026
+    requalify at the DSL-Pokal, whose result the seed does not have."""
+    first = await _ranked_clubs(session, f"dsbl-1-{YEAR}")
+    second = await _ranked_clubs(session, f"dsbl-2-{YEAR}")
+    clubs = first[:STAY_UP] + second[:GO_UP]
+    assert len(clubs) == STAY_UP + GO_UP, "the 2026 tables are incomplete"
+    series = (
+        await session.execute(select(Series).where(Series.slug == f"dsbl-1-{YEAR + 1}"))
+    ).scalar_one()
+    session.add_all(Team(name=c.short_name, club_id=c.id, series_id=series.id) for c in clubs)
+    events = (
+        await session.execute(
+            select(Event).where(Event.series_id == series.id).order_by(Event.matchday)
+        )
+    ).scalars()
+    for n, event in enumerate(events):
+        entries = [
+            Team(name=c.short_name, number=1, club_id=c.id, series_id=series.id, event_id=event.id)
+            for c in clubs
+        ]
+        session.add_all(entries)
+        session.add_all(
+            Boat(
+                event_id=event.id, number=b, color=BOAT_COLORS[b - 1], sail_number=f"GER {700 + b}"
+            )
+            for b in range(1, BOATS + 1)
+        )
+        await session.flush()
+        if await event_readiness(session, event):
+            continue
+        pairing = shuffle_pairing(load_entry(len(entries), BOATS, FLIGHTS), seed=n)
+        await publish_pairing(
+            session, event, PairingDraft.from_import(pairing, [t.id for t in entries])
+        )
 
 
 async def _seed_matchday(session, event, teams, rng, status) -> None:

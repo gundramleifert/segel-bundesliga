@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -11,6 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.auth import requires_sign_in
 from app.config import settings
+from app.db import SessionLocal
 from app.jobs import jobs
 from app.live import hub
 from app.problems import (
@@ -41,16 +43,27 @@ from app.routers import (
     personal,
     posts,
     public,
+    sap,
     series,
     tracking,
     waivers,
 )
+from app.services import sap_scoring
 from app.tracking.service import position_publisher
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    # The results of live events scored on SAP Sailing, fetched while the server runs
+    # (Story WL-5) — off with SBL_SAP_POLL_SECONDS=0, as in the tests.
+    polling = (
+        asyncio.create_task(sap_scoring.poll(SessionLocal))
+        if settings.sap_poll_seconds > 0
+        else None
+    )
     yield
+    if polling is not None:
+        polling.cancel()
     # Cancel running optimizations cleanly instead of cutting them off mid-run, and end
     # every open live stream — otherwise the server waits on them before it stops.
     await jobs.shutdown()
@@ -133,6 +146,7 @@ app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(events.router)
+app.include_router(sap.router)
 app.include_router(clubs.router)
 # Same prefix as clubs.router, but without its admin/editor-only router dependency —
 # the crest is also a team manager's own business (Story V-3).

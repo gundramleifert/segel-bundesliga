@@ -102,5 +102,8 @@
   "theme": {
     "toLight": "Switch to light",
     "toDark": "Switch to dark"
+  },
+  "sapAttribution": {
+    "poweredBy": "Results powered by"
   }
 }

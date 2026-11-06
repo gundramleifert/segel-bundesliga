@@ -1,4 +1,4 @@
-# J-10 ○ A matchday scored live on SAP Sailing
+# J-10 ◐ A matchday scored live on SAP Sailing
 
 As the **association** I want **a league matchday scored on SAP Sailing Analytics, which
 SAP hosts for us, and shown on our site as it happens** — so that **the race committee
@@ -131,5 +131,6 @@ Open:
 - **A difference in points** (J-10.9): reported only, or does the event's readiness block
   closing until someone looks?
 
-Tests: none yet — tried by hand against SAP Sailing on one machine,
-`deploy/sap-local/README.md`
+Tests: `api/tests/stories/test_journey_sap_scored.py::TestAMatchdayScoredOnSap::test_from_the_send_to_the_years_table` — against the local SAP Sailing (`deploy/sap-local/`), skipped when none
+runs; J-10.9 in `api/tests/stories/test_sap_send.py`, against the same SAP. No imitation
+of SAP: the one we had hid what SAP's leaderboard really answers (docs/gotchas)

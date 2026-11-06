@@ -21,6 +21,7 @@
   "chapters": {
     "now": "Now",
     "standings": "Standings",
+    "seasonOf": "Season {year}",
     "news": "News",
     "media": "Media",
     "about": "About",

@@ -19,5 +19,6 @@ export interface EventAccess {
   record_results?: boolean;
   control?: boolean;
   manage?: boolean;
+  sap?: boolean;
   announce_as?: AnnouncementIssuer[];
 }

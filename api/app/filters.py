@@ -18,7 +18,7 @@ from datetime import date
 from typing import ClassVar
 
 from pydantic import Field, PrivateAttr
-from sqlalchemy import Select, or_, select
+from sqlalchemy import Select, and_, or_, select
 
 from app.listing import ListFilter
 from app.models import (
@@ -27,6 +27,9 @@ from app.models import (
     Event,
     EventStatus,
     InvitationState,
+    JudgeLicence,
+    JudgeLicenceHolding,
+    JuryRequest,
     League,
     MediaItem,
     MembershipStatus,
@@ -41,6 +44,7 @@ from app.models import (
 from app.models.auth import Grant, Relation, User
 from app.models.base import utcnow
 from app.pagination import apply_search
+from app.problems import Problem
 
 #: The ``league`` filter's value for the association's own posts.
 ASSOCIATION = "association"
@@ -371,3 +375,69 @@ class MediaFilter(ListFilter):
     def where_alt_missing(self, missing: bool):
         # `false` is "every picture", not "only the confirmed ones" — as before.
         return MediaItem.alt_confirmed.is_(False) if missing else None
+
+
+# ---------------------------------------------------------------- the jury (JU-1–JU-5)
+
+#: The states the pool filters an event by (JU-3) — the request's, plus ``asked``: any.
+JURY_FILTER_STATES = ("approved", "available", "invited", "declined", "asked")
+
+
+def _jury_clause(event_id: int, state: str):
+    asked = select(JuryRequest.user_id).where(JuryRequest.event_id == event_id)
+    match state:
+        case "approved":
+            return asked.where(JuryRequest.approved.is_(True))
+        case "available":
+            return asked.where(JuryRequest.approved.is_(False), JuryRequest.available.is_(True))
+        case "declined":
+            return asked.where(JuryRequest.approved.is_(False), JuryRequest.available.is_(False))
+        case "invited":
+            return asked.where(JuryRequest.approved.is_(False), JuryRequest.available.is_(None))
+    return asked
+
+
+class JudgeFilter(ListFilter):
+    """The jury organizer's pool (Story JU-3): every judge, narrowed by licence and by
+    their state at events — ``event=<id>:<state>``, ``!`` before the state excluding, several
+    combined. The route keeps it to the pool."""
+
+    q: str | None = Field(default=None, description="Search in name and address")
+    licence: JudgeLicence | None = Field(default=None, description="Only judges holding this licence")
+    event: list[str] | None = Field(
+        default=None,
+        description=(
+            "Per event, `<event id>:<state>` — state one of "
+            + ", ".join(JURY_FILTER_STATES)
+            + "; `!` before it excludes. Several combine."
+        ),
+    )
+    order_by: list[str] | None = SORT
+
+    class Constants(ListFilter.Constants):
+        model = User
+        sortable: ClassVar = {"display_name": User.display_name, "email": User.email}
+        default_order: ClassVar = (User.display_name, User.id)
+        search_columns: ClassVar = (User.display_name, User.email)
+
+    def where_licence(self, licence: JudgeLicence):
+        holders = select(JudgeLicenceHolding.user_id).where(JudgeLicenceHolding.licence == str(licence))
+        return User.id.in_(holders)
+
+    def where_event(self, conditions: list[str]):
+        clauses = []
+        for condition in conditions:
+            event, _, state = condition.partition(":")
+            negated = state.startswith("!")
+            state = state.removeprefix("!")
+            if not event.strip().isdigit() or state not in JURY_FILTER_STATES:
+                raise Problem(
+                    422,
+                    "jury-filter-invalid",
+                    "A jury filter is `<event id>:<state>`.",
+                    condition=condition,
+                    states=list(JURY_FILTER_STATES),
+                )
+            holders = _jury_clause(int(event), state)
+            clauses.append(User.id.not_in(holders) if negated else User.id.in_(holders))
+        return and_(*clauses) if clauses else None

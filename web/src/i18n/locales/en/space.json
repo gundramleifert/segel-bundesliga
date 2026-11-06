@@ -365,6 +365,7 @@
         "clubs": "Clubs",
         "boats": "Boats",
         "pairing": "Pairing list",
+        "scoring": "Scoring",
         "publication": "Publication",
         "people": "People",
         "check-in": "Check-in",
@@ -424,7 +425,8 @@
     "resizeDiscardsDraw": "Saving a new size discards the pairing list drawn for the old one — draw again afterwards.",
     "saved": "Saved.",
     "boats": "Boats",
-    "save": "Save"
+    "save": "Save",
+    "scoring": "Scoring"
   },
   "clubSections": {
     "people": "People",
@@ -493,5 +495,23 @@
     "standingsLink": "Open the standings",
     "standingsDraft": "The series is a draft — its standings appear on the public page once it is published.",
     "newEvent": "+ New event"
+  },
+  "scoring": {
+    "sourceLabel": "Results come from",
+    "site": "This site",
+    "sap": "SAP Sailing",
+    "onSite": "The race committee enters results here, on the event's page and its race-control screen.",
+    "onSap": "Scored on SAP Sailing: send the event there before the first race, and again after a new draw. The race committee enters results in SAP's Race Manager app; while the event is live, this site takes them every few seconds.",
+    "sapUnavailable": "This installation has no SAP Sailing account, so its events are scored here.",
+    "leaderboard": "SAP leaderboard: {name}.",
+    "notSent": "Not sent to SAP yet.",
+    "openAtSap": "Open at SAP Sailing",
+    "send": "Send to SAP Sailing",
+    "sending": "Sending …",
+    "sent": "Sent as {leaderboard}: {created, plural, one {# team} other {# teams}} new, {kept} kept, {races, plural, one {# race} other {# races}}.",
+    "fetch": "Fetch results now",
+    "fetching": "Fetching …",
+    "fetched": "{count, plural, =0 {No new results} one {# result taken} other {# results taken}}{warnings, plural, =0 {} one {, # warning} other {, # warnings}}.",
+    "raceManager": "Scored on SAP Sailing: the race committee runs the races in SAP's Race Manager app. Start and close the day here — while it is live, this site takes the results from SAP."
   }
 }

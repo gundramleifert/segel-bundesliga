@@ -80,6 +80,14 @@ class Relation(StrEnum):
     power on the event; it entitles the person to an expense claim on it (Story F-2) and
     lets the event's organizers see their documents (Story S-5)."""
 
+    JURY_ORGANIZER = "jury_organizer"
+    """Site: keeps the league's pool of judges and staffs every event's jury from it —
+    asks judges, approves them, and so writes the event's ``jury`` (Stories JU-1–JU-5)."""
+
+    JUDGE = "judge"
+    """Site: in the league's pool of judges (Story JU-1). Grants nothing on any event; it
+    is whom the jury organizer may ask and write to. Written by the jury organizer."""
+
     TREASURER = "treasurer"
     """Club or event: holds the money — checks and pays the expense claims of an event
     (Story F-1). The host club pays its events' costs, so the host club's treasurer is
@@ -147,7 +155,9 @@ SITE = ObjectRef(ObjectType.SITE)
 #: model, on the ``ClubMembership`` row. ``member`` implies nothing else. ``treasurer``
 #: holds the money: the host club pays its events' costs, so the club's treasurer is
 #: that of every event it hosts (Story F-1). ``helper`` works one event's day and holds
-#: no power on it (Story VA-12). A person's ``manager`` is the organizer of a club they
+#: no power on it (Story VA-12). The site's ``jury_organizer`` keeps the pool of judges —
+#: ``judge`` on the site, which grants nothing on an event — and whom they approve gets the
+#: event's ``jury`` tuple, written by `app/services/jury.py` (Stories JU-1–JU-5). A person's ``manager`` is the organizer of a club they
 #: are an active member of (``club`` — the clubs of their active ``ClubMembership`` rows,
 #: Story V-4): who puts them
 #: in a squad, changes them, signs their waiver forms and links their parents.
@@ -162,6 +172,8 @@ type site
     define admin: [user]
     define editor: [user] or admin
     define race_officer: [user] or admin
+    define jury_organizer: [user] or admin
+    define judge: [user]
 
 type club
   relations
@@ -288,6 +300,8 @@ class Role(StrEnum):
     JURY = "jury"
     TREASURER = "treasurer"
     HELPER = "helper"
+    JURY_ORGANIZER = "jury_organizer"
+    JUDGE = "judge"
 
 
 class IdentityProvider(StrEnum):

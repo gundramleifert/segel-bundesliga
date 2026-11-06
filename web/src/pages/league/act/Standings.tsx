@@ -5,6 +5,7 @@ import { Tip } from "../../../components/Tip";
 import { EventStatus, type EventSummary, type StandingRow } from "../../../api/types";
 import { Empty, TableFrame } from "../../../components/Blocks";
 import { formatPoints, teamLabel } from "../../../lib/format";
+import { SapAttribution } from "../../../components/SapAttribution";
 
 /** A team's points in one flight, or `null` when it has no result in that flight yet. The
  *  sums are the server's (`points_by_flight`, Story B-2), keyed by flight number — computed
@@ -68,7 +69,19 @@ export function DailyStandings({
 
   const flights = Array.from({ length: event.flight_count }, (_, i) => i + 1);
 
-  return <EventStandingsTable standings={standings} event={event} flights={flights} t={t} />;
+  // The table credits SAP itself when its results came from there (Story B-21): wherever
+  // this table is shown, the credit comes with it.
+  return (
+    <>
+      <EventStandingsTable standings={standings} event={event} flights={flights} t={t} />
+      <SapAttribution
+        when={!!event.results_from_sap}
+        href={event.sap_leaderboard_url}
+        size="md"
+        testId="matchday-sap-attribution"
+      />
+    </>
+  );
 }
 
 /** How the one points column reads a team that hasn't sailed every started flight yet.

@@ -34,6 +34,10 @@ def _recorded() -> httpx.MockTransport:
         path = unquote(request.url.path).removeprefix("/sailingserver/api/")
         if path == "v1/regattas":
             return httpx.Response(200, content=(FOLDER / "regattas.json").read_bytes())
+        if path == "v1/events":  # the 2026 acts' events, read on 2026-11-03
+            return httpx.Response(200, content=(FOLDER / "events.json").read_bytes())
+        if path.startswith("v1/leaderboardgroups/"):
+            return httpx.Response(200, content=(FOLDER / "leaderboardgroup.json").read_bytes())
         if path.startswith("v2/leaderboards/"):
             name = path.removeprefix("v2/leaderboards/")
             act = name.split(" - Act ")[1].split()[0]

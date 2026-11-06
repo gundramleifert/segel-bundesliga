@@ -1,0 +1,21 @@
+{#- Story JU-3: the jury organizer asks a judge for events. -#}
+{% extends "de/_base.txt" %}
+{% block subject %}Jury-Anfrage: {{ events|length }} {{ "Veranstaltung" if events|length == 1 else "Veranstaltungen" }}{% endblock %}
+{% block reason %}Sie im Schiedsrichter-Pool der Deutschen Segel-Liga sind{% endblock %}
+{% block body %}
+Hallo {{ name }},
+
+{{ organizer }} fragt Sie für die Jury dieser {{ "Veranstaltung" if events|length == 1 else "Veranstaltungen" }} an:
+
+{% for event in events %}
+- {{ event }}
+{% endfor %}
+{% if note %}
+
+{{ note }}
+{% endif %}
+
+Bitte sagen Sie auf der Website, ob Sie können — „Ich kann“ ist Ihre Bewerbung:
+
+{{ link }}
+{% endblock %}

@@ -39,6 +39,7 @@ from app.imports.common import (
     linked,
     resolve_club,
     run_import,
+    sap_site,
     unique_slug,
     venue_for_city,
 )
@@ -51,6 +52,7 @@ from app.models import (
     League,
     Race,
     RaceEntry,
+    ResultsSource,
     Series,
     Source,
     Team,
@@ -253,6 +255,11 @@ class SapClient:
         self._base = base_url.rstrip("/")
         self._leaderboards: dict[str, dict[str, Any]] = {}
 
+    @property
+    def site(self) -> str:
+        """The server's own address, where its pages are — the API's without its path."""
+        return sap_site(self._base)
+
     async def _get(self, path: str) -> Any:
         response = await self._http.get(f"{self._base}/{path}")
         response.raise_for_status()
@@ -260,6 +267,33 @@ class SapClient:
 
     async def regattas(self) -> list[dict[str, Any]]:
         return await self._get("v1/regattas")
+
+    async def event_ids(self, names: Iterable[str]) -> dict[str, str]:
+        """SAP's event of each leaderboard: the event of the same name — an act on SAP's
+        hosted servers is its own event — else one whose leaderboard group holds it (the
+        season's group, which every act's event refers to). Only the groups that could
+        hold a missing one are asked for."""
+        wanted = set(names)
+        events = await self._get("v1/events")
+        found = {e["name"]: e["id"] for e in events if e.get("name") in wanted}
+        missing = wanted - found.keys()
+        asked: set[str] = set()
+        for event in events:
+            for group in event.get("leaderboardGroups", []):
+                if not missing or group["id"] in asked:
+                    continue
+                if not any(name.startswith(group.get("name", "\0")) for name in missing):
+                    continue
+                asked.add(group["id"])
+                held = (await self._get(f"v1/leaderboardgroups/{group['id']}")).get(
+                    "leaderboards", []
+                )
+                for board in held:
+                    name = board["name"] if isinstance(board, dict) else board
+                    if name in missing:
+                        found[name] = event["id"]
+                        missing.discard(name)
+        return found
 
     async def competitors(self, name: str) -> list[dict[str, Any]]:
         """The regatta's clubs, with ``flagImageUri`` — the crest — from 2022 on."""
@@ -301,6 +335,12 @@ async def import_sap(
         report.warnings.append("No regatta matched the selection.")
 
     matchdays = await _number_matchdays(client, regattas, selected, report)
+    try:
+        event_ids = await client.event_ids(r.name for r in selected)
+    except httpx.HTTPError:
+        # Only the link to SAP's event page needs it (B-21); without it the link is the
+        # legacy leaderboard page — nothing the import itself is short of.
+        event_ids = {}
 
     for regatta in sorted(selected, key=lambda r: (r.year, r.level, matchdays.get(r.name) or 99)):
         log(f"SAP: {regatta.name}")
@@ -327,6 +367,8 @@ async def import_sap(
             matchday=matchdays.get(regatta.name),
             listed_days=_listed_days(next((r for r in listed if r["name"] == regatta.name), {})),
             publish=publish,
+            server=client.site,
+            sap_event_id=event_ids.get(regatta.name),
         )
         report.merge(await run_import(sessions, SOURCE, regatta.name, work))
     return report
@@ -407,6 +449,8 @@ async def _import_regatta(
     matchday: int | None,
     publish: bool,
     listed_days: Days | None = None,
+    server: str | None = None,
+    sap_event_id: str | None = None,
 ) -> None:
     competitors = leaderboard.get("competitors", [])
     columns: list[str] = leaderboard.get("columnNames", [])
@@ -437,7 +481,17 @@ async def _import_regatta(
     for competitor in placeholders:
         report.unassigned.append(f"{regatta.name}: {competitor['shortName']} is no club")
 
-    series = await _series(session, report, regatta, publish)
+    # An event we sent (Story VA-15) is in its own series already — never one looked up
+    # or made by the leaderboard's name.
+    # An imported event is linked by the same name, so only one scored on SAP counts.
+    sent = await linked(session, Event, SOURCE, regatta.name)
+    series = (
+        await session.get(Series, sent.series_id)
+        if sent is not None
+        and sent.results_source == ResultsSource.SAP
+        and sent.series_id is not None
+        else None
+    ) or await _series(session, report, regatta, publish)
     event = await _event(
         session,
         report,
@@ -452,6 +506,10 @@ async def _import_regatta(
         if starts
         else listed_days,
     )
+    if server and event.sap_server is None:
+        event.sap_server = server
+    if sap_event_id and event.sap_event_id is None:
+        event.sap_event_id = sap_event_id
     if fleet_names and len(fleet_names) != event.races_per_flight:
         report.warnings.append(
             f"{regatta.name}: {len(fleet_names)} races per flight at SAP, "
@@ -492,7 +550,10 @@ async def _import_regatta(
             report.tally("updated", "clubs (crest)")
         teams[competitor["id"]] = await enter_team(session, report, club, series, event, number)
 
-    boats = await _boats(session, report, event, boats_seen)
+    sap_scores = event.results_source == ResultsSource.SAP
+    # An event sent to SAP sails our draw, and SAP's leaderboard names a team's own boat
+    # in a race nobody tracked — so there SAP gives the result, our draw the boat.
+    boats = {} if sap_scores else await _boats(session, report, event, boats_seen)
     races = await _races(session, report, event, columns, fleet_names, fleets_by_column)
     entries = {
         EntryKey(entry.race_id, entry.team_id): entry
@@ -508,8 +569,8 @@ async def _import_regatta(
         if team is None:
             continue
         for column, cell in _cells(competitor).items():
-            _result(session, report, regatta, races, boats, entries, team, column, cell)
-        _penalty(report, regatta, team, competitor.get("carriedPoints"))
+            _result(session, report, regatta, races, boats, entries, team, column, cell, sap_scores)
+        _penalty(report, regatta, team, competitor.get("carriedPoints"), sap_scores)
 
     await session.flush()
     last_scored = leaderboard.get("lastScoringUpdate")
@@ -793,15 +854,26 @@ def _result(
     team: Team,
     column: str,
     cell: dict[str, Any],
+    sap_scores: bool,
 ) -> None:
     """One team's result in one race — filled in, left alone, or reported as a conflict.
-    A result recorded here is never overwritten (the race committee wins over imports)."""
+    A result recorded here is never overwritten (the race committee wins over imports) —
+    except on an event scored on SAP (``sap_scores``, Story WL-5), where SAP is the one
+    source and a protest decided there has to arrive here."""
     if cell.get("totalPoints") is None:
         return  # not sailed (yet)
     where = f"{regatta.name} {column}/{cell.get('fleet')} {team.name}"
     race = races.get((column, cell.get("fleet") or ""))
-    boat = boats.get((cell.get("boat") or {}).get("id") or "")
-    if race is None or boat is None:
+    key = EntryKey(race.id, team.id) if race is not None else None
+    entry = entries.get(key) if key is not None else None
+    if sap_scores:
+        # Our draw put the team on its boat (Story VA-15); SAP's cell names the team's
+        # own boat in an untracked race, so it is never read here.
+        boat_id = entry.boat_id if entry is not None else None
+    else:
+        boat = boats.get((cell.get("boat") or {}).get("id") or "")
+        boat_id = boat.id if boat is not None else None
+    if key is None or boat_id is None:
         report.unassigned.append(f"{where}: no race or boat for this result")
         return
 
@@ -809,13 +881,11 @@ def _result(
     if warning:
         report.warnings.append(f"{where}: {warning}")
 
-    key = EntryKey(race.id, team.id)
-    entry = entries.get(key)
     if entry is None:
         entries[key] = RaceEntry(
             race_id=race.id,
             team_id=team.id,
-            boat_id=boat.id,
+            boat_id=boat_id,
             code=code,
             finish_position=position,
             redress_points=redress,
@@ -823,33 +893,40 @@ def _result(
         session.add(entries[key])
         report.tally("created", "results")
         return
-    if entry.code is None and entry.boat_id == boat.id:
+    if entry.code is None and entry.boat_id == boat_id:
         entry.code, entry.finish_position, entry.redress_points = code, position, redress
         report.tally("updated", "results")
         return
     if (entry.boat_id, entry.code, entry.finish_position, entry.redress_points) == (
-        boat.id,
+        boat_id,
         code,
         position,
         redress,
     ):
         report.tally("unchanged", "results")
         return
+    if sap_scores:
+        entry.code, entry.finish_position, entry.redress_points = code, position, redress
+        report.tally("updated", "results (changed at SAP)")
+        return
     report.conflicts.append(
         f"{where}: here {entry.code} {entry.finish_position or ''} on boat {entry.boat_id}, "
-        f"SAP {code} {position or ''} on boat {boat.id}".replace("  ", " ")
+        f"SAP {code} {position or ''} on boat {boat_id}".replace("  ", " ")
     )
 
 
-def _penalty(report: Report, regatta: RegattaName, team: Team, carried: Any) -> None:
+def _penalty(
+    report: Report, regatta: RegattaName, team: Team, carried: Any, sap_scores: bool
+) -> None:
     """SAP's ``carriedPoints`` — points a team carries into the matchday — as the team's
-    matchday penalty (Story WL-4). One set here wins, like a result does."""
+    matchday penalty (Story WL-4). One set here wins, like a result does — unless the
+    event is scored on SAP (Story WL-5)."""
     points = float(carried) if carried else None
-    if points is None or team.penalty_points == points:
+    if team.penalty_points == points or (points is None and not sap_scores):
         if points is not None:
             report.tally("unchanged", "penalties")
         return
-    if team.penalty_points is None:
+    if team.penalty_points is None or sap_scores:
         team.penalty_points = points
         team.penalty_note = team.penalty_note or "Carried points (SAP Sailing)"
         report.tally("created", "penalties")

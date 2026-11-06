@@ -1,0 +1,370 @@
+[
+ {
+  "id": "4639e483-8ce0-41d2-b974-fce7fc7481a7",
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 1",
+  "description": "",
+  "officialWebsiteURL": "https://www.hnv.de",
+  "baseURL": "http://hnv.sapsailing.com/",
+  "startDate": 1778220000000,
+  "endDate": 1778443200000,
+  "venue": {
+   "name": "Kieler Aussenförde I Strander Bucht",
+   "courseAreas": [
+    {
+     "name": "Strande 1",
+     "id": "59933b81-02b7-4e3b-9b73-5827d5ca1e91"
+    }
+   ]
+  },
+  "leaderboardGroups": [
+   {
+    "id": "0779a809-bc10-44ef-9851-04a6de553027",
+    "name": "Deutsche Junioren Segel-Liga 2026",
+    "description": "Deutsche Junioren Segel-Liga 2026",
+    "displayName": "Deutsche Junioren Segel-Liga 2026",
+    "hasOverallLeaderboard": true,
+    "overallLeaderboardName": "Deutsche Junioren Segel-Liga 2026 Overall"
+   }
+  ],
+  "trackingConnectorInfos": [],
+  "imageSizes": [
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/b3ae9536-d7a9-4b04-87ea-58ea21940e17.jpg",
+    "imageWidth": 560,
+    "imageHeight": 560
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/94618baa-40f7-4981-a43f-4013b827dffd.jpg",
+    "imageWidth": 1080,
+    "imageHeight": 720
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/dfb76997-4e49-4e0f-9e44-4db3f451cf2d.jpg",
+    "imageWidth": 2048,
+    "imageHeight": 1153
+   }
+  ],
+  "images": [
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/b3ae9536-d7a9-4b04-87ea-58ea21940e17.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 560,
+    "heightInPixel": 560,
+    "createdAtDate": 1777908989407,
+    "tags": [
+     "Logo"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/94618baa-40f7-4981-a43f-4013b827dffd.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 1080,
+    "heightInPixel": 720,
+    "createdAtDate": 1777909007239,
+    "tags": [
+     "Teaser"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/dfb76997-4e49-4e0f-9e44-4db3f451cf2d.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 2048,
+    "heightInPixel": 1153,
+    "createdAtDate": 1777909017171,
+    "tags": [
+     "Stage"
+    ]
+   }
+  ],
+  "videos": [],
+  "sailorsInfoWebsiteURLs": []
+ },
+ {
+  "id": "55947e6d-bd4e-4200-ac01-6c437449f0b3",
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 3",
+  "description": "",
+  "officialWebsiteURL": "https://www.hnv.de",
+  "baseURL": "http://hnv.sapsailing.com/",
+  "startDate": 1789106400000,
+  "endDate": 1789329600000,
+  "venue": {
+   "name": "Starnberger See I Bucht vor Starnberg",
+   "courseAreas": [
+    {
+     "name": "Default",
+     "id": "5650e3b3-9872-47cd-b072-564aeec57ea8"
+    }
+   ]
+  },
+  "leaderboardGroups": [
+   {
+    "id": "0779a809-bc10-44ef-9851-04a6de553027",
+    "name": "Deutsche Junioren Segel-Liga 2026",
+    "description": "Deutsche Junioren Segel-Liga 2026",
+    "displayName": "Deutsche Junioren Segel-Liga 2026",
+    "hasOverallLeaderboard": true,
+    "overallLeaderboardName": "Deutsche Junioren Segel-Liga 2026 Overall"
+   }
+  ],
+  "trackingConnectorInfos": [],
+  "imageSizes": [
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/aa15e55c-bd8b-416d-a834-5fd0c0f43672.jpg",
+    "imageWidth": 560,
+    "imageHeight": 560
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/b8f7e38e-1097-4121-b459-cd1fb95512d1.jpg",
+    "imageWidth": 960,
+    "imageHeight": 720
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/f68a755d-458f-48cf-b761-130232a32c52.jpg",
+    "imageWidth": 2048,
+    "imageHeight": 1153
+   }
+  ],
+  "images": [
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/aa15e55c-bd8b-416d-a834-5fd0c0f43672.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 560,
+    "heightInPixel": 560,
+    "createdAtDate": 1777909618105,
+    "tags": [
+     "Logo"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/b8f7e38e-1097-4121-b459-cd1fb95512d1.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 960,
+    "heightInPixel": 720,
+    "createdAtDate": 1777909625535,
+    "tags": [
+     "Teaser"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/f68a755d-458f-48cf-b761-130232a32c52.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 2048,
+    "heightInPixel": 1153,
+    "createdAtDate": 1777909634111,
+    "tags": [
+     "Stage"
+    ]
+   }
+  ],
+  "videos": [],
+  "sailorsInfoWebsiteURLs": []
+ },
+ {
+  "id": "9198373d-e7d9-44db-81bc-ca9afcfeae2f",
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 2",
+  "description": "",
+  "officialWebsiteURL": "https://www.hnv.de",
+  "baseURL": "http://hnv.sapsailing.com/",
+  "startDate": 1787292000000,
+  "endDate": 1787515200000,
+  "venue": {
+   "name": "Kieler Aussenförde I Strander Bucht",
+   "courseAreas": [
+    {
+     "name": "Strande Act 2",
+     "id": "ee91897d-b4d2-4db7-8b0a-6e5ee48ab6c3"
+    }
+   ]
+  },
+  "leaderboardGroups": [
+   {
+    "id": "0779a809-bc10-44ef-9851-04a6de553027",
+    "name": "Deutsche Junioren Segel-Liga 2026",
+    "description": "Deutsche Junioren Segel-Liga 2026",
+    "displayName": "Deutsche Junioren Segel-Liga 2026",
+    "hasOverallLeaderboard": true,
+    "overallLeaderboardName": "Deutsche Junioren Segel-Liga 2026 Overall"
+   }
+  ],
+  "trackingConnectorInfos": [],
+  "imageSizes": [
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/57f88849-fc5b-4757-a0cf-dc8af0924c55.jpg",
+    "imageWidth": 560,
+    "imageHeight": 560
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/9be13758-adaa-478f-8efb-fd494dff66d5.jpg",
+    "imageWidth": 1080,
+    "imageHeight": 720
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/4b6f4bda-bff3-4ebe-925b-71e2444f07eb.jpg",
+    "imageWidth": 2048,
+    "imageHeight": 1153
+   }
+  ],
+  "images": [
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/57f88849-fc5b-4757-a0cf-dc8af0924c55.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 560,
+    "heightInPixel": 560,
+    "createdAtDate": 1777909246505,
+    "tags": [
+     "Logo"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/9be13758-adaa-478f-8efb-fd494dff66d5.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 1080,
+    "heightInPixel": 720,
+    "createdAtDate": 1777909255705,
+    "tags": [
+     "Teaser"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/4b6f4bda-bff3-4ebe-925b-71e2444f07eb.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 2048,
+    "heightInPixel": 1153,
+    "createdAtDate": 1777909264714,
+    "tags": [
+     "Stage"
+    ]
+   }
+  ],
+  "videos": [],
+  "sailorsInfoWebsiteURLs": []
+ },
+ {
+  "id": "d1152e6d-9b4f-4002-9a5b-c3b677a87946",
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)",
+  "description": "",
+  "officialWebsiteURL": "https://www.hnv.de",
+  "baseURL": "http://hnv.sapsailing.com/",
+  "startDate": 1790920800000,
+  "endDate": 1791144000000,
+  "venue": {
+   "name": "Aussenalster I Hamburg",
+   "courseAreas": [
+    {
+     "name": "Hamburg Act 4",
+     "id": "c21d9974-5081-4117-817e-f4e28c62fdae"
+    }
+   ]
+  },
+  "leaderboardGroups": [
+   {
+    "id": "0779a809-bc10-44ef-9851-04a6de553027",
+    "name": "Deutsche Junioren Segel-Liga 2026",
+    "description": "Deutsche Junioren Segel-Liga 2026",
+    "displayName": "Deutsche Junioren Segel-Liga 2026",
+    "hasOverallLeaderboard": true,
+    "overallLeaderboardName": "Deutsche Junioren Segel-Liga 2026 Overall"
+   }
+  ],
+  "trackingConnectorInfos": [],
+  "imageSizes": [
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/e9c9e036-36a4-4e4f-8ed0-3f26970d56a4.jpg",
+    "imageWidth": 560,
+    "imageHeight": 560
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/f19dc399-71e1-4f5a-9c73-1fd2d0ea8ef4.jpg",
+    "imageWidth": 1082,
+    "imageHeight": 720
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/e339596d-1f53-4663-b69e-6e0e0e0a073f.jpg",
+    "imageWidth": 2048,
+    "imageHeight": 1153
+   }
+  ],
+  "images": [
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/e9c9e036-36a4-4e4f-8ed0-3f26970d56a4.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 560,
+    "heightInPixel": 560,
+    "createdAtDate": 1777909939056,
+    "tags": [
+     "Logo"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/f19dc399-71e1-4f5a-9c73-1fd2d0ea8ef4.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 1082,
+    "heightInPixel": 720,
+    "createdAtDate": 1777909947422,
+    "tags": [
+     "Teaser"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/e339596d-1f53-4663-b69e-6e0e0e0a073f.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 2048,
+    "heightInPixel": 1153,
+    "createdAtDate": 1777909958242,
+    "tags": [
+     "Stage"
+    ]
+   }
+  ],
+  "videos": [],
+  "sailorsInfoWebsiteURLs": []
+ }
+]

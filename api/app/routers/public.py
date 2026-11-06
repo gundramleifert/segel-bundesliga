@@ -44,6 +44,7 @@ from app.models import (
     Person,
     Race,
     RaceEntry,
+    ResultsSource,
     Series,
     Team,
     TeamMembership,
@@ -99,6 +100,12 @@ from app.services import compute_event, compute_series, current_year, event_entr
 from app.services.announcements import issuers_for
 from app.services.lookup import get_or_404
 from app.services.pairing_service import TeamNotInPairing, stored_pairing
+from app.services.sap_scoring import (
+    results_from_sap,
+    sap_configured,
+    sap_leaderboard_url,
+    sap_viewer_url,
+)
 from app.services.standings import points_by_flight, race_flights
 from app.storage import respond
 from app.text import slugify
@@ -868,15 +875,31 @@ async def get_event_access(
 
     A request of its own rather than a field on the event detail: the detail is the same
     for everyone and cached as such, this answer depends on who asks. Same visibility as
-    the detail — what a visitor cannot see is a 404.
+    the detail — what a visitor cannot see is a 404 — except a draft, answered to its
+    own organizers and race officers.
     """
-    event = await _event_by_id(session, event_id)
+    try:
+        event = await _event_by_id(session, event_id)
+    except Problem:
+        # A draft is answered to those who run it — the organizer's screen asks about the
+        # 2027 acts long before they are published (VA-14) — and stays a 404 for anyone
+        # else, so its existence is still not public.
+        event = await session.get(Event, event_id, options=list(_EVENT_LOAD))
+        if (
+            event is None
+            or user is None
+            or not authz.check(user, Relation.MANAGER, Relation.RACE_OFFICER, on=event)
+        ):
+            raise
     if user is None:
         return EventAccess()
+    manage = authz.check(user, Relation.MANAGER, on=event)
     return EventAccess(
-        record_results=authz.check(user, Relation.RACE_OFFICER, on=event),
+        record_results=event.results_source != ResultsSource.SAP
+        and authz.check(user, Relation.RACE_OFFICER, on=event),
         control=authz.check(user, Relation.MANAGER, Relation.RACE_OFFICER, on=event),
-        manage=authz.check(user, Relation.MANAGER, on=event),
+        manage=manage,
+        sap=manage and sap_configured(),
         announce_as=issuers_for(user, event),
     )
 
@@ -1350,4 +1373,9 @@ def _event_out(event: Event) -> EventOut:
         races_per_flight=event.races_per_flight if event.boat_count >= 1 else 0,
         crew_size=event.crew_size,
         print_settings=event.print_settings,
+        results_source=event.results_source,
+        sap_leaderboard=event.sap_leaderboard,
+        sap_viewer_url=sap_viewer_url(event),
+        results_from_sap=results_from_sap(event),
+        sap_leaderboard_url=sap_leaderboard_url(event),
     )

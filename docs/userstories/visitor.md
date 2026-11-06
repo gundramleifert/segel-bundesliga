@@ -332,7 +332,7 @@ Tests: `api/tests/unit/test_live_hub.py`,
 `api/tests/stories/test_live_updates.py`,
 `e2e/live.spec.ts::B-5: as a spectator I follow live updates`
 
-### B-20 ○ Watch the race in SAP Sailing's viewer on the act's page
+### B-20 ◐ Watch the race in SAP Sailing's viewer on the act's page
 As a **spectator** I want to **see the boats on the water and the live leaderboard of the
 race being sailed, on the act's page**, so that **I follow a race as it happens, not only
 its result**.
@@ -347,10 +347,58 @@ Acceptance criteria:
 - The map is SAP's, with their Google Maps key — the site holds no map key of its own
   for it.
 
-Open: whether SAP allows the viewer to be embedded on our domain, and its address per
-race — questions for SAP.
+What is built: the event carries `sap_viewer_url` — SAP's leaderboard of the event, every
+team's races in the race colours — while SAP scores it (`app/services/sap_scoring.py`).
+Still open: the act's page showing it, and the race viewer per race.
 
-Tests: none yet
+Open: SAP lists our domains in its frame-ancestors setting before the viewer can be
+embedded (www.sapsailing.com allows only tractrac.com today; locally
+`deploy/sap-local/configure.sh`), and the viewer's address per race — questions for SAP.
+
+Tests: `api/tests/stories/test_journey_sap_scored.py::TestAMatchdayScoredOnSap`
+
+### B-21 ● SAP Sailing is credited wherever its results show
+As **SAP**, who hosts SAP Sailing Analytics for the league, I want **every page showing
+results that came from SAP Sailing to say so**, so that **the attribution our terms
+require for anything served from sapsailing.com is never missing** (Axel, SAP,
+2026-11-03: the SAP attribution is mandatory in every UI and every output while the site
+uses an offering SAP hosts).
+
+Acceptance criteria:
+- An event whose results come from SAP Sailing — scored there (VA-14) or imported from
+  it (A-14, the Junioren-Liga 2026) — carries `results_from_sap` (`EventOut`); the rule
+  is one place, `app/services/sap_scoring.py::results_from_sap`.
+- The act's results (B-2) and every series table with such an act in it (B-1, B-14) show
+  "Results powered by SAP Sailing Analytics" with SAP's logo under the table — one
+  component, `SapAttribution`, the same phrase everywhere; only its shape varies (`long`,
+  `square`, `mark`; `docs/components.md`), and it reads on the light and the dark theme.
+  Under an act it links **that act's leaderboard at SAP**, on the server it came from
+  (`Event.sap_server`: `hnv.sapsailing.com` for the juniors' imported acts, our configured
+  server for an act we sent) — the visitor lands on the results, not on a landing page; a
+  table of several acts, and the footer, link sapsailing.com.
+- The link is SAP's **event page**, its Leaderboard tab
+  (`Home.html#/regatta/leaderboard/:eventId=…&regattaId=…`, the regatta's name in Base64),
+  not the legacy `Leaderboard.html` (decided 2026-11-03). It needs SAP's event id
+  (`Event.sap_event_id`): a send keeps the one `createEvent` answers; an import finds it in
+  the server's event list — the event of the same name, else one whose leaderboard group
+  holds the act. Without one, the legacy page is the fallback.
+- The site's footer names SAP Sailing Analytics on every page.
+- A table with no result from SAP shows no attribution.
+
+SAP's own terms say what is required, in its REST API's documentation
+(`webservices/api/v1/index.html`, "ATTRIBUTION / BRANDING"): whoever uses the API shows
+**SAP branding in every end-user interface or document** based on its data, with
+sapbrandtools.com as the guide. No link target is prescribed.
+
+Open: the official files — SAP's logo and wording from SAP Brand Tools,
+https://brand.sap.com (decided 2026-11-03). It is for SAP employees and approved agencies:
+the account form asks for an **SAP contact** (Axel), and SAP may have to unlock us
+(partners are otherwise sent to SAP PartnerEdge). Until then the logo is the one in SAP's
+own repository (`sap_logo_150dp.png`), and Brand Tools' file replaces it in
+`web/public/brand/sap-logo.png` alone. An export or printout
+carrying SAP's results (none yet) needs it too.
+
+Tests: `api/tests/stories/test_sap_attribution.py::TestSapIsCredited`, `e2e/visitor.spec.ts`
 
 ## The leagues
 
@@ -454,6 +502,8 @@ Acceptance criteria:
   Each is a preview that ends in a link to its own page. (Changed 2026-10-16, from *Now,
   Standings, Season, Clubs, News, Media, Press, About*.)
 - **A chapter's title is its name** — *Standings*, *News* — the same word as its dot.
+  The year's table and its matchdays are *Season 2026* (*Saison 2026*, changed 2026-11-02):
+  the chapter is the current year, so its name says which.
   The slogans it replaced ("Where everyone stands.") did not say what the chapter is;
   the association's home follows the same rule. *Results* names its matchday too —
   *Results Act 2* — because it is about that one act, not the year.

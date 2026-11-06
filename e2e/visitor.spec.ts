@@ -534,8 +534,8 @@ describeStory("B-14: a league's page in chapters", () => {
     await page.goto("/junioren-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
-    // With nothing live, Standings opens the page.
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Standings");
+    // With nothing live, the season opens the page — named with its year.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^Season \d{4}$/);
     // The 2. Liga's 2026 is sailed and over: no Results, but a full table.
     await page.goto("/2-liga");
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
@@ -795,6 +795,30 @@ describeStory("A-12: the account menu and the page's name", () => {
 
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
+  });
+});
+
+describeStory("B-21: SAP Sailing is credited wherever its results show", () => {
+  // The Junioren-Liga 2026 was imported from SAP Sailing, the 1. Liga 2026 from TracTrac.
+  test("an act and a table from SAP credit it, one from elsewhere does not", async ({ page }) => {
+    await page.goto("/junioren-liga/2026/act-1/results");
+    await expect(page.getByTestId("matchday-sap-attribution")).toBeVisible();
+    await expect(page.getByTestId("matchday-sap-attribution").getByRole("link")).toHaveAttribute(
+      "href",
+      /^https:\/\/hnv\.sapsailing\.com\/gwt\/Home\.html#\/regatta\/leaderboard\/:eventId=[0-9a-f-]+&regattaId=/,
+    );
+
+    await page.goto("/junioren-liga/2026/standings");
+    await expect(page.getByTestId("site-standings-sap-attribution")).toBeVisible();
+
+    await page.goto(`${FINISHED_ACT}/results`);
+    await expect(page.getByTestId("matchday-races-count")).toBeVisible();
+    await expect(page.getByTestId("matchday-sap-attribution")).toHaveCount(0);
+  });
+
+  test("the footer credits it on every page", async ({ page }) => {
+    await page.goto("/1-liga");
+    await expect(page.getByTestId("site-footer-sap-attribution")).toBeVisible();
   });
 });
 

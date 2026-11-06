@@ -97,6 +97,17 @@ class Settings(BaseSettings):
     # How long a club's invitation link works (Story V-16, decided 2026-10-28): a sailor
     # does not read mail daily off-season, and the link is single-use and resent at will.
     invitation_lifetime_days: int = 14
+
+    # SAP Sailing, which scores the league's events (Stories VA-15, WL-5; decided
+    # 2026-11-01). The API root, and the account the site sends events with — the
+    # password a secret (`secrets.sops.env`). `sap_boats`: our boat colour → SAP's id of
+    # the league's boats, which SAP makes once per server (`deploy/sap-local/boats.sh`).
+    sap_base_url: str = "https://www.sapsailing.com/sailingserver/api"
+    sap_user: str | None = None
+    sap_password: str | None = None
+    sap_boats: dict[str, str] = {}
+    # How often the results of a live event on SAP are fetched; 0 turns that off (tests).
+    sap_poll_seconds: int = 20
     otp_max_attempts: int = 5
 
     # Accounts normally arise through creation or import, not through login.

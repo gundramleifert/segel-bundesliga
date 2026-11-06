@@ -192,8 +192,12 @@ Six weekends, with hosts (league office, 2026-11-01): Friedrichshafen (WYC with 
 act 1, 16–18 April), Überlingen (BYCÜ with SMCÜ, 2), Berlin (BYCB, 3), Kiel/Strande (KYC,
 4 — **the 1. Liga's alone**: the 2. Liga sails one act fewer, as every year since 2018,
 so it counts Warnemünde as 4 and Hamburg as 5), Warnemünde (ASVW, 5), Hamburg (NRV, 6,
-14–16 October); only the first and last have dates. No clubs yet: entering them, the
-squads and a draw is what there is to practise. **ASVW hosts Warnemünde 2027**, so its
+14–16 October); only the first and last have dates. **The 1. Liga 2027's clubs follow
+from the 2026 tables** (decided 2026-11-02, `seed.py::_first_division_next_year`): places
+1–14 of the 1. Liga and 1–4 of the 2. Liga, entered in all six acts with the six boats;
+the two dated acts also have a draw — the other four are not ready for one until a date is
+entered (VA-8). The 2. Liga 2027 has no clubs yet: its 2026 places 13–18 requalify at the
+DSL-Pokal. `scripts/sap-season.py` plays the 1. Liga's season on the local SAP. **ASVW hosts Warnemünde 2027**, so its
 officials are that event's organizers. Only what was announced is seeded; nothing invented.
 
 The role switcher groups them the same way (league office · series · event · club ·
@@ -548,8 +552,10 @@ These points were deliberately decided this way; bypassing them costs a lot late
   are still derived here (`recompute_event`), SAP's net points only compared. The SAP
   **leaderboard name**, stored on the event as an `ExternalId` (VA-14), is the link
   between both; the season table stays ours. Embedding SAP's race viewer (B-20) needs SAP
-  to list our domains in its frame-ancestors setting. Tried against a local SAP:
-  `deploy/sap-local/`.
+  to list our domains in its frame-ancestors setting. **SAP is credited wherever its results
+  show** (Story B-21, SAP's condition for using a server it hosts, 2026-11-03): under every
+  act and table with a result from SAP, and in the footer — one component,
+  `SapAttribution`. Tried against a local SAP: `deploy/sap-local/`.
 
 ## Logged in or guest
 
@@ -686,6 +692,9 @@ rows another test created only passes in one order: the seed is what each worker
 from, so count on the seed alone.
 
 External APIs are never called live in tests; we test against recorded fixtures (`api/tests/fixtures/`).
+The one exception is **SAP Sailing as the live scoring** (decided 2026-11-02): its tests run
+against the local SAP (`deploy/sap-local/`, `api/tests/sap_double.py`) — the real software,
+never SAP's hosted server, never an imitation — and are skipped when it is not running.
 
 ## From issue to merge
 

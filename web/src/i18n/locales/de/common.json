@@ -102,5 +102,8 @@
   "theme": {
     "toLight": "Hell darstellen",
     "toDark": "Dunkel darstellen"
+  },
+  "sapAttribution": {
+    "poweredBy": "Ergebnisse powered by"
   }
 }

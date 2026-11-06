@@ -87,6 +87,12 @@ class Report:
         return "\n".join(lines)
 
 
+def sap_site(api_base: str) -> str:
+    """A SAP Sailing server's own address from its API's — ``https://hnv.sapsailing.com``
+    from ``https://hnv.sapsailing.com/sailingserver/api`` — where its pages are (B-21)."""
+    return api_base.rstrip("/").removesuffix("/sailingserver/api")
+
+
 async def start_run(session: AsyncSession, source: str, reference: str) -> ImportRun:
     run = ImportRun(source=source, reference=reference[:200], started_at=datetime.now(UTC))
     session.add(run)
@@ -166,6 +172,25 @@ async def link(session: AsyncSession, row: Base, source: str, key: str) -> None:
         )
     )
     await session.flush()
+
+
+async def relink(session: AsyncSession, row: Base, source: str, key: str) -> None:
+    """Points the row's link at a new key — the thing it stood for at the source is gone
+    and was made again there (a team SAP no longer has, Story VA-15)."""
+    existing = (
+        await session.execute(
+            select(ExternalId).where(
+                ExternalId.source == source,
+                ExternalId.entity_type == row.__tablename__,
+                ExternalId.entity_id == row.id,  # type: ignore[attr-defined]
+            )
+        )
+    ).scalar_one_or_none()
+    if existing is None:
+        await link(session, row, source, key)
+    else:
+        existing.external_key = key
+        await session.flush()
 
 
 async def club_by_code(session: AsyncSession, code: str, source: str) -> Club | None:

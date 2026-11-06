@@ -36,15 +36,17 @@ import sys
 from pathlib import Path
 
 import httpx
+from sqlalchemy import select
 
 from app.db import SessionLocal, engine
 from app.imports.common import USER_AGENT, Report
 from app.imports.m2s import Manage2SailClient, import_m2s
 from app.imports.sap import BASE_URL as SAP_BASE_URL
 from app.imports.sap import SapClient, import_sap, parse_regatta_name, parse_years
-from app.imports.sap_send import SapWriter, load_boats, send_event
+from app.imports.sap_send import SapWriter, SendRefused, load_boats, send_event
 from app.imports.tractrac import FOLDER as TRACTRAC_FOLDER
 from app.imports.tractrac import import_tractrac
+from app.models import Event
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -127,12 +129,21 @@ async def _run(args: argparse.Namespace) -> Report | None:
         # The password from the environment only — never a command-line argument, which
         # the process list shows.
         auth = (args.user, os.environ.get("SBL_SAP_PASSWORD", "admin"))
-        async with httpx.AsyncClient(
-            headers={"User-Agent": USER_AGENT}, timeout=60, auth=auth
-        ) as http:
-            sent = await send_event(
-                SessionLocal, SapWriter(http, args.base_url), args.event, load_boats(args.boats)
-            )
+        async with (
+            httpx.AsyncClient(headers={"User-Agent": USER_AGENT}, timeout=60, auth=auth) as http,
+            SessionLocal() as session,
+        ):
+            event_id = (
+                await session.execute(select(Event.id).where(Event.slug == args.event))
+            ).scalar_one_or_none()
+            if event_id is None:
+                raise SystemExit(f"sap-send: no event {args.event!r} here")
+            try:
+                sent = await send_event(
+                    session, SapWriter(http, args.base_url), event_id, load_boats(args.boats)
+                )
+            except SendRefused as refused:
+                raise SystemExit(f"sap-send: {refused}") from refused
         print(sent.render())
         if sent.errors:
             raise SystemExit(1)

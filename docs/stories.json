@@ -209,11 +209,19 @@
  },
  "B-20": {
   "title": "Watch the race in SAP Sailing's viewer on the act's page",
-  "status": "○",
+  "status": "◐",
   "role": "Visitor and Fans",
   "phase": "The matchday",
   "file": "docs/userstories/visitor.md",
   "anchor": "b-20--watch-the-race-in-sap-sailings-viewer-on-the-acts-page"
+ },
+ "B-21": {
+  "title": "SAP Sailing is credited wherever its results show",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The matchday",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-21--sap-sailing-is-credited-wherever-its-results-show"
  },
  "B-3": {
   "title": "View pairing list",
@@ -457,7 +465,7 @@
  },
  "J-10": {
   "title": "A matchday scored live on SAP Sailing",
-  "status": "○",
+  "status": "◐",
   "role": "Journeys",
   "phase": "Journeys",
   "file": "docs/journeys/sap-scored.md",
@@ -1649,7 +1657,7 @@
  },
  "VA-14": {
   "title": "The event is scored on SAP Sailing",
-  "status": "○",
+  "status": "◐",
   "role": "Event Organizer",
   "phase": "Setting the event up",
   "file": "docs/userstories/event-organizer.md",

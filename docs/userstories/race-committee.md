@@ -7,6 +7,125 @@ The race committee runs the races of one matchday from the water and enters thei
 results. Everything derived from a result — points, standings, the freeze of an
 event — follows from the raw entry, so correcting is as ordinary as entering.
 
+## Before the season: the jury
+
+The league's protest committees and umpires are not the clubs' to find: the association
+keeps a **pool of judges** and a **jury organizer** who staffs every event from it
+(decided 2026-11-03). The organizer asks the pool which events each can do, the judges
+answer, and whom the organizer approves is the event's jury — the `jury` tuple the site
+already knows (Z-2), with everything that comes with it: the event in their space (Z-10),
+the notice board (VA-11) and an expense claim on it, settled by the host club's
+treasurer (F-2, F-3).
+
+### JU-1 ● The jury organizer keeps the pool of judges
+As the **jury organizer** I want to **say who is a judge**, so that **I know whom I can
+ask for an event, and only they are asked**.
+
+Acceptance criteria:
+- **Jury organizer** is a relation on the site, `jury_organizer` (Z-2): given by the
+  site's `admin` like every site relation, and the admin is one too. It opens the league
+  office's **Jury** section (`/office/jury`, A-11) and nothing else of the office.
+- **Being a judge is a tuple too** — `user:judge:site`, written by the jury organizer
+  (`POST /api/jury/judges`, any account the organizer finds, `GET /api/jury/candidates`)
+  and deleted by them (`DELETE /api/jury/judges/{user_id}`). Being a judge grants nothing
+  on any event; it only means the jury organizer may ask and write to that person.
+- Removing a judge from the pool withdraws their open requests (those not approved). An
+  event they were approved for keeps them as its jury: taking someone off an event is
+  its own step (JU-5).
+- The judge has no league office: *Me › Jury* is theirs (JU-2, JU-4).
+- Anyone else is refused (403) — a series' or an event's `jury` is no jury organizer.
+
+Endpoints: `GET/POST /api/jury/judges`, `DELETE /api/jury/judges/{user_id}`,
+`GET /api/jury/candidates`
+
+Tests: `api/tests/stories/test_jury.py::TestThePool`
+
+### JU-2 ● A judge says which licences they hold
+As a **judge** I want to **say which licences I hold**, so that **the jury organizer
+asks me for what I can do**.
+
+Acceptance criteria:
+- Three licences, after the DSV's licence rules for race officials: **umpire**,
+  **national judge** and **regional judge** (`JudgeLicence`). Any number, none included.
+- **The judge's own word** (decided 2026-11-03): nobody checks a licence and nobody but
+  the judge sets it — trust, as on the water. *Me › Jury* shows the three to tick
+  (`PUT /api/me/jury/licences`).
+- Only a judge has the section and may save; anyone else is refused (`not-a-judge`).
+- The jury organizer sees each judge's licences in the pool and filters by one (JU-3).
+
+Endpoints: `GET /api/me/jury`, `PUT /api/me/jury/licences`
+
+Tests: `api/tests/stories/test_jury.py::TestLicences`
+
+### JU-3 ● The jury organizer asks judges for events, many at once
+As the **jury organizer** I want to **ask judges whether they can do an event — several
+events and several judges in one go —** and **find the judges I still need to ask**, so
+that **every event is staffed without a mail per person and event**.
+
+Acceptance criteria:
+- **The pool is the site's one table** (A-13): name, address, licences — searched,
+  sorted and paged on the server. Each **event I pick** becomes a column of its own
+  showing each judge's state there — *invited*, *available*, *declined*, *approved* or
+  nothing — and **its header filters by it, including or excluding**: *approved*, *not
+  approved*, *available*, *invited*, *declined*, *asked*, *not asked*
+  (`event=<id>:<state>`, `!` excluding; several events combine). So "available for
+  Kiel, not yet approved anywhere else that weekend" or "not asked for Hamburg" is one
+  filter each. The events offered are those not over (`GET /api/jury/events`), drafts
+  included — a season is staffed before it is published.
+- **Asking is one step for many** (`POST /api/jury/invitations`): the events picked ×
+  the judges ticked, with an optional note. A pair already asked is left as it is; an
+  event already over is refused (`jury-event-closed`), and so is anyone not in the pool
+  (`not-a-judge`). **Each judge gets one mail** naming every event newly asked, the note,
+  and the link to *Me › Jury*.
+- **Writing to judges** without asking for anything (`POST /api/jury/messages`): a
+  subject and a text to the judges ticked, one mail each — the pool is whom the organizer
+  may write to, nobody else.
+
+Endpoints: `GET /api/jury/judges`, `GET /api/jury/events`, `POST /api/jury/invitations`,
+`POST /api/jury/messages`
+
+Tests: `api/tests/stories/test_jury.py::TestAsking`
+
+### JU-4 ● A judge answers: I can, or I cannot
+As a **judge** I want to **answer each request — I can do this event, or I cannot —**
+so that **the jury organizer knows whom to approve**.
+
+Acceptance criteria:
+- *Me › Jury* lists my requests, the next event first, each with its dates and state.
+  An unanswered one is a to-do on *Me* (`jury_invited`, Z-8).
+- Answering *available* is my application for the event; *declined* says I cannot. I may
+  change my answer until I am approved (`PUT /api/me/jury/requests/{event_id}`); after
+  that it is the jury organizer's to take me off (`jury-already-approved`).
+- Only my own request, and only one that exists: an event nobody asked me for answers
+  404.
+
+Endpoints: `GET /api/me/jury`, `PUT /api/me/jury/requests/{event_id}`
+
+Tests: `api/tests/stories/test_jury.py::TestAnswering`
+
+### JU-5 ● The jury organizer approves or assigns — and the judge is the event's jury
+As the **jury organizer** I want to **approve a judge who is available, or put a judge
+on an event myself**, so that **the event has its jury, and the judge can work and claim
+costs on it**.
+
+Acceptance criteria:
+- **Approving is assigning** (`PUT /api/jury/events/{event_id}/judges/{user_id}`): from
+  any state, or with no request at all — a judge I agreed with on the phone needs no
+  invitation first. Only a judge from the pool.
+- **The approved judge is the event's jury at once**: the `jury` tuple on the event,
+  written directly (Z-2) — so the event appears in their space, they publish on its
+  notice board, and they may file an expense claim on it, which **its host club's
+  treasurer** decides and pays (F-2, F-3). Someone who already held it keeps the one row.
+  The judge gets a mail saying so.
+- **Taking a judge off** (`DELETE …/judges/{user_id}`) deletes that tuple and leaves the
+  judge's answer as it was. A claim already filed stays the treasurer's to decide.
+- An event over is refused (`jury-event-closed`).
+
+Endpoints: `PUT /api/jury/events/{event_id}/judges/{user_id}`,
+`DELETE /api/jury/events/{event_id}/judges/{user_id}`
+
+Tests: `api/tests/stories/test_jury.py::TestApproving`
+
 ## On the water
 
 ### WL-1 ○ Run races
@@ -286,13 +405,19 @@ Acceptance criteria:
 - The event's status still changes only through its transitions (VA-8, VA-10) — closing
   the day is a declaration here, whatever SAP shows.
 
-Planned: a background job like `app/jobs.py` on top of `app/imports/sap.py`, which already
-reads the same leaderboard for past seasons (A-14). Tried against SAP Sailing on one
-machine: `deploy/sap-local/README.md`; the tests use recorded answers.
+What is built: `POST /api/events/{id}/sap/results` (the event's race officers and
+organizers) takes the results now; while the event is live the server does it every
+`SBL_SAP_POLL_SECONDS` (`app/services/sap_scoring.py`), and every open page follows. A
+sent event's results land on the teams, boats and races of our draw through the links the
+send stored, and on an event scored on SAP a result changed there replaces ours. Result
+entry, the matchday penalty, the race start, recall, abandon, race signals and the start
+sequence answer
+`event-scored-on-sap` (409, with the leaderboard); results are entered in SAP's Race
+Manager app, and the site's race-control screen and result entry are not offered there
+(VA-14). *Set up › Scoring* fetches the results on request and links SAP's leaderboard.
+Still open: "results as of" on the pages.
 
-What is built: the import taking a sent event's results back once
-(`python -m app.imports sap --regatta <leaderboard>`), onto the teams, boats and races of
-our draw through the links the send stored. Still open: asking every 10–30 s while live,
-refusing result entry here, "results as of".
-
-Tests: `api/tests/stories/test_sap_send.py::TestBothDirections`
+Tests: `api/tests/stories/test_sap_send.py::TestBothDirections`,
+`api/tests/stories/test_journey_sap_scored.py::TestAMatchdayScoredOnSap`,
+`api/tests/stories/test_scoring_backend.py::TestTheEventChoosesItsScoring`,
+`e2e/sap-scoring.spec.ts`

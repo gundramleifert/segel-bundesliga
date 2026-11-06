@@ -66,6 +66,7 @@ from app.services.pairing_service import (
     publish_pairing,
 )
 from app.services.results import SubmittedResult, record_results
+from app.services.sap_scoring import refuse_if_scored_on_sap
 from app.tracking.service import active_course
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -506,6 +507,7 @@ async def start_race(
     second tap on a running race answers with the race, unchanged.
     """
     event, race = await _event_race(session, event_id, race_id)
+    refuse_if_scored_on_sap(event)
     preparatory = (request or RaceStartIn()).preparatory
     await race_state.start_race(session, event, race, actor=acting.email, preparatory=preparatory)
     # The course this race is sailed on (Story L-2): a re-lay between races must not move
@@ -532,6 +534,7 @@ async def recall_race(
     even if this was the day's first race.
     """
     event, race = await _event_race(session, event_id, race_id)
+    refuse_if_scored_on_sap(event)
     await race_state.recall_race(session, event, race, actor=acting.email)
     return await _transition_done(session, event, race)
 
@@ -554,6 +557,7 @@ async def abandon_race(
     score nothing: scoring reads the entries, never the status.
     """
     event, race = await _event_race(session, event_id, race_id)
+    refuse_if_scored_on_sap(event)
     await race_state.abandon_race(session, event, race, actor=acting.email, resail=resail)
     return await _transition_done(session, event, race)
 
@@ -576,6 +580,7 @@ async def set_race_signal(
     (shortened course) only while it is ``running``. One at a time; ``null`` hauls it down.
     """
     event, race = await _event_race(session, event_id, race_id)
+    refuse_if_scored_on_sap(event)
     signal = request.signal
     await race_state.set_signal(session, event, race, actor=acting.email, signal=signal)
     return await _transition_done(session, event, race)
@@ -597,6 +602,7 @@ async def store_start_sequence(
     changes — ``null`` when nothing is armed — so spectators see the flags and the
     countdown. The phone runs the sequence; the server only passes it on."""
     event, race = await _event_race(session, event_id, race_id)
+    refuse_if_scored_on_sap(event)
     race_state.store_start_sequence(
         event, race, None if request is None else request.model_dump(mode="json")
     )
@@ -630,6 +636,7 @@ async def put_race_result(
     race is running. A ``finished`` race is always correctable — the protest case.
     """
     event, race = await _event_race(session, event_id, race_id)
+    refuse_if_scored_on_sap(event)
     recorded = await record_results(
         session,
         event,
@@ -682,6 +689,7 @@ async def put_team_penalty(
         raise Problem(
             404, "team-not-in-event", f"Team {team_id} is not entered in event {event_id}."
         )
+    refuse_if_scored_on_sap(event)
     note = (request.note or "").strip() or None
     points = request.points
     audit(

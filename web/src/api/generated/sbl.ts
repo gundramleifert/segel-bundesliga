@@ -183,6 +183,8 @@ import type {
   Registration,
   RunCreate,
   RunOut,
+  SapResultsOut,
+  SapSendOut,
   SeriesAdminOut,
   SeriesAssignment,
   SeriesCreate,
@@ -2043,7 +2045,8 @@ export const getGetEventAccessUrl = (eventId: number,) => {
  *
  * A request of its own rather than a field on the event detail: the detail is the same
  * for everyone and cached as such, this answer depends on who asks. Same visibility as
- * the detail — what a visitor cannot see is a 404.
+ * the detail — what a visitor cannot see is a 404 — except a draft, answered to its
+ * own organizers and race officers.
  * @summary What the person asking may do on this event
  */
 export const getEventAccess = async (eventId: number, options?: RequestInit): Promise<EventAccess> => {
@@ -7491,6 +7494,158 @@ export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCand
 
 
 
+
+export const getSendEventToSapUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/sap/send`
+}
+
+/**
+ * Story VA-15: the event, its teams under their club codes and our pairing list race
+ * by race to SAP Sailing — again after a new draw, until the first race froze it.
+ * @summary Send Event To Sap
+ */
+export const sendEventToSap = async (eventId: number, options?: RequestInit): Promise<SapSendOut> => {
+
+  return http<SapSendOut>(getSendEventToSapUrl(eventId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSendEventToSapMutationKey = () => ['sendEventToSap'] as const;
+
+export const getSendEventToSapMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendEventToSap>>, TError,SendEventToSapMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof sendEventToSap>>, TError,SendEventToSapMutationVariables, TContext> => {
+
+const mutationKey = getSendEventToSapMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendEventToSap>>, SendEventToSapMutationVariables> = (props) => {
+          const {eventId} = props ?? {};
+
+          return  sendEventToSap(eventId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendEventToSapMutationResult = NonNullable<Awaited<ReturnType<typeof sendEventToSap>>>
+
+    export type SendEventToSapMutationError = ErrorType<ProblemDetails>
+    export type SendEventToSapMutationVariables = {eventId: number}
+
+    /**
+ * @summary Send Event To Sap
+ */
+export const useSendEventToSap = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendEventToSap>>, TError,SendEventToSapMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendEventToSap>>,
+        TError,
+        SendEventToSapMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendEventToSapMutationOptions(options), queryClient);
+    }
+
+export const getFetchResultsFromSapUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/sap/results`
+}
+
+/**
+ * Story WL-5: the event's results from SAP now — while live the server asks by itself;
+ * after the day this is how a protest decided at SAP reaches the results here.
+ * @summary Fetch Results From Sap
+ */
+export const fetchResultsFromSap = async (eventId: number, options?: RequestInit): Promise<SapResultsOut> => {
+
+  return http<SapResultsOut>(getFetchResultsFromSapUrl(eventId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getFetchResultsFromSapMutationKey = () => ['fetchResultsFromSap'] as const;
+
+export const getFetchResultsFromSapMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fetchResultsFromSap>>, TError,FetchResultsFromSapMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof fetchResultsFromSap>>, TError,FetchResultsFromSapMutationVariables, TContext> => {
+
+const mutationKey = getFetchResultsFromSapMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof fetchResultsFromSap>>, FetchResultsFromSapMutationVariables> = (props) => {
+          const {eventId} = props ?? {};
+
+          return  fetchResultsFromSap(eventId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FetchResultsFromSapMutationResult = NonNullable<Awaited<ReturnType<typeof fetchResultsFromSap>>>
+
+    export type FetchResultsFromSapMutationError = ErrorType<ProblemDetails>
+    export type FetchResultsFromSapMutationVariables = {eventId: number}
+
+    /**
+ * @summary Fetch Results From Sap
+ */
+export const useFetchResultsFromSap = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fetchResultsFromSap>>, TError,FetchResultsFromSapMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof fetchResultsFromSap>>,
+        TError,
+        FetchResultsFromSapMutationVariables,
+        TContext
+      > => {
+      return useMutation(getFetchResultsFromSapMutationOptions(options), queryClient);
+    }
 
 export const getListAllClubsUrl = (params?: ListAllClubsParams,) => {
   const normalizedParams = new URLSearchParams();

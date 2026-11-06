@@ -126,7 +126,7 @@ const PEOPLE: Person[] = [
         relations: ["manager"],
         // Set up, Race day, Money (both) — no Editorial.
         sections: [
-          "overview", "general", "clubs", "boats", "pairing", "publication", "people",
+          "overview", "general", "clubs", "boats", "pairing", "scoring", "publication", "people",
           "check-in", "race-control", "results", "notice-board", "my-claims", "decide-claims",
         ],
       },
@@ -163,11 +163,12 @@ const PEOPLE: Person[] = [
     ],
   },
   {
-    row: "Series manager (2. Liga, and the 1. Liga's draft)",
+    row: "Series manager (2. Liga, and both 2027 drafts)",
     who: "serie@sbl.example.com",
     contexts: [
       { ref: LIGA2, relations: ["manager"], sections: SERIES_ORGANIZER },
       { ref: "series:dsbl-1-2027", relations: ["manager"], sections: SERIES_ORGANIZER },
+      { ref: "series:dsbl-2-2027", relations: ["manager"], sections: SERIES_ORGANIZER },
     ],
   },
   {

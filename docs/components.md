@@ -517,3 +517,22 @@ anywhere else.
 - **`invalid`** draws the red border and sets `aria-invalid`.
 - **`className` is for layout only** — `flex-1`, `w-32`. A colour or padding there wins or
   loses by its place in Tailwind's stylesheet, not by its place in the list (docs/gotchas).
+
+## `SapAttribution` — SAP's credit, one phrase, three shapes
+
+"Results powered by SAP Sailing Analytics" with SAP's logo, wherever a result from SAP
+Sailing shows and in the footer (Story B-21 — SAP's condition for using a server it
+hosts). The wording is one i18n key (`common:sapAttribution.poweredBy`) and never varies;
+what varies is the shape, as **CVA variants** (`class-variance-authority`):
+
+- **`shape`**: `long` (one line, logo beside the phrase — under a table, in the footer),
+  `square` (logo above, the phrase in two lines — a card or a tile), `mark` (the logo
+  alone, the phrase its accessible name and tooltip — where there is no room);
+- **`size`**: `sm` (default) or `md`; **`surface`**: `plain` (default) or `card`, its own
+  ground and border for a place over a photo;
+- **`href`**: an act's own page at SAP (`sap_leaderboard_url`), else sapsailing.com;
+  **`when`** false renders nothing, so a table with no result from SAP carries no credit.
+
+The logo (`web/public/brand/sap-logo.png`) is SAP's own file from its repository,
+transparent around the mark, so it stands on both themes; SAP Brand Tools' file replaces
+it once access is granted. `className` places it (margins), never styles it.

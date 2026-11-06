@@ -9,6 +9,7 @@ from app.models.competition import (
     EventDocumentKind,
     EventStatus,
     League,
+    ResultsSource,
     Series,
     Venue,
 )
@@ -56,10 +57,15 @@ from app.models.racing import (
     ResultCode,
 )
 from app.models.standings import EventStanding, SeriesStanding
+from app.models.jury import JudgeLicence, JudgeLicenceHolding, JuryRequest, JuryState
 from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "JudgeLicence",
+    "JudgeLicenceHolding",
+    "JuryRequest",
+    "JuryState",
     "MembershipStatus",
     "ImportKey",
     "MediaItem",
@@ -100,6 +106,7 @@ __all__ = [
     "EventCrew",
     "EventStanding",
     "EventStatus",
+    "ResultsSource",
     "ExternalId",
     "Flight",
     "ImportRun",

@@ -77,7 +77,7 @@ flowchart TD
 
 | Chapter | Preview | Its page |
 |---|---|---|
-| **Standings** | the top five; the page's title | `/:league/standings` |
+| **Season 2026** (the current year; *Standings* when there is none) | the top five and the year's matchdays; the page's title | `/:league/standings` |
 | **Results** | only while a matchday is live: the act, venue, host; links to live map and notice board | the act's results |
 | **News** | three headlines | `/:league/news` |
 | **Media** | what there is to watch | `/:league/media` |

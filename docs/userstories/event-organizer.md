@@ -203,7 +203,7 @@ Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
 `api/tests/stories/test_complete_lifecycle.py::TestTheAdminEventList`,
 `e2e/lifecycle.spec.ts::VA-8: from a draft to a running event`
 
-### VA-14 ○ The event is scored on SAP Sailing
+### VA-14 ◐ The event is scored on SAP Sailing
 As the **organizer of an event** I want to **say that this event's results come from SAP
 Sailing Analytics**, so that **the race committee works in the scoring system the league
 agreed on, and the site still shows every result without anyone typing it twice**.
@@ -228,9 +228,26 @@ Acceptance criteria:
 - The configuration still belongs to the event (teams, boats, flights) and freezes with
   the first race as before (VA-8).
 
-Planned: a field in the event's settings, a reason code in `event_readiness.py`.
+- **The choice is on the event's screen** — *Set up › Scoring*: this site or SAP
+  Sailing, offered only when this installation can reach SAP (`EventAccess.sap`, its
+  credentials set); with SAP chosen, the same section sends the event (VA-15), fetches its
+  results (WL-5) and links SAP's leaderboard.
+- **On an event scored on SAP, the site's own race control steps aside** (decided
+  2026-11-03): the race committee works in SAP's Race Manager app, so the site offers
+  neither its race-control screen nor its result entry there (`EventAccess.record_results`
+  is false), and refuses its race start, signals and start sequence (`event-scored-on-sap`) — a
+  recall here would clear results SAP holds. Starting and closing the day stay here
+  (VA-8, VA-10): they say when the site asks SAP.
 
-Tests: none yet
+What is built: `results_source` (`site` | `sap`) on the event, set with the event's other
+settings (`PATCH /api/admin/events/{id}`) and by a successful send (VA-15); the event
+shows it with its `sap_leaderboard`; *Set up › Scoring* on the event's screen; the race
+control stepping aside. Still open: the readiness naming an unmatched competitor of a
+leaderboard named by hand.
+
+Tests: `api/tests/stories/test_journey_sap_scored.py::TestAMatchdayScoredOnSap`,
+`api/tests/stories/test_scoring_backend.py::TestTheEventChoosesItsScoring`,
+`e2e/sap-scoring.spec.ts`
 
 ### VA-15 ◐ Send the event and its pairing list to SAP Sailing
 As the **organizer of an event** scored on SAP Sailing I want to **send the event, its
@@ -248,7 +265,9 @@ Acceptance criteria:
 - **What is sent:** the event (name, dates, venue, boat class J/70, its flights), its
   teams with the **club code as SAP's short name**, the boats with their colours, and
   **our pairing list race by race** — which team sails which boat in which race. A flight
-  is one race column on SAP, its three races are that column's fleets.
+  is one race column on SAP, its three races are that column's fleets — in SAP's colours
+  for them, blue, yellow, green, so the viewer and the leaderboard show which race of the
+  flight a result is from.
 - **Built on SAP's REST API:** `POST /api/v1/events/createEvent`,
   `/api/v1/regattas/updateOrCreateSeries`, `/api/v1/regattas/{name}/competitors/createandadd…`,
   `/api/v1/boats`, `POST /api/v1/mark/addCompetitorToRace` (leaderboard, race column,
@@ -274,13 +293,17 @@ Acceptance criteria:
   `demo-2-2026-act-3` (18 teams, 48 races, 288 team-on-boat pairs) arrived as sent
   (2026-11-01).
 
-What is built: `app/imports/sap_send.py`, run as `python -m app.imports sap-send <event>
---boats boats.json` (account from `SBL_SAP_USER`/`SBL_SAP_PASSWORD`). Still open: the
-button, the season's leaderboard group on SAP (one per season, as SAP keeps the league —
-no REST call creates one yet), and SAP's real account for us.
+What is built: `POST /api/events/{id}/sap/send` (whoever may edit the event), on
+`app/imports/sap_send.py` — also a command, `python -m app.imports sap-send <event>
+--boats boats.json`. The server's SAP account and boats are settings (`SBL_SAP_USER`,
+`SBL_SAP_PASSWORD` — a secret —, `SBL_SAP_BOATS`). The button is *Set up › Scoring* on the event's screen (VA-14). Still open: the season's
+leaderboard group on SAP (one per season, as SAP keeps the league — the REST call for it is
+proposed in SAP's PR #6325), and SAP's real account for us.
 
 Tests: `api/tests/stories/test_sap_send.py::TestSendTheEventToSap`,
-`api/tests/stories/test_sap_send.py::TestBothDirections`
+`api/tests/stories/test_sap_send.py::TestBothDirections`,
+`api/tests/stories/test_journey_sap_scored.py::TestAMatchdayScoredOnSap`,
+`e2e/sap-scoring.spec.ts`
 
 ## Participants and their waivers
 

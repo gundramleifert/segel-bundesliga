@@ -1,9 +1,9 @@
 """Story VA-15: the event and its pairing list sent to SAP Sailing.
 
-Never against a live SAP: a fake one answers here, keeping what it was sent, so the test
-can ask what SAP would now hold. What the real API wants was tried against
-`deploy/sap-local/` (2026-11-01) — fleets only on a new series, a boat with every team,
-the draw per race after enabling its registration — and the fake answers the same way.
+Against **the local SAP Sailing** (`deploy/sap-local/`, `tests/sap_double.py`), the
+double of SAP's hosted server — no simulation: what SAP now holds is asked of SAP, the
+draw of a race from its race log. Skipped when no local SAP answers. Each test sends to a
+leaderboard of its own (a venue named with a tag), so runs never meet at SAP.
 
 Like the import tests, **each test sends from its own database**: a small matchday — four
 teams of three clubs (one club with two teams), two boats, two flights of two races —
@@ -12,10 +12,8 @@ arranged directly, since no endpoint builds a drawn event in one call.
 
 from __future__ import annotations
 
-import json
 from datetime import UTC, date, datetime
-from typing import Any
-from urllib.parse import parse_qs, unquote
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -24,24 +22,36 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.imports.common import link_key
 from app.imports.sap import SOURCE, SapClient, import_sap
-from app.imports.sap_send import SapWriter, send_event
+from app.imports.sap_send import SapWriter, SendRefused, send_event
 from app.models import (
     Base,
     Boat,
     Club,
     Event,
     EventStatus,
+    ExternalId,
     Flight,
     Race,
     RaceEntry,
     RaceStatus,
+    ResultsSource,
     Series,
     Team,
     Venue,
 )
+from tests import sap_double
+from tests.sap_double import LocalSap
 
-BOATS = {"BLACK": "sap-boat-black", "GREEN": "sap-boat-green"}
-NAME = "2. Segel-Bundesliga 2027 - Warnemünde (4)"
+pytestmark = pytest.mark.skipif(
+    not sap_double.available(), reason="no local SAP Sailing (deploy/sap-local/README.md)"
+)
+
+BOATS = {colour: sap_double.boats()[colour] for colour in ("BLACK", "GREEN")}
+CLUB_NAMES = {
+    "ASVW": "Akademischer Segelverein Warnemünde",
+    "NRV": "Norddeutscher Regatta Verein",
+    "KYC": "Kieler Yacht-Club",
+}
 #: (club code, team number, boat colour in F1 R1, F1 R2, F2 R1, F2 R2) — four teams on two
 #: boats: two race in each race.
 DRAW = [
@@ -52,138 +62,37 @@ DRAW = [
 ]
 
 
-class FakeSap:
-    """The endpoints the send uses, answering like SAP and keeping the state."""
-
-    def __init__(self) -> None:
-        self.calls: list[str] = []
-        self.events = 0
-        self.fleets: list[str] = []
-        self.columns: list[str] = []
-        self.competitors: dict[str, dict[str, Any]] = {}
-        self.enabled: set[tuple[str, str]] = set()
-        #: (column, fleet) → competitor id → boat id
-        self.draw: dict[tuple[str, str], dict[str, str]] = {}
-        #: (column, fleet) → competitor id → place — what the race committee enters at SAP
-        self.places: dict[tuple[str, str], dict[str, int]] = {}
-
-    def finish(self, column: str, fleet: str, order: list[str]) -> None:
-        """The race committee enters a race's finish at SAP: competitor ids, first first."""
-        self.places[(column, fleet)] = {cid: place for place, cid in enumerate(order, 1)}
-
-    def leaderboard(self) -> dict[str, Any]:
-        """The v2 leaderboard, shaped like the recorded one (`tests/fixtures/sap/`)."""
-        competitors = []
-        for cid, data in self.competitors.items():
-            columns = {}
-            for (column, fleet), places in self.places.items():
-                if cid in places:
-                    boat = self.draw[(column, fleet)][cid]
-                    columns[column] = {
-                        "boat": {"id": boat, "name": boat, "sailId": None, "color": None},
-                        "fleet": fleet,
-                        "totalPoints": float(places[cid]),
-                        "netPoints": float(places[cid]),
-                        "maxPointsReason": "NONE",
-                        "isDiscarded": False,
-                        "rank": places[cid],
-                        "trackedRank": places[cid],
-                        "finished": True,
-                    }
-            net = sum(c["netPoints"] for c in columns.values())
-            competitors.append(
-                {
-                    **data,
-                    "name": data["shortName"],
-                    "carriedPoints": None,
-                    "netPoints": net,
-                    "columns": columns,
-                }
-            )
-        return {
-            "name": NAME,
-            "columnNames": self.columns,
-            "trackedRacesInfo": [
-                {
-                    "raceColumnName": c,
-                    "fleets": [{"name": f, "trackedRace": None} for f in self.fleets],
-                }
-                for c in self.columns
-            ],
-            "competitors": competitors,
-            "lastScoringUpdate": None,
-        }
-
-    def transport(self) -> httpx.MockTransport:
-        return httpx.MockTransport(self._handle)
-
-    def _handle(self, request: httpx.Request) -> httpx.Response:
-        path = unquote(request.url.path).removeprefix("/api/")
-        query = {k: v[0] for k, v in parse_qs(request.url.query.decode()).items()}
-        self.calls.append(f"{request.method} {path.split('/')[-1]}")
-        regatta = f"v1/regattas/{NAME}"
-        if request.method == "GET" and path == "v1/regattas":
-            return httpx.Response(200, json=[{"name": NAME}] if self.events else [])
-        if request.method == "GET" and path == f"v2/leaderboards/{NAME}":
-            return httpx.Response(200, json=self.leaderboard())
-        if request.method == "GET" and path == regatta:
-            if not self.events:
-                return httpx.Response(404)
-            series = [{"name": "Flights", "fleets": self.fleets, "races": self.columns}]
-            return httpx.Response(200, json={"name": NAME, "series": series if self.fleets else []})
-        if path == "v1/events/createEvent":
-            form = parse_qs(request.content.decode())
-            assert form["eventName"] == [NAME]
-            assert form["canBoatsOfCompetitorsChangePerRace"] == ["true"]
-            self.events += 1
-            return httpx.Response(200, json={"leaderboard": NAME})
-        if path == "v1/regattas/updateOrCreateSeries":
-            body = json.loads(request.content)
-            if not self.fleets:  # SAP sets fleets only when it creates the series
-                self.fleets = [f["fleetName"] for f in body["fleets"]]
-            return httpx.Response(200)
-        if path == f"{regatta}/removeracecolumn":
-            column = query["racecolumn"]
-            self.columns.remove(column)
-            for key in [k for k in self.draw if k[0] == column]:
-                del self.draw[key]
-                self.enabled.discard(key)
-            return httpx.Response(200)
-        if path == f"{regatta}/addracecolumns":
-            new = [f"F{len(self.columns) + i}" for i in range(1, int(query["numberofraces"]) + 1)]
-            self.columns += new
-            return httpx.Response(200, json=[{"racename": c} for c in new])
-        if request.method == "GET" and path == f"{regatta}/competitors":
-            return httpx.Response(200, json=list(self.competitors.values()))
-        if path == f"{regatta}/competitors/createandadd":
-            cid = f"sap-team-{len(self.competitors) + 1}"
-            self.competitors[cid] = {"id": cid, "shortName": query["competitorShortName"]}
-            return httpx.Response(200, json=self.competitors[cid])
-        if path == f"v1/leaderboards/{NAME}/enableRaceLogForCompetitorRegistration":
-            self.enabled.add((query["raceColumnName"], query["fleetName"]))
-            return httpx.Response(200)
-        if path == "v1/mark/addCompetitorToRace":
-            body = json.loads(request.content)
-            race = (body["raceColumnName"], body["fleetName"])
-            if race not in self.enabled or race[0] not in self.columns:
-                return httpx.Response(400, text=f"Competitor registration not allowed for {race}")
-            self.draw.setdefault(race, {}).update(
-                {c["competitorId"]: c["boatId"] for c in body["competitors"]}
-            )
-            return httpx.Response(200)
-        return httpx.Response(404, text=f"fake SAP: no {request.method} {path}")
+@pytest.fixture
+def city() -> str:
+    return f"Warnemünde {uuid4().hex[:6]}"
 
 
 @pytest.fixture
-async def db(tmp_path):
+def name(city) -> str:
+    """The leaderboard the send names at SAP (`sap_send.leaderboard_name`)."""
+    return f"2. Segel-Bundesliga 2027 - {city} (4)"
+
+
+@pytest.fixture(autouse=True)
+def sap(name):
+    """The test's event at the local SAP — deleted afterwards, so SAP holds only what
+    someone sent on purpose."""
+    local = LocalSap(name)
+    yield local
+    local.delete()
+    local.close()
+
+
+@pytest.fixture
+async def db(tmp_path, city):
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'send.db'}")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     sessions = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     async with sessions() as session:
         clubs = {
-            code: Club(slug=code.lower(), name=code, short_name=code)
-            for code in ("ASVW", "NRV", "KYC")
+            code: Club(slug=code.lower(), name=name, short_name=code)
+            for code, name in CLUB_NAMES.items()
         }
         series = Series(
             slug="dsbl-2-2027",
@@ -192,7 +101,7 @@ async def db(tmp_path):
             year=2027,
             level=2,
         )
-        venue = Venue(slug="warnemuende", name="Warnemünde", city="Warnemünde")
+        venue = Venue(slug="warnemuende", name="Warnemünde", city=city)
         event = Event(
             slug="dsbl-2-2027-warnemuende",
             title="Act 4 Warnemünde",
@@ -234,54 +143,75 @@ async def db(tmp_path):
     await engine.dispose()
 
 
-async def _send(db, sap: FakeSap):
-    async with httpx.AsyncClient(transport=sap.transport()) as http:
-        return await send_event(
-            db, SapWriter(http, "https://sap.example.com/api"), "dsbl-2-2027-warnemuende", BOATS
+async def _send(db, boats: dict[str, str] = BOATS):
+    async with httpx.AsyncClient(auth=sap_double.AUTH, timeout=60) as http, db() as session:
+        event = (await session.execute(select(Event))).scalar_one()
+        return await send_event(session, SapWriter(http, sap_double.API), event.id, boats)
+
+
+async def _import(db, name: str):
+    async with httpx.AsyncClient(auth=sap_double.AUTH, timeout=60) as http:
+        return await import_sap(
+            db, SapClient(http, sap_double.API), names=[name], log=lambda _: None
         )
 
 
+async def _team_names(db) -> dict[str, str]:
+    """SAP's competitor id → our team's name, through the links the send stored."""
+    async with db() as session:
+        return {
+            await link_key(session, Team, SOURCE, team.id): team.name
+            for team in (await session.execute(select(Team))).scalars()
+        }
+
+
 class TestSendTheEventToSap:
-    async def test_sap_holds_the_event_its_teams_and_our_draw(self, db):
+    async def test_sap_holds_the_event_its_teams_and_our_draw(self, db, sap, name):
         """Story VA-15, Journey step J-10.16: one send makes the event, a flight per race
         column with its races as fleets, the teams under their club codes, and every race's
         team-on-boat pairs."""
-        sap = FakeSap()
-        report = await _send(db, sap)
+        report = await _send(db)
 
         assert report.errors == []
         assert (report.teams_created, report.races) == (4, 4)
-        assert sap.events == 1
-        assert sap.columns == ["F1", "F2"]
-        assert sap.fleets == ["Race 1", "Race 2"]
-        # A club entering two teams is told apart by number (VA-13).
-        assert sorted(c["shortName"] for c in sap.competitors.values()) == [
-            "ASVW",
-            "KYC 1",
-            "KYC 2",
-            "NRV",
+        assert name in sap_double.leaderboards()
+        flights = next(s for s in sap.regatta()["series"] if s["name"] == "Flights")
+        assert flights["races"] == ["F1", "F2"]
+        assert [f["name"] for f in flights["fleets"]] == ["Race 1", "Race 2"]
+        # In SAP's colours for the races: blue, yellow (and green for a third).
+        assert [f["color"] for f in flights["fleets"]] == [
+            {"r": 39, "g": 140, "b": 194},
+            {"r": 251, "g": 186, "b": 0},
         ]
-        team_of = {}
+        # A club entering two teams is told apart by number (VA-13).
+        assert sorted(sap.competitors()) == ["ASVW", "KYC 1", "KYC 2", "NRV"]
+        # Named as SAP names the league's teams: the club in full, the code as short name.
+        assert sorted(sap.names().items()) == [
+            ("ASVW", "Akademischer Segelverein Warnemünde"),
+            ("KYC 1", "Kieler Yacht-Club"),
+            ("KYC 2", "Kieler Yacht-Club 2"),
+            ("NRV", "Norddeutscher Regatta Verein"),
+        ]
+        team_of = await _team_names(db)
         async with db() as session:
-            for team in (await session.execute(select(Team))).scalars():
-                team_of[await link_key(session, Team, SOURCE, team.id)] = team.name
             event = (await session.execute(select(Event))).scalar_one()
-            assert event.sap_leaderboard == NAME
-            assert await link_key(session, Event, SOURCE, event.id) == NAME
-        assert {team_of[c]: b for c, b in sap.draw[("F1", "Race 1")].items()} == {
-            "ASVW 1": "sap-boat-black",
-            "NRV 1": "sap-boat-green",
+            assert event.sap_leaderboard == name
+            # Sent, it is scored there (VA-14): results come from SAP from now on.
+            assert event.results_source == ResultsSource.SAP
+            assert await link_key(session, Event, SOURCE, event.id) == name
+        assert {team_of[c]: b for c, b in sap.draw("F1", "Race 1").items()} == {
+            "ASVW 1": BOATS["BLACK"],
+            "NRV 1": BOATS["GREEN"],
         }
-        assert {team_of[c]: b for c, b in sap.draw[("F2", "Race 2")].items()} == {
-            "NRV 1": "sap-boat-black",
-            "KYC 2": "sap-boat-green",
+        assert {team_of[c]: b for c, b in sap.draw("F2", "Race 2").items()} == {
+            "NRV 1": BOATS["BLACK"],
+            "KYC 2": BOATS["GREEN"],
         }
 
-    async def test_sending_again_replaces_the_draw_and_keeps_the_teams(self, db):
+    async def test_sending_again_replaces_the_draw_and_keeps_the_teams(self, db, sap, name):
         """Story VA-15: a second send — after a new draw — makes no second event and no
         second team; SAP's draw is ours as it now stands."""
-        sap = FakeSap()
-        await _send(db, sap)
+        await _send(db)
         async with db() as session:  # a new draw: ASVW and NRV swap boats in F1 R1
             entries = (
                 (
@@ -306,16 +236,49 @@ class TestSendTheEventToSap:
             session.add_all(RaceEntry(race_id=r, team_id=t, boat_id=b) for r, t, b in swapped)
             await session.commit()
 
-        report = await _send(db, sap)
+        report = await _send(db)
 
         assert (report.teams_created, report.teams_kept, report.races) == (0, 4, 4)
-        assert sap.events == 1 and len(sap.competitors) == 4
-        assert sap.columns == ["F1", "F2"]
-        assert sorted(sap.draw[("F1", "Race 1")].values()) == ["sap-boat-black", "sap-boat-green"]
-        assert list(sap.draw[("F1", "Race 1")].values()) == ["sap-boat-green", "sap-boat-black"]
-        assert sum(len(pairs) for pairs in sap.draw.values()) == 8
+        assert sap_double.leaderboards().count(name) == 1 and len(sap.competitors()) == 4
+        flights = next(s for s in sap.regatta()["series"] if s["name"] == "Flights")
+        assert flights["races"] == ["F1", "F2"]
+        team_of = await _team_names(db)
+        assert {team_of[c]: b for c, b in sap.draw("F1", "Race 1").items()} == {
+            "ASVW 1": BOATS["GREEN"],
+            "NRV 1": BOATS["BLACK"],
+        }
+        assert sum(len(sap.draw(f"F{f}", f"Race {r}")) for f in (1, 2) for r in (1, 2)) == 8
 
-    async def test_a_started_event_is_not_sent(self, db):
+    async def test_a_team_gone_at_sap_is_made_again(self, db, sap):
+        """Story VA-15: a team the site linked to SAP is no longer there (SAP's data was
+        cleaned up) — the next send makes it again and the link follows the new one."""
+        await _send(db)
+        async with db() as session:  # the link now names a competitor SAP does not have
+            asvw = (await session.execute(select(Team).where(Team.name == "ASVW 1"))).scalar_one()
+            row = (
+                await session.execute(
+                    select(ExternalId).where(
+                        ExternalId.source == SOURCE,
+                        ExternalId.entity_type == Team.__tablename__,
+                        ExternalId.entity_id == asvw.id,
+                    )
+                )
+            ).scalar_one()
+            row.external_key = str(uuid4())
+            await session.commit()
+
+        report = await _send(db)
+
+        assert report.errors == []
+        assert (report.teams_created, report.teams_kept) == (1, 3)
+        team_of = await _team_names(db)
+        # The team SAP lost a link to is a new competitor; the other three are the ones sent.
+        assert set(team_of) <= sap.competitor_ids()
+        assert {team_of[c]: b for c, b in sap.draw("F1", "Race 1").items()}["ASVW 1"] == BOATS[
+            "BLACK"
+        ]
+
+    async def test_a_started_event_is_not_sent(self, db, name):
         """Story VA-15: once the first race froze the event (VA-8), SAP's draw stays the one
         sailed — the send is refused before anything reaches SAP."""
         async with db() as session:
@@ -323,44 +286,31 @@ class TestSendTheEventToSap:
             race.status = RaceStatus.FINISHED
             race.started_at = datetime(2027, 8, 20, 10, tzinfo=UTC)
             await session.commit()
-        sap = FakeSap()
 
-        with pytest.raises(SystemExit, match="froze"):
-            await _send(db, sap)
-        assert sap.calls == []
+        with pytest.raises(SendRefused, match="froze"):
+            await _send(db)
+        assert name not in sap_double.leaderboards()
 
-    async def test_a_boat_without_its_sap_boat_is_named(self, db):
+    async def test_a_boat_without_its_sap_boat_is_named(self, db, name):
         """Story VA-15: a boat colour SAP has no boat for is named, and nothing is sent."""
-        sap = FakeSap()
-        async with httpx.AsyncClient(transport=sap.transport()) as http:
-            with pytest.raises(SystemExit, match="GREEN"):
-                await send_event(
-                    db,
-                    SapWriter(http, "https://sap.example.com/api"),
-                    "dsbl-2-2027-warnemuende",
-                    {"BLACK": "sap-boat-black"},
-                )
-        assert sap.calls == []
+        with pytest.raises(SendRefused, match="GREEN"):
+            await _send(db, {"BLACK": BOATS["BLACK"]})
+        assert name not in sap_double.leaderboards()
 
 
 class TestBothDirections:
-    async def test_the_draw_goes_to_sap_and_the_results_come_back(self, db):
+    async def test_the_draw_goes_to_sap_and_the_results_come_back(self, db, sap, name):
         """Stories VA-15, WL-5, Journey step J-10.7: configuration flows to SAP, results
         flow back. The event and its draw are sent; the race committee scores a flight at
         SAP; the import takes the places onto the very teams, boats and races of our draw —
         no second event, team or boat — and the points are derived here."""
-        sap = FakeSap()
-        await _send(db, sap)
-        code = {cid: c["shortName"] for cid, c in sap.competitors.items()}
-        by_code = {v: k for k, v in code.items()}
+        await _send(db)
+        by_code = sap.competitors()
         # F1: ASVW beats NRV in race 1, KYC 2 beats KYC 1 in race 2.
-        sap.finish("F1", "Race 1", [by_code["ASVW"], by_code["NRV"]])
-        sap.finish("F1", "Race 2", [by_code["KYC 2"], by_code["KYC 1"]])
+        sap.enter("F1", "Race 1", [(by_code["ASVW"], 1, "NONE"), (by_code["NRV"], 2, "NONE")])
+        sap.enter("F1", "Race 2", [(by_code["KYC 2"], 1, "NONE"), (by_code["KYC 1"], 2, "NONE")])
 
-        async with httpx.AsyncClient(transport=sap.transport()) as http:
-            report = await import_sap(
-                db, SapClient(http, "https://sap.example.com/api"), names=[NAME], log=lambda _: None
-            )
+        report = await _import(db, name)
 
         assert report.errors == [] and report.conflicts == []
         async with db() as session:
@@ -390,3 +340,27 @@ class TestBothDirections:
             ("KYC 2", 2, 1, "GREEN", 1.0),
             ("KYC 1", 2, 2, "BLACK", 2.0),
         ]
+
+    async def test_points_that_differ_at_sap_are_reported_and_ours_stand(self, db, sap, name):
+        """Story WL-5, Journey step J-10.9: SAP's net points not ours — SAP's series
+        discards a race, ours does not — the import says so for the teams it touches, and
+        the points here stay the ones derived here."""
+        await _send(db)
+        by_code = sap.competitors()
+        sap.enter("F1", "Race 1", [(by_code["ASVW"], 1, "NONE"), (by_code["NRV"], 2, "NONE")])
+        sap.discard([1])
+
+        report = await _import(db, name)
+
+        assert sum("net points here" in w for w in report.warnings) == 2
+        async with db() as session:
+            points = (
+                (
+                    await session.execute(
+                        select(RaceEntry.points).where(RaceEntry.finish_position.is_not(None))
+                    )
+                )
+                .scalars()
+                .all()
+            )
+        assert sorted(points) == [1.0, 2.0]

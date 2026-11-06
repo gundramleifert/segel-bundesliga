@@ -95,6 +95,47 @@ async def send_invitation(
     await _deliver(email, mail, what="invitation link", secret=link)
 
 
+async def send_jury_invitation(
+    email: str,
+    *,
+    name: str,
+    organizer: str,
+    events: list[str],
+    note: str | None,
+    link: str,
+    locale: Locale = MAIL_LOCALE,
+) -> None:
+    """Story JU-3: one mail per judge, naming every event newly asked."""
+    mail = render_mail(
+        "jury_invitation", locale, name=name, organizer=organizer, events=events, note=note, link=link
+    )
+    await _deliver(email, mail, what="jury request", secret=link)
+
+
+async def send_jury_approval(
+    email: str, *, name: str, organizer: str, event: str, link: str, locale: Locale = MAIL_LOCALE
+) -> None:
+    """Story JU-5: the judge is on the event's jury."""
+    mail = render_mail("jury_approved", locale, name=name, organizer=organizer, event=event, link=link)
+    await _deliver(email, mail, what="jury approval", secret=link)
+
+
+async def send_jury_message(
+    email: str,
+    *,
+    name: str,
+    organizer: str,
+    subject: str,
+    text: str,
+    locale: Locale = MAIL_LOCALE,
+) -> None:
+    """Story JU-3: the jury organizer writes to a judge."""
+    mail = render_mail(
+        "jury_message", locale, name=name, organizer=organizer, subject=subject, text=text
+    )
+    await _deliver(email, mail, what="jury message", secret=subject)
+
+
 async def _deliver(email: str, mail: Mail, *, what: str, secret: str) -> None:
     """Hands one mail to SBL_SMTP_HOST — or, without one, logs ``secret`` (the code, the
     link) instead, so the site works locally without a mail server. The secret is the

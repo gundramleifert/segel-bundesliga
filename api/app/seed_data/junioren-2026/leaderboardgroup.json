@@ -1,0 +1,1652 @@
+{
+ "name": "Deutsche Junioren Segel-Liga 2026",
+ "id": "0779a809-bc10-44ef-9851-04a6de553027",
+ "displayName": "Deutsche Junioren Segel-Liga 2026",
+ "description": "Deutsche Junioren Segel-Liga 2026",
+ "timepoint": "Tue Nov 03 19:01:53 UTC 2026 (+401ms)",
+ "timepoint-ms": 1793732513401,
+ "hasOverallLeaderboard": true,
+ "overallLeaderboardName": "Deutsche Junioren Segel-Liga 2026 Overall",
+ "events": [
+  "4639e483-8ce0-41d2-b974-fce7fc7481a7",
+  "55947e6d-bd4e-4200-ac01-6c437449f0b3",
+  "9198373d-e7d9-44db-81bc-ca9afcfeae2f",
+  "d1152e6d-9b4f-4002-9a5b-c3b677a87946"
+ ],
+ "leaderboards": [
+  {
+   "name": "Deutsche Junioren Segel-Liga 2026 - Act 1",
+   "displayName": "ACT 1",
+   "isMetaLeaderboard": false,
+   "isRegattaLeaderboard": true,
+   "discardIndexResultsStartingWithHowManyRaces": [],
+   "scoringComment": "Results of race F10, Race 3 have been updated.",
+   "lastScoringUpdate": "Sun May 10 12:23:37 UTC 2026",
+   "lastScoringUpdate-ms": 1778415817000,
+   "scoringScheme": "LOW_POINT_WITH_AUTOMATIC_RDG",
+   "regattaName": "Deutsche Junioren Segel-Liga 2026 - Act 1",
+   "series": [
+    {
+     "name": "Default",
+     "isMedalSeries": false,
+     "fleets": [
+      {
+       "name": "Race 1",
+       "color": "#8AB54E",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 2",
+       "color": "#278CC2",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 3",
+       "color": "#FBBA00",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Deutsche Junioren Segel-Liga 2026 - Act 2",
+   "displayName": "ACT 2",
+   "isMetaLeaderboard": false,
+   "isRegattaLeaderboard": true,
+   "discardIndexResultsStartingWithHowManyRaces": [],
+   "scoringComment": "Results of race F12, Race 3 have been updated.",
+   "lastScoringUpdate": "Sun Aug 23 14:12:07 UTC 2026",
+   "lastScoringUpdate-ms": 1787494327849,
+   "scoringScheme": "LOW_POINT_WITH_AUTOMATIC_RDG",
+   "regattaName": "Deutsche Junioren Segel-Liga 2026 - Act 2",
+   "series": [
+    {
+     "name": "Default",
+     "isMedalSeries": false,
+     "fleets": [
+      {
+       "name": "Race 1",
+       "color": "#278CC2",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F12",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F13",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F14",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 2",
+       "color": "#FBBA00",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F12",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F13",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F14",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 3",
+       "color": "#8AB54E",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F12",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F13",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F14",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Deutsche Junioren Segel-Liga 2026 - Act 3",
+   "displayName": "ACT 3",
+   "isMetaLeaderboard": false,
+   "isRegattaLeaderboard": true,
+   "discardIndexResultsStartingWithHowManyRaces": [],
+   "scoringComment": "Results of race F11, Race 3 have been updated.",
+   "lastScoringUpdate": "Sun Sep 13 13:56:17 UTC 2026",
+   "lastScoringUpdate-ms": 1789307777000,
+   "scoringScheme": "LOW_POINT_WITH_AUTOMATIC_RDG",
+   "regattaName": "Deutsche Junioren Segel-Liga 2026 - Act 3",
+   "series": [
+    {
+     "name": "Default",
+     "isMedalSeries": false,
+     "fleets": [
+      {
+       "name": "Race 1",
+       "color": "#278CC2",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 2",
+       "color": "#FBBA00",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 3",
+       "color": "#8AB54E",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)",
+   "displayName": "ACT 4 (FINALE)",
+   "isMetaLeaderboard": false,
+   "isRegattaLeaderboard": true,
+   "discardIndexResultsStartingWithHowManyRaces": [],
+   "scoringComment": "Results of race F3, Race 3 have been updated.",
+   "lastScoringUpdate": "Sun Oct 04 11:09:07 UTC 2026",
+   "lastScoringUpdate-ms": 1791112147388,
+   "scoringScheme": "LOW_POINT_WITH_AUTOMATIC_RDG",
+   "regattaName": "Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)",
+   "series": [
+    {
+     "name": "Default",
+     "isMedalSeries": false,
+     "fleets": [
+      {
+       "name": "Race 1",
+       "color": "#278CC2",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F12",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F13",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F14",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 2",
+       "color": "#FBBA00",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F12",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F13",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F14",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      },
+      {
+       "name": "Race 3",
+       "color": "#8AB54E",
+       "ordering": 0,
+       "races": [
+        {
+         "name": "F1",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F2",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F3",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F4",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F5",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F6",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F7",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F8",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F9",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F10",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F11",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F12",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F13",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        },
+        {
+         "name": "F14",
+         "isMedalRace": false,
+         "isTracked": false,
+         "trackedRaceName": null,
+         "trackingProviderType": null,
+         "raceId": null,
+         "hasGpsData": false,
+         "hasWindData": false
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

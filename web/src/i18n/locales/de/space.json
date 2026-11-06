@@ -365,6 +365,7 @@
         "clubs": "Vereine",
         "boats": "Boote",
         "pairing": "Pairing-Liste",
+        "scoring": "Wertung",
         "publication": "Veröffentlichung",
         "people": "Personen",
         "check-in": "Check-in",
@@ -424,7 +425,8 @@
     "resizeDiscardsDraw": "Eine neue Größe verwirft beim Speichern die Pairing-Liste der alten — danach neu auslosen.",
     "saved": "Gespeichert.",
     "boats": "Boote",
-    "save": "Speichern"
+    "save": "Speichern",
+    "scoring": "Wertung"
   },
   "clubSections": {
     "people": "Personen",
@@ -493,5 +495,23 @@
     "standingsLink": "Tabelle öffnen",
     "standingsDraft": "Die Serie ist ein Entwurf — ihre Tabelle erscheint auf der öffentlichen Seite, sobald sie veröffentlicht ist.",
     "newEvent": "+ Neue Veranstaltung"
+  },
+  "scoring": {
+    "sourceLabel": "Ergebnisse kommen von",
+    "site": "Dieser Seite",
+    "sap": "SAP Sailing",
+    "onSite": "Die Wettfahrtleitung trägt die Ergebnisse hier ein, auf der Seite der Veranstaltung und in ihrer Wettfahrtsteuerung.",
+    "onSap": "Gewertet auf SAP Sailing: Die Veranstaltung vor der ersten Wettfahrt dorthin senden, und erneut nach einer neuen Auslosung. Die Wettfahrtleitung trägt die Ergebnisse in SAPs Race-Manager-App ein; solange die Veranstaltung läuft, übernimmt diese Seite sie alle paar Sekunden.",
+    "sapUnavailable": "Diese Installation hat kein Konto bei SAP Sailing, ihre Veranstaltungen werden hier gewertet.",
+    "leaderboard": "SAP-Leaderboard: {name}.",
+    "notSent": "Noch nicht an SAP gesendet.",
+    "openAtSap": "Bei SAP Sailing öffnen",
+    "send": "An SAP Sailing senden",
+    "sending": "Wird gesendet …",
+    "sent": "Gesendet als {leaderboard}: {created, plural, one {# Team} other {# Teams}} neu, {kept} beibehalten, {races, plural, one {# Wettfahrt} other {# Wettfahrten}}.",
+    "fetch": "Ergebnisse jetzt holen",
+    "fetching": "Wird geholt …",
+    "fetched": "{count, plural, =0 {Keine neuen Ergebnisse} one {# Ergebnis übernommen} other {# Ergebnisse übernommen}}{warnings, plural, =0 {} one {, # Warnung} other {, # Warnungen}}.",
+    "raceManager": "Gewertet auf SAP Sailing: Die Wettfahrtleitung führt die Wettfahrten in SAPs Race-Manager-App. Den Tag hier starten und beenden — solange er läuft, übernimmt diese Seite die Ergebnisse von SAP."
   }
 }

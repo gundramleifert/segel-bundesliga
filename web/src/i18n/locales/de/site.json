@@ -21,6 +21,7 @@
   "chapters": {
     "now": "Jetzt",
     "standings": "Tabelle",
+    "seasonOf": "Saison {year}",
     "news": "News",
     "media": "Medien",
     "about": "Über",

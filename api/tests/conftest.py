@@ -8,6 +8,7 @@ where scoring errors would go unnoticed.
 """
 
 import asyncio
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -29,6 +30,12 @@ os.environ.setdefault("SBL_JWT_SECRET", "testgeheimnis-nur-fuer-die-testsuite")
 # process that started them, so a default would hand every worker the first one's
 # directory — while each has its own database with the same ids.
 os.environ["SBL_UPLOADS_DIR"] = str(_TEST_DB_DIR / "uploads")
+# SAP Sailing is never called live: no polling, and the tests put a simulated SAP behind
+# the client (`app/routers/sap.py::sap_client`).
+os.environ["SBL_SAP_POLL_SECONDS"] = "0"
+os.environ["SBL_SAP_BOATS"] = json.dumps(
+    {c: f"sap-boat-{c.lower()}" for c in ("BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE")}
+)
 
 
 @pytest.fixture(scope="session")

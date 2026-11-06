@@ -1,0 +1,16 @@
+{#- Story JU-5: a judge is on an event's jury. -#}
+{% extends "de/_base.txt" %}
+{% block subject %}Sie sind in der Jury: {{ event }}{% endblock %}
+{% block reason %}Sie im Schiedsrichter-Pool der Deutschen Segel-Liga sind{% endblock %}
+{% block body %}
+Hallo {{ name }},
+
+{{ organizer }} hat Sie in die Jury dieser Veranstaltung berufen:
+
+- {{ event }}
+
+Die Veranstaltung steht ab jetzt in Ihrem Bereich auf der Website. Dort reichen Sie auch Ihre
+Auslagen ein; der Schatzmeister des ausrichtenden Vereins erstattet sie.
+
+{{ link }}
+{% endblock %}

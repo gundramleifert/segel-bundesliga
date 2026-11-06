@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { SapAttribution } from "../../components/SapAttribution";
 import { Link } from "react-router-dom";
 
 import { useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
@@ -82,8 +83,9 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       : []),
     {
       id: "standings",
-      label: t("chapters.standings"),
-      title: t("chapters.standings"),
+      // The year's table and its matchdays: "Season 2026" says both.
+      label: year ? t("chapters.seasonOf", { year }) : t("chapters.standings"),
+      title: year ? t("chapters.seasonOf", { year }) : t("chapters.standings"),
       more: { to: href.standings(l), label: t("standings.more") },
       // The table on the left, the year's matchdays beside it.
       body: acts.length ? (
@@ -301,6 +303,11 @@ function TopFive({ series, label }: { series: Series; label?: string }) {
         </li>
       ))}
     </ol>
+    <SapAttribution
+      when={table.events.some((e) => e.results_from_sap)}
+      className="border-t border-separator py-2"
+      testId={`site-top-five-${series.slug}-sap-attribution`}
+    />
     </Card>
   );
 }
