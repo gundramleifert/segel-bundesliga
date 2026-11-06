@@ -183,10 +183,10 @@ LAST_NAMES = _name_pool(30, seed=4242, suffixes=("sen", "berg", "gaard", "dahl",
 
 
 def pseudonym(numbers: dict[str, int], club: Club) -> tuple[str, str]:
-    """A sailor's first and last name: `Alice10 ASVW`, `Bob10 ASVW`, `Alice11 ASVW`, … per
-    club — from 10, as the accounts in `app.seed_users` take the low numbers."""
+    """A sailor's first and last name: `Alice1 ASVW`, `Bob1 ASVW`, `Alice2 ASVW`, … per
+    club."""
     i = numbers[club.short_name] = numbers.get(club.short_name, -1) + 1
-    return f"{('Alice', 'Bob')[i % 2]}{10 + i // 2}", club.short_name
+    return f"{('Alice', 'Bob')[i % 2]}{1 + i // 2}", club.short_name
 
 
 async def seed() -> None:
