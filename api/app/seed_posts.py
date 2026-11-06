@@ -21,6 +21,29 @@ from app.text import slugify
 
 POSTS: list[dict] = [
     {
+        "kind": "news",
+        "slug": "prototyp-der-neuen-website",
+        "title": "Die neue Website: Prototyp auf der Jahreshauptversammlung",
+        "published_on": "2026-11-07",
+        "league": None,
+        "teaser": "Morgen stellen wir auf der Jahreshauptversammlung der Deutschen Segel-Liga "
+        "den Prototyp der neuen Website vor – und freuen uns auf eure Verbesserungsvorschläge.",
+        "body": "Morgen, am 8. November 2026, stellen wir auf der Jahreshauptversammlung der "
+        "Deutschen Segel-Liga den Prototyp der neuen Website vor – die Seite, auf der ihr "
+        "gerade lest.\n"
+        "\n"
+        "Es ist ein Prototyp: Vieles funktioniert schon, manches fehlt noch, und einiges wird "
+        "sich ändern. Genau dafür brauchen wir euch. Was fällt euch auf, was fehlt, was sollte "
+        "anders sein?\n"
+        "\n"
+        "Verbesserungsvorschläge nehmen wir gern per E-Mail an website@deutsche-segelliga.de "
+        "entgegen.",
+        "author": "Redaktion",
+        "photo_url": None,
+        "photo_credit": None,
+        "example": False,
+    },
+    {
         # Copied from deutsche-segelliga.de (WordPress post 432), without its picture, which
         # is the association's site's, and the PDF link.
         "kind": "news",
