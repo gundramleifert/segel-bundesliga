@@ -56,6 +56,7 @@ class MediaOut(BaseModel):
     original_name: str
     alt: str
     alt_confirmed: bool = Field(description="False while the alt text is the file's name.")
+    backdrop: bool = Field(default=False, description="Behind its league's home page.")
     credit: str | None = None
     taken_on: date | None = None
     source: MediaSource
@@ -142,6 +143,7 @@ class PublicPicture(BaseModel):
     taken_on: date | None = None
     event_id: int | None = None
     series_id: int | None = None
+    backdrop: bool = Field(default=False, description="Behind its league's home page.")
     context: str | None = Field(default=None, description="The event's title or the series' name.")
 
 

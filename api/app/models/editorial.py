@@ -160,6 +160,9 @@ class MediaItem(Base, TimestampMixin):
     # False while ``alt`` is still the file's name: the library marks it, a screen
     # reader would read "DSC 0471" (Story R-2). Set once someone writes one.
     alt_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # The picture behind its league's home page (Story R-3), chosen rather than drawn; the
+    # association's home page takes the first of every league's.
+    backdrop: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     credit: Mapped[str | None] = mapped_column(String(160), default=None)
     width: Mapped[int] = mapped_column(Integer)
     height: Mapped[int] = mapped_column(Integer)

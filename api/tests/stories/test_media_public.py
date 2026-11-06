@@ -7,7 +7,7 @@ placing each picture in a post — only what is public, newest regatta first.
 from sqlalchemy import update
 
 from app.db import SessionLocal
-from app.models import Event
+from app.models import Event, MediaItem
 from tests.stories.test_media import picture
 from tests.stories.test_posts import editor
 
@@ -70,3 +70,24 @@ class TestPhotos:
             await upload(client, headers, event_id=ids.event("dsbl-1-2026-act-1"))
         first = (await client.get("/api/media", params={"league": "1-liga", "limit": 2})).json()
         assert len(first["items"]) == 2 and first["total"] >= 3
+
+    async def test_a_chosen_backdrop_comes_first(self, client, caplog, ids):
+        """R-3: the picture marked as the league's backdrop leads its pictures, so the home
+        page, which asks for a few, has it — and says it is the one."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        older = await upload(client, headers, event_id=ids.event("dsbl-1-2026-act-1"))
+        await upload(client, headers, event_id=ids.event("dsbl-1-2026-act-6"))
+        async with SessionLocal() as session:
+            await session.execute(
+                update(MediaItem).where(MediaItem.id == older["id"]).values(backdrop=True)
+            )
+            await session.commit()
+        try:
+            first = (await league_media(client))[0]
+            assert (first["id"], first["backdrop"]) == (older["id"], True)
+        finally:
+            async with SessionLocal() as session:
+                await session.execute(
+                    update(MediaItem).where(MediaItem.id == older["id"]).values(backdrop=False)
+                )
+                await session.commit()

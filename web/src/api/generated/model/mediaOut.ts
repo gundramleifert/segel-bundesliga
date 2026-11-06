@@ -24,6 +24,8 @@ export interface MediaOut {
   alt: string;
   /** False while the alt text is the file's name. */
   alt_confirmed: boolean;
+  /** Behind its league's home page. */
+  backdrop?: boolean;
   credit?: string | null;
   taken_on?: string | null;
   source: MediaSource;

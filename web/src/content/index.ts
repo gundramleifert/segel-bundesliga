@@ -315,6 +315,7 @@ export const fromLibrary = (p: PublicPicture): GalleryPhoto => ({
   license: "",
   page: "",
   context: p.context ?? null,
+  backdrop: p.backdrop,
   width: p.width,
   height: p.height,
 });

@@ -7,6 +7,8 @@ export type Photo = {
   page: string;
   /** The library's sizes (Story R-2) — the site's own pictures have one size and none. */
   srcset?: string;
+  /** Chosen as its league's home page picture (Story R-3). */
+  backdrop?: boolean;
 };
 
 const own = (file: string, alt: string): Photo => ({

@@ -52,23 +52,32 @@ class SeedPicture(NamedTuple):
     alt: str
     # The act it is of — an event's slug — when it is of one act rather than the series.
     event: str | None = None
+    # Its league's home page's picture (Story R-3).
+    backdrop: bool = False
 
 
 def _flickr(photo: str) -> str:
     return f"https://www.flickr.com/photos/svenjjj/{photo}/"
 
 
-def _single(event: str, photo: str, alt: str) -> SeedPicture:
-    return SeedPicture(event.rsplit("-act-", 1)[0], photo, _flickr(photo), alt, event)
+def _single(event: str, photo: str, alt: str, *, backdrop: bool = False) -> SeedPicture:
+    return SeedPicture(event.rsplit("-act-", 1)[0], photo, _flickr(photo), alt, event, backdrop)
 
 
 PICTURES: list[SeedPicture] = [
     _single("dsbl-1-2026-act-3", "55384652567", "Start der Segel-Bundesliga vor Kiel, 2026"),
-    _single("dsbl-1-2026-act-3", "55386171492", "Gennaker-Kurs vor Kiel, 3. Spieltag 2026"),
+    # Both divisions sailed Kiel; this one is the 2. Liga's home page picture.
+    _single(
+        "dsbl-2-2026-act-3",
+        "55386171492",
+        "Gennaker-Kurs vor Kiel, 3. Spieltag 2026",
+        backdrop=True,
+    ),
     _single(
         "dsbl-1-2026-act-4",
         "55435924375",
         "J/70 der Segel-Bundesliga vor der Hamburger Skyline, 4. Spieltag 2026",
+        backdrop=True,
     ),
     _single("dsbl-1-2026-act-4", "55435269046", "Gennaker-Feld auf der Hamburger Außenalster"),
     _single(
@@ -87,6 +96,7 @@ PICTURES += [
         photo,
         _flickr(photo),
         f"Deutsche Junioren Segel-Liga in Kiel, August 2025 ({number})",
+        backdrop=photo == "54740572087",  # the start, many sails: its home page picture
     )
     for number, photo in enumerate(
         """
@@ -178,6 +188,9 @@ async def seed_media(
                 stored.item.event_id, stored.item.series_id = event_id, series_id
                 await session.commit()
             created += stored.created
+            if stored.item.backdrop != picture.backdrop:
+                stored.item.backdrop = picture.backdrop
+                await session.commit()
             stored_as[picture.name] = stored.item
         for post in (await session.execute(select(Post).where(Post.slug.in_(COVERS)))).scalars():
             cover = stored_as.get(COVERS[post.slug])

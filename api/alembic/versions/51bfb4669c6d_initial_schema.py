@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 48768dfe5c28
+Revision ID: 51bfb4669c6d
 Revises:
-Create Date: 2026-11-03 20:06:51.477202
+Create Date: 2026-11-06 23:29:18.673967
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "48768dfe5c28"
+revision: str = "51bfb4669c6d"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -335,6 +335,23 @@ def upgrade() -> None:
     with op.batch_alter_table("identity", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_identity_provider"), ["provider"], unique=False)
         batch_op.create_index(batch_op.f("ix_identity_user_id"), ["user_id"], unique=False)
+
+    op.create_table(
+        "judge_licence",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("licence", sa.String(length=32), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["app_user.id"],
+            name=op.f("fk_judge_licence_user_id_app_user"),
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_judge_licence")),
+        sa.UniqueConstraint("user_id", "licence", name=op.f("uq_judge_licence_user_id")),
+    )
+    with op.batch_alter_table("judge_licence", schema=None) as batch_op:
+        batch_op.create_index(batch_op.f("ix_judge_licence_user_id"), ["user_id"], unique=False)
 
     op.create_table(
         "password_credential",
@@ -1006,6 +1023,47 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f("ix_import_key_series_id"), ["series_id"], unique=False)
 
     op.create_table(
+        "jury_request",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("event_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("invited_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("available", sa.Boolean(), nullable=True),
+        sa.Column("answered_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("approved", sa.Boolean(), nullable=False),
+        sa.Column("decided_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["event_id"],
+            ["event.id"],
+            name=op.f("fk_jury_request_event_id_event"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["app_user.id"],
+            name=op.f("fk_jury_request_user_id_app_user"),
+            ondelete="CASCADE",
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_jury_request")),
+        sa.UniqueConstraint("event_id", "user_id", name=op.f("uq_jury_request_event_id")),
+    )
+    with op.batch_alter_table("jury_request", schema=None) as batch_op:
+        batch_op.create_index(batch_op.f("ix_jury_request_event_id"), ["event_id"], unique=False)
+        batch_op.create_index(batch_op.f("ix_jury_request_user_id"), ["user_id"], unique=False)
+
+    op.create_table(
         "post",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("kind", sa.String(length=16), nullable=False),
@@ -1333,6 +1391,7 @@ def upgrade() -> None:
         sa.Column("original_name", sa.String(length=255), nullable=False),
         sa.Column("alt", sa.String(length=300), nullable=False),
         sa.Column("alt_confirmed", sa.Boolean(), server_default="0", nullable=False),
+        sa.Column("backdrop", sa.Boolean(), server_default="0", nullable=False),
         sa.Column("credit", sa.String(length=160), nullable=True),
         sa.Column("width", sa.Integer(), nullable=False),
         sa.Column("height", sa.Integer(), nullable=False),
@@ -1790,6 +1849,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f("ix_post_event_id"))
 
     op.drop_table("post")
+    with op.batch_alter_table("jury_request", schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f("ix_jury_request_user_id"))
+        batch_op.drop_index(batch_op.f("ix_jury_request_event_id"))
+
+    op.drop_table("jury_request")
     with op.batch_alter_table("import_key", schema=None) as batch_op:
         batch_op.drop_index(batch_op.f("ix_import_key_series_id"))
         batch_op.drop_index(batch_op.f("ix_import_key_key_hash"))
@@ -1874,6 +1938,10 @@ def downgrade() -> None:
 
     op.drop_table("payment_run")
     op.drop_table("password_credential")
+    with op.batch_alter_table("judge_licence", schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f("ix_judge_licence_user_id"))
+
+    op.drop_table("judge_licence")
     with op.batch_alter_table("identity", schema=None) as batch_op:
         batch_op.drop_index(batch_op.f("ix_identity_user_id"))
         batch_op.drop_index(batch_op.f("ix_identity_provider"))

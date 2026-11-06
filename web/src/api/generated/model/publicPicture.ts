@@ -21,6 +21,8 @@ export interface PublicPicture {
   taken_on?: string | null;
   event_id?: number | null;
   series_id?: number | null;
+  /** Behind its league's home page. */
+  backdrop?: boolean;
   /** The event's title or the series' name. */
   context?: string | null;
 }

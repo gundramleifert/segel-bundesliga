@@ -258,6 +258,11 @@ Acceptance criteria:
   its credit. Only what is public: a picture of an unpublished event or series is not
   shown. A picture belonging to nothing appears on no media page.
 - **Paged**, a page of pictures at a time with a *more* button — a season brings hundreds.
+- **A league's home page has a chosen picture** (decided 2026-11-06): a picture marked as
+  its league's *backdrop* comes first in the league's pictures and is the one behind the
+  league's home page; the association's home page takes the first backdrop of every
+  league's. A league without one draws from its pictures as before; the pages below a
+  home page keep drawing. Marked in the seed for now — no screen sets it yet.
 - **A tap shows the picture full screen**, at the size the screen needs, with its alt
   text and credit; swipe or the arrow keys go to the next and the previous, Escape closes.
 - **Until the library has a league's pictures**, the page shows the site's own selection

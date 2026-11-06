@@ -350,6 +350,8 @@ def public_in_league(league_slug: str | None) -> Select:
         .outerjoin(Event, MediaItem.event_id == Event.id)
         .where(or_(MediaItem.event_id.in_(public_events), MediaItem.series_id.in_(public_series)))
         .order_by(
+            # A league's chosen backdrop first, so it is among the few a page asks for.
+            MediaItem.backdrop.desc(),
             Event.starts_on.desc().nulls_last(),
             MediaItem.taken_on.desc().nulls_last(),
             MediaItem.id.desc(),

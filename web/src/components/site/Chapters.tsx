@@ -40,7 +40,7 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
   return (
     <div className="fixed inset-0 bg-background">
       <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
-        <Backdrop league={league?.slug} photo={photo} seed={league?.slug ?? "home"} />
+        <Backdrop league={league?.slug} photo={photo} seed={league?.slug ?? "home"} home />
       </div>
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: SHADE_ACROSS }} />
       <div className={`absolute inset-x-0 top-0 z-40 ${BAR_SHADE}`}>

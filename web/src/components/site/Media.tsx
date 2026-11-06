@@ -28,13 +28,26 @@ export function Img({ photo, className = "" }: { photo: Photo; className?: strin
 const pick = (key: string, count: number) =>
   count > 0 ? [...key].reduce((sum, c) => sum + c.charCodeAt(0), 0) % count : 0;
 
-/** A page's picture from the media library (Story R-3): the one given, else one of the
- *  league's — or of every league's — chosen by `seed`, so a page keeps its picture across
- *  visits. With none in the library, nothing: the page's plain background, never a broken
- *  page (decided 2026-10-23 — pictures may be deleted at any time). */
-export function Backdrop({ league, photo, seed = "" }: { league?: string | null; photo?: Photo; seed?: string }) {
+/** A page's picture from the media library (Story R-3): the one given, else — on a home
+ *  page — the one chosen as the league's backdrop (the first of every league's on the
+ *  association's), else one of the league's — or of every league's — chosen by `seed`, so
+ *  a page keeps its picture across visits. With none in the library, nothing: the page's
+ *  plain background, never a broken page (decided 2026-10-23 — pictures may be deleted at
+ *  any time). */
+export function Backdrop({
+  league,
+  photo,
+  seed = "",
+  home = false,
+}: {
+  league?: string | null;
+  photo?: Photo;
+  seed?: string;
+  home?: boolean;
+}) {
   const pictures = useBackdrops(league);
-  const chosen = photo ?? pictures[pick(seed, pictures.length)];
+  const chosen =
+    photo ?? (home ? pictures.find((p) => p.backdrop) : undefined) ?? pictures[pick(seed, pictures.length)];
   if (!chosen) return null;
   return <Picture photo={chosen} slides={pictures} />;
 }
