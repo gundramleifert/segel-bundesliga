@@ -143,10 +143,11 @@
     "now": "Racing now",
     "replay": "Tracking replay",
     "from": "Live from {dates}",
-    "text": "Every boat on the map, the ranking of the race and the wind — from the sailors' phones.",
-    "open": "Open the live map",
+    "text": "Every boat on the water, the race's ranking and the replay — in SAP Sailing.",
+    "open": "Open in SAP Sailing",
     "external": "Open the live view",
-    "progress": "{scored} of {total} races sailed"
+    "progress": "{scored} of {total} races sailed",
+    "none": "This event has no live tracking."
   },
   "home": {
     "association": "Association",

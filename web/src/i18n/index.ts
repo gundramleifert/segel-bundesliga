@@ -28,7 +28,6 @@ import errorsDe from "./locales/de/errors.json";
 import eventsDe from "./locales/de/events.json";
 import helpDe from "./locales/de/help.json";
 import legalDe from "./locales/de/legal.json";
-import liveDe from "./locales/de/live.json";
 import matchdayDe from "./locales/de/matchday.json";
 import racecontrolDe from "./locales/de/racecontrol.json";
 import sailorDe from "./locales/de/sailor.json";
@@ -46,7 +45,6 @@ import errorsEn from "./locales/en/errors.json";
 import eventsEn from "./locales/en/events.json";
 import helpEn from "./locales/en/help.json";
 import legalEn from "./locales/en/legal.json";
-import liveEn from "./locales/en/live.json";
 import matchdayEn from "./locales/en/matchday.json";
 import racecontrolEn from "./locales/en/racecontrol.json";
 import sailorEn from "./locales/en/sailor.json";
@@ -80,7 +78,6 @@ void i18n
         errors: errorsEn,
         help: helpEn,
         legal: legalEn,
-        live: liveEn,
         space: spaceEn,
         upload: uploadEn,
       },
@@ -100,7 +97,6 @@ void i18n
         errors: errorsDe,
         help: helpDe,
         legal: legalDe,
-        live: liveDe,
         space: spaceDe,
         upload: uploadDe,
       },
@@ -123,7 +119,6 @@ void i18n
       "errors",
       "help",
       "legal",
-      "live",
       "space",
       "upload",
     ],

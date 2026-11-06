@@ -1,12 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useParams, useSearchParams } from "react-router-dom";
 
 import { getGetEventQueryKey, useGetEvent, useListLeagues } from "../../api/generated/sbl";
 import { EventStatus, type EventSummary, type League } from "../../api/types";
 import { useAsync, useEventAccess } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
+import { SapAttribution } from "../../components/SapAttribution";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
 import { Card, Panel, PillSwitch, TextCard, tone } from "../../components/site/Cards";
 import { BARS, DepthPage, PageLoading, SubBar } from "../../components/site/Frame";
@@ -210,24 +211,33 @@ function useEventLive(event: EventSummary) {
   ]);
 }
 
-/** The live map while racing, a replay afterwards — or the live view the event names. */
+/** The event's live view — the one it names, else SAP Sailing's (Story B-20; the site's own
+ *  map was taken out on 2026-11-06, and `/events/:id/live` comes here). */
 function LiveTab({ event }: { event: EventSummary }) {
   const { t } = useTranslation("site");
   const title = event.status === EventStatus.live ? t("live.now") : event.status === EventStatus.final ? t("live.replay") : t("live.from", { dates: eventDates(event) });
   const button = "mt-5 inline-block rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background";
+  // shortcut: a link, since SAP's servers allow no frame but their own (frame-ancestors);
+  // embed the viewer once SAP lists our domain.
+  const sap = event.sap_viewer_url ?? event.sap_leaderboard_url;
   return (
     <Card className="p-8 text-center" testId="site-live">
       <p className={`text-lg font-semibold ${tone.text}`}>{title}</p>
-      <p className={`mt-1 ${tone.muted}`}>{t("live.text")}</p>
       <p className="mt-3"><StatusBadge status={event.status} /></p>
       {event.live_url ? (
         <a href={event.live_url} target="_blank" rel="noopener noreferrer" data-testid="matchday-live-external-link" className={button}>
           {t("live.external")}
         </a>
+      ) : sap ? (
+        <>
+          <p className={`mt-3 ${tone.muted}`}>{t("live.text")}</p>
+          <a href={sap} target="_blank" rel="noopener noreferrer" data-testid="matchday-live-sap-link" className={button}>
+            {t("live.open")}
+          </a>
+          <SapAttribution href={sap} className="mt-6 block" />
+        </>
       ) : (
-        <Link to={`/events/${event.id}/live`} data-testid="matchday-live-map-link" className={button}>
-          {t("live.open")}
-        </Link>
+        <p className={`mt-3 ${tone.muted}`} data-testid="matchday-live-none">{t("live.none")}</p>
       )}
     </Card>
   );

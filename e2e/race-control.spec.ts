@@ -99,30 +99,21 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
     await expect(page.getByTestId("race-control-status")).toHaveAttribute("data-status", "scheduled");
     await expect(chips.first()).toHaveAttribute("data-mark", "");
 
-    // The First Substitute is up; lowering it is how the next sequence starts — and a
-    // spectator sees it on the live page.
+    // The First Substitute is up; lowering it is how the next sequence starts.
     const firstSubstitute = page.getByTestId("race-control-first-substitute");
     await expect(firstSubstitute).toBeVisible();
     await expect(page.getByTestId("race-control-start")).toBeDisabled();
     const lower = page.getByTestId("race-control-start-sequence");
     await expect(lower).toContainText("1st Substitute down in 10 s");
-    const spectator = await page.context().newPage();
-    await spectator.goto(`/events/${LIVE_EVENT}/live`);
-    await expect(spectator.getByTestId("live-first-substitute")).toBeVisible();
 
     await lower.click();
     await expect(page.getByTestId("race-control-next-signal")).toHaveAttribute(
       "data-action",
       "firstSubstituteDown",
     );
-    await expect(spectator.getByTestId("live-next-signal")).toHaveAttribute(
-      "data-action",
-      "firstSubstituteDown",
-    );
     // Aborting the lowering leaves the flag up.
     await page.getByTestId("race-control-cancel-sequence").click();
     await expect(firstSubstitute).toBeVisible();
-    await spectator.close();
 
     // Nothing is running afterwards — the other specs rely on that.
     const headers = await bearer(request, COMMITTEE);

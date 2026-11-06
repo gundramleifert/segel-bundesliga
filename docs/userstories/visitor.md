@@ -349,7 +349,9 @@ Acceptance criteria:
 
 What is built: the event carries `sap_viewer_url` — SAP's leaderboard of the event, every
 team's races in the race colours — while SAP scores it (`app/services/sap_scoring.py`).
-Still open: the act's page showing it, and the race viewer per race.
+The act's live tab links it (2026-11-06) — or SAP's leaderboard page for an event whose
+results came from SAP — in place of the site's own map, which is gone; an event on neither
+says it has no live tracking. Still open: embedding it, and the race viewer per race.
 
 Open: SAP lists our domains in its frame-ancestors setting before the viewer can be
 embedded (www.sapsailing.com allows only tractrac.com today; locally

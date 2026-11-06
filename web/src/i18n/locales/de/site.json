@@ -143,10 +143,11 @@
     "now": "Jetzt auf dem Wasser",
     "replay": "Tracking-Wiederholung",
     "from": "Live ab {dates}",
-    "text": "Jedes Boot auf der Karte, die Rangfolge der Wettfahrt und der Wind — von den Handys der Segler.",
-    "open": "Live-Karte öffnen",
+    "text": "Jedes Boot auf dem Wasser, die Rangfolge der Wettfahrt und die Wiederholung — in SAP Sailing.",
+    "open": "In SAP Sailing öffnen",
     "external": "Live-Ansicht öffnen",
-    "progress": "{scored} von {total} Wettfahrten gesegelt"
+    "progress": "{scored} von {total} Wettfahrten gesegelt",
+    "none": "Für dieses Event gibt es kein Live-Tracking."
   },
   "home": {
     "association": "Verein",

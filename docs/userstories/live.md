@@ -63,13 +63,13 @@ Acceptance criteria:
 
 What's done: `Tracker`/`Fix`, `POST /api/track/fixes` (token-gated, idempotent), WAL and a
 busy timeout in `app/db.py`, `positions` frames inline on the stream, `GET
-/api/events/{id}/live` (published only), the map page `/events/:id/live` (MapLibre on
-OpenStreetMap, one rotated marker per boat with a minute of trail, follow mode). Still
-open: the export of a day, the committee boat's tracker moving the line on the map.
+/api/events/{id}/live` (published only). **The site's own map page is gone** (decided
+2026-11-06): spectators watch in SAP Sailing (Story B-20), and `/events/:id/live` leads to
+the act's live tab, which links there. The tracking behind it stays. Still open: the export
+of a day.
 
 Tests: `api/tests/stories/test_live_tracking.py::TestTrackersAndIngest`,
-`api/tests/stories/test_live_tracking.py::TestTheLivePicture`,
-`e2e/live-map.spec.ts::L-1/L-2: as a spectator I watch a simulated race on the map`
+`api/tests/stories/test_live_tracking.py::TestTheLivePicture`
 
 ### L-2 ◐ Course, mark passings and a live ranking on the water
 As a **spectator** I want to **see which leg each boat is on and who is ahead**, and as

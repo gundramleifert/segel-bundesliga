@@ -700,10 +700,13 @@ describeStory("B-15: the matchday page", () => {
     expect(look.background).not.toBe(look.text);
   });
 
-  test("the live tab leads to the map", async ({ page }) => {
+  test("the live tab leads to SAP Sailing, or says there is no live tracking", async ({ page }) => {
+    // The site's own map is gone (2026-11-06): an event not on SAP has no live view.
     await page.goto("/demo/2026/act-2/live");
-    await page.getByTestId("matchday-live-map-link").click();
-    await expect(page).toHaveURL(/\/events\/2\/live$/);
+    await expect(page.getByTestId("matchday-live-none")).toBeVisible();
+    // The old address of the map leads to the act's live tab.
+    await page.goto("/events/2/live");
+    await expect(page).toHaveURL(/\/demo\/2026\/act-2\/live/);
   });
 });
 
