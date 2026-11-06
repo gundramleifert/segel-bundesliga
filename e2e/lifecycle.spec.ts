@@ -653,7 +653,7 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
     const accounts = (await response.json()) as { email: string; roles: string[] }[];
     // A team manager who is not also the club's admin — an admin holds `team_manager` too,
-    // and sorts first (Gundram before Gunnar), but may do what this story says a team
+    // but may do what this story says a team
     // manager may not (Story V-4: no *New person*).
     const manager = accounts.find(
       (account) => account.roles.includes("team_manager") && !account.roles.includes("club_admin"),
@@ -724,7 +724,8 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     const before = await selected.count();
     // A squad takes only the club's own people (Story V-4): those of other clubs are on the
     // left, greyed with that reason, never a button.
-    await page.getByTestId("admin-squad-panes-filter-input").fill("a");
+    // Another club's code: the seed's sailors are `Alice1 NRV`, so this finds only them.
+    await page.getByTestId("admin-squad-panes-filter-input").fill("NRV");
     await expect(
       page.locator('[data-testid^="admin-squad-panes-available-taken-"]').first(),
     ).toBeVisible();

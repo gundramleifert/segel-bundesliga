@@ -28,7 +28,7 @@ async function act3(request: APIRequestContext): Promise<number> {
   return event!.id;
 }
 
-const SET_UP = ["general", "clubs", "boats", "pairing", "publication", "people"];
+const SET_UP = ["general", "clubs", "boats", "pairing", "scoring", "publication", "people"];
 const RACE_DAY = ["check-in", "race-control", "results", "notice-board"];
 
 describeStory("Z-10: the event's set-up and race day are sections of its context", () => {

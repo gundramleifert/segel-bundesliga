@@ -25,9 +25,10 @@ const PLANNED_ACT = 6; // demo-2-2026-act-3, planned — the one still to be lin
 async function aTeamManager(request: APIRequestContext): Promise<DevUser> {
   // ASVW is the test club (`app/seed_users.py`), with a team in every seeded series.
   const manager = (await devUsers(request)).find(
-    (a) => a.roles.includes("team_manager") && a.email.endsWith("@asvw.example.com"),
+    // Its admin, who organizes it (and holds `team_manager` too) — by role, not by name.
+    (a) => a.roles.includes("club_admin") && a.email.endsWith("@asvw.example.com"),
   );
-  expect(manager, "the seed gives ASVW a team manager").toBeTruthy();
+  expect(manager, "the seed gives ASVW an admin").toBeTruthy();
   return manager!;
 }
 

@@ -133,7 +133,7 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
   });
 
   test("a helper sees the event they help at, and nothing on it but their claims", async ({ page }) => {
-    // Seeded: `helper` on the planned matchday and nothing else — the person the old
+    // Seeded: `helper` on two planned matchdays and nothing else — the person the old
     // screens had no door for. Their only event is over, so it is not folded away.
     await signIn(page, "helfer@sbl.example.com");
     await page.goto("/me");
@@ -143,10 +143,11 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     const entry = page.locator('a[data-testid^="workspace-switcher-event-"]').filter({
       has: page.locator('[data-testid$="-relations-helper"]'),
     });
-    await expect(entry).toHaveCount(1);
+    // Two: the demo's act 3 and ASVW's Warnemünde 2027, the same relation on each.
+    await expect(entry).toHaveCount(2);
     await expect(page.getByTestId("workspace-switcher-clubs")).toHaveCount(0);
 
-    await entry.click();
+    await entry.first().click();
     // The event's overview, and of its sections only their claims.
     const kind = "event";
     expect(await listedSections(page, kind)).toEqual(["overview", "my-claims"]);

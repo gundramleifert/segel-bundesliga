@@ -53,6 +53,8 @@ const LIGA2: Ref = "series:demo-2-2026";
 const ACT1: Ref = "event:demo-2-2026-act-1";
 const ACT2: Ref = "event:demo-2-2026-act-2";
 const ACT3: Ref = "event:demo-2-2026-act-3";
+// ASVW hosts it, and the event cast holds its relations there too (`app/seed_users.py`).
+const WARNEMUENDE: Ref = "event:dsbl-1-2027-warnemuende";
 const SERIES_ORGANIZER = ["overview", "events", "standings", "registrations", "dates", "scoring", "officials"];
 
 /** An adult of ASVW who sails the 2. Liga and is in its acts' crews — §5's first row. */
@@ -130,6 +132,14 @@ const PEOPLE: Person[] = [
           "check-in", "race-control", "results", "notice-board", "my-claims", "decide-claims",
         ],
       },
+      {
+        ref: WARNEMUENDE,
+        relations: ["manager"],
+        sections: [
+          "overview", "general", "clubs", "boats", "pairing", "scoring", "publication", "people",
+          "check-in", "race-control", "results", "notice-board", "my-claims", "decide-claims",
+        ],
+      },
     ],
   },
   {
@@ -141,17 +151,28 @@ const PEOPLE: Person[] = [
         relations: ["race_officer"],
         sections: ["overview", "check-in", "race-control", "results", "notice-board", "my-claims"],
       },
+      {
+        ref: WARNEMUENDE,
+        relations: ["race_officer"],
+        sections: ["overview", "check-in", "race-control", "results", "notice-board", "my-claims"],
+      },
     ],
   },
   {
     row: "Jury at Act 3 (jury@)",
     who: "jury@sbl.example.com",
-    contexts: [{ ref: ACT3, relations: ["jury"], sections: ["overview", "notice-board", "my-claims"] }],
+    contexts: [
+      { ref: ACT3, relations: ["jury"], sections: ["overview", "notice-board", "my-claims"] },
+      { ref: WARNEMUENDE, relations: ["jury"], sections: ["overview", "notice-board", "my-claims"] },
+    ],
   },
   {
     row: "Helper at Act 3 (helfer@)",
     who: "helfer@sbl.example.com",
-    contexts: [{ ref: ACT3, relations: ["helper"], sections: ["overview", "my-claims"] }],
+    contexts: [
+      { ref: ACT3, relations: ["helper"], sections: ["overview", "my-claims"] },
+      { ref: WARNEMUENDE, relations: ["helper"], sections: ["overview", "my-claims"] },
+    ],
   },
   {
     row: "Series manager (Junioren)",
