@@ -24,9 +24,11 @@ export function Img({ photo, className = "" }: { photo: Photo; className?: strin
   );
 }
 
-/** A stable small number per picture, so slideshows on one page do not change in step. */
+/** A stable small number per key — a page's title, a picture — so a page keeps its picture
+ *  and slideshows on one page do not change in step. A hash (djb2), not the sum of the
+ *  characters: the sum let "Standings" and "Season" land on the same picture of seven. */
 const pick = (key: string, count: number) =>
-  count > 0 ? [...key].reduce((sum, c) => sum + c.charCodeAt(0), 0) % count : 0;
+  count > 0 ? [...key].reduce((h, c) => ((h * 33) ^ c.charCodeAt(0)) >>> 0, 5381) % count : 0;
 
 /** A page's picture from the media library (Story R-3): the one given, else — on a home
  *  page — the one chosen as the league's backdrop (the first of every league's on the
