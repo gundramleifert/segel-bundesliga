@@ -56,15 +56,21 @@ class TestReadPosts:
         assert all(post["slug"] and post["title"] for post in news)
 
     async def test_an_article_has_its_own_address(self, client):
-        """R-1: one article by its slug, with the text as paragraphs — and no picture of
-        another site: the seed's examples go without one (decided 2026-10-23)."""
-        article = (await client.get("/api/posts/asvw-takes-the-lead")).json()
+        """R-1: one published article by its slug, with the text as paragraphs; an example
+        is a draft, which the public address does not know (decided 2026-11-06)."""
+        from app.seed_posts import POSTS
 
-        assert article["league"] == "1-liga"
-        assert article["quote_by"] == "the winning helm"
-        assert article["body"].count("<p>") == 3
-        assert article["photo_url"] is None
-        assert article["example"] is True
+        seeded = next(p for p in POSTS if p["title"].startswith("Wannsee: NRV und ASVW"))
+        article = (
+            await client.get("/api/posts/wannsee-nrv-und-asvw-gewinnen-den-fuenften-spieltag")
+        ).json()
+
+        assert article["title"] == seeded["title"]
+        assert article["league"] is None
+        assert article["body"].count("<p>") == seeded["body"].count("\n\n") + 1
+        assert article["example"] is False
+        draft = await client.get("/api/posts/asvw-takes-the-lead")
+        assert draft.status_code == 404
 
     async def test_press_releases_are_a_list_of_their_own(self, client):
         """R-1: the press centre lists releases, not articles."""
