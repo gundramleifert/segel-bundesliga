@@ -46,42 +46,44 @@ TEST_SERIES = "demo-2-2026"
 TEST_SERIES_ALL = [TEST_SERIES, "dsbl-1-2027", "dsbl-2-2027"]
 TEST_EVENT = "demo-2-2026-act-3"
 
-#: The league office and a guest: (email, name, site relations).
+#: The league office and a guest: (email, name, site relations). Every name here is a
+#: pseudonym — `{Alice,Bob}<n> <club code>`, DSL for the league office — save "Alina Admin"
+#: and "Tom Teammanager"; sailors are numbered from 10 (`app.seed.pseudonym`).
 SITE_ACCOUNTS: list[tuple[str, str, list[Relation]]] = [
     ("admin@sbl.example.com", "Alina Admin", [Relation.ADMIN]),
-    ("redaktion@sbl.example.com", "Sven Jürgensen", [Relation.EDITOR]),
-    ("wl@sbl.example.com", "Christoph Zanter", [Relation.RACE_OFFICER]),
-    ("gast@sbl.example.com", "Gero Guest", []),
+    ("redaktion@sbl.example.com", "Alice1 DSL", [Relation.EDITOR]),
+    ("wl@sbl.example.com", "Bob1 DSL", [Relation.RACE_OFFICER]),
+    ("gast@sbl.example.com", "Alice4 DSL", []),
 ]
 #: The test series' manager (Story Z-2), and its editor — who writes about its matchdays
 #: and keeps their pictures, and organizes nothing (Stories R-1, R-2).
 SERIES_ACCOUNTS: list[tuple[str, str, Relation]] = [
-    ("serie@sbl.example.com", "Sven Series", Relation.MANAGER),
-    ("presse@sbl.example.com", "Paula Presse", Relation.EDITOR),
+    ("serie@sbl.example.com", "Bob2 DSL", Relation.MANAGER),
+    ("presse@sbl.example.com", "Alice3 DSL", Relation.EDITOR),
 ]
 #: Who runs the juniors, this year and the next one being prepared: (email, name,
 #: relation, the series' slugs).
 JUNIOR_ACCOUNTS: list[tuple[str, str, Relation, list[str]]] = [
     (
         "junioren@sbl.example.com",
-        "Jocki Hellmich",
+        "Bob3 DSL",
         Relation.MANAGER,
         ["junioren-2026", "junioren-2027"],
     ),
 ]
 #: One tuple each on the test event (Story Z-2).
 EVENT_ACCOUNTS: list[tuple[str, str, Relation]] = [
-    ("regatta@sbl.example.com", "Malte Rackow", Relation.RACE_OFFICER),
-    ("orga@sbl.example.com", "Peter Weichel", Relation.MANAGER),
-    ("jury@sbl.example.com", "Heiko Thölmann", Relation.JURY),
-    ("helfer@sbl.example.com", "Johannes Machur", Relation.HELPER),
+    ("regatta@sbl.example.com", "Alice2 ASVW", Relation.RACE_OFFICER),
+    ("orga@sbl.example.com", "Bob2 ASVW", Relation.MANAGER),
+    ("jury@sbl.example.com", "Alice3 ASVW", Relation.JURY),
+    ("helfer@sbl.example.com", "Bob3 ASVW", Relation.HELPER),
 ]
 #: The test club's officials: (address before the @, what they are, their name — else
 #: what they are and the club's code — relation).
 CLUB_OFFICIALS: list[tuple[str, str, str | None, Relation]] = [
-    ("board", "Club admin", "Gundram Leifert", Relation.ADMIN),
-    ("teams", "Team manager", "Gunnar Voigt", Relation.MANAGER),
-    ("treasurer", "Treasurer", None, Relation.TREASURER),
+    ("board", "Club admin", "Alice1 ASVW", Relation.ADMIN),
+    ("teams", "Team manager", "Tom Teammanager", Relation.MANAGER),
+    ("treasurer", "Treasurer", "Bob1 ASVW", Relation.TREASURER),
 ]
 
 

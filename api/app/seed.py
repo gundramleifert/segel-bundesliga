@@ -181,8 +181,16 @@ FIRST_NAMES = _name_pool(30, seed=4241)
 LAST_NAMES = _name_pool(30, seed=4242, suffixes=("sen", "berg", "gaard", "dahl", "qvist"))
 
 
+def pseudonym(numbers: dict[str, int], club: Club) -> tuple[str, str]:
+    """A sailor's first and last name: `Alice10 ASVW`, `Bob10 ASVW`, `Alice11 ASVW`, … per
+    club — from 10, as the accounts in `app.seed_users` take the low numbers."""
+    i = numbers[club.short_name] = numbers.get(club.short_name, -1) + 1
+    return f"{('Alice', 'Bob')[i % 2]}{10 + i // 2}", club.short_name
+
+
 async def seed() -> None:
     rng = random.Random(20260829)
+    numbers: dict[str, int] = {}
 
     async with SessionLocal() as session:
         if (await session.execute(select(Club).limit(1))).scalar_one_or_none() is not None:
@@ -400,8 +408,9 @@ async def seed() -> None:
         for _series, club, team in teams:
             squads[team.id] = []
             for position in range(SQUAD_SIZE):
-                first_name = rng.choice(FIRST_NAMES)
-                last_name = rng.choice(LAST_NAMES)
+                # Drawn still, so the rest of the seed's random sequence stays as it was.
+                rng.choice(FIRST_NAMES), rng.choice(LAST_NAMES)
+                first_name, last_name = pseudonym(numbers, club)
                 counter += 1
                 # With their account (#52), unverified: nobody signs in as an invented
                 # sailor, but every person has one.
@@ -549,7 +558,7 @@ async def seed() -> None:
         # from SAP's recorded answer (`app.seed_junioren`) — and a made-up squad for each of
         # its real teams, teenagers, so a minor's waiver stays testable against the seed.
         await seed_junioren(SessionLocal)
-        await _junior_squads(session, juniors)
+        await _junior_squads(session, juniors, numbers)
         await session.commit()
 
         # The 1. and 2. Liga 2026 as they really sailed — every act, its clubs and results,
@@ -585,7 +594,7 @@ async def seed() -> None:
     )
 
 
-async def publish_demo() -> None:
+async def publish_demo(*, example_posts: bool = True) -> None:
     """Publishes the demo series and their acts, in a league of their own (`/demo`), and
     the example posts — staging, the test suite and the e2e stacks
     (`seed_test_setup --publish-demo`), never a real site.
@@ -624,7 +633,25 @@ async def publish_demo() -> None:
             event.published = True
         # The example posts too: invented like the demo's weekends, drafts on a real site.
         for post in (await session.execute(select(Post).where(Post.example))).scalars():
-            post.published = True
+            post.published = example_posts
+        await session.commit()
+
+
+async def publish_preview() -> None:
+    """The Render preview (branch `vorschau`, `api/Dockerfile`): the demo to try the roles
+    on, without the example posts — the preview shows the real ones only — and the 1. Liga
+    2027, whose clubs and two dated draws are known. Public, yet the site stays on 2026:
+    the current year is the newest one not in the future."""
+    await publish_demo(example_posts=False)
+    async with SessionLocal() as session:
+        series = (
+            await session.execute(select(Series).where(Series.slug == f"dsbl-1-{YEAR + 1}"))
+        ).scalar_one()
+        series.published = True
+        for event in (
+            await session.execute(select(Event).where(Event.series_id == series.id))
+        ).scalars():
+            event.published = True
         await session.commit()
 
 
@@ -764,7 +791,7 @@ async def _seed_matchday(session, event, teams, rng, status) -> None:
             session.add(entry)
 
 
-async def _junior_squads(session, juniors: Series) -> None:
+async def _junior_squads(session, juniors: Series, numbers: dict[str, int]) -> None:
     """A squad for each club registered for the juniors' series — after the import, which
     is what registers them. Its own random sequence, so the other leagues' sailors are the
     same as before the juniors were real."""
@@ -779,7 +806,8 @@ async def _junior_squads(session, juniors: Series) -> None:
     ).all()
     for counter, (team, club) in enumerate(registrations):
         for position in range(SQUAD_SIZE):
-            first_name, last_name = rng.choice(FIRST_NAMES), rng.choice(LAST_NAMES)
+            rng.choice(FIRST_NAMES), rng.choice(LAST_NAMES)
+            first_name, last_name = pseudonym(numbers, club)
             person = await people.new_person(
                 session,
                 first_name=first_name,
