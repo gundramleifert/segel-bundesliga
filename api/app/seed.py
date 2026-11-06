@@ -125,6 +125,9 @@ VENUES: list[tuple[str, str, str, float, float]] = [
     ("Überlingen", "Überlingen", "Bodensee", 47.760, 9.170),
     ("Kiel-Strande", "Strande", "Kieler Förde", 54.440, 10.180),
     ("Hamburg-Alster", "Hamburg", "Außenalster", 53.565, 10.003),
+    # The juniors' 2027 stops (deutsche-segelliga.de, "Termine 2027", 13 Oct 2026).
+    ("Konstanz", "Konstanz", "Bodensee", 47.668, 9.190),
+    ("Borgwedel", "Borgwedel", "Schlei", 54.500, 9.700),
 ]
 
 
@@ -585,6 +588,7 @@ async def seed() -> None:
 
         # The 1. Liga 2027 is the 2026 tables' outcome, so its clubs are known.
         await _first_division_next_year(session)
+        await _juniors_and_cup_next_year(session)
         await session.commit()
 
         # What the news and press pages showed when they were static content (Story R-1).
@@ -680,6 +684,86 @@ async def _ranked_clubs(session, slug: str) -> list[Club]:
             )
         ).scalars()
     )
+
+
+class Weekend2027(NamedTuple):
+    """One junior act or the cup in 2027, as announced: series slug, matchday, venue slug,
+    first day, the host's code."""
+
+    series: str
+    matchday: int
+    venue: str
+    starts_on: date
+    host: str
+
+
+# deutsche-segelliga.de, "Termine 2027" (13 Oct 2026). Konstanz is hosted by KYC with the
+# Schüler Segel-Club Konstanz, named in this comment only — an event has one host.
+WEEKENDS_2027: list[Weekend2027] = [
+    Weekend2027("junioren-2027", 1, "konstanz", date(2027, 5, 7), "KYC (BA)"),
+    Weekend2027("junioren-2027", 2, "berlin-wannsee", date(2027, 7, 9), "PYC"),
+    Weekend2027("junioren-2027", 3, "borgwedel", date(2027, 8, 13), "SSVL"),
+    Weekend2027("junioren-2027", 4, "warnemuende", date(2027, 9, 10), "ASVW"),
+    Weekend2027("dsl-pokal-2027", 1, "hamburg-alster", date(2027, 10, 22), "NRV"),
+]
+
+
+async def _juniors_and_cup_next_year(session) -> None:
+    """The juniors' four acts and the cup of 2027 as announced — drafts with dates, venue
+    and host, sized like this year's Finale and cup; no teams yet. The cup's series is
+    made here, like the import made this year's."""
+    cup_2026 = (
+        await session.execute(select(Series).where(Series.slug == f"dsl-pokal-{YEAR}"))
+    ).scalar_one()
+    cup = Series(
+        slug=f"dsl-pokal-{YEAR + 1}",
+        name=f"DSL-Pokal {YEAR + 1}",
+        short_name=f"DSL-Pokal {YEAR + 1}",
+        year=YEAR + 1,
+        league_id=cup_2026.league_id,
+        published=False,
+        scoring=cup_2026.scoring,
+    )
+    session.add(cup)
+    await session.flush()
+    # This year's last act of each series is the size the next year's is planned at.
+    like = {}
+    for slug in (f"junioren-{YEAR}", f"dsl-pokal-{YEAR}"):
+        like[slug.replace(str(YEAR), str(YEAR + 1))] = (
+            await session.execute(
+                select(Event)
+                .join(Series, Event.series_id == Series.id)
+                .where(Series.slug == slug)
+                .order_by(Event.matchday.desc())
+                .limit(1)
+            )
+        ).scalar_one()
+    series = {
+        each.slug: each
+        for each in (await session.execute(select(Series).where(Series.slug.in_(like)))).scalars()
+    }
+    venues = {v.slug: v for v in (await session.execute(select(Venue))).scalars()}
+    clubs = {c.short_name: c for c in (await session.execute(select(Club))).scalars()}
+    for weekend in WEEKENDS_2027:
+        size, venue = like[weekend.series], venues[weekend.venue]
+        session.add(
+            Event(
+                slug=f"{weekend.series}-act-{weekend.matchday}",
+                title=f"Act {weekend.matchday} {venue.city}",
+                matchday=weekend.matchday,
+                starts_on=weekend.starts_on,
+                ends_on=weekend.starts_on + timedelta(days=2),
+                status=EventStatus.PLANNED,
+                published=False,
+                team_count=size.team_count,
+                boat_count=size.boat_count,
+                flight_count=size.flight_count,
+                teams_per_club=size.teams_per_club,
+                series_id=series[weekend.series].id,
+                venue_id=venue.id,
+                host_club_id=clubs[weekend.host].id if weekend.host in clubs else None,
+            )
+        )
 
 
 async def _first_division_next_year(session) -> None:
