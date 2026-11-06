@@ -6,9 +6,21 @@ does not point to (decided 2026-10-23), and the paragraph offering the press pic
 the league's former company, which the site does not use (docs/PLAN_SEEDING.md). The
 body is the editor's HTML; `seed_posts` cleans it through `app.services.rich_text`, like
 every write.
+
+The rest of 2026 came as the association's press mails (presse@deutsche-segelliga.de,
+Mailchimp, read 2026-11-06): their article text in `seed_data/press-2026/`, one HTML file
+each with `index.json` for title, date and teaser — without the links to the league's
+other website, the picture credits and galleries (DSBL GmbH, NRV, SailTracks: not Sven
+Jürgensen's), and the press contacts, which name other clubs' people. The members'
+newsletters sent the same way are not press and stay out.
 """
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
+
+FOLDER = Path(__file__).parent / "seed_data" / "press-2026"
 
 PRESS_RELEASES: list[dict] = [
     {
@@ -139,5 +151,18 @@ PRESS_RELEASES: list[dict] = [
         "(Sven Jürgensen): +49 171 683 5555</p><p>Potsdamer Yacht Club (Gastgeber)</p>",
         "author": "Sven Jürgensen",
         "example": False,
-    }
+    },
+    *(
+        {
+            "kind": "press",
+            "title": release["title"],
+            "published_on": release["published_on"],
+            "league": None,
+            "teaser": release["teaser"],
+            "body_html": (FOLDER / release["file"]).read_text(encoding="utf-8"),
+            "author": "Sven Jürgensen",
+            "example": False,
+        }
+        for release in json.loads((FOLDER / "index.json").read_text(encoding="utf-8"))
+    ),
 ]
