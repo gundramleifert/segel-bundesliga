@@ -634,7 +634,7 @@ class TestSeededPictures:
         of the league's former company (docs/PLAN_SEEDING.md)."""
         from app.seed_media import CREDIT, PICTURES
 
-        assert CREDIT == "Foto: Sven Jürgensen"
+        assert CREDIT == "Foto: © SvenJJJ"
         assert not any("DSBL" in picture.url for picture in PICTURES)
 
     async def test_a_seeded_picture_is_on_its_league_s_media_page(self, client):
@@ -666,6 +666,6 @@ class TestSeededPictures:
 
         first = (await client.get("/api/media", params={"league": "1-liga"})).json()["items"]
         picture = next(p for p in first if p["alt"] == "Kiel")
-        assert picture["credit"] == "Foto: Sven Jürgensen"
+        assert picture["credit"] == "Foto: © SvenJJJ"
         second = (await client.get("/api/media", params={"league": "2-liga"})).json()["items"]
         assert any(p["alt"] == "Berlin" for p in second)
