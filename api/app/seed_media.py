@@ -111,6 +111,16 @@ PICTURES += [
     )
 ]
 
+# The DSL-Pokal has no picture of its own yet; one of the juniors' — teams of the cup too —
+# is its home page's, dated in its alt text like the rest (decided 2026-11-06).
+CUP_BACKDROP = "54741645279"
+PICTURES = [
+    picture._replace(series="dsl-pokal-2026", backdrop=True)
+    if picture.name == CUP_BACKDROP
+    else picture
+    for picture in PICTURES
+]
+
 #: A report's slug → its cover, a picture's name; the report then belongs to that act.
 COVERS: dict[str, str] = {
     "kiel-muehlenberger-sc-und-sc-ville-gewinnen-den-dritten-spieltag": "55384652567",
