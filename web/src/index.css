@@ -183,7 +183,9 @@ html {
      exactly as wide as its own content, so putting the surface on it has neither problem.
      `box-shadow` rather than `border`, because `border-collapse: collapse` hands a
      table's border over to its cells. */
+  /* Centred in its panel: a content-sized table sits mid-column, never at its left edge. */
   .data-table {
+    margin-inline: auto;
     background-color: var(--surface);
     border-radius: 0.75rem;
     box-shadow: 0 0 0 1px var(--separator);

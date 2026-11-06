@@ -472,10 +472,9 @@ Acceptance criteria:
 - **One column, one grid** (2026-10-18): one chapter's cards never end where the next
   one's go on. Every block spans its page's column, and tiles and columns share one
   12-column grid, so their edges line up from chapter to chapter (`docs/components.md`).
-  **One exception** (2026-10-19): a panel holding something that has a width of its own —
-  an article's reading column, a table sized by its numbers — is as wide as that, at most
-  the column (`Panel width`), so no empty glass stands beside it. An article's is centred, a
-  table's stands under its heading.
+  **No exception** (2026-11-07; from 2026-10-19 an article or a table had a panel of its
+  own width, which made pages look different widths): an article's panel and a table's
+  panel span the column like every other block, and a table narrower than it is centred.
 - **The footer is the last band on the picture** (2026-10-18): the rows' shade, the same column and grid — a card per league (its act now or next, standings,
   season, notice board, press), the association, and the legal notice and privacy on every
   page. **No account card** (removed 2026-10-18): signing in, my space and the language are

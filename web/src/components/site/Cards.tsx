@@ -133,38 +133,12 @@ export function MediaCard({
 }
 
 /** Room for what is read closely — a full table, an article, a matchday's tables: a card
- *  like the others. */
-/** How wide a panel is. `column`, the rule: the page's column (Story B-13). The one
- *  exception, for what has a width of its own — where a full-width panel left empty glass
- *  beside it — and marked `data-fit` so the grid's check knows:
- *  - `reading`: an article's reading width (~70 characters a line), whatever the text's
- *    length — a short article must not shrink its panel. On the left edge, under the page's
- *    title: centred, its text started where the title did not (changed 2026-11-06);
- *  - `content`: as wide as what it holds — a table sized by its numbers — under its
- *    heading. Never wider than the column: a wider table scrolls inside. */
-const PANEL_WIDTH = {
-  column: "",
-  reading: "w-full max-w-3xl",
-  content: "w-fit max-w-full",
-} as const;
-
-export function Panel({
-  children,
-  className = "",
-  testId,
-  width = "column",
-}: {
-  children: ReactNode;
-  className?: string;
-  testId?: string;
-  width?: keyof typeof PANEL_WIDTH;
-}) {
+ *  as wide as the page's column, like every other block (Story B-13). A table inside is
+ *  centred (`.data-table`), never the panel narrowed to it (changed 2026-11-07: panels of
+ *  their own width made every page a different width). */
+export function Panel({ children, className = "", testId }: { children: ReactNode; className?: string; testId?: string }) {
   return (
-    <div
-      className={`p-4 sm:p-6 ${tone.card} ${PANEL_WIDTH[width]} ${className}`}
-      data-testid={testId}
-      data-fit={width === "column" ? undefined : width}
-    >
+    <div className={`p-4 sm:p-6 ${tone.card} ${className}`} data-testid={testId}>
       {children}
     </div>
   );
