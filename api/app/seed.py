@@ -145,15 +145,16 @@ class Act2027(NamedTuple):
 # The 2027 season as announced (yacht.de, 18 Oct 2026; acts and hosts from the league
 # office, 2026-11-01). The 2. Liga sails the same weekends but one act fewer, as every
 # year since 2018: Kiel/Strande is the 1. Liga's alone, so from Warnemünde on the 2. Liga
-# counts one lower. Only the first and the last weekend have dates yet. Friedrichshafen
+# counts one lower. Dates from the association's "Termine 2027" (deutsche-segelliga.de,
+# 13 Oct 2026). Friedrichshafen
 # is hosted by WYC with KYC (Konstanz), Überlingen by BYCÜ with SMCÜ. Warnemünde's host
 # is the test club, so its people have a season to prepare (`seed_users`).
 ACTS_2027: list[Act2027] = [
     Act2027("Friedrichshafen", 1, 1, date(2027, 4, 16), ("WYC", "KYC (BA)")),
-    Act2027("Überlingen", 2, 2, None, ("BYCÜ", "SMCÜ")),
-    Act2027("Berlin-Wannsee", 3, 3, None, ("BYCB",)),
-    Act2027("Kiel-Strande", 4, None, None, ("KYC (SH)",)),
-    Act2027("Warnemünde", 5, 4, None, ("ASVW",)),
+    Act2027("Überlingen", 2, 2, date(2027, 4, 30), ("BYCÜ", "SMCÜ")),
+    Act2027("Berlin-Wannsee", 3, 3, date(2027, 7, 2), ("BYCB",)),
+    Act2027("Kiel-Strande", 4, None, date(2027, 7, 30), ("KYC (SH)",)),
+    Act2027("Warnemünde", 5, 4, date(2027, 9, 17), ("ASVW",)),
     Act2027("Hamburg-Alster", 6, 5, date(2027, 10, 14), ("NRV",)),
 ]
 

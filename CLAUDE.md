@@ -192,11 +192,11 @@ Six weekends, with hosts (league office, 2026-11-01): Friedrichshafen (WYC with 
 act 1, 16–18 April), Überlingen (BYCÜ with SMCÜ, 2), Berlin (BYCB, 3), Kiel/Strande (KYC,
 4 — **the 1. Liga's alone**: the 2. Liga sails one act fewer, as every year since 2018,
 so it counts Warnemünde as 4 and Hamburg as 5), Warnemünde (ASVW, 5), Hamburg (NRV, 6,
-14–16 October); only the first and last have dates. **The 1. Liga 2027's clubs follow
+14–16 October) — dates from the association's "Termine 2027" (deutsche-segelliga.de,
+2026-10-13). **The 1. Liga 2027's clubs follow
 from the 2026 tables** (decided 2026-11-02, `seed.py::_first_division_next_year`): places
-1–14 of the 1. Liga and 1–4 of the 2. Liga, entered in all six acts with the six boats;
-the two dated acts also have a draw — the other four are not ready for one until a date is
-entered (VA-8). The 2. Liga 2027 has no clubs yet: its 2026 places 13–18 requalify at the
+1–14 of the 1. Liga and 1–4 of the 2. Liga, entered in all six acts with the six boats,
+each with its draw. The 2. Liga 2027 has no clubs yet: its 2026 places 13–18 requalify at the
 DSL-Pokal. `scripts/sap-season.py` plays the 1. Liga's season on the local SAP. **ASVW hosts Warnemünde 2027**, so its
 officials are that event's organizers. Only what was announced is seeded; nothing invented.
 
