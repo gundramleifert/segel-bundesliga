@@ -137,13 +137,14 @@ export function MediaCard({
 /** How wide a panel is. `column`, the rule: the page's column (Story B-13). The one
  *  exception, for what has a width of its own — where a full-width panel left empty glass
  *  beside it — and marked `data-fit` so the grid's check knows:
- *  - `reading`: an article's reading width (~70 characters a line), centred, whatever the
- *    text's length — a short article must not shrink its panel;
+ *  - `reading`: an article's reading width (~70 characters a line), whatever the text's
+ *    length — a short article must not shrink its panel. On the left edge, under the page's
+ *    title: centred, its text started where the title did not (changed 2026-11-06);
  *  - `content`: as wide as what it holds — a table sized by its numbers — under its
  *    heading. Never wider than the column: a wider table scrolls inside. */
 const PANEL_WIDTH = {
   column: "",
-  reading: "mx-auto w-full max-w-3xl",
+  reading: "w-full max-w-3xl",
   content: "w-fit max-w-full",
 } as const;
 

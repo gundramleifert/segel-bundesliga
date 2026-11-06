@@ -40,7 +40,7 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
         </header>
       )}
       {article.example && <ExampleNote text={t("news.example")} />}
-      {/* Text to read closely: one column of a reading width, centred on its glass. */}
+      {/* Text to read closely: one column of a reading width, under the title's edge. */}
       <Panel width="reading" className="mb-12 sm:p-10">
         <article data-testid="site-article">
           <p className="text-xl font-medium leading-relaxed text-foreground" data-testid="site-article-lead">{article.teaser}</p>
