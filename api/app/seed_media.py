@@ -2,17 +2,18 @@
 
 **Only pictures Sven Jürgensen took**, credited as he signs them on Flickr ("Foto: ©
 SvenJJJ", decided 2026-11-06) — never a picture of the league's former company (DSBL GmbH,
-galleries marked "c-DSBL"), whatever its press release allows. The first twelve of his
-albums of the 2026 matchdays in Kiel and Hamburg (flickr.com/photos/svenjjj), each under
-its 1. Liga act, so the act's report shows them as its gallery and the first as its
-cover (`COVERS`). A league page without pictures says so; it does not fail.
+galleries marked "c-DSBL"), whatever its press release allows: single pictures of the 2026
+matchdays in Kiel, Hamburg and the Finale, each under its 1. Liga act, so the act's report
+shows them as its gallery and as its cover (`COVERS`); and 24 of his Junioren-Liga album.
+A league page without pictures says so; it does not fail.
 
-**Copied into the library, never into this repository**, which is public
-(`docs/site-structure.md`): the list names each picture's address, and the first run
-downloads it into `api/.seed-cache/`, which git ignores; later runs read the cache. Stored
-through `app.services.media.store` like any upload — the original kept privately, the
-WebP sizes made from it — under its event or series. A picture that cannot be fetched (offline,
-moved) is reported and left out.
+**In this repository, at 1600 px** (`seed_data/pictures/`, decided 2026-11-06 for the
+Render preview, which builds from git and cannot fetch from Flickr — Flickr refuses
+scripted downloads): re-encoded from his downloads without their EXIF, about 300 KB each.
+A name not there is looked for in `api/.seed-cache/` (git-ignored), then downloaded into
+it. Stored through `app.services.media.store` like any upload — the original kept
+privately, the WebP sizes made from it — under its event or series. A picture that cannot
+be had is reported and left out.
 
 A step of `app.seed_test_setup`, not of `app.seed`: the test suite seeds with `seed()` in
 every worker, and fetching and encoding pictures there would be time spent on nothing it
@@ -33,6 +34,7 @@ from app.models import Event, MediaItem, Post, Series
 from app.problems import Problem
 from app.services.media import Arrival, store
 
+SEEDED = Path(__file__).parent / "seed_data" / "pictures"
 CACHE = Path(__file__).parent.parent / ".seed-cache" / "pictures"
 # A build without a way out (a sandbox, a firewall) must not wait a minute per picture
 # before the connection is given up.
@@ -52,59 +54,38 @@ class SeedPicture(NamedTuple):
     event: str | None = None
 
 
-def _album(event: str, alt: str, urls: str) -> list[SeedPicture]:
-    """One Flickr album's pictures, in the order he put them: the 2048 px size."""
-    return [
-        SeedPicture(
-            event.rsplit("-act-", 1)[0],
-            url.rsplit("/", 1)[1].split("_")[0],
-            url,
-            f"{alt} ({number})",
-            event,
-        )
-        for number, url in enumerate(urls.split(), start=1)
-    ]
+def _flickr(photo: str) -> str:
+    return f"https://www.flickr.com/photos/svenjjj/{photo}/"
 
 
-_FLICKR = "https://live.staticflickr.com/65535/"
+def _single(event: str, photo: str, alt: str) -> SeedPicture:
+    return SeedPicture(event.rsplit("-act-", 1)[0], photo, _flickr(photo), alt, event)
+
+
 PICTURES: list[SeedPicture] = [
-    # "Segel-Bundesliga Alster 4.Spieltag", album 72177720334929291.
-    *_album(
+    _single("dsbl-1-2026-act-3", "55384652567", "Start der Segel-Bundesliga vor Kiel, 2026"),
+    _single("dsbl-1-2026-act-3", "55386171492", "Gennaker-Kurs vor Kiel, 3. Spieltag 2026"),
+    _single(
         "dsbl-1-2026-act-4",
-        "J/70 der Segel-Bundesliga auf der Hamburger Außenalster, 4. Spieltag 2026",
-        f"""
-        {_FLICKR}55433460020_3f74397abd_k.jpg {_FLICKR}55433181428_84ffd16324_k.jpg
-        {_FLICKR}55433069601_4f27742778_k.jpg {_FLICKR}55433069476_7bf96290fb_k.jpg
-        {_FLICKR}55433069471_e793a54246_k.jpg {_FLICKR}55433240999_a5c048f015_k.jpg
-        {_FLICKR}55433240794_61324b1fc1_k.jpg {_FLICKR}55433068911_d335676675_k.jpg
-        {_FLICKR}55432098672_aade21c19e_k.jpg {_FLICKR}55433180258_b8e492c869_k.jpg
-        {_FLICKR}55432098327_fd78be6458_k.jpg {_FLICKR}55432098257_a6e448213a_k.jpg
-        """,
+        "55435924375",
+        "J/70 der Segel-Bundesliga vor der Hamburger Skyline, 4. Spieltag 2026",
     ),
-    # "Segel-Bundesliga 3.Spieltag 2026", album 72177720334630993.
-    *_album(
-        "dsbl-1-2026-act-3",
-        "J/70 der Segel-Bundesliga vor Kiel, 3. Spieltag 2026",
-        f"""
-        {_FLICKR}55385778989_cacc73f006_k.jpg {_FLICKR}55385587076_171ea56101_k.jpg
-        {_FLICKR}55385992685_a746d6b10e_k.jpg {_FLICKR}55385728433_68f0d5b944_k.jpg
-        {_FLICKR}55385728373_13eb762215_k.jpg {_FLICKR}55384663452_5c6e1c2592_k.jpg
-        {_FLICKR}55384662042_4093bdbae2_k.jpg {_FLICKR}55385584906_af83149635_k.jpg
-        {_FLICKR}55385989400_155745ef49_k.jpg {_FLICKR}55385989325_357eabcbfb_k.jpg
-        {_FLICKR}55385725523_ff50944049_k.jpg {_FLICKR}55385988260_c7c0440ca8_k.jpg
-        """,
+    _single("dsbl-1-2026-act-4", "55435269046", "Gennaker-Feld auf der Hamburger Außenalster"),
+    _single(
+        "dsbl-1-2026-act-6",
+        "55595071743",
+        "Siegerehrung des Finales am Wannsee: der NRV mit der Meisterschale",
     ),
 ]
 
 # "JuniorenLiga Kiel", album 72177720328565883: the juniors in Kiel in August 2025. The site
 # has no 2025 season, so they are the Junioren-Liga's pictures, dated in their alt text
-# (decided 2026-11-06). 24 of its originals, spread over the album; Flickr refuses scripted
-# downloads, so they come from the album's own download into the cache.
+# (decided 2026-11-06). 24 of its originals, spread over the album.
 PICTURES += [
     SeedPicture(
         "junioren-2026",
         photo,
-        f"https://www.flickr.com/photos/svenjjj/{photo}/",
+        _flickr(photo),
         f"Deutsche Junioren Segel-Liga in Kiel, August 2025 ({number})",
     )
     for number, photo in enumerate(
@@ -122,8 +103,13 @@ PICTURES += [
 
 #: A report's slug → its cover, a picture's name; the report then belongs to that act.
 COVERS: dict[str, str] = {
-    "hamburg-der-nrv-gewinnt-zu-hause-und-fuehrt-die-tabelle-an": "55433460020",
-    "kiel-muehlenberger-sc-und-sc-ville-gewinnen-den-dritten-spieltag": "55385778989",
+    "kiel-muehlenberger-sc-und-sc-ville-gewinnen-den-dritten-spieltag": "55384652567",
+    "muehlenberger-segel-club-gewinnt-den-3-spieltag-der-1-segel-bundesliga-in-kiel": (
+        "55386171492"
+    ),
+    "hamburg-der-nrv-gewinnt-zu-hause-und-fuehrt-die-tabelle-an": "55435924375",
+    "heimsieg-auf-der-alster-norddeutscher-regatta-verein-gewinnt-den-4-spieltag": ("55435269046"),
+    "neunter-titel-fuer-den-nrv-und-ein-aufbruchsignal-fuer-die-segel-bundesliga": ("55595071743"),
 }
 
 
@@ -131,7 +117,11 @@ Fetch = Callable[[SeedPicture], bytes | None]
 
 
 def cached_or_downloaded(picture: SeedPicture) -> bytes | None:
-    """The cached copy, else the download — kept in the cache for the next run."""
+    """The repository's copy, else the cached one, else the download — kept in the cache
+    for the next run."""
+    seeded = SEEDED / f"{picture.name}.jpg"
+    if seeded.exists():
+        return seeded.read_bytes()
     path = CACHE / f"{picture.name}.jpg"
     if path.exists():
         return path.read_bytes()
