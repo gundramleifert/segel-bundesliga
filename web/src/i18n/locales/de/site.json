@@ -62,7 +62,7 @@
     "archive": "Archiv"
   },
   "season": {
-    "more": "Saison & Schwarzes Brett",
+    "more": "Saison",
     "empty": "Noch keine Spieltage veröffentlicht.",
     "matchdays": "Spieltage",
     "calendar": "Saison {year}"
@@ -110,8 +110,6 @@
   },
   "noticeBoard": {
     "season": "Schwarzes Brett der Saison",
-    "all": "Alle Dokumente",
-    "seasonPreview": "Die Ausschreibung der Saison und ihre Dokumente, wie auf Manage2Sail veröffentlicht.",
     "intro": "Dokumente für die ganze Saison. Die Aushänge eines Spieltags — Änderungen, Jury-Entscheidungen, die Protestliste — stehen auf seiner Seite:",
     "ofAct": "Schwarzes Brett von {act}",
     "announcements": "Aushänge",

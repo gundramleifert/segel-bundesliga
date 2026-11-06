@@ -55,7 +55,7 @@ export function StandingsPage() {
               <>
                 {season.series.map((s) => (
                   <Block key={s.id} title={s.name} testId={`site-standings-${s.slug}`}>
-                    <Panel width="content">
+                    <Panel>
                       <DivisionTable series={s} marks={tableMarks(league.slug, s.level)} league={league.slug} year={year} />
                     </Panel>
                   </Block>
@@ -166,9 +166,6 @@ export function SeasonPage() {
                 </Expand>
               ))}
               </Card>}
-            </Block>
-            <Block title={t("noticeBoard.season")} more={{ to: href.noticeBoard(league.slug), label: t("noticeBoard.all") }}>
-              <TextCard>{t("noticeBoard.seasonPreview")}</TextCard>
             </Block>
           </DepthPage>
         );

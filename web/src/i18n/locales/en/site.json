@@ -62,7 +62,7 @@
     "archive": "Archive"
   },
   "season": {
-    "more": "Season & notice board",
+    "more": "Season",
     "empty": "No events published yet.",
     "matchdays": "Events",
     "calendar": "Season {year}"
@@ -110,8 +110,6 @@
   },
   "noticeBoard": {
     "season": "Season notice board",
-    "all": "All documents",
-    "seasonPreview": "The season's notice of race and documents, as published on Manage2Sail.",
     "intro": "Documents for the whole season. An event's own notices — amendments, jury decisions, the protest list — are on its page:",
     "ofAct": "notice board of {act}",
     "announcements": "Announcements",
