@@ -198,7 +198,8 @@ from the 2026 tables** (decided 2026-11-02, `seed.py::_first_division_next_year`
 1–14 of the 1. Liga and 1–4 of the 2. Liga, entered in all six acts with the six boats,
 each with its draw. The 2. Liga 2027 has no clubs yet: its 2026 places 13–18 requalify at the
 DSL-Pokal. `scripts/sap-season.py` plays the 1. Liga's season on the local SAP. **ASVW hosts Warnemünde 2027**, so its
-officials are that event's organizers. Only what was announced is seeded; nothing invented.
+officials are that event's organizers — and `orga@`, `regatta@`, `jury@` and `helfer@` hold
+their relation on it too, as on the demo's act 3 (decided 2026-11-06). Only what was announced is seeded; nothing invented.
 
 The role switcher groups them the same way (league office · series · event · club ·
 sailors · guest, the `group` of `/api/dev/users`), the sailors folded until searched.

@@ -45,6 +45,8 @@ TEST_SERIES = "demo-2-2026"
 #: …and next year's, a draft to practise preparing a season on.
 TEST_SERIES_ALL = [TEST_SERIES, "dsbl-1-2027", "dsbl-2-2027"]
 TEST_EVENT = "demo-2-2026-act-3"
+#: …and the club's own act next year, Warnemünde, to prepare for real (no SAP).
+TEST_EVENTS = [TEST_EVENT, "dsbl-1-2027-warnemuende"]
 
 #: The league office and a guest: (email, name, site relations). Every name here is a
 #: pseudonym — `{Alice,Bob}<n> <club code>`, DSL for the league office — save "Alina Admin"
@@ -143,10 +145,9 @@ async def seed_users() -> None:
             ).scalars():
                 await _tuple(session, user, relation, ObjectRef(ObjectType.SERIES, juniors.id))
 
-        event = (
-            await session.execute(select(Event).where(Event.slug == TEST_EVENT))
-        ).scalar_one_or_none()
-        if event is not None:
+        for event in (
+            await session.execute(select(Event).where(Event.slug.in_(TEST_EVENTS)))
+        ).scalars():
             for email, name, relation in EVENT_ACCOUNTS:
                 user = await _account(session, email, name)
                 await _tuple(session, user, relation, ObjectRef(ObjectType.EVENT, event.id))
@@ -193,7 +194,7 @@ def _report(club: Club, people: int, admin: User) -> None:
         print(f"  {email:30s} {relation:22s} {name}")
     for email, name, relation, slugs in JUNIOR_ACCOUNTS:
         print(f"  {email:30s} {relation:22s} {name} — {', '.join(slugs)}")
-    print(f"On the event {TEST_EVENT}:")
+    print(f"On the events {', '.join(TEST_EVENTS)}:")
     for email, name, relation in EVENT_ACCOUNTS:
         print(f"  {email:30s} {relation:22s} {name}")
     print(f"{club.name}:")
