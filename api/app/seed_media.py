@@ -207,6 +207,18 @@ async def seed_media(
             if cover is not None:
                 post.photo_url, post.photo_credit = cover.url, CREDIT
                 post.event_id = cover.event_id
+        # Every other post gets a picture too, each a different one while the library has
+        # enough (decided 2026-11-07) — the cover only, the post stays where it was.
+        spare = [item for name, item in stored_as.items() if name not in COVERS.values()]
+        bare = (
+            await session.execute(
+                select(Post)
+                .where(Post.photo_url.is_(None))
+                .order_by(Post.published_on.desc(), Post.id)
+            )
+        ).scalars()
+        for index, post in enumerate(bare if spare else []):
+            post.photo_url, post.photo_credit = spare[index % len(spare)].url, CREDIT
         await session.commit()
     print(
         f"Pictures: {created} new, {len(pictures) - created - len(missing)} already in the "

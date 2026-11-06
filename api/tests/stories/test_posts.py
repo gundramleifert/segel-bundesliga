@@ -669,3 +669,44 @@ class TestSeededPictures:
         assert picture["credit"] == "Foto: © SvenJJJ"
         second = (await client.get("/api/media", params={"league": "2-liga"})).json()["items"]
         assert any(p["alt"] == "Berlin" for p in second)
+
+    async def test_every_seeded_post_has_a_picture_and_neighbours_differ(self):
+        """R-2: the seed gives every post without a cover one of the library's pictures,
+        a different one for each while there are enough — never a news card without one."""
+        import io
+
+        from PIL import Image
+        from sqlalchemy import select, update
+
+        from app.db import SessionLocal
+        from app.models import Post
+        from app.seed_media import SeedPicture, seed_media
+
+        def made(colour: str) -> bytes:
+            buffer = io.BytesIO()
+            Image.new("RGB", (64, 48), colour).save(buffer, "JPEG")
+            return buffer.getvalue()
+
+        async with SessionLocal() as session:  # another test of this worker may have set covers
+            await session.execute(update(Post).values(photo_url=None))
+            await session.commit()
+        pictures = {
+            name: made(colour)
+            for name, colour in (("red", "red"), ("green", "green"), ("blue", "blue"))
+        }
+        await seed_media(
+            [
+                SeedPicture("dsbl-1-2026", name, f"https://example.com/{name}.jpg", name)
+                for name in pictures
+            ],
+            lambda picture: pictures.get(picture.name),
+        )
+        async with SessionLocal() as session:
+            posts = (
+                (await session.execute(select(Post).order_by(Post.published_on.desc(), Post.id)))
+                .scalars()
+                .all()
+            )
+        assert posts and all(post.photo_url for post in posts)
+        newest = [post.photo_url for post in posts[:3]]
+        assert len(set(newest)) == 3
