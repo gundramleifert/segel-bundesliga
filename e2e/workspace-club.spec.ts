@@ -120,7 +120,7 @@ describeStory("S-5: the club's organizers reach a member's documents from the li
 
     // Not an organizer: the button would only lead to a refusal (#11).
     await signIn(page, "treasurer@asvw.example.com");
-    await page.goto(`/me/club/${club}/people?q=Voigt`);
+    await page.goto(`/me/club/${club}/people?q=Teammanager`);
     await expect(page.getByTestId(`my-club-member-relation-${manager}-manager`)).toBeVisible();
     await expect(page.getByTestId(documents)).toHaveCount(0);
   });

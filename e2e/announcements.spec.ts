@@ -23,7 +23,7 @@ describeStory("VA-11: the race committee publishes an announcement on the notice
     // Numbered, and signed by whoever put it up.
     const id = (await notice.getAttribute("data-testid"))!.replace("site-act-notice-", "");
     await expect(page.getByTestId(`notice-number-${id}`)).toHaveText(/^No\. \d+$/);
-    await expect(page.getByTestId(`notice-author-${id}`)).toHaveText("Malte Rackow");
+    await expect(page.getByTestId(`notice-author-${id}`)).toHaveText("Willy Wettfahrtleiter");
 
     // A guest sees it, and no form.
     const guest = await browser.newPage();

@@ -24,7 +24,8 @@ const LIVE_ACT_RESULTS = "/demo/2026/act-2/results"; // demo-1-2026-act-2, event
 const STANDINGS = "/1-liga/standings";
 
 // The pictures behind a page are the library's (Story R-3), and the seed has only Sven
-// Jürgensen's — none yet; the specs about those pictures put some there, on every stack.
+// Jürgensen's — on a stack only when its seed cache holds them; the specs about those
+// pictures put some there, on every stack.
 test.beforeAll(async ({ request }) => {
   await picturesFor(request, "dsbl-1-2026");
 });

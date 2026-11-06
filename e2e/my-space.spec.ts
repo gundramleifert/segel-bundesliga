@@ -282,7 +282,7 @@ describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a messag
     const jury = await bearer(page.request, JURY);
     await page.request.put("/api/me/bank-account", {
       headers: jury,
-      data: { holder: "Heiko Thölmann", iban: "DE89 3704 0044 0532 0130 00" },
+      data: { holder: "Jan Jury", iban: "DE89 3704 0044 0532 0130 00" },
     });
     const title = `Jury travel ${testInfo.project.name} ${Date.now()}`;
 

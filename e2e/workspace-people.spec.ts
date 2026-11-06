@@ -80,7 +80,7 @@ const PEOPLE: Person[] = [
     ],
   },
   {
-    row: "Team manager, ASVW (G. Voigt)",
+    row: "Team manager, ASVW (Tom Teammanager)",
     who: "teams@asvw.example.com",
     contexts: [
       {
