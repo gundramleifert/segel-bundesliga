@@ -96,6 +96,30 @@ PICTURES: list[SeedPicture] = [
     ),
 ]
 
+# "JuniorenLiga Kiel", album 72177720328565883: the juniors in Kiel in August 2025. The site
+# has no 2025 season, so they are the Junioren-Liga's pictures, dated in their alt text
+# (decided 2026-11-06). 24 of its originals, spread over the album; Flickr refuses scripted
+# downloads, so they come from the album's own download into the cache.
+PICTURES += [
+    SeedPicture(
+        "junioren-2026",
+        photo,
+        f"https://www.flickr.com/photos/svenjjj/{photo}/",
+        f"Deutsche Junioren Segel-Liga in Kiel, August 2025 ({number})",
+    )
+    for number, photo in enumerate(
+        """
+        54740487032 54740487397 54740572087 54740575017
+        54740576652 54740920922 54741412176 54741413096
+        54741414251 54741416226 54741557614 54741633983
+        54741641379 54741642144 54741644009 54741645279
+        54741758906 54741762651 54741768835 54741771665
+        54741773350 54741979623 54741981058 54741988319
+        """.split(),
+        start=1,
+    )
+]
+
 #: A report's slug → its cover, a picture's name; the report then belongs to that act.
 COVERS: dict[str, str] = {
     "hamburg-der-nrv-gewinnt-zu-hause-und-fuehrt-die-tabelle-an": "55433460020",
