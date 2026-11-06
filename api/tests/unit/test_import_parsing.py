@@ -34,8 +34,8 @@ def test_a_dsbl_regatta_name_says_division_year_city_and_matchday(name, expected
         "1. Segel-Bundesliga - Kiel (3)",  # no year
         "Relegation zur Segel-Bundesliga 2017 - Hamburg (7)",
         "Deutsche Junioren Segel-Liga 2016 - Sorpesee (1)",
-        # The juniors' cup is no act; an act without a year belongs to no series.
-        "Deutscher Junioren- & Segel-Liga Pokal 2026",
+        # An act without a year belongs to no series; an older cup's name is not imported.
+        "Deutscher Junioren-Segel-Pokal 2025",
         "Deutsche Junioren Segel-Liga - Act 3",
         "DJSL Coaching Trainingsregatten",
     ],
@@ -164,3 +164,15 @@ def test_a_range_that_is_none_is_refused(spec):
 
     with pytest.raises(ValueError):
         parse_years(spec)
+
+
+def test_the_cup_is_its_own_series_with_one_act():
+    """Story A-14: the DSL-Pokal — `Deutscher Junioren- & Segel-Liga Pokal 2026` — is the
+    `dsl-pokal` league's series of its year, one act."""
+    parsed = parse_regatta_name("Deutscher Junioren- & Segel-Liga Pokal 2026")
+    assert parsed is not None and parsed.cup
+    assert (parsed.series_slug, parsed.number, parsed.city) == (
+        "dsl-pokal-2026",
+        1,
+        "Berlin-Wannsee",
+    )

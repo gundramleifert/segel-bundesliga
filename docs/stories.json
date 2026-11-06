@@ -1375,6 +1375,46 @@
   "who": "site",
   "what": "the club that sat act 2 out carries its field size + 1 there, and the cell says so"
  },
+ "JU-1": {
+  "title": "The jury organizer keeps the pool of judges",
+  "status": "●",
+  "role": "Race Committee",
+  "phase": "Before the season: the jury",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "ju-1--the-jury-organizer-keeps-the-pool-of-judges"
+ },
+ "JU-2": {
+  "title": "A judge says which licences they hold",
+  "status": "●",
+  "role": "Race Committee",
+  "phase": "Before the season: the jury",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "ju-2--a-judge-says-which-licences-they-hold"
+ },
+ "JU-3": {
+  "title": "The jury organizer asks judges for events, many at once",
+  "status": "●",
+  "role": "Race Committee",
+  "phase": "Before the season: the jury",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "ju-3--the-jury-organizer-asks-judges-for-events-many-at-once"
+ },
+ "JU-4": {
+  "title": "A judge answers: I can, or I cannot",
+  "status": "●",
+  "role": "Race Committee",
+  "phase": "Before the season: the jury",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "ju-4--a-judge-answers-i-can-or-i-cannot"
+ },
+ "JU-5": {
+  "title": "The jury organizer approves or assigns — and the judge is the event's jury",
+  "status": "●",
+  "role": "Race Committee",
+  "phase": "Before the season: the jury",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "ju-5--the-jury-organizer-approves-or-assigns--and-the-judge-is-the-events-jury"
+ },
  "L-1": {
   "title": "See the boats move",
   "status": "◐",

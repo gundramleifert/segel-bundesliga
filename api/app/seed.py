@@ -51,7 +51,7 @@ from app.models.auth import Grant, Relation, User
 from app.models.racing import BOAT_COLORS
 from app.pairing import build_pairing
 from app.pairing.catalog import load_entry, shuffle_pairing
-from app.seed_junioren import seed_junioren
+from app.seed_junioren import seed_cup, seed_junioren
 from app.seed_posts import seed_posts
 from app.services import people
 from app.services.event_readiness import event_readiness
@@ -558,6 +558,10 @@ async def seed() -> None:
         # from SAP's recorded answer (`app.seed_junioren`) — and a made-up squad for each of
         # its real teams, teenagers, so a minor's waiver stays testable against the seed.
         await seed_junioren(SessionLocal)
+        # The DSL-Pokal 2026 from the same host's recorded answer.
+        report = await seed_cup(SessionLocal)
+        if report.errors or report.conflicts:
+            raise SystemExit(f"The DSL-Pokal import did not come in cleanly:\n{report.render()}")
         await _junior_squads(session, juniors, numbers)
         await session.commit()
 
@@ -683,7 +687,8 @@ async def _first_division_next_year(session) -> None:
     boats. An act with announced dates also has its pairing list from the catalog, as
     `pairing/from-catalog` draws it — an act without dates is not ready for a draw (VA-8),
     and no date is invented. Still drafts. The 2. Liga 2027 waits: its places 13–18 of 2026
-    requalify at the DSL-Pokal, whose result the seed does not have."""
+    requalify at the DSL-Pokal (`dsl-pokal-2026`), whose 2. Liga clubs are not
+    yet picked out of its table."""
     first = await _ranked_clubs(session, f"dsbl-1-{YEAR}")
     second = await _ranked_clubs(session, f"dsbl-2-{YEAR}")
     clubs = first[:STAY_UP] + second[:GO_UP]

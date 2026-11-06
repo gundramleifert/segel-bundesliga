@@ -72,6 +72,7 @@ LOCAL_TIME = ZoneInfo("Europe/Berlin")
 
 # The juniors' league, whose acts sit on their own SAP host (`hnv.sapsailing.com`).
 JUNIOR_LEAGUE = "junioren-liga"
+CUP_LEAGUE = "dsl-pokal"
 
 # `1. Segel-Bundesliga 2023 - Berlin (1)`, `2. Segel-Bundesliga 2020 - Hamburg (Finale)`,
 # `1. Segel-Bundesliga2018 - Travemünde (3)`. Not `… 2015-2016 - Relegation`: a
@@ -81,11 +82,17 @@ _NAME = re.compile(
 )
 _SUFFIX = re.compile(r"\s*\((?P<label>[^)]*)\)\s*$")
 # `Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)`, `… 2024 - Nord Act 1`,
-# `… 2017, NORD, ACT 2`. Not the cup (`Deutscher Junioren- & Segel-Liga Pokal 2026`), and
-# not an act without a year: neither belongs to a series.
+# `… 2017, NORD, ACT 2`. Not an act without a year: it belongs to no series.
 _JUNIOR_NAME = re.compile(
     r"^Deutsche Junioren Segel-Liga,?\s*(?P<year>\d{4})\s*[-,]\s*(?P<rest>.+?)\s*$"
 )
+# The cup, one regatta a year: `Deutscher Junioren- & Segel-Liga Pokal 2026`. Older cups
+# carry other names and are not imported.
+_CUP_NAME = re.compile(r"^Deutscher Junioren- & Segel-Liga Pokal (?P<year>\d{4})$")
+# Its competitors are a club's senior or junior team: `NRV_Sen`, `SCR_Se`, `NRV_Jo`.
+_CUP_TEAM = re.compile(r"_(Sen|Se|Jo)$")
+# Where the cup was sailed — its regatta names no place (SAP's event says `Berlin I Wannsee`).
+_CUP_VENUES = {2026: "Berlin-Wannsee"}
 _ACT = re.compile(r"\bAct\s*(?P<number>\d+)\b", re.IGNORECASE)
 # `KiYC 2`: the club's code, then the team's number when a club sails more than one.
 _TEAM_NUMBER = re.compile(r"^(?P<code>.*?\S)\s+(?P<team>\d+)$")
@@ -153,7 +160,13 @@ class RegattaName:
         return self.league == JUNIOR_LEAGUE
 
     @property
+    def cup(self) -> bool:
+        return self.league == CUP_LEAGUE
+
+    @property
     def series_name(self) -> str:
+        if self.cup:
+            return f"DSL-Pokal {self.year}"
         if self.junior:
             return f"Junioren-Segelliga {self.year}"
         return f"{self.level}. Segel-Bundesliga {self.year}"
@@ -162,12 +175,16 @@ class RegattaName:
     def series_slug(self) -> str:
         # The seed's slugs (`dsbl-1-2026`, `junioren-2026`): stable, and how the seed's
         # series of the year is found.
+        if self.cup:
+            return f"{CUP_LEAGUE}-{self.year}"
         if self.junior:
             return f"junioren-{self.year}"
         return f"{SERIES_PREFIX}-{self.level}-{self.year}"
 
     @property
     def series_short_name(self) -> str:
+        if self.cup:
+            return self.series_name
         return f"Junioren {self.year}" if self.junior else f"{self.level}. Liga {self.year}"
 
 
@@ -195,7 +212,7 @@ def parse_years(spec: str) -> set[int]:
 def parse_regatta_name(name: str) -> RegattaName | None:
     match = _NAME.match(name)
     if match is None:
-        return _parse_junior_name(name)
+        return _parse_junior_name(name) or _parse_cup_name(name)
     rest = match["rest"]
     number = label = None
     suffix = _SUFFIX.search(rest)
@@ -236,6 +253,22 @@ def _parse_junior_name(name: str) -> RegattaName | None:
         number=int(act["number"]),
         label=label,
         league=JUNIOR_LEAGUE,
+    )
+
+
+def _parse_cup_name(name: str) -> RegattaName | None:
+    match = _CUP_NAME.match(name)
+    if match is None:
+        return None
+    year = int(match["year"])
+    return RegattaName(
+        name=name,
+        level=None,
+        year=year,
+        city=_CUP_VENUES.get(year),
+        number=1,  # the cup's one act
+        label=None,
+        league=CUP_LEAGUE,
     )
 
 
@@ -518,6 +551,7 @@ async def _import_regatta(
 
     # Clubs and their entry — in the series and in this act.
     teams: dict[str, Team] = {}
+    cup_teams: dict[str, int] = {}
     for competitor in competitors:
         if competitor in placeholders:
             continue
@@ -531,10 +565,17 @@ async def _import_regatta(
         if not short:
             report.unassigned.append(f"{regatta.name}: a competitor without a club code")
             continue
-        code, number = junior_competitor(short) if regatta.junior else CompetitorCode(short, 1)
-        name = (competitor.get("name") or code).strip()
-        if regatta.junior:
+        name = (competitor.get("name") or short).strip()
+        if regatta.cup:
+            # A club's senior and junior team are its teams 1 and 2, in the table's order.
+            code = junior_competitor(_CUP_TEAM.sub("", short)).code
+            cup_teams[code] = number = cup_teams.get(code, 0) + 1
+            name = _CUP_TEAM.sub("", name).strip()
+        elif regatta.junior:
+            code, number = junior_competitor(short)
             name = _NAME_TEAM_NUMBER.sub("", name)
+        else:
+            code, number = short, 1
         club = await resolve_club(
             session,
             report,
@@ -634,6 +675,8 @@ async def _league(session: AsyncSession, report: Report, regatta: RegattaName) -
                 slug=slug, short_name="Junioren", name="Deutsche Junioren Segel-Liga", position=3
             )
             if regatta.junior
+            else League(slug=slug, short_name="DSL-Pokal", name="DSL-Pokal", position=4)
+            if regatta.cup
             else League(
                 slug=slug,
                 short_name=f"{regatta.level}. Liga",

@@ -68,7 +68,10 @@ Acceptance criteria:
   `Junioren-Segelliga YYYY` of the league `junioren-liga` — the seed's series of that
   year when there is one. A suffix like `(Finale)`, `Nord` or `Mitte` goes into the
   title. The names carry no city, so the act has no venue until someone sets it. The
-  cup (`… Pokal …`) is no act and is not imported.
+  cup, `Deutscher Junioren- & Segel-Liga Pokal YYYY` (decided 2026-11-06), is the one act
+  of `DSL-Pokal YYYY` in the league `dsl-pokal`; a club's senior and junior team
+  (`NRV_Sen`, `NRV_Jo`) are its teams 1 and 2, in the table's order. The seed carries
+  2026's, recorded in `api/app/seed_data/pokal-2026/`.
   - **A club can sail two teams in one act** (`KiYC 1`, `KiYC 2`): the number after the
     code is the team, the code before it the club. The second is a team of its own —
     `KYC (SH) 2`, in the act and in the series, scored on its own as SAP scores it.

@@ -1,0 +1,93 @@
+[
+ {
+  "id": "473afc95-432e-4dba-bbc2-46a53c14061a",
+  "name": "Deutscher Junioren- & Segel-Liga Pokal 2026",
+  "description": "",
+  "officialWebsiteURL": "https://www.hnv.de",
+  "baseURL": "https://www.hnv.sapsailing.com",
+  "startDate": 1792821600000,
+  "endDate": 1792962000000,
+  "venue": {
+   "name": "Berlin I Wannsee",
+   "courseAreas": [
+    {
+     "name": "Default",
+     "id": "6fd95275-00ba-4ae2-ad17-c9cd433f1276"
+    }
+   ]
+  },
+  "leaderboardGroups": [
+   {
+    "id": "4c1a16f2-21c2-405f-bf70-8057fb963361",
+    "name": "Deutscher Junioren- & Segel-Liga Pokal 2026",
+    "description": "Deutscher Junioren- & Segel-Liga Pokal 2026",
+    "displayName": "DJSL Pokal 2026",
+    "hasOverallLeaderboard": false
+   }
+  ],
+  "trackingConnectorInfos": [],
+  "imageSizes": [
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/89d2712c-5d8a-4e09-bea0-8c0ff7d7c8cb.jpg",
+    "imageWidth": 560,
+    "imageHeight": 560
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/5eed3953-d83f-413b-b3ec-31227c0a1597.jpg",
+    "imageWidth": 1546,
+    "imageHeight": 1160
+   },
+   {
+    "imageURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/927bf1ae-4e2e-4fe5-8542-d7d74e01f389.jpg",
+    "imageWidth": 1080,
+    "imageHeight": 720
+   }
+  ],
+  "images": [
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/89d2712c-5d8a-4e09-bea0-8c0ff7d7c8cb.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 560,
+    "heightInPixel": 560,
+    "createdAtDate": 1792594289703,
+    "tags": [
+     "Logo"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/5eed3953-d83f-413b-b3ec-31227c0a1597.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 1546,
+    "heightInPixel": 1160,
+    "createdAtDate": 1792594306778,
+    "tags": [
+     "Stage"
+    ]
+   },
+   {
+    "sourceURL": "https://s3.dualstack.eu-west-1.amazonaws.com/media.sapsailing.com/927bf1ae-4e2e-4fe5-8542-d7d74e01f389.jpg",
+    "locale": null,
+    "title": "",
+    "subtitle": "",
+    "mimetype": "image",
+    "copyright": "",
+    "widthInPixel": 1080,
+    "heightInPixel": 720,
+    "createdAtDate": 1792594315940,
+    "tags": [
+     "Teaser"
+    ]
+   }
+  ],
+  "videos": [],
+  "sailorsInfoWebsiteURLs": []
+ }
+]

@@ -60,3 +60,37 @@ async def seed_junioren(sessions: async_sessionmaker[AsyncSession]) -> Report:
         f"{report.created.get('results', 0)} results"
     )
     return report
+
+
+CUP_FOLDER = Path(__file__).parent / "seed_data" / "pokal-2026"
+
+
+def _recorded_cup() -> httpx.MockTransport:
+    """The same host's DSL-Pokal 2026 (read on 2026-11-06): its regatta, event and
+    leaderboard."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = unquote(request.url.path).removeprefix("/sailingserver/api/")
+        if path == "v1/regattas":
+            return httpx.Response(200, content=(CUP_FOLDER / "regattas.json").read_bytes())
+        if path == "v1/events":
+            return httpx.Response(200, content=(CUP_FOLDER / "events.json").read_bytes())
+        if path.startswith("v2/leaderboards/"):
+            return httpx.Response(200, content=(CUP_FOLDER / "leaderboard.json").read_bytes())
+        return httpx.Response(200, json=[])
+
+    return httpx.MockTransport(handler)
+
+
+async def seed_cup(sessions: async_sessionmaker[AsyncSession]) -> Report:
+    """Imports the DSL-Pokal 2026 — senior and junior teams of the clubs, one weekend —
+    as the series `dsl-pokal-2026`, published."""
+    async with httpx.AsyncClient(transport=_recorded_cup()) as http:
+        report = await import_sap(
+            sessions, SapClient(http, API), years=[2026], publish=True, log=lambda _: None
+        )
+    print(
+        f"DSL-Pokal 2026: {report.created.get('event entries', 0)} entries, "
+        f"{report.created.get('results', 0)} results"
+    )
+    return report

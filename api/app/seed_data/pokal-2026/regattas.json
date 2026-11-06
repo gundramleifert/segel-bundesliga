@@ -1,0 +1,18 @@
+[
+ {
+  "name": "Deutscher Junioren- & Segel-Liga Pokal 2026",
+  "startDate": 1792821600000,
+  "endDate": 1792962000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "6fd95275-00ba-4ae2-ad17-c9cd433f1276"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": true,
+  "controlTrackingFromStartAndFinishTimes": false,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ }
+]

@@ -3,6 +3,8 @@
 Each test describes what someone wants to achieve — not what function is called.
 """
 
+from app.db import SessionLocal
+from app.models import League
 from tests.stories.test_create_event import admin
 
 
@@ -62,8 +64,16 @@ class TestLeagueSeason:
         assert response.json()["type"].endswith("/league-not-found")
 
     async def test_a_league_without_series_is_an_empty_year_not_an_error(self, client):
-        """B-14: the DSL-Pokal's page exists before anyone has set up its series."""
-        season = (await client.get("/api/leagues/dsl-pokal")).json()
+        """B-14: a league's page exists before anyone has set up its series."""
+        async with SessionLocal() as session:
+            league = League(slug="empty-league", short_name="Empty", name="Empty")
+            session.add(league)
+            await session.commit()
+            try:
+                season = (await client.get("/api/leagues/empty-league")).json()
+            finally:
+                await session.delete(league)
+                await session.commit()
         assert season["series"] == []
         assert season["events"] == []
 
