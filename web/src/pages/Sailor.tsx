@@ -76,9 +76,7 @@ export function Sailor() {
                   <span className="font-medium">{entry.event.title}</span>
                   <StatusBadge status={entry.event.status} />
                   <span className="w-full text-sm text-muted">
-                    {locationText(entry.event)} ·{" "}
-                    {eventDates(entry.event)} ·{" "}
-                    {roleText(entry.role)}
+                    {[locationText(entry.event), eventDates(entry.event), roleText(entry.role)].filter(Boolean).join(" · ")}
                   </span>
                 </Link>
               </li>

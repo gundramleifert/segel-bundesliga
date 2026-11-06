@@ -85,7 +85,8 @@ export function statusText(status: string): string {
 /** Where a matchday takes place.
  *
  * At creation time, often only the host club is known and the venue isn't yet — then we
- * name the club instead of leaving a gap, and say so plainly if both are missing.
+ * name the club instead of leaving a gap; with neither, nothing ("place still open" was
+ * noise — 2026-11-07), so callers join their parts with `.filter(Boolean)`.
  */
 export function locationText(event: {
   venue?: { name: string; water?: string | null } | null;
@@ -97,7 +98,7 @@ export function locationText(event: {
     return event.venue.water ? `${event.venue.name}, ${event.venue.water}` : event.venue.name;
   }
   if (event.host_club) return i18n.t("common:hostedBy", { name: event.host_club.name });
-  return i18n.t("common:venueUnknown");
+  return "";
 }
 
 /** How an event is subtitled.

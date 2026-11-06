@@ -67,17 +67,22 @@ export function Club() {
               <Card.Header>
                 <Card.Title className="text-base">{team.series.name}</Card.Title>
                 <Card.Description>
-                  {t("stats", { count: team.members?.length ?? 0, events: team.events?.length ?? 0 })}
+                  {team.members?.length
+                    ? t("stats", { count: team.members.length, events: team.events?.length ?? 0 })
+                    : t("stats_events", { events: team.events?.length ?? 0 })}
                 </Card.Description>
               </Card.Header>
               <Card.Content>
                 <div className="grid gap-6 lg:grid-cols-2">
-                  <section>
-                    <h3 className="mb-2 text-sm font-medium text-muted">
-                      {t("squad")}
-                    </h3>
-                    <Squad members={team.members ?? []} />
-                  </section>
+                  {/* No squad registered: left out, not announced as missing (2026-11-07). */}
+                  {team.members?.length ? (
+                    <section>
+                      <h3 className="mb-2 text-sm font-medium text-muted">
+                        {t("squad")}
+                      </h3>
+                      <Squad members={team.members} />
+                    </section>
+                  ) : null}
                   <section>
                     <h3 className="mb-2 text-sm font-medium text-muted">{t("events")}</h3>
                     <Matchdays entries={team.events ?? []} />
@@ -181,9 +186,9 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
             <StatusBadge status={event.status} />
           </div>
           <p className="text-muted">
-            {locationText(event)} · {eventDates(event)}
+            {[locationText(event), eventDates(event)].filter(Boolean).join(" · ")}
           </p>
-          {crews?.length ? (
+          {crews?.length ?
             // One line per team (VA-13): a club's second team is its own crew, named.
             crews.map(({ team_id, team_name, members }) => (
               <p
@@ -202,10 +207,7 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
                   </span>
                 ))}
               </p>
-            ))
-          ) : (
-            <p className="mt-0.5 text-faint">{t("crew_empty")}</p>
-          )}
+            )) : null}
         </li>
       ))}
     </ul>
@@ -213,15 +215,6 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
 }
 
 function Squad({ members }: { members: Member[] }) {
-  const { t } = useTranslation("club");
-
-  if (!members.length)
-    return (
-      <p data-testid="club-squad-empty" className="text-sm text-muted">
-        {t("squad_empty")}
-      </p>
-    );
-
   return (
     <ul className="divide-y divide-separator text-sm">
       {members.map((member) => (
