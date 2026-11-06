@@ -38,7 +38,7 @@ POSTS: list[dict] = [
         "\n"
         "Verbesserungsvorschläge nehmen wir gern per E-Mail an website@deutsche-segelliga.de "
         "entgegen.",
-        "author": "Redaktion",
+        "author": "Gundram Leifert",
         "photo_url": None,
         "photo_credit": None,
         "example": False,

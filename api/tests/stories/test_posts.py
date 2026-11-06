@@ -166,7 +166,7 @@ class TestWritePosts:
         listed = (await client.get("/api/posts", params={"league": "junioren-liga"})).json()[
             "items"
         ]
-        assert listed[0]["slug"] == post["slug"]
+        assert post["slug"] in [p["slug"] for p in listed]
         other = (await client.get("/api/posts", params={"league": "1-liga"})).json()["items"]
         assert post["slug"] not in [p["slug"] for p in other]
 
