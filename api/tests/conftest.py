@@ -49,7 +49,7 @@ async def seeded(database_url: str):
 
     from alembic import command
     from app.db import engine
-    from app.seed import publish_demo, seed
+    from app.seed import seed
 
     config = Config(str(Path(__file__).parent.parent / "alembic.ini"))
     config.set_main_option("script_location", str(Path(__file__).parent.parent / "alembic"))
@@ -64,7 +64,6 @@ async def seeded(database_url: str):
     await asyncio.to_thread(command.upgrade, config, "head")
 
     await seed()
-    await publish_demo()
     yield
     await engine.dispose()
 

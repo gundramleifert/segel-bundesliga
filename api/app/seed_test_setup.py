@@ -31,7 +31,7 @@ from alembic import command
 from app.config import settings
 from app.db import engine
 from app.models import Base, Series
-from app.seed import publish_demo, seed
+from app.seed import seed
 from app.seed_media import seed_media
 from app.seed_users import seed_users
 
@@ -66,7 +66,7 @@ async def _has_series() -> bool:
 
 
 async def seed_test_setup(
-    *, reset: bool = False, if_empty: bool = False, publish_demo_series: bool = False
+    *, reset: bool = False, if_empty: bool = False
 ) -> None:
     target = settings.database_url.split("@")[-1]
     print(f"Database: {target}\n")
@@ -84,9 +84,6 @@ async def seed_test_setup(
     await seed_users()
     print()
     await seed_media()
-    if publish_demo_series:
-        await publish_demo()
-        print("Demo series published (test stacks only).")
 
     print(
         "\nDone. Start with:\n"
@@ -107,17 +104,12 @@ def main() -> None:
         action="store_true",
         help="Seed only a database without any series (a deployment's every start).",
     )
-    parser.add_argument(
-        "--publish-demo",
-        action="store_true",
-        help="Publish the invented demo series (the e2e stacks); never on a real site.",
-    )
     args = parser.parse_args()
 
     try:
         asyncio.run(
             seed_test_setup(
-                reset=args.reset, if_empty=args.if_empty, publish_demo_series=args.publish_demo
+                reset=args.reset, if_empty=args.if_empty
             )
         )
     finally:

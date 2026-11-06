@@ -70,8 +70,7 @@ RUN cp render.env .env
 # signing secret (set that as a real environment variable — SBL_JWT_SECRET — on the host).
 ARG SEED_JWT_SECRET=build-time-seed-only
 # The 2026 season as sailed (1. and 2. Liga, Junioren-Liga) is in the seed itself.
-# `publish_preview` publishes the demo to try the roles on (without the example posts) and
-# the 1. Liga 2027 — the preview of branch `vorschau`, never a real site.
+# `publish_preview` publishes the 1. Liga 2027 — the preview of branch `vorschau`.
 RUN SBL_JWT_SECRET="$SEED_JWT_SECRET" \
     SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db" \
     sh -c 'python -m app.seed_test_setup --reset \

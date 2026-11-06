@@ -38,8 +38,6 @@ from app.models import (
     Post,
     Race,
     RaceEntry,
-    RaceStatus,
-    ResultCode,
     Series,
     SeriesStanding,
     Team,
@@ -49,7 +47,6 @@ from app.models import (
 )
 from app.models.auth import Grant, Relation, User
 from app.models.racing import BOAT_COLORS
-from app.pairing import build_pairing
 from app.pairing.catalog import load_entry, shuffle_pairing
 from app.seed_junioren import seed_cup, seed_junioren
 from app.seed_posts import seed_posts
@@ -285,28 +282,7 @@ async def seed() -> None:
             published=True,
             scoring=scoring,
         )
-        # The invented season the test cast practises on (`app.seed_users`): the same
-        # clubs, made-up squads and three made-up weekends — in series of their own that
-        # are never published and belong to no league, so nothing invented reaches the
-        # public site or the real 2026 tables, which hold the league's real results
-        # (imported below, docs/PLAN_SEEDING.md).
-        demo = {
-            level: Series(
-                slug=f"demo-{level}-{YEAR}",
-                name=f"Demo {level}. Liga {YEAR}",
-                short_name=f"Demo {level}. Liga",
-                year=YEAR,
-                level=level,
-                published=False,
-                scoring=scoring,
-                description=(
-                    "Invented data to practise on — clubs real, sailors, weekends and "
-                    "results made up. Never published."
-                ),
-            )
-            for level in (1, 2)
-        }
-        series_list = [first_league, second_league, juniors, champions, *demo.values()]
+        series_list = [first_league, second_league, juniors, champions]
         session.add_all(series_list)
         # Next year's juniors, being prepared: a draft with no events and no teams yet, so
         # the public site stays on this year (the current year is the newest one not in the
@@ -380,14 +356,10 @@ async def seed() -> None:
 
         # The teams of all leagues. A club can compete in several; each
         # team has its own roster — juniors are different people than the first.
-        # The made-up squads hang from the demo series' registrations; the real series'
-        # registrations come with the import, without squads — no source says who sailed.
-        division = demo
-        assignments: list[tuple[Series, Club]] = [
-            *((division[level], club) for club, (_, _, _, level) in zip(clubs, CLUBS, strict=True)),
-            # Not the juniors: their real 2026 field comes with their results, below.
-            *((champions, club) for club in clubs[:6]),
-        ]
+        # The real series' registrations come with the import, without squads — no source
+        # says who sailed (the demo series that carried made-up ones are gone, 2026-11-06).
+        # Not the juniors: their real 2026 field comes with their results, below.
+        assignments: list[tuple[Series, Club]] = [(champions, club) for club in clubs[:6]]
 
         teams = [
             (
@@ -399,13 +371,6 @@ async def seed() -> None:
         ]
         session.add_all(team for _, _, team in teams)
         await session.flush()
-
-        # The acts are sailed in both divisions. These are each one's registrations for
-        # the series; the participation in each act is created below per event.
-        registrations = {
-            series.id: [team for each, _, team in teams if each is series]
-            for series in demo.values()
-        }
 
         squads: dict[int, list[Person]] = {}
         counter = 0
@@ -451,68 +416,7 @@ async def seed() -> None:
                     )
                 )
 
-        # Three matchdays: one finished, one live, one planned — each with a host club, who
-        # pays its claims (Story F-2). The planned one is the test club's: its 2. Liga act
-        # is the test event. Both divisions sail each weekend at the same venue, the 1.
-        # Liga's acts first, so they keep the lowest ids.
         by_short = {club.short_name: club for club in clubs}
-        weekends = [
-            (venues[0], "DTYC", EventStatus.FINAL, date(2026, 5, 8)),
-            (venues[1], "KYC (SH)", EventStatus.LIVE, date(2026, 6, 12)),
-            (venues[2], "ASVW", EventStatus.PLANNED, date(2026, 7, 17)),
-        ]
-        for league_series, level, (matchday, (venue, host, status, day)) in (
-            (league_series, level, act)
-            for league_series, level in ((demo[1], 1), (demo[2], 2))
-            for act in enumerate(weekends, start=1)
-        ):
-            roster = registrations[league_series.id]
-            event = Event(
-                slug=f"demo-{level}-{YEAR}-act-{matchday}",
-                title=f"Act {matchday} {venue.city}",
-                matchday=matchday,
-                starts_on=day,
-                ends_on=day + timedelta(days=2),
-                status=status,
-                # Invented: never shown to visitors (see `demo` above).
-                published=False,
-                team_count=len(roster),
-                boat_count=BOATS,
-                flight_count=FLIGHTS,
-                series_id=league_series.id,
-                venue_id=venue.id,
-                host_club_id=by_short[host].id,
-            )
-            session.add(event)
-            await session.flush()
-
-            # The participation in this act. This is where pairing list, results, and
-            # lineup hang from — the series registration alongside carries the roster.
-            entries = [
-                Team(
-                    name=registration.name,
-                    club_id=registration.club_id,
-                    series_id=league_series.id,
-                    event_id=event.id,
-                )
-                for registration in roster
-            ]
-            session.add_all(entries)
-            await session.flush()
-
-            await _seed_matchday(session, event, entries, rng, status)
-
-            # Lineup for the matchday: the first four from the roster sail.
-            for registration, entry in zip(roster, entries, strict=True):
-                for position, person in enumerate(squads[registration.id][:CREW]):
-                    session.add(
-                        EventCrew(
-                            event_id=event.id,
-                            team_id=entry.id,
-                            person_id=person.id,
-                            role=CrewRole.HELM if position == 0 else CrewRole.CREW,
-                        )
-                    )
 
         # Next year's 1. and 2. Liga, being prepared: a draft series each with its announced
         # acts — the 1. Liga's clubs follow from this year's tables once they are in
@@ -597,61 +501,15 @@ async def seed() -> None:
 
     print(
         f"Seed complete: {len(CLUBS)} clubs, the 1. and 2. Liga {YEAR} as sailed (11 acts) and "
-        f"the Junioren-Liga's; two demo series with {SQUAD_SIZE} made-up sailors per club and "
-        f"3 invented acts each (unpublished); the 1. and 2. Liga {YEAR + 1} as drafts with "
+        f"the Junioren-Liga's; the 1. and 2. Liga {YEAR + 1} as drafts with "
         f"{len(ACTS_2027)} and {sum(a.second is not None for a in ACTS_2027)} acts"
     )
 
 
-async def publish_demo(*, example_posts: bool = True) -> None:
-    """Publishes the demo series and their acts, in a league of their own (`/demo`), and
-    the example posts — staging, the test suite and the e2e stacks
-    (`seed_test_setup --publish-demo`), never a real site.
-
-    The seed keeps them unpublished and in no league, so a real site has no trace of them
-    (docs/PLAN_SEEDING.md). Staging and the tests need exactly that invented data in
-    public: a live act's interim standing and the league page that leads to it, a planned
-    act's pairing list, a squad on a club page — states the real 2026 season, sailed and
-    over, no longer has. The league is made here, not in the seed: the site lists every
-    league, so one that exists on a real site would be an empty entry in its navigation.
-    Repeatable.
-    """
-    async with SessionLocal() as session:
-        league = (
-            await session.execute(select(League).where(League.slug == "demo"))
-        ).scalar_one_or_none()
-        if league is None:
-            league = League(
-                slug="demo",
-                short_name="Demo",
-                name="Demo-Liga",
-                tagline="Invented clubs' squads, weekends and results — to try things on.",
-                position=9,
-            )
-            session.add(league)
-            await session.flush()
-        demo = (await session.execute(select(Series).where(Series.slug.like("demo-%")))).scalars()
-        ids = []
-        for series in demo:
-            series.published = True
-            series.league_id = league.id
-            ids.append(series.id)
-        for event in (
-            await session.execute(select(Event).where(Event.series_id.in_(ids)))
-        ).scalars():
-            event.published = True
-        # The example posts too: invented like the demo's weekends, drafts on a real site.
-        for post in (await session.execute(select(Post).where(Post.example))).scalars():
-            post.published = example_posts
-        await session.commit()
-
-
 async def publish_preview() -> None:
-    """The Render preview (branch `vorschau`, `api/Dockerfile`): the demo to try the roles
-    on, without the example posts — the preview shows the real ones only — and the 1. Liga
-    2027, whose clubs and two dated draws are known. Public, yet the site stays on 2026:
-    the current year is the newest one not in the future."""
-    await publish_demo(example_posts=False)
+    """The Render preview (branch `vorschau`, `api/Dockerfile`): the 1. Liga 2027
+    published, whose clubs and draws are known. Public, yet the site stays on 2026: the
+    current year is the newest one not in the future."""
     async with SessionLocal() as session:
         series = (
             await session.execute(select(Series).where(Series.slug == f"dsbl-1-{YEAR + 1}"))
@@ -806,79 +664,6 @@ async def _first_division_next_year(session) -> None:
         await publish_pairing(
             session, event, PairingDraft.from_import(pairing, [t.id for t in entries])
         )
-
-
-async def _seed_matchday(session, event, teams, rng, status) -> None:
-    boats = [
-        Boat(
-            event_id=event.id,
-            number=n,
-            color=BOAT_COLORS[n - 1],
-            sail_number=f"GER {700 + n}",
-        )
-        for n in range(1, BOATS + 1)
-    ]
-    session.add_all(boats)
-
-    flights = [Flight(event_id=event.id, number=n) for n in range(1, FLIGHTS + 1)]
-    session.add_all(flights)
-    await session.flush()
-
-    boat_by_number = {b.number: b for b in boats}
-    flight_by_number = {f.number: f for f in flights}
-
-    slots = build_pairing(team_count=len(teams), flights=FLIGHTS, boats=BOATS)
-    races: dict[int, Race] = {}
-    for slot in slots:
-        if slot.sequence not in races:
-            race = Race(
-                flight_id=flight_by_number[slot.flight].id,
-                number_in_flight=slot.race_in_flight,
-                sequence=slot.sequence,
-                status=RaceStatus.SCHEDULED,
-            )
-            session.add(race)
-            races[slot.sequence] = race
-    await session.flush()
-
-    # A planned matchday has a pairing list but no results.
-    # A live one is two-thirds sailed.
-    if status == EventStatus.PLANNED:
-        sailed_until = 0
-    elif status == EventStatus.LIVE:
-        sailed_until = FLIGHTS * 3 * 2 // 3
-    else:
-        sailed_until = FLIGHTS * 3
-
-    by_race: dict[int, list] = {}
-    for slot in slots:
-        by_race.setdefault(slot.sequence, []).append(slot)
-
-    for sequence, race_slots in by_race.items():
-        race = races[sequence]
-        finished = sequence <= sailed_until
-        if finished:
-            race.status = RaceStatus.FINISHED
-
-        order = list(range(1, len(race_slots) + 1))
-        rng.shuffle(order)
-        for position, slot in zip(order, race_slots, strict=True):
-            entry = RaceEntry(
-                race_id=race.id,
-                team_id=teams[slot.team_index].id,
-                boat_id=boat_by_number[slot.boat_number].id,
-            )
-            if finished:
-                # Occasionally a penalty so the scoring logic is visible.
-                if rng.random() < 0.02:
-                    entry.code = ResultCode.DNF
-                elif rng.random() < 0.03:
-                    entry.code = ResultCode.ZFP
-                    entry.finish_position = position
-                else:
-                    entry.code = ResultCode.FINISHED
-                    entry.finish_position = position
-            session.add(entry)
 
 
 async def _junior_squads(session, juniors: Series, numbers: dict[str, int]) -> None:

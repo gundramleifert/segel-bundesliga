@@ -64,8 +64,6 @@ services:
     command: ["api-init"]
     environment:
       <<: *api-env
-      # true only on a demonstration server: publishes the invented demo series.
-      SEED_PUBLISH_DEMO: ${SEED_PUBLISH_DEMO:-false}
     restart: "no"
 
   # Its healthcheck is the image's (api.Dockerfile).

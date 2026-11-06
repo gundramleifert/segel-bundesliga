@@ -41,12 +41,12 @@ from app.services.participation import activate
 
 #: The one club, series and event the cast is about.
 TEST_CLUB = "asvw"
-TEST_SERIES = "demo-2-2026"
+TEST_SERIES = "dsbl-2-2026"
 #: …and next year's, a draft to practise preparing a season on.
 TEST_SERIES_ALL = [TEST_SERIES, "dsbl-1-2027", "dsbl-2-2027"]
-TEST_EVENT = "demo-2-2026-act-3"
-#: …and the club's own act next year, Warnemünde, to prepare for real (no SAP).
-TEST_EVENTS = [TEST_EVENT, "dsbl-1-2027-warnemuende"]
+#: The club's own act next year, Warnemünde, to prepare for real (no SAP) — the demo's
+#: invented act 3 it was beside is gone (2026-11-06).
+TEST_EVENTS = ["dsbl-1-2027-warnemuende"]
 
 #: The league office and a guest: (email, name, site relations). Everyone with a role
 #: is named for it (Alina Admin, Tom Teammanager, …); everyone else — the sailors — is a

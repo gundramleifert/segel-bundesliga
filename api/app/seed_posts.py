@@ -3,8 +3,7 @@
 What the public pages showed as static content before editorial could write on the site:
 the association's real articles and press releases, and examples that fill the pages and
 say so on them (``example``). The examples are **drafts** — a real site shows none of
-them (docs/PLAN_SEEDING.md); `app.seed.publish_demo` publishes them on staging and the
-test stacks, with the demo series.
+them (docs/PLAN_SEEDING.md), and since the demo is gone (2026-11-06) nothing publishes them.
 """
 
 from __future__ import annotations

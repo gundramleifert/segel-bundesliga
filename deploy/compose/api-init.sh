@@ -8,14 +8,7 @@
 # which would throw away whatever was changed through the site since the last start.
 set -eu
 
-# The invented demo series stay hidden unless SEED_PUBLISH_DEMO=true (.env): a
-# demonstration server may show them, a real site never (docs/PLAN_SEEDING.md).
-demo=""
-if [ "${SEED_PUBLISH_DEMO:-false}" = "true" ]; then
-  demo="--publish-demo"
-fi
-
 if [ "${1:-}" = "--reset" ]; then
-  exec python -m app.seed_test_setup --reset $demo
+  exec python -m app.seed_test_setup --reset
 fi
-exec python -m app.seed_test_setup --if-empty $demo
+exec python -m app.seed_test_setup --if-empty
