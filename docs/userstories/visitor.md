@@ -820,9 +820,17 @@ Acceptance criteria:
   and photos including the minors rule, waivers, club membership. No cookie-consent
   section, because the app sets no cookies and runs no analytics.
 - Values nobody has yet — register court, association register number — appear as visibly
-  marked pending values, never invented. Points still undecided — retention periods, the
-  deletion concept for position data — appear as marked open questions, and the privacy
-  page carries a draft banner until it has been reviewed.
+  marked pending values, never invented. Points still undecided — the deletion concept for
+  position data, processing agreements, a takedown route — appear as marked open questions,
+  and the privacy page carries a draft banner until it has been reviewed.
+- **Retention periods** (decided 2026-11-07), stated on the privacy page and kept: one-time
+  codes 7 days after they expire and the audit log after 3 years, deleted by
+  `app/services/retention.py` once a day; the request log 14 days, in journald on the host
+  (`deploy/compose/compose.yaml`, `docs/deploy-server.md`); waivers and scans 3 years after
+  the season (§ 195 BGB); claims and receipts 10 years (§ 147 AO).
+- **Publishing names rests on legitimate interest** (Art. 6(1)(f), decided 2026-11-07),
+  minors included, with an objection to vorstand@ under Art. 21; a minor's photo stays
+  private.
 - Because a club can run **its own** Event here, the privacy page states as its most
   prominent open question that it is undetermined whether the association is sole
   controller (Art. 4(7) DSGVO), processor for that club (Art. 28) or joint controller
@@ -831,10 +839,11 @@ Acceptance criteria:
 Frontend: `web/src/pages/LegalNotice.tsx`, `web/src/pages/Privacy.tsx`,
 `web/src/components/LegalText.tsx`
 
-Tests: none yet.
+Tests: `api/tests/stories/test_retention.py::test_old_login_codes_and_audit_rows_are_deleted_recent_ones_kept`
 
 Open: The legal review by the association's board, and the placeholder values, are still
-missing — see the open questions rendered on the pages themselves.
+missing — see the open questions rendered on the pages themselves. No routine deletes
+waivers and scans or receipts yet; the first of them falls due in 2029.
 
 ### B-19 ● Switch between dark and light
 As **anyone using the site** I want to **switch between a dark and a light look**, so that

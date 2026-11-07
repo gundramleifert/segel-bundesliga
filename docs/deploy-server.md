@@ -184,6 +184,12 @@ names.
   long as Docker starts at boot.
 - **Logs:** `compose.sh logs -f api` (every request, every mail attempt — "did the code
   go out" is answered here, never by the API's 202), `compose.sh logs web` (Caddy).
+  Both go to journald, because the api log holds every request's IP address and the
+  privacy policy promises it is gone after **14 days**. Set that once on the host:
+
+      sudo mkdir -p /etc/systemd/journald.conf.d
+      printf '[Journal]\nMaxRetentionSec=14day\n' | sudo tee /etc/systemd/journald.conf.d/retention.conf
+      sudo systemctl restart systemd-journald
 - **Resources:** `docker stats`. No service has a memory limit; on a 2 GB machine that
   is fine, on a shared one set `mem_limit` in `compose.yaml`.
 

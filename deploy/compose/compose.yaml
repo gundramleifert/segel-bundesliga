@@ -70,6 +70,10 @@ services:
   api:
     <<: *api
     restart: unless-stopped
+    # Its log holds every request's IP address: journald keeps it 14 days, as the privacy
+    # policy says (B-9) — set on the host, docs/deploy-server.md "Watching it".
+    logging:
+      driver: journald
     depends_on:
       <<: *api-depends
       db-setup:
@@ -84,6 +88,8 @@ services:
         VITE_DEV_TOOLS: "false"
     image: segelliga-web:local
     restart: unless-stopped
+    logging:
+      driver: journald
     ports:
       - "${WEB_PORT:-8080}:80"
     depends_on:

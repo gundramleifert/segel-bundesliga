@@ -108,6 +108,8 @@ class Settings(BaseSettings):
     sap_boats: dict[str, str] = {}
     # How often the results of a live event on SAP are fetched; 0 turns that off (tests).
     sap_poll_seconds: int = 20
+    # How often expired login codes and old audit rows are deleted (B-9); 0 turns it off (tests).
+    retention_purge_hours: int = 24
     otp_max_attempts: int = 5
 
     # Accounts normally arise through creation or import, not through login.

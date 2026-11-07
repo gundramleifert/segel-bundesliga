@@ -3,11 +3,11 @@
   "draft": {
     "title": "Entwurf — vor der Veröffentlichung prüfen lassen",
     "body": "Diese Datenschutzerklärung ist ein Arbeitsentwurf für die Anwendung, die gerade entsteht. Die Angaben zum Verantwortlichen sind verbindlich, die Beschreibung der Verarbeitungen folgt dem heutigen Stand des Programmcodes. Bevor die Seite öffentlich geht, muss der Vorstand als vertretungsberechtigtes Organ den Text prüfen und rechtlich abnehmen lassen.",
-    "openQuestions": "Eine Frage wiegt schwerer als die übrigen: Richtet ein Verein auf dieser Plattform eine eigene Veranstaltung aus, ist unbestimmt, ob der Verband allein Verantwortlicher, Auftragsverarbeiter dieses Vereins oder gemeinsam mit ihm verantwortlich ist — jede Antwort verlangt andere Vereinbarungen. Diese und alle weiteren unentschiedenen Punkte — Löschfristen, das Löschkonzept und die Einwilligung für die Positionsdaten, die Frage eines Datenschutzbeauftragten — sind unten als offene Frage gekennzeichnet und bewusst nicht geraten."
+    "openQuestions": "Eine Frage wiegt schwerer als die übrigen: Richtet ein Verein auf dieser Plattform eine eigene Veranstaltung aus, ist unbestimmt, ob der Verband allein Verantwortlicher, Auftragsverarbeiter dieses Vereins oder gemeinsam mit ihm verantwortlich ist — jede Antwort verlangt andere Vereinbarungen. Diese und die übrigen unentschiedenen Punkte — das Löschkonzept und die Einwilligung für die Positionsdaten, die Frage eines Datenschutzbeauftragten — sind unten als offene Frage gekennzeichnet und bewusst nicht geraten."
   },
   "legalNotice": {
     "title": "Impressum",
-    "lastUpdated": "Stand: 28. Oktober 2026",
+    "lastUpdated": "Stand: 7. November 2026",
     "sections": [
       {
         "heading": "Anbieter",
@@ -73,7 +73,7 @@
   },
   "privacy": {
     "title": "Datenschutzerklärung",
-    "lastUpdated": "Stand: 28. Oktober 2026",
+    "lastUpdated": "Stand: 7. November 2026",
     "sections": [
       {
         "heading": "Geltungsbereich",
@@ -140,10 +140,9 @@
         "items": [
           "Einwilligung, Art. 6 Abs. 1 lit. a DSGVO — wo wir ausdrücklich danach fragen, insbesondere für das geplante, noch nicht genutzte Positions-Tracking.",
           "Vertrag und Mitgliedschaft, Art. 6 Abs. 1 lit. b DSGVO — Erstattung der Auslagen derer, die für einen Verein oder eine Veranstaltung tätig sind, und die Mitgliedschaft in einem Verein.",
-          "Berechtigte Interessen, Art. 6 Abs. 1 lit. f DSGVO — Betrieb und Absicherung der Seite, Durchführung des Wettbewerbs sowie Veröffentlichung der sportlichen Ergebnisse und der Teilnahme.",
+          "Berechtigte Interessen, Art. 6 Abs. 1 lit. f DSGVO — Betrieb und Absicherung der Seite, Durchführung des Wettbewerbs sowie Veröffentlichung der sportlichen Ergebnisse und der Teilnahme. Das gilt auch für Teilnehmende unter 18; ihre Fotos sind ausgenommen und werden nie öffentlich gezeigt.",
           "Rechtliche Verpflichtung, Art. 6 Abs. 1 lit. c DSGVO — soweit handels- oder steuerrechtliche Aufbewahrungspflichten bestehen."
-        ],
-        "open": "Auf welcher Grundlage Namen, Vereinszugehörigkeit und Fotos von Seglern offen im Internet veröffentlicht werden — berechtigtes Interesse oder Einwilligung —, ist eine echte rechtliche Bewertung und bislang nicht entschieden. Das muss die rechtliche Beratung des Vereins prüfen, besonders für Teilnehmende unter 18, deren Namen derzeit genauso öffentlich sind wie die von Erwachsenen."
+        ]
       },
       {
         "heading": "Sicherheitsmaßnahmen",
@@ -183,9 +182,17 @@
         "heading": "Speicherdauer und Löschung",
         "paragraphs": [
           "Wir löschen personenbezogene Daten, sobald der Zweck ihrer Erhebung entfällt, sofern keine gesetzliche Pflicht eine längere Aufbewahrung verlangt — handels- und steuerrechtliche Unterlagen wie ausgezahlte Abrechnungen sind nach deutschem Recht bis zu zehn Jahre aufzubewahren.",
-          "Sie können Ihr Konto jederzeit selbst löschen. Anmeldewege, Rollen, Passwort, persönliche Dokumente und Bankverbindung gehen mit, ebenso nie eingereichte Abrechnungen. Ihr Personeneintrag bleibt, vom Konto gelöst, weil Ergebnisse, Kader und Haftungserklärungen zum sportlichen Protokoll gehören; eingereichte Abrechnungen behalten für die Buchhaltung Namen und IBAN, auf die gezahlt wurde. Ein von der Verwaltung entferntes Konto wird deaktiviert, nicht gelöscht."
+          "Sie können Ihr Konto jederzeit selbst löschen. Anmeldewege, Rollen, Passwort, persönliche Dokumente und Bankverbindung gehen mit, ebenso nie eingereichte Abrechnungen. Ihr Personeneintrag bleibt, vom Konto gelöst, weil Ergebnisse, Kader und Haftungserklärungen zum sportlichen Protokoll gehören; eingereichte Abrechnungen behalten für die Buchhaltung Namen und IBAN, auf die gezahlt wurde. Ein von der Verwaltung entferntes Konto wird deaktiviert, nicht gelöscht.",
+          "Konkret gelten diese Fristen:"
         ],
-        "open": "Konkrete Löschfristen gibt es noch nicht. Einmalcode-Einträge, das Anfrageprotokoll des Servers, das interne Änderungsprotokoll (das die E-Mail-Adresse der handelnden Person speichert), Bestätigungen und Scans von Haftungserklärungen, Belege und hochgeladene Fotos werden derzeit unbegrenzt aufbewahrt, weil keine Löschroutine gebaut ist. Ein Löschkonzept mit einer Frist je Datenkategorie ist noch zu beschließen und umzusetzen; bis dahin kann dieser Abschnitt keine genauen Fristen nennen."
+        "items": [
+          "Einmalcodes für die Anmeldung: 7 Tage nach ihrem Ablauf — automatisch gelöscht.",
+          "Anfrageprotokoll des Servers (mit IP-Adresse): 14 Tage — automatisch gelöscht.",
+          "Internes Änderungsprotokoll: 3 Jahre — automatisch gelöscht.",
+          "Bestätigungen und Scans von Haftungserklärungen: 3 Jahre nach Ende der Saison, für die sie gelten — so lange können Ansprüche daraus geltend gemacht werden (§ 195 BGB).",
+          "Abrechnungen und ihre Belege: 10 Jahre (§ 147 AO).",
+          "Hochgeladene Fotos, Beiträge und persönliche Dokumente: bis sie gelöscht werden — von Ihnen, der Redaktion oder mit Ihrem Konto."
+        ]
       },
       {
         "heading": "Rechte der betroffenen Personen",
@@ -207,9 +214,9 @@
         "heading": "Bereitstellung des Onlineangebots",
         "paragraphs": [
           "Um die Seiten auszuliefern, wird die IP-Adresse Ihres Geräts verarbeitet — technisch unvermeidlich, denn ohne sie erreicht Sie keine Antwort.",
-          "Das Anfrageprotokoll des Servers verzeichnet zu jeder Anfrage Ihre IP-Adresse, den Zeitpunkt und die aufgerufene Adresse. Es dient nur der Fehlersuche und der Sicherheit, wird von niemand anderem gelesen und zu keinem anderen Zweck ausgewertet. Es gibt keine Webanalyse, keine Werbung, kein Tracking-Pixel und keine Profilbildung über Besucher auf dieser Website."
-        ],
-        "open": "Das Anfrageprotokoll wird noch nicht rotiert: Vor dem Livegang ist eine kurze Aufbewahrungsfrist — Tage, nicht Monate — festzulegen."
+          "Das Anfrageprotokoll des Servers verzeichnet zu jeder Anfrage Ihre IP-Adresse, den Zeitpunkt und die aufgerufene Adresse. Es dient nur der Fehlersuche und der Sicherheit, wird von niemand anderem gelesen und zu keinem anderen Zweck ausgewertet. Es gibt keine Webanalyse, keine Werbung, kein Tracking-Pixel und keine Profilbildung über Besucher auf dieser Website.",
+          "Das Protokoll wird nach 14 Tagen automatisch gelöscht."
+        ]
       },
       {
         "heading": "Lokaler Speicher statt Cookies",
@@ -226,9 +233,9 @@
         "heading": "Konto und Anmeldung",
         "paragraphs": [
           "Ein Konto enthält Ihre E-Mail-Adresse (kleingeschrieben gespeichert), Ihren Anzeigenamen, ob die Adresse bestätigt ist, und den Zeitpunkt Ihrer letzten Anmeldung. Zu jedem Konto gehört genau ein Personeneintrag; Ihre Vereine und Rollen hängen an ihm, nicht am Konto.",
-          "Melden Sie sich mit einem Code per E-Mail an, speichern wir die Adresse, einen Hash des Codes, seinen Ablauf, die Zahl der Versuche und ob er verwendet wurde. Setzen Sie ein Passwort, speichern wir seinen Argon2id-Hash, wann es zuletzt geändert wurde, die Zahl der Fehlversuche und eine daraus folgende Sperre; Setzen, Ändern und Entfernen werden ohne das Passwort protokolliert. Nach erfolgreicher Anmeldung hält Ihr Browser ein Zugangstoken, das zwölf Stunden gilt; auf unseren Servern wird es nicht gespeichert."
-        ],
-        "open": "Verwendete und abgelaufene Einmalcode-Einträge werden derzeit nicht gelöscht. Eine kurze Löschfrist — Tage, nicht Jahre — ist festzulegen und umzusetzen."
+          "Melden Sie sich mit einem Code per E-Mail an, speichern wir die Adresse, einen Hash des Codes, seinen Ablauf, die Zahl der Versuche und ob er verwendet wurde. Setzen Sie ein Passwort, speichern wir seinen Argon2id-Hash, wann es zuletzt geändert wurde, die Zahl der Fehlversuche und eine daraus folgende Sperre; Setzen, Ändern und Entfernen werden ohne das Passwort protokolliert. Nach erfolgreicher Anmeldung hält Ihr Browser ein Zugangstoken, das zwölf Stunden gilt; auf unseren Servern wird es nicht gespeichert.",
+          "Verwendete und abgelaufene Einmalcode-Einträge werden 7 Tage nach ihrem Ablauf automatisch gelöscht."
+        ]
       },
       {
         "heading": "Anmeldung über Google oder Microsoft",
@@ -249,9 +256,9 @@
         "paragraphs": [
           "Ein Seglerdatensatz enthält Vor- und Nachnamen, das Geburtsdatum, optional eine E-Mail-Adresse, die das Profil mit einem Konto verbindet, und eine Verbandsnummer, sofern erfasst.",
           "Öffentlich — also ohne jede Anmeldung — werden nur Name und Rolle gezeigt, dazu der Verein, die Kader und die Spieltage, an denen eine Person teilgenommen hat. E-Mail-Adresse, Geburtsdatum und Verbandsnummer werden nie veröffentlicht.",
-          "Tabellen und Ergebnisse werden je Team erfasst, nicht je Person. Namen werden über Kader- und Aufstellungslisten Teil des öffentlichen Bestands."
-        ],
-        "open": "Die Namen von Teilnehmenden unter 18 werden genauso veröffentlicht wie die von Erwachsenen. Ob das so bleiben soll und auf welcher Grundlage, ist rechtlich zu prüfen — ebenso, ob eine Person der Veröffentlichung ihres Namens widersprechen können soll, ohne den Wettbewerb zu verlassen."
+          "Tabellen und Ergebnisse werden je Team erfasst, nicht je Person. Namen werden über Kader- und Aufstellungslisten Teil des öffentlichen Bestands.",
+          "Rechtsgrundlage ist unser berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO), auch für Teilnehmende unter 18: Ergebnisse und Aufstellungen eines öffentlichen Wettbewerbs nennen, wer gesegelt ist. Sie können dem nach Art. 21 DSGVO widersprechen — eine E-Mail an vorstand@deutsche-segelliga.de genügt; wir prüfen dann im Einzelfall, ob Ihr Name nur noch als Text ohne Profilseite oder gar nicht mehr erscheint."
+        ]
       },
       {
         "heading": "Profilfotos und Schutz Minderjähriger",
@@ -266,7 +273,8 @@
         "paragraphs": [
           "Wird eine Haftungserklärung für eine Serie oder eine Veranstaltung bestätigt, bewahren wir die Bestätigung als Nachweis auf. Sie wird nachträglich nicht verändert; eine korrigierte Erklärung ist eine neue Bestätigung. Sie enthält:",
           "Minderjährige können eine Haftungserklärung nicht selbst bestätigen. Entweder unterschreibt eine erziehungsberechtigte Person das gedruckte Formular und der Scan wird hochgeladen, oder ein Elternteil, den der Verein des Kindes als erziehungsberechtigt verknüpft hat, nimmt online aus dem eigenen Konto an. Eine IP-Adresse wird mit einer Bestätigung nicht gespeichert.",
-          "Einen Scan sehen nur die Seglerin oder der Segler selbst, die Organisation ihrer Vereine, Organisation und Wettfahrtleitung der Veranstaltung und die Verwaltung — und jeder einzelne Blick darauf wird protokolliert."
+          "Einen Scan sehen nur die Seglerin oder der Segler selbst, die Organisation ihrer Vereine, Organisation und Wettfahrtleitung der Veranstaltung und die Verwaltung — und jeder einzelne Blick darauf wird protokolliert.",
+          "Bestätigungen und Scans werden 3 Jahre nach Ende der Saison, für die sie gelten, gelöscht — so lange können Ansprüche aus der Veranstaltung geltend gemacht werden."
         ],
         "items": [
           "welche Person und welche genaue Fassung des Textes;",
@@ -274,8 +282,7 @@
           "ob online, von einer erziehungsberechtigten Person online oder von ihr auf Papier bestätigt wurde;",
           "welches Konto sie erfasst hat, und die Browserkennung, mit der sie abgegeben wurde;",
           "bei Minderjährigen: der Name der erziehungsberechtigten Person und bei einem Papierformular der Scan."
-        ],
-        "open": "Wie lange Bestätigungen und Scans aufbewahrt werden, ist offen; eine Löschfrist nach Saisonende ist festzulegen."
+        ]
       },
       {
         "heading": "Abrechnungen und Bankverbindung",
@@ -302,9 +309,9 @@
         "heading": "Protokolldaten und internes Änderungsprotokoll",
         "paragraphs": [
           "Das Anfrageprotokoll des Servers verzeichnet IP-Adresse, Zeitpunkt und Adresse jeder Anfrage (siehe „Bereitstellung der Website“); das Betriebsprotokoll die Empfängeradresse jeder gesendeten E-Mail.",
-          "Änderungen — etwa an Mitgliedschaften, Rollen, Haftungserklärungen, Abrechnungen und Zahlungen — und jeder Blick auf einen Scan oder auf den Beleg oder das Dokument eines anderen werden mit der E-Mail-Adresse des handelnden Kontos in ein internes Änderungsprotokoll geschrieben, damit sie sich nachvollziehen lassen. Es speichert keine IP-Adresse."
-        ],
-        "open": "Das Änderungsprotokoll hat keine Aufbewahrungsgrenze und wird nie bereinigt. Eine Frist ist festzulegen."
+          "Änderungen — etwa an Mitgliedschaften, Rollen, Haftungserklärungen, Abrechnungen und Zahlungen — und jeder Blick auf einen Scan oder auf den Beleg oder das Dokument eines anderen werden mit der E-Mail-Adresse des handelnden Kontos in ein internes Änderungsprotokoll geschrieben, damit sie sich nachvollziehen lassen. Es speichert keine IP-Adresse.",
+          "Einträge des Änderungsprotokolls werden nach 3 Jahren automatisch gelöscht; das Betriebsprotokoll mit dem Anfrageprotokoll nach 14 Tagen."
+        ]
       },
       {
         "heading": "Geplant: Positionsdaten von Teilnehmer-Telefonen",

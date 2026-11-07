@@ -48,7 +48,7 @@ from app.routers import (
     tracking,
     waivers,
 )
-from app.services import sap_scoring
+from app.services import retention, sap_scoring
 from app.tracking.service import position_publisher
 
 
@@ -61,9 +61,15 @@ async def lifespan(_: FastAPI):
         if settings.sap_poll_seconds > 0
         else None
     )
+    purging = (
+        asyncio.create_task(retention.run(SessionLocal))
+        if settings.retention_purge_hours > 0
+        else None
+    )
     yield
-    if polling is not None:
-        polling.cancel()
+    for task in (polling, purging):
+        if task is not None:
+            task.cancel()
     # Cancel running optimizations cleanly instead of cutting them off mid-run, and end
     # every open live stream — otherwise the server waits on them before it stops.
     await jobs.shutdown()

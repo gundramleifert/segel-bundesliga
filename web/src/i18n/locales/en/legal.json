@@ -3,11 +3,11 @@
   "draft": {
     "title": "Draft — must be reviewed before publication",
     "body": "This privacy policy is a working draft for the application currently being built. The controller details are binding; the description of the processing follows the current state of the code. Before this site goes public, the board, as the association's legal representative, has to review this text and have it signed off legally.",
-    "openQuestions": "One question outranks the rest: when a club organises an event of its own on this platform, it is undetermined whether the association is the sole controller, a processor for that club, or a joint controller with it — and each answer demands different agreements. That and every other undecided point — retention periods, the deletion concept and the consent for position data, the question of a data protection officer — is marked as an open question below and deliberately not guessed at."
+    "openQuestions": "One question outweighs the others: when a club runs its own event on this platform, it is undetermined whether the association is sole controller, processor for that club or joint controller with it — each answer requires different agreements. This and the other undecided points — the deletion concept and the consent for position data, whether a data protection officer is needed — are marked below as open questions and deliberately not guessed."
   },
   "legalNotice": {
     "title": "Legal notice",
-    "lastUpdated": "Last updated: 28 October 2026",
+    "lastUpdated": "Last updated: 7 November 2026",
     "sections": [
       {
         "heading": "Provider",
@@ -73,7 +73,7 @@
   },
   "privacy": {
     "title": "Privacy policy",
-    "lastUpdated": "Last updated: 28 October 2026",
+    "lastUpdated": "Last updated: 7 November 2026",
     "sections": [
       {
         "heading": "Scope of this policy",
@@ -140,10 +140,9 @@
         "items": [
           "Consent, Art. 6(1)(a) GDPR — where we ask for it specifically, in particular for the position tracking that is planned but not yet in use.",
           "Contract and membership, Art. 6(1)(b) GDPR — reimbursing the expenses of those who work for a club or an event, and membership of a club.",
-          "Legitimate interests, Art. 6(1)(f) GDPR — operating and securing the site, running the competition, and publishing sporting results and participation.",
+          "Legitimate interests, Art. 6(1)(f) GDPR — operating and securing the site, running the competition, and publishing sporting results and participation. This includes participants under 18; their photos are excluded and never shown publicly.",
           "Legal obligation, Art. 6(1)(c) GDPR — where commercial or tax law requires records to be kept."
-        ],
-        "open": "The basis for publishing sailors' names, club affiliation and photos openly on the internet — legitimate interest or consent — is a genuine legal judgment and has not been settled. It needs review by the association's legal advisers, especially for participants under 18, whose names are currently public in exactly the same way as an adult's."
+        ]
       },
       {
         "heading": "Security measures",
@@ -183,9 +182,17 @@
         "heading": "How long we keep data",
         "paragraphs": [
           "We delete personal data once the purpose it was collected for no longer applies, unless a statutory duty requires us to keep it longer — commercial and tax records, such as paid expense claims, have to be retained for up to ten years under German law.",
-          "You can delete your own account at any time. Its sign-in identities, roles, password, personal documents and bank account go with it, as do claims you never submitted. Your person record stays, unlinked from the account, because results, squads and waivers are part of the sporting record; submitted claims keep the name and IBAN they were paid to, for the books. An account removed by the administration is deactivated rather than erased."
+          "You can delete your own account at any time. Its sign-in identities, roles, password, personal documents and bank account go with it, as do claims you never submitted. Your person record stays, unlinked from the account, because results, squads and waivers are part of the sporting record; submitted claims keep the name and IBAN they were paid to, for the books. An account removed by the administration is deactivated rather than erased.",
+          "Specifically:"
         ],
-        "open": "Concrete retention periods do not exist yet. Sign-in code records, the server's request log, the internal audit trail (which stores the acting person's email address), waiver confirmations and scans, receipts and uploaded photos are currently kept indefinitely, because no deletion routine has been built. A deletion concept with a period per category of data still has to be decided and implemented; until then this section cannot state exact periods."
+        "items": [
+          "One-time sign-in codes: 7 days after they expire — deleted automatically.",
+          "The server's request log (with IP addresses): 14 days — deleted automatically.",
+          "The internal audit log: 3 years — deleted automatically.",
+          "Waiver confirmations and scans: 3 years after the end of the season they cover — the period in which claims arising from it can be brought (§ 195 BGB).",
+          "Expense claims and their receipts: 10 years (§ 147 AO).",
+          "Uploaded photos, posts and personal documents: until they are deleted — by you, by editorial, or with your account."
+        ]
       },
       {
         "heading": "Your rights",
@@ -207,9 +214,9 @@
         "heading": "Providing the site",
         "paragraphs": [
           "To deliver the pages, your device's IP address is processed — technically unavoidable, since without it no response could reach you.",
-          "The server's request log records, for every request, your IP address, the time and the address requested. It serves troubleshooting and security only, is read by nobody else, and is never evaluated for any other purpose. There is no analytics, no advertising, no tracking pixel and no profiling of visitors anywhere on this website."
-        ],
-        "open": "The request log is not yet rotated: a short retention period — days, not months — has to be set before go-live."
+          "The server's request log records, for every request, your IP address, the time and the address requested. It serves troubleshooting and security only, is read by nobody else, and is never evaluated for any other purpose. There is no analytics, no advertising, no tracking pixel and no profiling of visitors anywhere on this website.",
+          "The log is deleted automatically after 14 days."
+        ]
       },
       {
         "heading": "Local storage instead of cookies",
@@ -226,9 +233,9 @@
         "heading": "Account and sign-in",
         "paragraphs": [
           "An account holds your email address (stored in lower case), your display name, whether that address is verified, and the time of your last sign-in. Every account has exactly one person record; your clubs and roles hang off that, not off the account.",
-          "If you sign in with a code by email, we store the address, a hash of the code, its expiry, the number of attempts and whether it has been used. If you set a password, we store its Argon2id hash, when it was last changed, and the number of failed attempts and any lock that followed; setting, changing and removing it are logged without the password. After a successful sign-in, your browser holds an access token valid for twelve hours; it is not stored on our servers."
-        ],
-        "open": "Used and expired sign-in code records are currently not purged. A short deletion period — days, not years — should be set and implemented."
+          "If you sign in with a code by email, we store the address, a hash of the code, its expiry, the number of attempts and whether it has been used. If you set a password, we store its Argon2id hash, when it was last changed, and the number of failed attempts and any lock that followed; setting, changing and removing it are logged without the password. After a successful sign-in, your browser holds an access token valid for twelve hours; it is not stored on our servers.",
+          "Used and expired one-time code entries are deleted automatically 7 days after they expire."
+        ]
       },
       {
         "heading": "Signing in with Google or Microsoft",
@@ -249,9 +256,9 @@
         "paragraphs": [
           "A sailor record holds first and last name, date of birth, optionally an email address that links the profile to an account, and a federation number where one is on file.",
           "Publicly — that is, without any sign-in — only name and role are shown, together with the club, the squads and the matchdays a person took part in. Email address, date of birth and federation number are never published.",
-          "Standings and results are recorded per team, not per person. Names become part of the public record through squad and lineup lists."
-        ],
-        "open": "The names of participants under 18 are published in exactly the same way as an adult's. Whether that should stay this way, and on what basis, needs legal review — as does whether a person should be able to object to publication of their name without leaving the competition."
+          "Standings and results are recorded per team, not per person. Names become part of the public record through squad and lineup lists.",
+          "The legal basis is our legitimate interest (Art. 6(1)(f) GDPR), for participants under 18 as well: the results and lineups of a public competition name who sailed. You can object under Art. 21 GDPR — an email to vorstand@deutsche-segelliga.de is enough; we then decide case by case whether your name appears only as plain text without a profile page, or not at all."
+        ]
       },
       {
         "heading": "Profile photos and the protection of minors",
@@ -266,7 +273,8 @@
         "paragraphs": [
           "When a waiver is confirmed for a series or an event, we keep a record of that confirmation as evidence. The record is not altered afterwards; a corrected waiver is a new confirmation. It holds:",
           "People under 18 cannot confirm a waiver for themselves. Either a guardian signs the printed form and its scan is uploaded, or a parent whom the child's club linked to the child as guardian accepts online from their own account. No IP address is stored with a confirmation.",
-          "A scan is seen only by the sailor, the managers of their clubs, the event's organisers and race committee, and the administration — and every single look at it is logged."
+          "A scan is seen only by the sailor, the managers of their clubs, the event's organisers and race committee, and the administration — and every single look at it is logged.",
+          "Confirmations and scans are deleted 3 years after the end of the season they cover — the period in which claims arising from the event can be brought."
         ],
         "items": [
           "which sailor, and which exact version of the waiver text;",
@@ -274,8 +282,7 @@
           "whether it was confirmed online, by a guardian online, or by a guardian on paper;",
           "which account recorded it, and the browser identifier it was submitted from;",
           "for minors: the guardian's name and, for a paper form, the scan."
-        ],
-        "open": "How long confirmations and scans are kept is undecided; a deletion deadline after the end of the season has to be set."
+        ]
       },
       {
         "heading": "Expense claims and bank details",
@@ -302,9 +309,9 @@
         "heading": "Log data and the internal audit trail",
         "paragraphs": [
           "The server's request log records the IP address, time and address of each request (see “Providing the site”); the operating log records the recipient address of each email sent.",
-          "Changes — to memberships, roles, waivers, claims and payments, for instance — and every look at a waiver scan or at someone else's receipt or document are written to an internal audit trail together with the email address of the account that acted, so that they can be traced afterwards. It stores no IP address."
-        ],
-        "open": "The audit trail has no retention limit and is never pruned. A period has to be set for it."
+          "Changes — to memberships, roles, waivers, claims and payments, for instance — and every look at a waiver scan or at someone else's receipt or document are written to an internal audit trail together with the email address of the account that acted, so that they can be traced afterwards. It stores no IP address.",
+          "Audit-log entries are deleted automatically after 3 years; the operations log with the request log after 14 days."
+        ]
       },
       {
         "heading": "Planned: position data from participants' phones",

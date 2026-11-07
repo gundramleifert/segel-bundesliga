@@ -33,6 +33,7 @@ os.environ["SBL_UPLOADS_DIR"] = str(_TEST_DB_DIR / "uploads")
 # SAP Sailing is never called live: no polling, and the tests put a simulated SAP behind
 # the client (`app/routers/sap.py::sap_client`).
 os.environ["SBL_SAP_POLL_SECONDS"] = "0"
+os.environ["SBL_RETENTION_PURGE_HOURS"] = "0"
 os.environ["SBL_SAP_BOATS"] = json.dumps(
     {c: f"sap-boat-{c.lower()}" for c in ("BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE")}
 )
