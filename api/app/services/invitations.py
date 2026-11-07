@@ -39,7 +39,7 @@ from app.models.auth import Relation, User
 from app.models.base import as_utc, utcnow
 from app.problems import Problem
 from app.schemas.public import InvitationOut
-from app.services import people
+from app.services import dpa, people
 from app.services.audit import EntityType, audit
 from app.services.participation import activate, end, membership_of
 
@@ -122,6 +122,7 @@ async def invite(
     """J-3.14: an address no account has. The person on record under it, or a new one
     made for the invitation; their row in the club ``invited`` unless they are in it."""
     _ensure_admin(acting, club)
+    await dpa.ensure(session, acting, club.id)
     email = email.strip().lower()
     person = await people.by_address(session, email)
     _refuse_account(person is not None and await people.signs_in(session, person))
@@ -139,6 +140,7 @@ async def invite_person(
 ) -> InvitationOut:
     """J-3.12: a person of the club on record without an account, from their row."""
     _ensure_admin(acting, club)
+    await dpa.ensure(session, acting, club.id)
     if membership_of(person, club.id) is None:
         raise Problem(404, "membership-not-found", "This person is not in the club.")
     _refuse_account(await people.signs_in(session, person))

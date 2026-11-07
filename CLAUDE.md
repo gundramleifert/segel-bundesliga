@@ -410,6 +410,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
   section, #45), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
   `GET /api/clubs/mine`, never through an admin-only list.
+- **A club works with its people only after accepting the data processing agreement**
+  (Story V-17, decided 2026-11-07, `app/services/dpa.py`): the club is controller of its
+  members' data, the association its processor (Art. 28 GDPR) — **always**, for squads and
+  crews too, so nobody has to draw that line. The club's `admin` accepts each version once,
+  confirming they may sign for the club; until then the club's side answers
+  `dpa-required` — every new club-side write calls `dpa.ensure`. The league office (site
+  `admin`) acts for the association and is never held up.
 - **A list is narrowed on the server, never in the browser** (Story A-13, decided
   2026-10-25): every paged list's search, sort and filters are one `ListFilter` class in
   `app/filters.py` (on `fastapi-filter`, rules in `app/listing.py`), taken with

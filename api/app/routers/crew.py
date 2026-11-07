@@ -21,7 +21,7 @@ from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
 from app.problems import Problem
 from app.schemas.public import MemberOut
-from app.services import event_entry
+from app.services import dpa, event_entry
 from app.services.lineup import LineupMember, set_lineup
 from app.services.lookup import get_or_404
 
@@ -84,6 +84,9 @@ async def set_crew(
     team = await _participation(session, event, request.team_id)
 
     _check_permissions(acting, team, event)
+    if not authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event):
+        # The club's side, not the event's people acting on the day (Story V-17).
+        await dpa.ensure(session, acting, team.club_id)
 
     await set_lineup(
         session,

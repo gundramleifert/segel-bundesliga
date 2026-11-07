@@ -32,6 +32,7 @@ from app.routers import (
     clubs,
     crew,
     dev,
+    dpa,
     events,
     expenses,
     guardians,
@@ -162,6 +163,7 @@ app.include_router(announcements.router)
 app.include_router(series.router)
 app.include_router(applications.router)
 app.include_router(club_members.router)
+app.include_router(dpa.router)
 app.include_router(club_members.me_router)
 app.include_router(invitations.router)
 app.include_router(people.router)

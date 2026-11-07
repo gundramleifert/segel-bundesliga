@@ -6,6 +6,7 @@ import { useAccount } from "../../api/useApi";
 import { Loading } from "../../components/Blocks";
 import { GuardiansPanel } from "../../components/GuardiansPanel";
 import { Stack } from "../../components/Layouts";
+import { ClubDpa } from "./ClubDpa";
 import { ClubApplications, ClubEvents, ClubHosting, ClubTeams, ClubWaivers } from "./ClubSections";
 import { ClubPageSection, ClubPeopleSection } from "./ClubPeople";
 import { ClubBankAccount, ClubDecideClaims, ClubPaymentRuns } from "./Money";
@@ -63,14 +64,17 @@ export function ClubPage() {
           {
             // One list where *Members* and *Sailors* were two (#45).
             key: "people",
-            needs: ["person_without_birth_date", "membership_requested", "invitation_expired"],
+            needs: ["person_without_birth_date", "membership_requested", "invitation_expired", "dpa_missing"],
             render: () => (
-              <ClubPeopleSection
-                clubId={c.id}
-                mayAdmin={mayAdmin}
-                mayOrganize={mayAdmin || c.relations.includes(Relation.manager)}
-                onLeft={() => navigate("/me")}
-              />
+              <Stack>
+                {mayAdmin && <ClubDpa clubId={c.id} />}
+                <ClubPeopleSection
+                  clubId={c.id}
+                  mayAdmin={mayAdmin}
+                  mayOrganize={mayAdmin || c.relations.includes(Relation.manager)}
+                  onLeft={() => navigate("/me")}
+                />
+              </Stack>
             ),
           },
           {

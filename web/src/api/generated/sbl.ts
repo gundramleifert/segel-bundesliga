@@ -67,6 +67,8 @@ import type {
   DevLogin,
   DownloadClubClaimsXlsxParams,
   DownloadPairingPdfParams,
+  DpaIn,
+  DpaOut,
   EmailRequest,
   EmailRequest202,
   EmailVerify,
@@ -10152,6 +10154,199 @@ export const useRemoveClubMember = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getRemoveClubMemberMutationOptions(options), queryClient);
+    }
+
+export const getGetClubDpaUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/dpa`
+}
+
+/**
+ * Story V-17: the version in force and the club's acceptance, for its organizers.
+ * @summary Club's data processing agreement
+ */
+export const getClubDpa = async (clubId: number, options?: RequestInit): Promise<DpaOut> => {
+
+  return http<DpaOut>(getGetClubDpaUrl(clubId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetClubDpaQueryKey = (clubId: number,) => {
+    return [
+    `/api/clubs/${clubId}/dpa`
+    ] as const;
+    }
+
+
+export const getGetClubDpaQueryOptions = <TData = Awaited<ReturnType<typeof getClubDpa>>, TError = ErrorType<ProblemDetails>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubDpa>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetClubDpaQueryKey(clubId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClubDpa>>> = ({ signal }) => getClubDpa(clubId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: clubId !== null && clubId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getClubDpa>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetClubDpaQueryResult = NonNullable<Awaited<ReturnType<typeof getClubDpa>>>
+export type GetClubDpaQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetClubDpa<TData = Awaited<ReturnType<typeof getClubDpa>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubDpa>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getClubDpa>>,
+          TError,
+          Awaited<ReturnType<typeof getClubDpa>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetClubDpa<TData = Awaited<ReturnType<typeof getClubDpa>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubDpa>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getClubDpa>>,
+          TError,
+          Awaited<ReturnType<typeof getClubDpa>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetClubDpa<TData = Awaited<ReturnType<typeof getClubDpa>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubDpa>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Club's data processing agreement
+ */
+
+export function useGetClubDpa<TData = Awaited<ReturnType<typeof getClubDpa>>, TError = ErrorType<ProblemDetails>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubDpa>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetClubDpaQueryOptions(clubId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAcceptClubDpaUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/dpa`
+}
+
+/**
+ * Story V-17: the club's admin accepts the version in force, confirming they may sign
+ * for the club. Accepting it a second time changes nothing.
+ * @summary Accept the data processing agreement
+ */
+export const acceptClubDpa = async (clubId: number,
+    dpaIn: DpaIn, options?: RequestInit): Promise<DpaOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<DpaOut>(getAcceptClubDpaUrl(clubId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(dpaIn)
+  }
+);}
+
+
+
+
+
+export const getAcceptClubDpaMutationKey = () => ['acceptClubDpa'] as const;
+
+export const getAcceptClubDpaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptClubDpa>>, TError,AcceptClubDpaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof acceptClubDpa>>, TError,AcceptClubDpaMutationVariables, TContext> => {
+
+const mutationKey = getAcceptClubDpaMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptClubDpa>>, AcceptClubDpaMutationVariables> = (props) => {
+          const {clubId,data} = props ?? {};
+
+          return  acceptClubDpa(clubId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptClubDpaMutationResult = NonNullable<Awaited<ReturnType<typeof acceptClubDpa>>>
+    export type AcceptClubDpaMutationBody = BodyType<DpaIn>
+    export type AcceptClubDpaMutationError = ErrorType<ProblemDetails>
+    export type AcceptClubDpaMutationVariables = {clubId: number;data: BodyType<DpaIn>}
+
+    /**
+ * @summary Accept the data processing agreement
+ */
+export const useAcceptClubDpa = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptClubDpa>>, TError,AcceptClubDpaMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof acceptClubDpa>>,
+        TError,
+        AcceptClubDpaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcceptClubDpaMutationOptions(options), queryClient);
     }
 
 export const getListMyMembershipsUrl = () => {

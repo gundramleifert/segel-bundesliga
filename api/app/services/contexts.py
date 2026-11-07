@@ -34,6 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import authz
 from app.models import (
     Club,
+    ClubDpa,
     ClubMembership,
     Event,
     EventCrew,
@@ -58,7 +59,7 @@ from app.models.finance import PaymentStatus
 from app.models.org import MembershipStatus, TeamStatus
 from app.models.racing import RaceStatus
 from app.problems import Problem
-from app.services import expenses
+from app.services import dpa, expenses
 from app.services.event_readiness import event_readiness
 from app.services.waivers import (
     WaiverStatus,
@@ -113,6 +114,7 @@ class NeedCode(StrEnum):
     MEMBERSHIP_INVITED = "membership_invited"
     MEMBERSHIP_REQUESTED = "membership_requested"
     INVITATION_EXPIRED = "invitation_expired"
+    DPA_MISSING = "dpa_missing"
 
 
 class Section(StrEnum):
@@ -204,6 +206,7 @@ SECTION_OF: dict[tuple[str, NeedCode], Section] = {
     ("me", NeedCode.MEMBERSHIP_INVITED): Section.CLUBS,
     ("club", NeedCode.MEMBERSHIP_REQUESTED): Section.PEOPLE,
     ("club", NeedCode.INVITATION_EXPIRED): Section.PEOPLE,
+    ("club", NeedCode.DPA_MISSING): Section.PEOPLE,
 }
 
 #: Race day itself: the check-in and the results are always *now*.
@@ -223,6 +226,7 @@ WAITED_ON = {
     NeedCode.MEMBERSHIP_INVITED,
     NeedCode.MEMBERSHIP_REQUESTED,
     NeedCode.INVITATION_EXPIRED,
+    NeedCode.DPA_MISSING,
 }
 #: A race day this close makes what it needs *now*; this close, *soon*.
 NOW_WITHIN = timedelta(days=7)
@@ -444,6 +448,7 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     await _club_people(session, user, contexts)
     await _membership_requests(session, user, contexts)
     await _expired_invitations(session, user, contexts)
+    await _dpa_missing(session, user, contexts)
     await _payment_runs(session, user, contexts)
     await _events(session, user, required, contexts, loaded)
     await _series(session, user, contexts, loaded)
@@ -531,6 +536,7 @@ async def reached_context(
     await _club_people(session, user, contexts)
     await _membership_requests(session, user, contexts)
     await _expired_invitations(session, user, contexts)
+    await _dpa_missing(session, user, contexts)
     await _payment_runs(session, user, contexts)
     await _events(session, user, required, contexts, loaded)
     await _series(session, user, contexts, loaded)
@@ -829,6 +835,26 @@ async def _expired_invitations(session: AsyncSession, user: User, contexts: Cont
     ).scalars()
     for club_id in rows:
         contexts[("club", club_id)].need(NeedCode.INVITATION_EXPIRED)
+
+
+async def _dpa_missing(session: AsyncSession, user: User, contexts: Contexts) -> None:
+    """Story V-17, for a club's admin: the data processing agreement in force is not
+    accepted yet, and the club's side waits on it."""
+    clubs = _my_clubs(user, Relation.ADMIN, contexts)
+    if not clubs:
+        return
+    accepted = set(
+        (
+            await session.execute(
+                select(ClubDpa.club_id).where(
+                    ClubDpa.club_id.in_(clubs), ClubDpa.version == dpa.DPA_VERSION
+                )
+            )
+        ).scalars()
+    )
+    for club_id in clubs:
+        if club_id not in accepted:
+            contexts[("club", club_id)].need(NeedCode.DPA_MISSING)
 
 
 async def _payment_runs(session: AsyncSession, user: User, contexts: Contexts) -> None:

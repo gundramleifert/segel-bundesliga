@@ -23,6 +23,44 @@ The path into a competition goes both ways. Administration assigns clubs to seri
 and V-6 add the club's own application from below — **without** replacing the path from
 above — and [A-9](administration.md#a-9--accept-or-reject-participation) is administration's answer to it.
 
+## Data processing agreement
+
+### V-17 ◐ Accept the data processing agreement first
+As a **club admin** I want to **accept the association's data processing agreement once,
+online, before my club works with its people here**, so that **the club, as controller of
+its members' data, has the contract Art. 28 GDPR requires with the association that
+processes it**.
+
+Decided 2026-11-07: **always an agreement** — not only for a club's own events, its
+members and its money, where the association plainly processes on the club's behalf,
+but for registering squads and lineups too, where that is arguable. One agreement
+covering everything spares every club the line-drawing.
+
+Acceptance criteria:
+- The agreement has a **version** (`app/services/dpa.py::DPA_VERSION`); its text reads in
+  both languages on the club's *People* section in my space, for the club's `admin`,
+  until the current version is accepted. A new version is accepted again.
+- Accepting takes the confirmation **"I may represent the club, or act on behalf of its
+  board"** (§ 26 BGB) — without it `dpa-authority-unconfirmed` (422). Only the club's
+  `admin` accepts (`dpa-forbidden`, 403); accepting an older version than the current one
+  is `dpa-version-outdated` (409). Stored: club, version, account, name, time — once per
+  club and version, and logged.
+- Until then the club's side refuses with `dpa-required` (409), naming the club: adding,
+  inviting, accepting and removing members; creating and changing people; registering a
+  squad; naming a crew. The person's own steps — asking to join, leaving, accepting an
+  invitation — and everything the **league office** (site `admin`) does stay open: the
+  association acts for itself there, not for the club.
+- The club's `admin` sees the to-do `dpa_missing`, linking to *People*.
+- `GET /api/clubs/{id}/dpa` tells the club's organizers which version is in force and
+  whether and when it was accepted, and by whom.
+
+Endpoints: `GET /api/clubs/{club_id}/dpa`, `POST /api/clubs/{club_id}/dpa`
+
+Tests: `api/tests/stories/test_dpa.py`
+
+Open: the agreement's text is a placeholder until the association's lawyer releases it;
+claims, payment runs and the club's events as host are not gated yet.
+
 ## Members
 
 ### Z-3 ● Assign user to club

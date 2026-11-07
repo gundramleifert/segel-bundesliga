@@ -224,7 +224,8 @@
     "imports_failed": "{count, plural, one {1 Import ist fehlgeschlagen} other {# Importe sind fehlgeschlagen}}",
     "membership_invited": "{count, plural, one {Ein Verein lädt Sie ein} other {# Vereine laden Sie ein}}",
     "membership_requested": "{count, plural, one {1 Person möchte aufgenommen werden} other {# Personen möchten aufgenommen werden}}",
-    "invitation_expired": "{count, plural, one {1 Einladung ungeöffnet abgelaufen} other {# Einladungen ungeöffnet abgelaufen}}"
+    "invitation_expired": "{count, plural, one {1 Einladung ungeöffnet abgelaufen} other {# Einladungen ungeöffnet abgelaufen}}",
+    "dpa_missing": "Auftragsverarbeitungsvertrag annehmen"
   },
   "overview": {
     "me": "Ich",
@@ -513,5 +514,12 @@
     "fetching": "Wird geholt …",
     "fetched": "{count, plural, =0 {Keine neuen Ergebnisse} one {# Ergebnis übernommen} other {# Ergebnisse übernommen}}{warnings, plural, =0 {} one {, # Warnung} other {, # Warnungen}}.",
     "raceManager": "Gewertet auf SAP Sailing: Die Wettfahrtleitung führt die Wettfahrten in SAPs Race-Manager-App. Den Tag hier starten und beenden — solange er läuft, übernimmt diese Seite die Ergebnisse von SAP."
+  },
+  "dpa": {
+    "title": "Auftragsverarbeitungsvertrag",
+    "why": "Euer Verein ist für die Daten seiner Mitglieder verantwortlich, die Deutsche Segel-Liga verarbeitet sie hier in seinem Auftrag. Dafür verlangt Art. 28 DSGVO diesen Vertrag. Bis er angenommen ist, könnt ihr keine Personen aufnehmen oder ändern, keinen Kader melden und keine Crew aufstellen.",
+    "version": "Fassung {version}",
+    "authorized": "Ich darf den Verein vertreten oder handle im Auftrag seines Vorstands (§ 26 BGB), und ich nehme diesen Vertrag für den Verein an.",
+    "accept": "Für den Verein annehmen"
   }
 }

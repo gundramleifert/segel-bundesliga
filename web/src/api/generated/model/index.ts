@@ -74,6 +74,8 @@ export * from './devLogin';
 export * from './documentKind';
 export * from './downloadClubClaimsXlsxParams';
 export * from './downloadPairingPdfParams';
+export * from './dpaIn';
+export * from './dpaOut';
 export * from './emailRequest';
 export * from './emailRequest202';
 export * from './emailVerify';

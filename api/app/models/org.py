@@ -238,6 +238,26 @@ class Team(Base, TimestampMixin):
         return self.event_id is None
 
 
+class ClubDpa(Base, TimestampMixin):
+    """A club accepted one version of the data processing agreement (Story V-17).
+
+    Append-only evidence like a waiver confirmation: a new version is a new row. The name
+    is copied, so a later rename of the account does not change who signed.
+    """
+
+    __tablename__ = "club_dpa"
+    __table_args__ = (UniqueConstraint("club_id", "version"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    club_id: Mapped[int] = mapped_column(ForeignKey("club.id", ondelete="CASCADE"), index=True)
+    version: Mapped[str] = mapped_column(String(32))
+    accepted_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="SET NULL"), default=None
+    )
+    accepted_by_name: Mapped[str] = mapped_column(String(200))
+    accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class ClubMembership(Base, TimestampMixin):
     """A person is in this club (Stories V-4, Z-5; #40) — **the** membership: an active
     row is both "member" and "sails for". The tuple ``club:3 club person:7`` an FGA server

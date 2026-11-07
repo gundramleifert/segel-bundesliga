@@ -357,5 +357,58 @@
         ]
       }
     ]
+  },
+  "dpa": {
+    "draft": "Entwurf – der Text wird noch anwaltlich geprüft",
+    "sections": [
+      {
+        "heading": "1. Parteien und Gegenstand",
+        "paragraphs": [
+          "Verantwortlicher ist der Verein, der diesen Vertrag annimmt. Auftragsverarbeiter ist die Deutsche Segel-Liga e.V. (siehe Impressum).",
+          "Gegenstand ist der Betrieb dieser Website, auf der der Verein seine Mitglieder verwaltet, Kader und Crews meldet, Haftungserklärungen einholt, Auslagen abrechnet und eigene Veranstaltungen ausrichtet. Der Vertrag gilt, solange der Verein die Website nutzt."
+        ]
+      },
+      {
+        "heading": "2. Art der Daten und betroffene Personen",
+        "paragraphs": [
+          "Betroffen sind die Mitglieder des Vereins, ihre Erziehungsberechtigten und die für den Verein Tätigen."
+        ],
+        "items": [
+          "Name, E-Mail-Adresse, Geburtsdatum, Verbandsnummer, Profilfoto;",
+          "Mitgliedschaft, Rollen, Kader- und Aufstellungen;",
+          "Haftungserklärungen und ihre Scans;",
+          "Abrechnungen, Belege und Bankverbindungen;",
+          "persönliche Dokumente wie Sportbootführerscheine."
+        ]
+      },
+      {
+        "heading": "3. Pflichten der Deutschen Segel-Liga",
+        "items": [
+          "Sie verarbeitet die Daten nur auf dokumentierte Weisung des Vereins – die Weisung ist die Nutzung der Website – und nicht für eigene Zwecke.",
+          "Wer Zugang zu den Daten hat, ist zur Vertraulichkeit verpflichtet.",
+          "Sie trifft die technischen und organisatorischen Maßnahmen nach Art. 32 DSGVO, wie in der Datenschutzerklärung beschrieben.",
+          "Sie unterstützt den Verein bei Anfragen Betroffener und meldet ihm eine Verletzung des Schutzes der Daten unverzüglich.",
+          "Nach Ende des Vertrags löscht sie die Daten des Vereins oder gibt sie zurück, soweit keine Aufbewahrungspflicht entgegensteht.",
+          "Sie stellt dem Verein die Nachweise zur Verfügung, die er zur Prüfung braucht."
+        ],
+        "paragraphs": []
+      },
+      {
+        "heading": "4. Unterauftragsverarbeiter",
+        "paragraphs": [
+          "Der Verein ist mit diesen Unterauftragsverarbeitern einverstanden; über einen neuen wird er vorab informiert und kann widersprechen:"
+        ],
+        "items": [
+          "Hetzner Online GmbH, Gunzenhausen – Server und Speicher in Deutschland;",
+          "STRATO AG, Berlin – Versand von E-Mails."
+        ]
+      },
+      {
+        "heading": "5. Pflichten des Vereins",
+        "paragraphs": [
+          "Der Verein stellt sicher, dass er die Daten seiner Mitglieder auf einer Rechtsgrundlage auf die Website bringt, und informiert sie darüber. Für die eigenen Wettbewerbe der Deutschen Segel-Liga – Meldungen, Ergebnisse, Tabellen – ist sie selbst Verantwortliche."
+        ]
+      }
+    ]
   }
 }

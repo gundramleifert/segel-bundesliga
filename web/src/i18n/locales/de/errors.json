@@ -246,5 +246,9 @@
   "sap-not-configured": "Auf diesem Server ist keine Verbindung zu SAP Sailing eingerichtet.",
   "sap-unreachable": "SAP Sailing antwortet nicht. Bereits übernommene Ergebnisse bleiben; gleich noch einmal versuchen.",
   "sap-refused": "SAP Sailing hat einen Schritt abgelehnt. Nichts gilt als gesendet; nach der Korrektur erneut senden.",
-  "sap-boat-missing": "Für eines der Boote der Veranstaltung gibt es kein Boot in SAP Sailing."
+  "sap-boat-missing": "Für eines der Boote der Veranstaltung gibt es kein Boot in SAP Sailing.",
+  "dpa-required": "Euer Verein hat den Auftragsverarbeitungsvertrag noch nicht angenommen. Der Admin des Vereins nimmt ihn unter Personen an.",
+  "dpa-forbidden": "Den Auftragsverarbeitungsvertrag nimmt nur der Admin des Vereins an.",
+  "dpa-authority-unconfirmed": "Bitte bestätige, dass du den Verein vertreten darfst oder im Auftrag des Vorstands handelst.",
+  "dpa-version-outdated": "Inzwischen gilt eine neuere Fassung des Vertrags. Bitte lies sie und nimm sie an."
 }

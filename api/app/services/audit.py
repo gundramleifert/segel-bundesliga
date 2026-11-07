@@ -32,6 +32,7 @@ class EntityType(StrEnum):
     WAIVER_SCAN = "waiver_scan"
     PERSONAL_DOCUMENT = "personal_document"
     PERSON = "person"
+    CLUB = "club"
 
 
 def audit(

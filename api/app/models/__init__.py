@@ -28,8 +28,10 @@ from app.models.finance import (
     PaymentState,
     PaymentStatus,
 )
+from app.models.jury import JudgeLicence, JudgeLicenceHolding, JuryRequest, JuryState
 from app.models.org import (
     Club,
+    ClubDpa,
     ClubMembership,
     CrewRole,
     InvitationState,
@@ -57,7 +59,6 @@ from app.models.racing import (
     ResultCode,
 )
 from app.models.standings import EventStanding, SeriesStanding
-from app.models.jury import JudgeLicence, JudgeLicenceHolding, JuryRequest, JuryState
 from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
@@ -121,6 +122,7 @@ __all__ = [
     "Relation",
     "Role",
     "Person",
+    "ClubDpa",
     "ClubMembership",
     "InvitationState",
     "Series",

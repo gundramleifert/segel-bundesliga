@@ -1599,6 +1599,14 @@
   "file": "docs/userstories/club.md",
   "anchor": "v-16--invite-someone-to-an-account"
  },
+ "V-17": {
+  "title": "Accept the data processing agreement first",
+  "status": "◐",
+  "role": "Club: its admin and its team manager",
+  "phase": "Data processing agreement",
+  "file": "docs/userstories/club.md",
+  "anchor": "v-17--accept-the-data-processing-agreement-first"
+ },
  "V-2": {
   "title": "Select sailors for matchday",
   "status": "●",

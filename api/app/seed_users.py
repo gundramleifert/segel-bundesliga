@@ -33,10 +33,11 @@ from app import authz
 from app.auth import create_access_token
 from app.authz import ObjectRef
 from app.db import SessionLocal
-from app.models import Club, Event, Person, Series, Team, TeamMembership
+from app.models import Club, ClubDpa, Event, Person, Series, Team, TeamMembership
 from app.models.auth import ObjectType, Relation, User
+from app.models.base import utcnow
 from app.problems import Problem
-from app.services import grants, people
+from app.services import dpa, grants, people
 from app.services.participation import activate
 
 #: The one club, series and event the cast is about.
@@ -160,6 +161,18 @@ async def seed_users() -> None:
             await _tuple(session, user, relation, here)
             # Officials belong to their club, like everyone in it.
             await activate(session, user.person, club.id)
+            # Its board accepted the data processing agreement (Story V-17), so the cast can
+            # work with the club's people.
+            if relation == Relation.ADMIN and await dpa.current(session, club.id) is None:
+                session.add(
+                    ClubDpa(
+                        club_id=club.id,
+                        version=dpa.DPA_VERSION,
+                        accepted_by_user_id=user.id,
+                        accepted_by_name=user.display_name,
+                        accepted_at=utcnow(),
+                    )
+                )
         # Every sailor of the club's squads and entries, as a member of it.
         rows = (
             await session.execute(

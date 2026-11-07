@@ -224,7 +224,8 @@
     "imports_failed": "{count, plural, one {1 import failed} other {# imports failed}}",
     "membership_invited": "{count, plural, one {A club invites you to join} other {# clubs invite you to join}}",
     "membership_requested": "{count, plural, one {1 person asks to join} other {# people ask to join}}",
-    "invitation_expired": "{count, plural, one {1 invitation lapsed unopened} other {# invitations lapsed unopened}}"
+    "invitation_expired": "{count, plural, one {1 invitation lapsed unopened} other {# invitations lapsed unopened}}",
+    "dpa_missing": "Accept the data processing agreement"
   },
   "overview": {
     "me": "Me",
@@ -513,5 +514,12 @@
     "fetching": "Fetching …",
     "fetched": "{count, plural, =0 {No new results} one {# result taken} other {# results taken}}{warnings, plural, =0 {} one {, # warning} other {, # warnings}}.",
     "raceManager": "Scored on SAP Sailing: the race committee runs the races in SAP's Race Manager app. Start and close the day here — while it is live, this site takes the results from SAP."
+  },
+  "dpa": {
+    "title": "Data processing agreement",
+    "why": "Your club is responsible for its members' data; the Deutsche Segel-Liga processes it here on the club's behalf. Art. 28 GDPR requires this agreement for that. Until it is accepted you cannot add or change people, register a squad or name a crew.",
+    "version": "Version {version}",
+    "authorized": "I may represent the club or act on behalf of its board (§ 26 BGB), and I accept this agreement for the club.",
+    "accept": "Accept for the club"
   }
 }

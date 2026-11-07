@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 51bfb4669c6d
+Revision ID: b40e75fcb130
 Revises:
-Create Date: 2026-11-06 23:29:18.673967
+Create Date: 2026-11-07 19:33:34.723863
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "51bfb4669c6d"
+revision: str = "b40e75fcb130"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -308,6 +308,41 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_club_bank_account")),
         sa.UniqueConstraint("club_id", name=op.f("uq_club_bank_account_club_id")),
     )
+    op.create_table(
+        "club_dpa",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("club_id", sa.Integer(), nullable=False),
+        sa.Column("version", sa.String(length=32), nullable=False),
+        sa.Column("accepted_by_user_id", sa.Integer(), nullable=True),
+        sa.Column("accepted_by_name", sa.String(length=200), nullable=False),
+        sa.Column("accepted_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ["accepted_by_user_id"],
+            ["app_user.id"],
+            name=op.f("fk_club_dpa_accepted_by_user_id_app_user"),
+            ondelete="SET NULL",
+        ),
+        sa.ForeignKeyConstraint(
+            ["club_id"], ["club.id"], name=op.f("fk_club_dpa_club_id_club"), ondelete="CASCADE"
+        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_club_dpa")),
+        sa.UniqueConstraint("club_id", "version", name=op.f("uq_club_dpa_club_id")),
+    )
+    with op.batch_alter_table("club_dpa", schema=None) as batch_op:
+        batch_op.create_index(batch_op.f("ix_club_dpa_club_id"), ["club_id"], unique=False)
+
     op.create_table(
         "identity",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1947,6 +1982,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f("ix_identity_provider"))
 
     op.drop_table("identity")
+    with op.batch_alter_table("club_dpa", schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f("ix_club_dpa_club_id"))
+
+    op.drop_table("club_dpa")
     op.drop_table("club_bank_account")
     op.drop_table("bank_account")
     with op.batch_alter_table("waiver_text", schema=None) as batch_op:

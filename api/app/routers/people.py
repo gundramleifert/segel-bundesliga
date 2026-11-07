@@ -56,7 +56,7 @@ from app.pagination import (
 )
 from app.problems import Problem
 from app.schemas.public import MemberOut
-from app.services import is_minor, people, pictures
+from app.services import dpa, is_minor, people, pictures
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
 from app.services.participation import activate, end
@@ -351,6 +351,7 @@ async def create_person(
                 "Only the club's admin adds people to the club.",
                 club_id=request.club_id,
             )
+        await dpa.ensure(session, acting, request.club_id)
 
     if request.email and await _email_taken(session, request.email):
         raise Problem(
@@ -379,6 +380,7 @@ async def update_person(
     _can_manage_master_data(acting)
     person = await _person(session, person_id)
     await _may_change_person(session, acting, person)
+    await dpa.ensure_any(session, acting, person.club_ids)
 
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
@@ -431,6 +433,7 @@ async def disconnect_person_from_club(
     person = await _person(session, person_id)
     if not authz.check(acting, Relation.ADMIN, on=ObjectRef(ObjectType.CLUB, club_id)):
         raise _not_yours(person)
+    await dpa.ensure(session, acting, club_id)
     await end(session, person, club_id)
     await session.commit()
     return PersonAdminOut.model_validate(person)
@@ -480,6 +483,7 @@ async def set_squad(
     """
     team = await _team(session, team_id)
     _can_manage_squad(acting, team)
+    await dpa.ensure(session, acting, team.club_id)
 
     if not team.is_series_registration and team.series_id is not None:
         raise Problem(

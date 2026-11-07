@@ -40,7 +40,7 @@ from app.models.auth import Grant, ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubMemberIn, ClubMemberOut, ClubPersonOut
-from app.services import grants, invitations, people
+from app.services import dpa, grants, invitations, people
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
@@ -247,6 +247,7 @@ async def add_club_member(
         code="membership-forbidden",
         title="Only the club's admin adds people to the club.",
     )
+    await dpa.ensure(session, acting, club.id)
     email = request.email.strip().lower()
     person = await people.by_address(session, email)
     if person is None:
@@ -307,6 +308,7 @@ async def accept_club_member(
         code="membership-forbidden",
         title="Only the club's admin accepts a request to join.",
     )
+    await dpa.ensure(session, acting, club.id)
     person = await get_or_404(session, Person, person_id)
     row = membership_of(person, club.id)
     if row is None or row.status != MembershipStatus.REQUESTED:
@@ -343,6 +345,7 @@ async def remove_club_member(
             code="membership-forbidden",
             title="Only the club's admin removes someone from the club.",
         )
+        await dpa.ensure(session, acting, club.id)
     await _end(person, club.id, acting, session)
     await session.commit()
 

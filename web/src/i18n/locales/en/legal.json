@@ -357,5 +357,58 @@
         ]
       }
     ]
+  },
+  "dpa": {
+    "draft": "Draft – the text is still being reviewed by a lawyer",
+    "sections": [
+      {
+        "heading": "1. Parties and subject",
+        "paragraphs": [
+          "The controller is the club accepting this agreement. The processor is the Deutsche Segel-Liga e.V. (see the legal notice).",
+          "The subject is running this website, on which the club manages its members, registers squads and crews, collects liability waivers, reimburses expenses and runs its own events. The agreement applies for as long as the club uses the website."
+        ]
+      },
+      {
+        "heading": "2. Kinds of data and data subjects",
+        "paragraphs": [
+          "Concerned are the club's members, their guardians and those working for the club."
+        ],
+        "items": [
+          "name, email address, date of birth, association number, profile photo;",
+          "membership, roles, squads and lineups;",
+          "liability waivers and their scans;",
+          "expense claims, receipts and bank accounts;",
+          "personal documents such as boating licences."
+        ]
+      },
+      {
+        "heading": "3. The Deutsche Segel-Liga's obligations",
+        "items": [
+          "It processes the data only on the club's documented instructions – the instruction is using the website – and never for its own purposes.",
+          "Everyone with access to the data is bound to confidentiality.",
+          "It takes the technical and organisational measures of Art. 32 GDPR described in the privacy policy.",
+          "It helps the club answer data subjects' requests and reports a personal data breach to it without undue delay.",
+          "When the agreement ends it deletes or returns the club's data, unless a retention duty prevents it.",
+          "It gives the club the evidence it needs to check all this."
+        ],
+        "paragraphs": []
+      },
+      {
+        "heading": "4. Sub-processors",
+        "paragraphs": [
+          "The club agrees to these sub-processors; it is told of a new one in advance and may object:"
+        ],
+        "items": [
+          "Hetzner Online GmbH, Gunzenhausen – servers and storage in Germany;",
+          "STRATO AG, Berlin – sending email."
+        ]
+      },
+      {
+        "heading": "5. The club's obligations",
+        "paragraphs": [
+          "The club makes sure it brings its members' data onto the website on a legal basis, and informs them. For the Deutsche Segel-Liga's own competitions – entries, results, tables – the association is controller itself."
+        ]
+      }
+    ]
   }
 }

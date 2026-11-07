@@ -246,5 +246,9 @@
   "sap-not-configured": "No connection to SAP Sailing is set up on this server.",
   "sap-unreachable": "SAP Sailing did not answer. The results already taken stay; try again shortly.",
   "sap-refused": "SAP Sailing refused a step. Nothing counts as sent; send again once it is fixed.",
-  "sap-boat-missing": "One of the event's boats has no boat on SAP Sailing."
+  "sap-boat-missing": "One of the event's boats has no boat on SAP Sailing.",
+  "dpa-required": "Your club has not accepted the data processing agreement yet. The club's admin accepts it under People.",
+  "dpa-forbidden": "Only the club's admin accepts the data processing agreement.",
+  "dpa-authority-unconfirmed": "Please confirm that you may represent the club or act on behalf of its board.",
+  "dpa-version-outdated": "A newer version of the agreement is in force. Please read and accept it."
 }

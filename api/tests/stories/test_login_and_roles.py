@@ -22,7 +22,11 @@ from tests.pages import all_items
 
 
 async def make_user(
-    email: str, *roles: str, active: bool = True, club_id: int | None = None
+    email: str,
+    *roles: str,
+    active: bool = True,
+    club_id: int | None = None,
+    dpa_accepted: bool = True,
 ) -> int:
     """An account holding exactly these roles, with its person (`tests/accounts.py`)."""
     # `Role.TEAM_MANAGER` with `club_id` means "manager of this club" — one tuple on the
@@ -45,6 +49,7 @@ async def make_user(
             for role in roles
         ),
         is_active=active,
+        dpa_accepted=dpa_accepted,
     )
 
 
