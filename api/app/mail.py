@@ -107,7 +107,13 @@ async def send_jury_invitation(
 ) -> None:
     """Story JU-3: one mail per judge, naming every event newly asked."""
     mail = render_mail(
-        "jury_invitation", locale, name=name, organizer=organizer, events=events, note=note, link=link
+        "jury_invitation",
+        locale,
+        name=name,
+        organizer=organizer,
+        events=events,
+        note=note,
+        link=link,
     )
     await _deliver(email, mail, what="jury request", secret=link)
 
@@ -116,7 +122,9 @@ async def send_jury_approval(
     email: str, *, name: str, organizer: str, event: str, link: str, locale: Locale = MAIL_LOCALE
 ) -> None:
     """Story JU-5: the judge is on the event's jury."""
-    mail = render_mail("jury_approved", locale, name=name, organizer=organizer, event=event, link=link)
+    mail = render_mail(
+        "jury_approved", locale, name=name, organizer=organizer, event=event, link=link
+    )
     await _deliver(email, mail, what="jury approval", secret=link)
 
 

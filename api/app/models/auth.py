@@ -157,10 +157,10 @@ SITE = ObjectRef(ObjectType.SITE)
 #: that of every event it hosts (Story F-1). ``helper`` works one event's day and holds
 #: no power on it (Story VA-12). The site's ``jury_organizer`` keeps the pool of judges —
 #: ``judge`` on the site, which grants nothing on an event — and whom they approve gets the
-#: event's ``jury`` tuple, written by `app/services/jury.py` (Stories JU-1–JU-5). A person's ``manager`` is the organizer of a club they
-#: are an active member of (``club`` — the clubs of their active ``ClubMembership`` rows,
-#: Story V-4): who puts them
-#: in a squad, changes them, signs their waiver forms and links their parents.
+#: event's ``jury`` tuple, written by `app/services/jury.py` (Stories JU-1–JU-5). A
+#: person's ``manager`` is the organizer of a club they are an active member of (``club``
+#: — the clubs of their active ``ClubMembership`` rows, Story V-4): who puts them in a
+#: squad, changes them, signs their waiver forms and links their parents.
 MODEL = """
 model
   schema 1.1

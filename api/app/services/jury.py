@@ -66,7 +66,11 @@ async def open_events(session: AsyncSession, event_ids: Iterable[int]) -> list[E
     """These events, none of them over — else ``jury-event-closed``."""
     wanted = set(event_ids)
     events = list(
-        (await session.execute(select(Event).where(Event.id.in_(wanted)).order_by(Event.starts_on, Event.id))).scalars()
+        (
+            await session.execute(
+                select(Event).where(Event.id.in_(wanted)).order_by(Event.starts_on, Event.id)
+            )
+        ).scalars()
     )
     if missing := wanted - {e.id for e in events}:
         raise Problem(404, "event-not-found", "No such event.", event_ids=sorted(missing))
@@ -93,7 +97,11 @@ async def remove_judge(session: AsyncSession, user_id: int, *, actor: User) -> N
     """Out of the pool; their open requests go with them, an approved event stays."""
     user = (await _users(session, [user_id]))[user_id]
     row = next(
-        (g for g in user.grants if g.relation == Relation.JUDGE and g.object_type is ObjectType.SITE),
+        (
+            g
+            for g in user.grants
+            if g.relation == Relation.JUDGE and g.object_type is ObjectType.SITE
+        ),
         None,
     )
     if row is None:
@@ -104,7 +112,9 @@ async def remove_judge(session: AsyncSession, user_id: int, *, actor: User) -> N
     )
 
 
-async def licences_of(session: AsyncSession, user_ids: Iterable[int]) -> dict[int, list[JudgeLicence]]:
+async def licences_of(
+    session: AsyncSession, user_ids: Iterable[int]
+) -> dict[int, list[JudgeLicence]]:
     out: dict[int, list[JudgeLicence]] = {}
     rows = await session.execute(
         select(JudgeLicenceHolding)
@@ -142,7 +152,9 @@ class Invited:
     asked: list[Asked]
 
 
-async def invite(session: AsyncSession, event_ids: Sequence[int], user_ids: Sequence[int]) -> Invited:
+async def invite(
+    session: AsyncSession, event_ids: Sequence[int], user_ids: Sequence[int]
+) -> Invited:
     """Events × judges; a pair asked before is left as it was."""
     events = await open_events(session, event_ids)
     users = await judges(session, user_ids)
@@ -182,7 +194,9 @@ async def request_of(session: AsyncSession, event_id: int, user_id: int) -> Jury
     ).scalar_one_or_none()
 
 
-async def answer(session: AsyncSession, user: User, event_id: int, *, available: bool) -> JuryRequest:
+async def answer(
+    session: AsyncSession, user: User, event_id: int, *, available: bool
+) -> JuryRequest:
     request = await request_of(session, event_id, user.id)
     if request is None:
         raise Problem(404, "jury-request-not-found", "Nobody asked you for this event.")
@@ -228,7 +242,9 @@ async def unanswered(session: AsyncSession, user_id: int) -> int:
 # ---------------------------------------------------------------- approving (JU-5)
 
 
-async def approve(session: AsyncSession, event_id: int, user_id: int, *, actor: User) -> JuryRequest:
+async def approve(
+    session: AsyncSession, event_id: int, user_id: int, *, actor: User
+) -> JuryRequest:
     """On the event's jury — from any state, or with no request at all."""
     (event,) = await open_events(session, [event_id])
     user = (await judges(session, [user_id]))[user_id]
@@ -244,7 +260,9 @@ async def approve(session: AsyncSession, event_id: int, user_id: int, *, actor: 
     return request
 
 
-async def take_off(session: AsyncSession, event_id: int, user_id: int, *, actor: User) -> JuryRequest:
+async def take_off(
+    session: AsyncSession, event_id: int, user_id: int, *, actor: User
+) -> JuryRequest:
     """Off the event's jury: the tuple goes, the judge's answer stays."""
     user = (await _users(session, [user_id]))[user_id]
     request = await request_of(session, event_id, user_id)

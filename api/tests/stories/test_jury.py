@@ -39,7 +39,9 @@ async def _judge(client, caplog, organizer, name: str = "Judge") -> tuple[int, s
 
 
 async def _pool(client, organizer, **params) -> dict[int, dict]:
-    response = await client.get("/api/jury/judges", headers=organizer, params={"limit": 100, **params})
+    response = await client.get(
+        "/api/jury/judges", headers=organizer, params={"limit": 100, **params}
+    )
     assert response.status_code == 200, response.text
     return {j["user_id"]: j for j in response.json()["items"]}
 
@@ -66,7 +68,9 @@ class TestThePool:
         found = await client.get("/api/jury/candidates", headers=organizer, params={"q": email})
         assert [c["user_id"] for c in found.json()["items"]] == [user_id]
 
-        assert (await client.post("/api/jury/judges", headers=organizer, json={"user_id": user_id})).status_code == 201
+        assert (
+            await client.post("/api/jury/judges", headers=organizer, json={"user_id": user_id})
+        ).status_code == 201
         assert user_id in await _pool(client, organizer, q=email)
         again = await client.post("/api/jury/judges", headers=organizer, json={"user_id": user_id})
         assert again.status_code == 409
@@ -80,7 +84,9 @@ class TestThePool:
         contexts = (await client.get("/api/me/contexts", headers=judge)).json()
         assert contexts["office"] is None
 
-        assert (await client.delete(f"/api/jury/judges/{user_id}", headers=organizer)).status_code == 204
+        assert (
+            await client.delete(f"/api/jury/judges/{user_id}", headers=organizer)
+        ).status_code == 204
         assert user_id not in await _pool(client, organizer, q=email)
         assert (await _mine(client, judge))["judge"] is False
 
@@ -99,18 +105,32 @@ class TestThePool:
         _, _, judge = await _judge(client, caplog, organizer)
         for headers in (jury, judge):
             assert (await client.get("/api/jury/judges", headers=headers)).status_code == 403
-            response = await client.post("/api/jury/invitations", headers=headers, json={"event_ids": [ids.event(KIEL)], "user_ids": []})
+            response = await client.post(
+                "/api/jury/invitations",
+                headers=headers,
+                json={"event_ids": [ids.event(KIEL)], "user_ids": []},
+            )
             assert response.status_code == 403
 
-    async def test_leaving_the_pool_withdraws_open_requests_but_not_a_jury(self, client, caplog, ids):
+    async def test_leaving_the_pool_withdraws_open_requests_but_not_a_jury(
+        self, client, caplog, ids
+    ):
         """JU-1: an open request goes with the judge; an approved event stays theirs."""
         organizer = await _organizer(client, caplog)
         user_id, _, judge = await _judge(client, caplog, organizer)
         kiel, hamburg = ids.event(KIEL), ids.event(HAMBURG)
-        await client.post("/api/jury/invitations", headers=organizer, json={"event_ids": [kiel, hamburg], "user_ids": [user_id]})
-        assert (await client.put(f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer)).status_code == 200
+        await client.post(
+            "/api/jury/invitations",
+            headers=organizer,
+            json={"event_ids": [kiel, hamburg], "user_ids": [user_id]},
+        )
+        assert (
+            await client.put(f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer)
+        ).status_code == 200
 
-        assert (await client.delete(f"/api/jury/judges/{user_id}", headers=organizer)).status_code == 204
+        assert (
+            await client.delete(f"/api/jury/judges/{user_id}", headers=organizer)
+        ).status_code == 204
         requests = {r["event"]["id"]: r["state"] for r in (await _mine(client, judge))["requests"]}
         assert requests == {kiel: "approved"}
 
@@ -122,7 +142,9 @@ class TestLicences:
         user_id, email, judge = await _judge(client, caplog, organizer)
         assert (await _mine(client, judge))["licences"] == []
 
-        response = await client.put("/api/me/jury/licences", headers=judge, json={"licences": ["umpire", "national_judge"]})
+        response = await client.put(
+            "/api/me/jury/licences", headers=judge, json={"licences": ["umpire", "national_judge"]}
+        )
         assert response.status_code == 200, response.text
         assert sorted((await _mine(client, judge))["licences"]) == ["national_judge", "umpire"]
 
@@ -140,7 +162,9 @@ class TestLicences:
         email = _address("nojudge")
         await account(email)
         headers = await _headers(client, caplog, email)
-        response = await client.put("/api/me/jury/licences", headers=headers, json={"licences": ["umpire"]})
+        response = await client.put(
+            "/api/me/jury/licences", headers=headers, json={"licences": ["umpire"]}
+        )
         assert response.status_code == 403
         assert _problem_code(response) == "not-a-judge"
 
@@ -154,31 +178,47 @@ class TestAsking:
         b, b_email, _ = await _judge(client, caplog, organizer)
         kiel, hamburg = ids.event(KIEL), ids.event(HAMBURG)
 
-        await client.post("/api/jury/invitations", headers=organizer, json={"event_ids": [kiel], "user_ids": [a]})
+        await client.post(
+            "/api/jury/invitations", headers=organizer, json={"event_ids": [kiel], "user_ids": [a]}
+        )
         caplog.clear()
         with caplog.at_level(logging.WARNING, logger="app.mail"):
             response = await client.post(
                 "/api/jury/invitations",
                 headers=organizer,
-                json={"event_ids": [kiel, hamburg], "user_ids": [a, b], "note": "Bitte bis Freitag."},
+                json={
+                    "event_ids": [kiel, hamburg],
+                    "user_ids": [a, b],
+                    "note": "Bitte bis Freitag.",
+                },
             )
         assert response.status_code == 200, response.text
         assert response.json() == {"created": 3, "existing": 1, "mailed": 2}
         assert sorted(_mailed(caplog)) == sorted([a_email, b_email])
 
-        requests = {r["event"]["id"]: r["state"] for r in (await _mine(client, judge_a))["requests"]}
+        requests = {
+            r["event"]["id"]: r["state"] for r in (await _mine(client, judge_a))["requests"]
+        }
         assert requests == {kiel: "invited", hamburg: "invited"}
 
     async def test_an_event_over_or_someone_outside_the_pool_is_refused(self, client, caplog, ids):
         """JU-3: an event already over, and an account not in the pool."""
         organizer = await _organizer(client, caplog)
         judge, _, _ = await _judge(client, caplog, organizer)
-        over = await client.post("/api/jury/invitations", headers=organizer, json={"event_ids": [ids.event(OVER)], "user_ids": [judge]})
+        over = await client.post(
+            "/api/jury/invitations",
+            headers=organizer,
+            json={"event_ids": [ids.event(OVER)], "user_ids": [judge]},
+        )
         assert over.status_code == 409
         assert _problem_code(over) == "jury-event-closed"
 
         stranger = await account(_address("stranger"))
-        response = await client.post("/api/jury/invitations", headers=organizer, json={"event_ids": [ids.event(KIEL)], "user_ids": [stranger]})
+        response = await client.post(
+            "/api/jury/invitations",
+            headers=organizer,
+            json={"event_ids": [ids.event(KIEL)], "user_ids": [stranger]},
+        )
         assert response.status_code == 422
         assert _problem_code(response) == "not-a-judge"
 
@@ -191,12 +231,20 @@ class TestAsking:
         approved, _, _ = await _judge(client, caplog, organizer, name=f"Approved {tag}")
         never, _, _ = await _judge(client, caplog, organizer, name=f"Never {tag}")
         kiel, hamburg = ids.event(KIEL), ids.event(HAMBURG)
-        await client.post("/api/jury/invitations", headers=organizer, json={"event_ids": [kiel], "user_ids": [asked, approved]})
-        await client.put(f"/api/me/jury/requests/{kiel}", headers=asked_headers, json={"available": True})
+        await client.post(
+            "/api/jury/invitations",
+            headers=organizer,
+            json={"event_ids": [kiel], "user_ids": [asked, approved]},
+        )
+        await client.put(
+            f"/api/me/jury/requests/{kiel}", headers=asked_headers, json={"available": True}
+        )
         await client.put(f"/api/jury/events/{hamburg}/judges/{approved}", headers=organizer)
 
         async def found(*event: str) -> set[int]:
-            pool = await _pool(client, organizer, q=tag, events=f"{kiel},{hamburg}", event=",".join(event))
+            pool = await _pool(
+                client, organizer, q=tag, events=f"{kiel},{hamburg}", event=",".join(event)
+            )
             return set(pool)
 
         everyone = await _pool(client, organizer, q=tag, events=f"{kiel},{hamburg}")
@@ -212,13 +260,20 @@ class TestAsking:
         # Several events combine: asked for Kiel, not approved for Hamburg.
         assert await found(f"{kiel}:asked", f"{hamburg}:!approved") == {asked}
 
-        bad = await client.get("/api/jury/judges", headers=organizer, params={"event": f"{kiel}:maybe"})
+        bad = await client.get(
+            "/api/jury/judges", headers=organizer, params={"event": f"{kiel}:maybe"}
+        )
         assert bad.status_code == 422
 
     async def test_the_events_offered_are_those_not_over(self, client, caplog, ids):
         """JU-3: drafts included, an event over not."""
         organizer = await _organizer(client, caplog)
-        listed = {e["id"] for e in (await client.get("/api/jury/events", headers=organizer, params={"limit": 100})).json()["items"]}
+        listed = {
+            e["id"]
+            for e in (
+                await client.get("/api/jury/events", headers=organizer, params={"limit": 100})
+            ).json()["items"]
+        }
         assert ids.event(KIEL) in listed
         assert ids.event(OVER) not in listed
 
@@ -238,7 +293,11 @@ class TestAsking:
         assert _mailed(caplog) == [a_email]
 
         stranger = await account(_address("stranger"))
-        response = await client.post("/api/jury/messages", headers=organizer, json={"user_ids": [stranger], "subject": "x", "text": "y"})
+        response = await client.post(
+            "/api/jury/messages",
+            headers=organizer,
+            json={"user_ids": [stranger], "subject": "x", "text": "y"},
+        )
         assert _problem_code(response) == "not-a-judge"
 
 
@@ -249,18 +308,28 @@ class TestAnswering:
         organizer = await _organizer(client, caplog)
         user_id, _, judge = await _judge(client, caplog, organizer)
         kiel = ids.event(KIEL)
-        await client.post("/api/jury/invitations", headers=organizer, json={"event_ids": [kiel], "user_ids": [user_id]})
+        await client.post(
+            "/api/jury/invitations",
+            headers=organizer,
+            json={"event_ids": [kiel], "user_ids": [user_id]},
+        )
         assert await _todo(client, judge, "me", "jury_invited") == 1
 
-        response = await client.put(f"/api/me/jury/requests/{kiel}", headers=judge, json={"available": False})
+        response = await client.put(
+            f"/api/me/jury/requests/{kiel}", headers=judge, json={"available": False}
+        )
         assert response.status_code == 200, response.text
         assert response.json()["state"] == "declined"
         assert await _todo(client, judge, "me", "jury_invited") == 0
-        response = await client.put(f"/api/me/jury/requests/{kiel}", headers=judge, json={"available": True})
+        response = await client.put(
+            f"/api/me/jury/requests/{kiel}", headers=judge, json={"available": True}
+        )
         assert response.json()["state"] == "available"
 
         await client.put(f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer)
-        late = await client.put(f"/api/me/jury/requests/{kiel}", headers=judge, json={"available": False})
+        late = await client.put(
+            f"/api/me/jury/requests/{kiel}", headers=judge, json={"available": False}
+        )
         assert late.status_code == 409
         assert _problem_code(late) == "jury-already-approved"
 
@@ -268,7 +337,9 @@ class TestAnswering:
         """JU-4: an event nobody asked me for answers 404."""
         organizer = await _organizer(client, caplog)
         _, _, judge = await _judge(client, caplog, organizer)
-        response = await client.put(f"/api/me/jury/requests/{ids.event(HAMBURG)}", headers=judge, json={"available": True})
+        response = await client.put(
+            f"/api/me/jury/requests/{ids.event(HAMBURG)}", headers=judge, json={"available": True}
+        )
         assert response.status_code == 404
 
 
@@ -280,12 +351,18 @@ class TestApproving:
         organizer = await _organizer(client, caplog)
         user_id, email, judge = await _judge(client, caplog, organizer)
         kiel = ids.event(KIEL)
-        await client.post("/api/jury/invitations", headers=organizer, json={"event_ids": [kiel], "user_ids": [user_id]})
+        await client.post(
+            "/api/jury/invitations",
+            headers=organizer,
+            json={"event_ids": [kiel], "user_ids": [user_id]},
+        )
         await client.put(f"/api/me/jury/requests/{kiel}", headers=judge, json={"available": True})
 
         caplog.clear()
         with caplog.at_level(logging.WARNING, logger="app.mail"):
-            response = await client.put(f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer)
+            response = await client.put(
+                f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer
+            )
         assert response.status_code == 200, response.text
         assert response.json()["state"] == "approved"
         assert _mailed(caplog) == [email]
@@ -294,10 +371,14 @@ class TestApproving:
         event = next(c for c in contexts if c["kind"] == "event" and c["id"] == kiel)
         assert "jury" in event["relations"]
         targets = (await client.get("/api/me/claim-targets", headers=judge)).json()["targets"]
-        assert {"kind": "event", "id": kiel} in [{"kind": t["kind"], "id": t["id"]} for t in targets]
+        assert {"kind": "event", "id": kiel} in [
+            {"kind": t["kind"], "id": t["id"]} for t in targets
+        ]
 
         # Approving twice keeps the one tuple.
-        assert (await client.put(f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer)).status_code == 200
+        assert (
+            await client.put(f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer)
+        ).status_code == 200
 
         off = await client.delete(f"/api/jury/events/{kiel}/judges/{user_id}", headers=organizer)
         assert off.status_code == 200, off.text
@@ -310,7 +391,9 @@ class TestApproving:
         organizer = await _organizer(client, caplog)
         user_id, _, judge = await _judge(client, caplog, organizer)
         hamburg = ids.event(HAMBURG)
-        response = await client.put(f"/api/jury/events/{hamburg}/judges/{user_id}", headers=organizer)
+        response = await client.put(
+            f"/api/jury/events/{hamburg}/judges/{user_id}", headers=organizer
+        )
         assert response.status_code == 200, response.text
         requests = {r["event"]["id"]: r["state"] for r in (await _mine(client, judge))["requests"]}
         assert requests == {hamburg: "approved"}
@@ -319,8 +402,12 @@ class TestApproving:
         """JU-5: someone outside the pool, or an event over, is refused."""
         organizer = await _organizer(client, caplog)
         stranger = await account(_address("stranger"))
-        response = await client.put(f"/api/jury/events/{ids.event(KIEL)}/judges/{stranger}", headers=organizer)
+        response = await client.put(
+            f"/api/jury/events/{ids.event(KIEL)}/judges/{stranger}", headers=organizer
+        )
         assert _problem_code(response) == "not-a-judge"
         judge, _, _ = await _judge(client, caplog, organizer)
-        response = await client.put(f"/api/jury/events/{ids.event(OVER)}/judges/{judge}", headers=organizer)
+        response = await client.put(
+            f"/api/jury/events/{ids.event(OVER)}/judges/{judge}", headers=organizer
+        )
         assert _problem_code(response) == "jury-event-closed"

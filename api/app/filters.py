@@ -403,7 +403,9 @@ class JudgeFilter(ListFilter):
     combined. The route keeps it to the pool."""
 
     q: str | None = Field(default=None, description="Search in name and address")
-    licence: JudgeLicence | None = Field(default=None, description="Only judges holding this licence")
+    licence: JudgeLicence | None = Field(
+        default=None, description="Only judges holding this licence"
+    )
     event: list[str] | None = Field(
         default=None,
         description=(
@@ -421,7 +423,9 @@ class JudgeFilter(ListFilter):
         search_columns: ClassVar = (User.display_name, User.email)
 
     def where_licence(self, licence: JudgeLicence):
-        holders = select(JudgeLicenceHolding.user_id).where(JudgeLicenceHolding.licence == str(licence))
+        holders = select(JudgeLicenceHolding.user_id).where(
+            JudgeLicenceHolding.licence == str(licence)
+        )
         return User.id.in_(holders)
 
     def where_event(self, conditions: list[str]):
