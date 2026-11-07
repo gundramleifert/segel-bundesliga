@@ -31,7 +31,7 @@ export function ClubDpa({ clubId }: { clubId: number }) {
       <h2 className="text-lg font-semibold text-foreground">{t("dpa.title")}</h2>
       <p className="mt-1 text-sm text-foreground">{t("dpa.why")}</p>
       <p className="mt-1 text-sm text-muted">
-        {legal("dpa.draft")} · {t("dpa.version", { version: status.data.version })}
+        {t("dpa.version", { version: status.data.version })}
       </p>
       <div className="mt-4 max-h-96 overflow-y-auto rounded-md bg-surface p-4" data-testid="club-dpa-text">
         <LegalSections sections={sections} testIdPrefix="club-dpa" />

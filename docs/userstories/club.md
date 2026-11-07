@@ -58,8 +58,10 @@ Endpoints: `GET /api/clubs/{club_id}/dpa`, `POST /api/clubs/{club_id}/dpa`
 
 Tests: `api/tests/stories/test_dpa.py`
 
-Open: the agreement's text is a placeholder until the association's lawyer releases it;
-claims, payment runs and the club's events as host are not gated yet.
+Open: the agreement's text still needs the association's lawyer's release; the
+sub-processors it names (Hetzner, STRATO) may change — and Presentec joins them if the site
+is hosted through Presentec at Hetzner. Claims, payment runs and the club's events as host
+are not gated yet.
 
 ## Members
 
