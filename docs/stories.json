@@ -1377,7 +1377,7 @@
  },
  "JU-1": {
   "title": "The jury organizer keeps the pool of judges",
-  "status": "●",
+  "status": "◐",
   "role": "Race Committee",
   "phase": "Before the season: the jury",
   "file": "docs/userstories/race-committee.md",
@@ -1385,7 +1385,7 @@
  },
  "JU-2": {
   "title": "A judge says which licences they hold",
-  "status": "●",
+  "status": "◐",
   "role": "Race Committee",
   "phase": "Before the season: the jury",
   "file": "docs/userstories/race-committee.md",
@@ -1393,7 +1393,7 @@
  },
  "JU-3": {
   "title": "The jury organizer asks judges for events, many at once",
-  "status": "●",
+  "status": "◐",
   "role": "Race Committee",
   "phase": "Before the season: the jury",
   "file": "docs/userstories/race-committee.md",
@@ -1401,7 +1401,7 @@
  },
  "JU-4": {
   "title": "A judge answers: I can, or I cannot",
-  "status": "●",
+  "status": "◐",
   "role": "Race Committee",
   "phase": "Before the season: the jury",
   "file": "docs/userstories/race-committee.md",
@@ -1409,7 +1409,7 @@
  },
  "JU-5": {
   "title": "The jury organizer approves or assigns — and the judge is the event's jury",
-  "status": "●",
+  "status": "◐",
   "role": "Race Committee",
   "phase": "Before the season: the jury",
   "file": "docs/userstories/race-committee.md",

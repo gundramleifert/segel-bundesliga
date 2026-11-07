@@ -35,4 +35,5 @@ export const NeedCode = {
   membership_requested: 'membership_requested',
   invitation_expired: 'invitation_expired',
   dpa_missing: 'dpa_missing',
+  jury_invited: 'jury_invited',
 } as const;

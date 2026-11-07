@@ -406,12 +406,13 @@ class JudgeFilter(ListFilter):
     licence: JudgeLicence | None = Field(
         default=None, description="Only judges holding this licence"
     )
-    event: list[str] | None = Field(
+    # A string, not a list: fastapi-filter splits only `__in` fields and the sort.
+    event: str | None = Field(
         default=None,
         description=(
             "Per event, `<event id>:<state>` — state one of "
             + ", ".join(JURY_FILTER_STATES)
-            + "; `!` before it excludes. Several combine."
+            + "; `!` before it excludes. Several, comma-separated, combine."
         ),
     )
     order_by: list[str] | None = SORT
@@ -428,9 +429,9 @@ class JudgeFilter(ListFilter):
         )
         return User.id.in_(holders)
 
-    def where_event(self, conditions: list[str]):
+    def where_event(self, conditions: str):
         clauses = []
-        for condition in conditions:
+        for condition in filter(None, (c.strip() for c in conditions.split(","))):
             event, _, state = condition.partition(":")
             negated = state.startswith("!")
             state = state.removeprefix("!")

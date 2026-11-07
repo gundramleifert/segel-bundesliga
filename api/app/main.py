@@ -37,6 +37,7 @@ from app.routers import (
     expenses,
     guardians,
     invitations,
+    jury,
     me,
     media,
     payments,
@@ -171,6 +172,8 @@ app.include_router(waivers.router)
 app.include_router(guardians.router)
 app.include_router(personal.router)
 app.include_router(me.router)
+app.include_router(jury.router)
+app.include_router(jury.me_router)
 app.include_router(expenses.router)
 app.include_router(payments.router)
 app.include_router(tracking.router)

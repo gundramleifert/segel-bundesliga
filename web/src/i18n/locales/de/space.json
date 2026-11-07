@@ -201,7 +201,8 @@
     "treasurer": "Kassenwart",
     "race_officer": "Wettfahrtleitung",
     "jury": "Jury",
-    "helper": "Helfer"
+    "helper": "Helfer",
+    "jury_organizer": "Jury-Obmann"
   },
   "needs": {
     "waiver": "{count, plural, one {Ihr Haftungsausschluss ist noch nicht unterschrieben} other {# Haftungsausschlüsse sind noch nicht unterschrieben}}",
@@ -225,7 +226,8 @@
     "membership_invited": "{count, plural, one {Ein Verein lädt Sie ein} other {# Vereine laden Sie ein}}",
     "membership_requested": "{count, plural, one {1 Person möchte aufgenommen werden} other {# Personen möchten aufgenommen werden}}",
     "invitation_expired": "{count, plural, one {1 Einladung ungeöffnet abgelaufen} other {# Einladungen ungeöffnet abgelaufen}}",
-    "dpa_missing": "Auftragsverarbeitungsvertrag annehmen"
+    "dpa_missing": "Auftragsverarbeitungsvertrag annehmen",
+    "jury_invited": "{count, plural, one {Eine Jury-Anfrage beantworten} other {# Jury-Anfragen beantworten}}"
   },
   "overview": {
     "me": "Ich",

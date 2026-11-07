@@ -30,6 +30,7 @@ import type {
   AdminRacesOut,
   AnnouncementIn,
   AnnouncementOut,
+  AnswerIn,
   ApplicationCreate,
   ApplicationDecision,
   ApplicationOut,
@@ -104,9 +105,15 @@ import type {
   InvitationLinkOut,
   InvitationOut,
   InvitationRedeem,
+  InvitationsIn,
+  InvitationsOut,
   ItemCreate,
+  JudgeIn,
+  JudgeOut,
+  JuryRequestOut,
   LeagueOut,
   LeagueSeason,
+  LicencesIn,
   LinkGuardian,
   ListAllClubsParams,
   ListAllEventsParams,
@@ -115,6 +122,9 @@ import type {
   ListClubPeopleParams,
   ListClubsParams,
   ListEventsParams,
+  ListJudgesParams,
+  ListJuryCandidatesParams,
+  ListJuryEventsParams,
   ListLeagueMediaParams,
   ListMediaParams,
   ListPendingApplicationsParams,
@@ -130,9 +140,12 @@ import type {
   MediaFields,
   MediaIds,
   MembershipAsk,
+  MessageIn,
+  MessageOut,
   ModelOut,
   MyClubOut,
   MyContextOut,
+  MyJuryOut,
   MyMembershipOut,
   MySpaceOut,
   MyWaivers,
@@ -140,10 +153,13 @@ import type {
   NetworkProbeParams,
   NoteBody,
   OidcLogin,
+  PageCandidateOut,
   PageClubAdminOut,
   PageClubOut,
   PageClubPersonOut,
   PageEventOut,
+  PageJudgeOut,
+  PageJuryEventOut,
   PageMediaOut,
   PagePersonAdminOut,
   PagePostAdminSummary,
@@ -13926,6 +13942,1111 @@ export function useReachedContext<TData = Awaited<ReturnType<typeof reachedConte
 
 
 
+
+export const getListJudgesUrl = (params?: ListJudgesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/jury/judges?${stringifiedParams}` : `/api/jury/judges`
+}
+
+/**
+ * Stories JU-1, JU-3: every judge, their licences and their state at the events picked.
+ * @summary The pool of judges
+ */
+export const listJudges = async (params?: ListJudgesParams, options?: RequestInit): Promise<PageJudgeOut> => {
+
+  return http<PageJudgeOut>(getListJudgesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListJudgesQueryKey = (params?: ListJudgesParams,) => {
+    return [
+    `/api/jury/judges`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListJudgesQueryOptions = <TData = Awaited<ReturnType<typeof listJudges>>, TError = ErrorType<ProblemDetails>>(params?: ListJudgesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJudges>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListJudgesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listJudges>>> = ({ signal }) => listJudges(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listJudges>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListJudgesQueryResult = NonNullable<Awaited<ReturnType<typeof listJudges>>>
+export type ListJudgesQueryError = ErrorType<ProblemDetails>
+
+
+export function useListJudges<TData = Awaited<ReturnType<typeof listJudges>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListJudgesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJudges>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listJudges>>,
+          TError,
+          Awaited<ReturnType<typeof listJudges>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListJudges<TData = Awaited<ReturnType<typeof listJudges>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJudgesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJudges>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listJudges>>,
+          TError,
+          Awaited<ReturnType<typeof listJudges>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListJudges<TData = Awaited<ReturnType<typeof listJudges>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJudgesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJudges>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The pool of judges
+ */
+
+export function useListJudges<TData = Awaited<ReturnType<typeof listJudges>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJudgesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJudges>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListJudgesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddJudgeUrl = () => {
+
+
+
+
+  return `/api/jury/judges`
+}
+
+/**
+ * Story JU-1: ``user:judge:site`` — grants nothing on any event.
+ * @summary Add a judge to the pool
+ */
+export const addJudge = async (judgeIn: JudgeIn, options?: RequestInit): Promise<JudgeOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<JudgeOut>(getAddJudgeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(judgeIn)
+  }
+);}
+
+
+
+
+
+export const getAddJudgeMutationKey = () => ['addJudge'] as const;
+
+export const getAddJudgeMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addJudge>>, TError,AddJudgeMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof addJudge>>, TError,AddJudgeMutationVariables, TContext> => {
+
+const mutationKey = getAddJudgeMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addJudge>>, AddJudgeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  addJudge(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddJudgeMutationResult = NonNullable<Awaited<ReturnType<typeof addJudge>>>
+    export type AddJudgeMutationBody = BodyType<JudgeIn>
+    export type AddJudgeMutationError = ErrorType<ProblemDetails>
+    export type AddJudgeMutationVariables = {data: BodyType<JudgeIn>}
+
+    /**
+ * @summary Add a judge to the pool
+ */
+export const useAddJudge = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addJudge>>, TError,AddJudgeMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addJudge>>,
+        TError,
+        AddJudgeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddJudgeMutationOptions(options), queryClient);
+    }
+
+export const getListJuryCandidatesUrl = (params?: ListJuryCandidatesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/jury/candidates?${stringifiedParams}` : `/api/jury/candidates`
+}
+
+/**
+ * Story JU-1: active accounts not yet in the pool.
+ * @summary Accounts to add as judges
+ */
+export const listJuryCandidates = async (params?: ListJuryCandidatesParams, options?: RequestInit): Promise<PageCandidateOut> => {
+
+  return http<PageCandidateOut>(getListJuryCandidatesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListJuryCandidatesQueryKey = (params?: ListJuryCandidatesParams,) => {
+    return [
+    `/api/jury/candidates`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListJuryCandidatesQueryOptions = <TData = Awaited<ReturnType<typeof listJuryCandidates>>, TError = ErrorType<ProblemDetails>>(params?: ListJuryCandidatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryCandidates>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListJuryCandidatesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listJuryCandidates>>> = ({ signal }) => listJuryCandidates(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listJuryCandidates>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListJuryCandidatesQueryResult = NonNullable<Awaited<ReturnType<typeof listJuryCandidates>>>
+export type ListJuryCandidatesQueryError = ErrorType<ProblemDetails>
+
+
+export function useListJuryCandidates<TData = Awaited<ReturnType<typeof listJuryCandidates>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListJuryCandidatesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryCandidates>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listJuryCandidates>>,
+          TError,
+          Awaited<ReturnType<typeof listJuryCandidates>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListJuryCandidates<TData = Awaited<ReturnType<typeof listJuryCandidates>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJuryCandidatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryCandidates>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listJuryCandidates>>,
+          TError,
+          Awaited<ReturnType<typeof listJuryCandidates>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListJuryCandidates<TData = Awaited<ReturnType<typeof listJuryCandidates>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJuryCandidatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryCandidates>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Accounts to add as judges
+ */
+
+export function useListJuryCandidates<TData = Awaited<ReturnType<typeof listJuryCandidates>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJuryCandidatesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryCandidates>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListJuryCandidatesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRemoveJudgeUrl = (userId: number,) => {
+
+
+
+
+  return `/api/jury/judges/${userId}`
+}
+
+/**
+ * Story JU-1: out of the pool; open requests withdrawn, an approved jury kept.
+ * @summary Remove a judge
+ */
+export const removeJudge = async (userId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getRemoveJudgeUrl(userId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveJudgeMutationKey = () => ['removeJudge'] as const;
+
+export const getRemoveJudgeMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeJudge>>, TError,RemoveJudgeMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof removeJudge>>, TError,RemoveJudgeMutationVariables, TContext> => {
+
+const mutationKey = getRemoveJudgeMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeJudge>>, RemoveJudgeMutationVariables> = (props) => {
+          const {userId} = props ?? {};
+
+          return  removeJudge(userId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveJudgeMutationResult = NonNullable<Awaited<ReturnType<typeof removeJudge>>>
+
+    export type RemoveJudgeMutationError = ErrorType<ProblemDetails>
+    export type RemoveJudgeMutationVariables = {userId: number}
+
+    /**
+ * @summary Remove a judge
+ */
+export const useRemoveJudge = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeJudge>>, TError,RemoveJudgeMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof removeJudge>>,
+        TError,
+        RemoveJudgeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRemoveJudgeMutationOptions(options), queryClient);
+    }
+
+export const getListJuryEventsUrl = (params?: ListJuryEventsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/jury/events?${stringifiedParams}` : `/api/jury/events`
+}
+
+/**
+ * Story JU-3: every event not over, drafts included, the next first.
+ * @summary Events to staff
+ */
+export const listJuryEvents = async (params?: ListJuryEventsParams, options?: RequestInit): Promise<PageJuryEventOut> => {
+
+  return http<PageJuryEventOut>(getListJuryEventsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListJuryEventsQueryKey = (params?: ListJuryEventsParams,) => {
+    return [
+    `/api/jury/events`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListJuryEventsQueryOptions = <TData = Awaited<ReturnType<typeof listJuryEvents>>, TError = ErrorType<ProblemDetails>>(params?: ListJuryEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryEvents>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListJuryEventsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listJuryEvents>>> = ({ signal }) => listJuryEvents(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listJuryEvents>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListJuryEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listJuryEvents>>>
+export type ListJuryEventsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListJuryEvents<TData = Awaited<ReturnType<typeof listJuryEvents>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListJuryEventsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryEvents>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listJuryEvents>>,
+          TError,
+          Awaited<ReturnType<typeof listJuryEvents>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListJuryEvents<TData = Awaited<ReturnType<typeof listJuryEvents>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJuryEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryEvents>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listJuryEvents>>,
+          TError,
+          Awaited<ReturnType<typeof listJuryEvents>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListJuryEvents<TData = Awaited<ReturnType<typeof listJuryEvents>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJuryEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryEvents>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Events to staff
+ */
+
+export function useListJuryEvents<TData = Awaited<ReturnType<typeof listJuryEvents>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListJuryEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listJuryEvents>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListJuryEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInviteJudgesUrl = () => {
+
+
+
+
+  return `/api/jury/invitations`
+}
+
+/**
+ * Story JU-3: the events × the judges, one mail per judge naming every event newly
+ * asked; a pair asked before is left as it was.
+ * @summary Ask judges for events
+ */
+export const inviteJudges = async (invitationsIn: InvitationsIn, options?: RequestInit): Promise<InvitationsOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<InvitationsOut>(getInviteJudgesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(invitationsIn)
+  }
+);}
+
+
+
+
+
+export const getInviteJudgesMutationKey = () => ['inviteJudges'] as const;
+
+export const getInviteJudgesMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inviteJudges>>, TError,InviteJudgesMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof inviteJudges>>, TError,InviteJudgesMutationVariables, TContext> => {
+
+const mutationKey = getInviteJudgesMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inviteJudges>>, InviteJudgesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  inviteJudges(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InviteJudgesMutationResult = NonNullable<Awaited<ReturnType<typeof inviteJudges>>>
+    export type InviteJudgesMutationBody = BodyType<InvitationsIn>
+    export type InviteJudgesMutationError = ErrorType<ProblemDetails>
+    export type InviteJudgesMutationVariables = {data: BodyType<InvitationsIn>}
+
+    /**
+ * @summary Ask judges for events
+ */
+export const useInviteJudges = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inviteJudges>>, TError,InviteJudgesMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof inviteJudges>>,
+        TError,
+        InviteJudgesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInviteJudgesMutationOptions(options), queryClient);
+    }
+
+export const getMessageJudgesUrl = () => {
+
+
+
+
+  return `/api/jury/messages`
+}
+
+/**
+ * Story JU-3: one mail to each judge ticked — only the pool.
+ * @summary Write to judges
+ */
+export const messageJudges = async (messageIn: MessageIn, options?: RequestInit): Promise<MessageOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<MessageOut>(getMessageJudgesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(messageIn)
+  }
+);}
+
+
+
+
+
+export const getMessageJudgesMutationKey = () => ['messageJudges'] as const;
+
+export const getMessageJudgesMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof messageJudges>>, TError,MessageJudgesMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof messageJudges>>, TError,MessageJudgesMutationVariables, TContext> => {
+
+const mutationKey = getMessageJudgesMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof messageJudges>>, MessageJudgesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  messageJudges(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MessageJudgesMutationResult = NonNullable<Awaited<ReturnType<typeof messageJudges>>>
+    export type MessageJudgesMutationBody = BodyType<MessageIn>
+    export type MessageJudgesMutationError = ErrorType<ProblemDetails>
+    export type MessageJudgesMutationVariables = {data: BodyType<MessageIn>}
+
+    /**
+ * @summary Write to judges
+ */
+export const useMessageJudges = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof messageJudges>>, TError,MessageJudgesMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof messageJudges>>,
+        TError,
+        MessageJudgesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMessageJudgesMutationOptions(options), queryClient);
+    }
+
+export const getApproveJudgeUrl = (eventId: number,
+    userId: number,) => {
+
+
+
+
+  return `/api/jury/events/${eventId}/judges/${userId}`
+}
+
+/**
+ * Story JU-5: from any state, or with no request at all; writes the event's ``jury``.
+ * @summary Put a judge on an event's jury
+ */
+export const approveJudge = async (eventId: number,
+    userId: number, options?: RequestInit): Promise<JuryRequestOut> => {
+
+  return http<JuryRequestOut>(getApproveJudgeUrl(eventId,userId),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+);}
+
+
+
+
+
+export const getApproveJudgeMutationKey = () => ['approveJudge'] as const;
+
+export const getApproveJudgeMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveJudge>>, TError,ApproveJudgeMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof approveJudge>>, TError,ApproveJudgeMutationVariables, TContext> => {
+
+const mutationKey = getApproveJudgeMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveJudge>>, ApproveJudgeMutationVariables> = (props) => {
+          const {eventId,userId} = props ?? {};
+
+          return  approveJudge(eventId,userId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveJudgeMutationResult = NonNullable<Awaited<ReturnType<typeof approveJudge>>>
+
+    export type ApproveJudgeMutationError = ErrorType<ProblemDetails>
+    export type ApproveJudgeMutationVariables = {eventId: number;userId: number}
+
+    /**
+ * @summary Put a judge on an event's jury
+ */
+export const useApproveJudge = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveJudge>>, TError,ApproveJudgeMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof approveJudge>>,
+        TError,
+        ApproveJudgeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getApproveJudgeMutationOptions(options), queryClient);
+    }
+
+export const getTakeJudgeOffUrl = (eventId: number,
+    userId: number,) => {
+
+
+
+
+  return `/api/jury/events/${eventId}/judges/${userId}`
+}
+
+/**
+ * Story JU-5: the ``jury`` tuple goes, the judge's answer stays.
+ * @summary Take a judge off an event's jury
+ */
+export const takeJudgeOff = async (eventId: number,
+    userId: number, options?: RequestInit): Promise<JuryRequestOut> => {
+
+  return http<JuryRequestOut>(getTakeJudgeOffUrl(eventId,userId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getTakeJudgeOffMutationKey = () => ['takeJudgeOff'] as const;
+
+export const getTakeJudgeOffMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof takeJudgeOff>>, TError,TakeJudgeOffMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof takeJudgeOff>>, TError,TakeJudgeOffMutationVariables, TContext> => {
+
+const mutationKey = getTakeJudgeOffMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof takeJudgeOff>>, TakeJudgeOffMutationVariables> = (props) => {
+          const {eventId,userId} = props ?? {};
+
+          return  takeJudgeOff(eventId,userId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TakeJudgeOffMutationResult = NonNullable<Awaited<ReturnType<typeof takeJudgeOff>>>
+
+    export type TakeJudgeOffMutationError = ErrorType<ProblemDetails>
+    export type TakeJudgeOffMutationVariables = {eventId: number;userId: number}
+
+    /**
+ * @summary Take a judge off an event's jury
+ */
+export const useTakeJudgeOff = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof takeJudgeOff>>, TError,TakeJudgeOffMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof takeJudgeOff>>,
+        TError,
+        TakeJudgeOffMutationVariables,
+        TContext
+      > => {
+      return useMutation(getTakeJudgeOffMutationOptions(options), queryClient);
+    }
+
+export const getGetMyJuryUrl = () => {
+
+
+
+
+  return `/api/me/jury`
+}
+
+/**
+ * Stories JU-2, JU-4: am I a judge, my licences, the events I was asked for.
+ * @summary My jury
+ */
+export const getMyJury = async ( options?: RequestInit): Promise<MyJuryOut> => {
+
+  return http<MyJuryOut>(getGetMyJuryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMyJuryQueryKey = () => {
+    return [
+    `/api/me/jury`
+    ] as const;
+    }
+
+
+export const getGetMyJuryQueryOptions = <TData = Awaited<ReturnType<typeof getMyJury>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyJury>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMyJuryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyJury>>> = ({ signal }) => getMyJury({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyJury>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMyJuryQueryResult = NonNullable<Awaited<ReturnType<typeof getMyJury>>>
+export type GetMyJuryQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetMyJury<TData = Awaited<ReturnType<typeof getMyJury>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyJury>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyJury>>,
+          TError,
+          Awaited<ReturnType<typeof getMyJury>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyJury<TData = Awaited<ReturnType<typeof getMyJury>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyJury>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyJury>>,
+          TError,
+          Awaited<ReturnType<typeof getMyJury>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyJury<TData = Awaited<ReturnType<typeof getMyJury>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyJury>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary My jury
+ */
+
+export function useGetMyJury<TData = Awaited<ReturnType<typeof getMyJury>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyJury>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMyJuryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetMyLicencesUrl = () => {
+
+
+
+
+  return `/api/me/jury/licences`
+}
+
+/**
+ * Story JU-2: the judge's own word, replacing what was said before.
+ * @summary Say which licences I hold
+ */
+export const setMyLicences = async (licencesIn: LicencesIn, options?: RequestInit): Promise<MyJuryOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<MyJuryOut>(getSetMyLicencesUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(licencesIn)
+  }
+);}
+
+
+
+
+
+export const getSetMyLicencesMutationKey = () => ['setMyLicences'] as const;
+
+export const getSetMyLicencesMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyLicences>>, TError,SetMyLicencesMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setMyLicences>>, TError,SetMyLicencesMutationVariables, TContext> => {
+
+const mutationKey = getSetMyLicencesMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setMyLicences>>, SetMyLicencesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  setMyLicences(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetMyLicencesMutationResult = NonNullable<Awaited<ReturnType<typeof setMyLicences>>>
+    export type SetMyLicencesMutationBody = BodyType<LicencesIn>
+    export type SetMyLicencesMutationError = ErrorType<ProblemDetails>
+    export type SetMyLicencesMutationVariables = {data: BodyType<LicencesIn>}
+
+    /**
+ * @summary Say which licences I hold
+ */
+export const useSetMyLicences = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyLicences>>, TError,SetMyLicencesMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setMyLicences>>,
+        TError,
+        SetMyLicencesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetMyLicencesMutationOptions(options), queryClient);
+    }
+
+export const getAnswerJuryRequestUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/me/jury/requests/${eventId}`
+}
+
+/**
+ * Story JU-4: available (my application) or declined, until I am approved.
+ * @summary Answer a jury request
+ */
+export const answerJuryRequest = async (eventId: number,
+    answerIn: AnswerIn, options?: RequestInit): Promise<JuryRequestOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<JuryRequestOut>(getAnswerJuryRequestUrl(eventId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(answerIn)
+  }
+);}
+
+
+
+
+
+export const getAnswerJuryRequestMutationKey = () => ['answerJuryRequest'] as const;
+
+export const getAnswerJuryRequestMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof answerJuryRequest>>, TError,AnswerJuryRequestMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof answerJuryRequest>>, TError,AnswerJuryRequestMutationVariables, TContext> => {
+
+const mutationKey = getAnswerJuryRequestMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof answerJuryRequest>>, AnswerJuryRequestMutationVariables> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  answerJuryRequest(eventId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AnswerJuryRequestMutationResult = NonNullable<Awaited<ReturnType<typeof answerJuryRequest>>>
+    export type AnswerJuryRequestMutationBody = BodyType<AnswerIn>
+    export type AnswerJuryRequestMutationError = ErrorType<ProblemDetails>
+    export type AnswerJuryRequestMutationVariables = {eventId: number;data: BodyType<AnswerIn>}
+
+    /**
+ * @summary Answer a jury request
+ */
+export const useAnswerJuryRequest = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof answerJuryRequest>>, TError,AnswerJuryRequestMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof answerJuryRequest>>,
+        TError,
+        AnswerJuryRequestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAnswerJuryRequestMutationOptions(options), queryClient);
+    }
 
 export const getListMyClaimTargetsUrl = () => {
 

@@ -201,7 +201,8 @@
     "treasurer": "Treasurer",
     "race_officer": "Race officer",
     "jury": "Jury",
-    "helper": "Helper"
+    "helper": "Helper",
+    "jury_organizer": "Jury organizer"
   },
   "needs": {
     "waiver": "{count, plural, one {Your liability waiver is not signed yet} other {# liability waivers not signed yet}}",
@@ -225,7 +226,8 @@
     "membership_invited": "{count, plural, one {A club invites you to join} other {# clubs invite you to join}}",
     "membership_requested": "{count, plural, one {1 person asks to join} other {# people ask to join}}",
     "invitation_expired": "{count, plural, one {1 invitation lapsed unopened} other {# invitations lapsed unopened}}",
-    "dpa_missing": "Accept the data processing agreement"
+    "dpa_missing": "Accept the data processing agreement",
+    "jury_invited": "{count, plural, one {Answer a jury request} other {Answer # jury requests}}"
   },
   "overview": {
     "me": "Me",

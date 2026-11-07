@@ -59,7 +59,7 @@ from app.models.finance import PaymentStatus
 from app.models.org import MembershipStatus, TeamStatus
 from app.models.racing import RaceStatus
 from app.problems import Problem
-from app.services import dpa, expenses
+from app.services import dpa, expenses, jury
 from app.services.event_readiness import event_readiness
 from app.services.waivers import (
     WaiverStatus,
@@ -83,6 +83,8 @@ class ContextRelation(StrEnum):
     RACE_OFFICER = "race_officer"
     JURY = "jury"
     HELPER = "helper"
+    # Site only: opens the league office's Jury section (Story JU-1).
+    JURY_ORGANIZER = "jury_organizer"
 
 
 SAILOR = ContextRelation.SAILOR
@@ -115,6 +117,7 @@ class NeedCode(StrEnum):
     MEMBERSHIP_REQUESTED = "membership_requested"
     INVITATION_EXPIRED = "invitation_expired"
     DPA_MISSING = "dpa_missing"
+    JURY_INVITED = "jury_invited"
 
 
 class Section(StrEnum):
@@ -129,6 +132,7 @@ class Section(StrEnum):
     DOCUMENTS = "documents"
     BANK = "bank"
     CHILDREN = "children"
+    JURY = "jury"
     # Club (its `people` is the event's key too, below)
     MINORS = "minors"
     SQUADS = "squads"
@@ -207,6 +211,7 @@ SECTION_OF: dict[tuple[str, NeedCode], Section] = {
     ("club", NeedCode.MEMBERSHIP_REQUESTED): Section.PEOPLE,
     ("club", NeedCode.INVITATION_EXPIRED): Section.PEOPLE,
     ("club", NeedCode.DPA_MISSING): Section.PEOPLE,
+    ("me", NeedCode.JURY_INVITED): Section.JURY,
 }
 
 #: Race day itself: the check-in and the results are always *now*.
@@ -227,6 +232,7 @@ WAITED_ON = {
     NeedCode.MEMBERSHIP_REQUESTED,
     NeedCode.INVITATION_EXPIRED,
     NeedCode.DPA_MISSING,
+    NeedCode.JURY_INVITED,
 }
 #: A race day this close makes what it needs *now*; this close, *soon*.
 NOW_WITHIN = timedelta(days=7)
@@ -457,6 +463,8 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     me.add(NeedCode.CLAIM_REJECTED, rejected)
     me.add(NeedCode.DOCUMENTS_EXPIRED, await _expired_documents(session, user))
     me.add(NeedCode.WARD_WAIVER, await _ward_waivers(session, user, required))
+    # Story JU-4: a jury request not yet answered.
+    me.add(NeedCode.JURY_INVITED, await jury.unanswered(session, user.id))
     if person is not None:
         # Story V-15: a club invited me — mine to accept or decline in *My clubs*.
         me.add(
