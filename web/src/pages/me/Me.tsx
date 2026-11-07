@@ -7,6 +7,7 @@ import { Stack } from "../../components/Layouts";
 import { LEGACY_TAB_SECTION } from "../../lib/workspace";
 import { AccountInfo, DeleteAccount, SailorProfile, SignInMethods } from "./Profile";
 import { MyClubs } from "./MyClubs";
+import { MyJury } from "./MyJury";
 import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
 import { Wards, Waivers } from "./Waivers";
 import { useMySpace } from "./shared";
@@ -86,6 +87,8 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
       key: "media",
       render: () => <MediaAdmin withKeys={false} />,
     },
+    // Stories JU-2, JU-4: a judge's licences and requests.
+    { key: "jury", needs: ["jury_invited"], render: () => <MyJury /> },
   ];
   return (
     <WorkspaceFrame
@@ -93,7 +96,11 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
       name={space.data?.me.name ?? account.display_name}
       // An editor of any regatta has *Me › News* and *Me › Pictures*: every post and picture
       // they may change, across all of them (Story R-1).
-      relations={space.data?.contexts.some((c) => c.relations.includes(ContextRelation.editor)) ? [ContextRelation.editor] : []}
+      relations={[
+        ...(space.data?.contexts.some((c) => c.relations.includes(ContextRelation.editor)) ? [ContextRelation.editor] : []),
+        // `judge` is *Me*'s own (Story JU-1).
+        ...(space.data?.me.relations ?? []),
+      ]}
       needs={space.data?.me.needs ?? []}
       sections={sections}
       active={active}

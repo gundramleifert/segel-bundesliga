@@ -44,6 +44,8 @@ const ME_GROUPS = [
   { key: "children", sections: { children: { for: [Relation.guardian] } } },
   // Every post and picture of every regatta I write about (Story R-1, decided 2026-10-25).
   { key: "editorial", sections: { news: { for: [Relation.editor] }, media: { for: [Relation.editor] } } },
+  // A judge of the league's pool: my licences and my requests (Stories JU-2, JU-4).
+  { key: "jury", sections: { jury: { for: [ContextRelation.judge] } } },
 ] as const satisfies readonly GroupDecl[];
 
 /** The club's purse: its treasurer and its admin — not its manager, the team manager, who
@@ -140,6 +142,8 @@ const OFFICE_GROUPS = [
       news: { for: [Relation.admin, Relation.editor] },
       media: { for: [Relation.admin, Relation.editor] },
       imports: { for: [Relation.admin] },
+      // The pool of judges and every event's jury (Stories JU-1, JU-3, JU-5).
+      jury: { for: [Relation.admin, ContextRelation.jury_organizer] },
     },
   },
 ] as const satisfies readonly GroupDecl[];

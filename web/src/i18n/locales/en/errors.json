@@ -245,5 +245,10 @@
   "dpa-required": "Your club has not accepted the data processing agreement yet. The club's admin accepts it under People.",
   "dpa-forbidden": "Only the club's admin accepts the data processing agreement.",
   "dpa-authority-unconfirmed": "Please confirm that you may represent the club or act on behalf of its board.",
-  "dpa-version-outdated": "A newer version of the agreement is in force. Please read and accept it."
+  "dpa-version-outdated": "A newer version of the agreement is in force. Please read and accept it.",
+  "not-a-judge": "Only judges from the pool can be asked, written to or put on a jury.",
+  "jury-event-closed": "This event is over; its jury is no longer staffed here.",
+  "jury-already-approved": "You are on this event's jury. Ask the jury organizer to take you off.",
+  "jury-request-not-found": "There is no such jury request.",
+  "jury-filter-invalid": "This jury filter is not valid."
 }

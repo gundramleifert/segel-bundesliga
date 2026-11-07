@@ -17,10 +17,7 @@ already knows (Z-2), with everything that comes with it: the event in their spac
 the notice board (VA-11) and an expense claim on it, settled by the host club's
 treasurer (F-2, F-3).
 
-**Built so far: the backend** (`app/routers/jury.py`), tested story by story; the
-screens — the office's *Jury* section and *Me › Jury* — are still open, hence ◐.
-
-### JU-1 ◐ The jury organizer keeps the pool of judges
+### JU-1 ● The jury organizer keeps the pool of judges
 As the **jury organizer** I want to **say who is a judge**, so that **I know whom I can
 ask for an event, and only they are asked**.
 
@@ -41,9 +38,11 @@ Acceptance criteria:
 Endpoints: `GET/POST /api/jury/judges`, `DELETE /api/jury/judges/{user_id}`,
 `GET /api/jury/candidates`
 
-Tests: `api/tests/stories/test_jury.py::TestThePool`
+Tests: `api/tests/stories/test_jury.py::TestThePool`,
+`web/tests/test_workspace.ts`,
+`e2e/jury.spec.ts::JU-1/JU-2/JU-3/JU-4/JU-5: the jury organizer staffs an event from the pool of judges`
 
-### JU-2 ◐ A judge says which licences they hold
+### JU-2 ● A judge says which licences they hold
 As a **judge** I want to **say which licences I hold**, so that **the jury organizer
 asks me for what I can do**.
 
@@ -58,9 +57,10 @@ Acceptance criteria:
 
 Endpoints: `GET /api/me/jury`, `PUT /api/me/jury/licences`
 
-Tests: `api/tests/stories/test_jury.py::TestLicences`
+Tests: `api/tests/stories/test_jury.py::TestLicences`,
+`e2e/jury.spec.ts::JU-1/JU-2/JU-3/JU-4/JU-5: the jury organizer staffs an event from the pool of judges`
 
-### JU-3 ◐ The jury organizer asks judges for events, many at once
+### JU-3 ● The jury organizer asks judges for events, many at once
 As the **jury organizer** I want to **ask judges whether they can do an event — several
 events and several judges in one go —** and **find the judges I still need to ask**, so
 that **every event is staffed without a mail per person and event**.
@@ -87,9 +87,10 @@ Acceptance criteria:
 Endpoints: `GET /api/jury/judges`, `GET /api/jury/events`, `POST /api/jury/invitations`,
 `POST /api/jury/messages`
 
-Tests: `api/tests/stories/test_jury.py::TestAsking`
+Tests: `api/tests/stories/test_jury.py::TestAsking`,
+`e2e/jury.spec.ts::JU-1/JU-2/JU-3/JU-4/JU-5: the jury organizer staffs an event from the pool of judges`
 
-### JU-4 ◐ A judge answers: I can, or I cannot
+### JU-4 ● A judge answers: I can, or I cannot
 As a **judge** I want to **answer each request — I can do this event, or I cannot —**
 so that **the jury organizer knows whom to approve**.
 
@@ -104,9 +105,10 @@ Acceptance criteria:
 
 Endpoints: `GET /api/me/jury`, `PUT /api/me/jury/requests/{event_id}`
 
-Tests: `api/tests/stories/test_jury.py::TestAnswering`
+Tests: `api/tests/stories/test_jury.py::TestAnswering`,
+`e2e/jury.spec.ts::JU-1/JU-2/JU-3/JU-4/JU-5: the jury organizer staffs an event from the pool of judges`
 
-### JU-5 ◐ The jury organizer approves or assigns — and the judge is the event's jury
+### JU-5 ● The jury organizer approves or assigns — and the judge is the event's jury
 As the **jury organizer** I want to **approve a judge who is available, or put a judge
 on an event myself**, so that **the event has its jury, and the judge can work and claim
 costs on it**.
@@ -127,7 +129,8 @@ Acceptance criteria:
 Endpoints: `PUT /api/jury/events/{event_id}/judges/{user_id}`,
 `DELETE /api/jury/events/{event_id}/judges/{user_id}`
 
-Tests: `api/tests/stories/test_jury.py::TestApproving`
+Tests: `api/tests/stories/test_jury.py::TestApproving`,
+`e2e/jury.spec.ts::JU-1/JU-2/JU-3/JU-4/JU-5: the jury organizer staffs an event from the pool of judges`
 
 ## On the water
 

@@ -83,6 +83,8 @@ class TestThePool:
         # A judge has no league office.
         contexts = (await client.get("/api/me/contexts", headers=judge)).json()
         assert contexts["office"] is None
+        # *Me › Jury* is theirs: `judge` is a relation of the *Me* card.
+        assert contexts["me"]["relations"] == ["judge"]
 
         assert (
             await client.delete(f"/api/jury/judges/{user_id}", headers=organizer)

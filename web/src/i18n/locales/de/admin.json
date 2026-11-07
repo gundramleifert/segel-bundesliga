@@ -203,7 +203,9 @@
       "treasurer": "Kassenwart",
       "helper": "Helfer",
       "club_admin": "Vereinsverwaltung",
-      "series_manager": "Serienleitung"
+      "series_manager": "Serienleitung",
+      "jury_organizer": "Jury-Obmann",
+      "judge": "Schiedsrichter"
     },
     "nameHeader": "Name",
     "emailHeader": "E-Mail",
@@ -225,7 +227,9 @@
       "jury": "Jury",
       "treasurer": "Kassenwart",
       "helper": "Helfer",
-      "member": "Mitglied"
+      "member": "Mitglied",
+      "jury_organizer": "Jury-Obmann",
+      "judge": "Schiedsrichter"
     },
     "objectTypeLabels": {
       "site": "Gesamte Seite",

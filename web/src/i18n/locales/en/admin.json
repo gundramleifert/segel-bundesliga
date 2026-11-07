@@ -203,7 +203,9 @@
       "treasurer": "Treasurer",
       "helper": "Helper",
       "club_admin": "Club admin",
-      "series_manager": "Series manager"
+      "series_manager": "Series manager",
+      "jury_organizer": "Jury organizer",
+      "judge": "Judge"
     },
     "nameHeader": "Name",
     "emailHeader": "Email",
@@ -225,7 +227,9 @@
       "jury": "Jury",
       "treasurer": "Treasurer",
       "helper": "Helper",
-      "member": "Member"
+      "member": "Member",
+      "jury_organizer": "Jury organizer",
+      "judge": "Judge"
     },
     "objectTypeLabels": {
       "site": "Whole site",

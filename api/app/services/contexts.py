@@ -85,6 +85,8 @@ class ContextRelation(StrEnum):
     HELPER = "helper"
     # Site only: opens the league office's Jury section (Story JU-1).
     JURY_ORGANIZER = "jury_organizer"
+    # Site only, and *Me*'s, never the office's: a judge has *Me › Jury* (Story JU-1).
+    JUDGE = "judge"
 
 
 SAILOR = ContextRelation.SAILOR
@@ -378,6 +380,8 @@ class MySpace:
     name: str
     needs: list[Need]
     contexts: list[Context]
+    #: What I am on *Me* itself — ``judge`` (Story JU-1).
+    relations: list[ContextRelation] = field(default_factory=list)
     #: Everything that needs me, each thing once — what the account button's badge shows.
     total: int = 0
     office: Office | None = None
@@ -431,8 +435,11 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
         return contexts[key]
 
     site_relations: set[ContextRelation] = set()
+    me_relations: list[ContextRelation] = []
     for relation, obj in authz.tuples(user):
-        if obj.type is ObjectType.SITE and relation in ContextRelation.__members__.values():
+        if obj.type is ObjectType.SITE and relation == ContextRelation.JUDGE:
+            me_relations.append(ContextRelation.JUDGE)
+        elif obj.type is ObjectType.SITE and relation in ContextRelation.__members__.values():
             site_relations.add(ContextRelation(relation))
         kind = KIND_OF.get(obj.type)
         if kind is not None and obj.id is not None:
@@ -496,6 +503,7 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
         total=total,
         office=office,
         todos=todos,
+        relations=me_relations,
     )
 
 

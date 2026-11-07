@@ -245,5 +245,10 @@
   "dpa-required": "Euer Verein hat den Auftragsverarbeitungsvertrag noch nicht angenommen. Der Admin des Vereins nimmt ihn unter Personen an.",
   "dpa-forbidden": "Den Auftragsverarbeitungsvertrag nimmt nur der Admin des Vereins an.",
   "dpa-authority-unconfirmed": "Bitte bestätige, dass du den Verein vertreten darfst oder im Auftrag des Vorstands handelst.",
-  "dpa-version-outdated": "Inzwischen gilt eine neuere Fassung des Vertrags. Bitte lies sie und nimm sie an."
+  "dpa-version-outdated": "Inzwischen gilt eine neuere Fassung des Vertrags. Bitte lies sie und nimm sie an.",
+  "not-a-judge": "Nur Schiedsrichter aus dem Pool können angefragt, angeschrieben oder in eine Jury gesetzt werden.",
+  "jury-event-closed": "Diese Veranstaltung ist vorbei; ihre Jury wird hier nicht mehr besetzt.",
+  "jury-already-approved": "Du bist in der Jury dieser Veranstaltung. Bitte den Jury-Obmann, dich auszutragen.",
+  "jury-request-not-found": "Diese Jury-Anfrage gibt es nicht.",
+  "jury-filter-invalid": "Dieser Jury-Filter ist ungültig."
 }

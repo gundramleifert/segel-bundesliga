@@ -34,7 +34,8 @@ export const test = base.extend<{ allureNoStory: void }, { stackBaseURL: string 
       // has ever started and keeps climbing as workers are replaced after a failure — it
       // reached 5187 here, addressing servers that were never started. `parallelIndex` is
       // the slot, 0 .. workers-1, which is what "the n-th stack" means.
-      await use(`http://127.0.0.1:${5173 + workerInfo.parallelIndex}`);
+      // `E2E_WEB_PORT` moves the first stack, for a run beside one already on 5173.
+      await use(`http://127.0.0.1:${Number(process.env.E2E_WEB_PORT ?? 5173) + workerInfo.parallelIndex}`);
     },
     { scope: "worker" },
   ],

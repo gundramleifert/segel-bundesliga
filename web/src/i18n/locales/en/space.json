@@ -302,7 +302,8 @@
       "editorial": "Editorial",
       "setup": "Set up",
       "raceday": "Race day",
-      "office": "League office"
+      "office": "League office",
+      "jury": "Jury"
     },
     "nothingWaits": "Nothing waits for you.",
     "liveNow": "Live now",
@@ -323,7 +324,8 @@
         "bank": "Bank account",
         "children": "My children",
         "news": "News",
-        "media": "Pictures"
+        "media": "Pictures",
+        "jury": "Jury"
       },
       "office": {
         "overview": "Overview",
@@ -334,7 +336,8 @@
         "accounts": "Accounts",
         "news": "News",
         "media": "Media",
-        "imports": "Imports"
+        "imports": "Imports",
+        "jury": "Jury"
       },
       "club": {
         "overview": "Overview",
@@ -526,5 +529,62 @@
     "accepted": "Data processing agreement, version {version}: accepted on {date} by {name}.",
     "read": "Read the agreement",
     "hide": "Hide the agreement"
+  },
+  "jury": {
+    "requestsTitle": "My requests",
+    "requestsEmpty": "Nobody has asked you for an event yet.",
+    "licencesTitle": "Licences",
+    "licencesHint": "Tick the licences you hold. Nobody checks them — your word, as on the water.",
+    "licences": {
+      "umpire": "Umpire",
+      "national_judge": "National judge",
+      "regional_judge": "Regional judge"
+    },
+    "save": "Save",
+    "saved": "Saved.",
+    "states": {
+      "invited": "Asked",
+      "available": "Available",
+      "declined": "Declined",
+      "approved": "Approved"
+    },
+    "available": "I can",
+    "decline": "I cannot",
+    "poolTitle": "Pool of judges",
+    "poolEmpty": "No judge matches.",
+    "search": "Search name or address",
+    "name": "Name",
+    "tickAll": "Tick every judge on this page",
+    "pickEvent": "Show an event as a column",
+    "pickEventNone": "Choose an event…",
+    "draft": "draft",
+    "dropEvent": "Remove the column {event}",
+    "filters": {
+      "approved": "Approved",
+      "!approved": "Not approved",
+      "available": "Available",
+      "invited": "Asked, no answer",
+      "declined": "Declined",
+      "asked": "Asked",
+      "!asked": "Not asked"
+    },
+    "approve": "Approve",
+    "takeOff": "Take off",
+    "remove": "Remove from pool",
+    "removeConfirm": "Their open requests are withdrawn; a jury they are on stays.",
+    "cancel": "Cancel",
+    "addJudge": "Judge",
+    "candidateSearch": "Find an account by name or address",
+    "add": "Add",
+    "noCandidates": "No account found that is not a judge yet.",
+    "tickedTitle": "{count, plural, one {# judge ticked} other {# judges ticked}}",
+    "note": "Note for the request (optional)",
+    "invite": "{count, plural, one {Ask for the event shown} other {Ask for the # events shown}}",
+    "inviteNoEvent": "Show an event as a column to ask for it",
+    "invited": "{created, plural, =0 {Nothing new asked} one {# request sent} other {# requests sent}}, {existing} asked before; {mailed, plural, one {# mail} other {# mails}}.",
+    "subject": "Subject",
+    "text": "Message",
+    "send": "Write to them",
+    "sent": "{mailed, plural, one {# mail sent} other {# mails sent}}."
   }
 }

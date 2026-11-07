@@ -126,9 +126,15 @@ describe("Story Z-10: the sections each person of §5 has", () => {
 
   test("the site admin: the league office complete", () => {
     expect(sectionsFor("office", [Relation.admin])).toEqual([
-      "overview", "clubs", "series", "events", "people", "accounts", "news", "media", "imports",
+      "overview", "clubs", "series", "events", "people", "accounts", "news", "media", "imports", "jury",
     ]);
     expect(sectionsFor("office", [Relation.race_officer])).toEqual(["overview", "events"]);
+  });
+
+  test("Story JU-1: the jury organizer has the office's Jury, a judge Me › Jury", () => {
+    expect(sectionsFor("office", [Relation.jury_organizer])).toEqual(["overview", "jury"]);
+    expect(hasSection("me", "jury", [Relation.judge])).toBe(true);
+    expect(hasSection("me", "jury", [])).toBe(false);
   });
 
   test("a sailor who also helps at an event: their crew and their claims", () => {
