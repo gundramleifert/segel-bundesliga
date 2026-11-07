@@ -70,7 +70,7 @@ async def league_run():
 
 @needs_jar
 async def test_the_quality_report_is_available_before_publishing():
-    """VA-3: The organizer should see the quality before publishing."""
+    """VA-7: The organizer should see the quality before publishing."""
     result, _ = await league_run()
     summary = result.summary()
 
@@ -94,7 +94,7 @@ async def test_our_metrics_agree_with_the_tools_own_numbers():
 
 @needs_jar
 async def test_progress_is_reported_while_the_optimizer_runs():
-    """VA-3: A minute-long run must not be a black box for the organizer."""
+    """VA-7: A minute-long run must not be a black box for the organizer."""
     _, seen = await league_run()
 
     assert seen, "No progress messages were received"

@@ -33,8 +33,8 @@ Repo: `github.com/gundramleifert/PairingList` (Java, Maven), cloned as `referenc
 Contains **41 event directories** with real pairings since 2023 (DSBL, SCL, JSCL, WSCL,
 DSL Cup, US Sailing League).
 
-**Decision (29.08.2026):** The JAR generates the Pairing lists, including for 
-calculation from the UI (Story VA-3). A port to Python comes later.
+**Decision (29.08.2026):** The JAR generates the Pairing lists — offline, into the
+catalog (Story VA-7); the site never computes one (decided 2026-11-07, Story VA-3 dropped). A port to Python comes later.
 Integrated via `api/app/pairing/generator.py`.
 
 ### Why Not Python — The Numbers

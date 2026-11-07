@@ -7,7 +7,7 @@ import { Field, Message } from "../../../components/Form";
 import { errorText } from "../../../lib/admin";
 import { sizedInput } from "./setup";
 
-/** The backend's own default seed (`PairingJobRequest.seed` in app/schemas/admin.py) —
+/** The prefilled seed (Story VA-7) —
  *  same seed, same draw, reproducible if it ever needs proving. */
 const DEFAULT_SEED = 1240;
 

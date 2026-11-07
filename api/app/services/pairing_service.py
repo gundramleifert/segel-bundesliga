@@ -2,7 +2,7 @@
 
 Publishing a pairing list means creating the boats, flights, races and the team-to-boat
 assignment. It replaces an existing list **completely** — hence the safeguard that a race
-already sailed is never overwritten (Story VA-3).
+already sailed is never overwritten (Story VA-8).
 """
 
 from __future__ import annotations

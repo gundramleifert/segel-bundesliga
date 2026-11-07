@@ -1727,14 +1727,6 @@
   "file": "docs/userstories/event-organizer.md",
   "anchor": "va-2--self-check-in-with-liability-waiver"
  },
- "VA-3": {
-  "title": "Calculate and publish pairing list in the interface",
-  "status": "○",
-  "role": "Event Organizer",
-  "phase": "The draw",
-  "file": "docs/userstories/event-organizer.md",
-  "anchor": "va-3--calculate-and-publish-pairing-list-in-the-interface"
- },
  "VA-4": {
   "title": "Participants write posts on the homepage",
   "status": "○",

@@ -154,7 +154,7 @@ class GenerationResult:
     log: str
 
     def summary(self) -> dict:
-        """The quality report the organizer sees before publishing (Story VA-3)."""
+        """The quality report of a computed list — printed when a catalog entry is made."""
         return {**self.quality, **self.logistics.as_dict()}
 
 

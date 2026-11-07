@@ -454,9 +454,9 @@ Acceptance criteria:
 - **Shuffling does not change quality**: boat distribution, encounters, and boat changes depend
   on the structure of the list, not on which name is at which starting position.
 - The same seed produces the **same** draw — recoverable in case of dispute.
-- If no entry fits the configuration, the response says which ones are available; the way via
-  the calculation job ([VA-3](#va-3--calculate-and-publish-pairing-list-in-the-interface))
-  remains.
+- If no entry fits the configuration, the response says which ones are available. **The site
+  never computes a list** (decided 2026-11-07, which dropped Story VA-3 and its compute job):
+  a missing size is added to the catalog once, offline, with the command below.
 - **The draw is the third step of creating an event** ([VA-6](#va-6--create-event-with-its-configuration)):
   the seed is prefilled (`1240`, reproducible) and one press draws. It used to fire
   automatically right after creation, which for a new event without clubs always failed and
@@ -471,37 +471,6 @@ Extend catalog: `uv run python -m app.pairing.catalog --teams 18 --boats 6 --fli
 
 Tests: `api/tests/unit/test_pairing_catalog.py`,
 `api/tests/stories/test_create_event.py::TestPairingFromCatalog`
-
-### VA-3 ○ Calculate and publish pairing list in the interface
-As an **event organizer** I want to **calculate and publish the pairing list via the
-interface**, so that I **don't have to operate command-line tools**.
-
-Acceptance criteria:
-- Team count, boat count, and flight count are set in the interface; calculation runs on the
-  server, not in the browser.
-- Calculation takes noticeably longer than a click — it needs a progress indicator and the
-  ability to leave the page in between.
-- **Before publishing, quality is displayed**: boat distribution per team, encounter frequency,
-  boat changes between flights. The organizer decides rather than blindly trusting the result.
-- The draw is **reproducible**: same input and same seed produce the same list. A draw must
-  be provable in case of dispute.
-- Generate multiple suggestions side by side and select the best.
-- Publishing makes the list publicly visible (Story B-3) and can be undone as long as no
-  races have been sailed.
-- An already sailed race must not be overwritten by recalculation.
-- Output as printable PDF that can be distributed to teams — done, as the download on the
-  public pairing list ([B-3](visitor.md#b-3--view-pairing-list)); the organizer needs no separate one.
-
-**Open decision:** This story elevates the generator from fallback to main function. Three
-approaches are available — enhance the Python generator, call the existing Java tool from
-the backend, or extend the Java tool with an interface. See `docs/findings.md`, section 2.
-
-Implemented in the backend is the chain: start job, query progress, read quality report,
-publish — `POST /api/admin/events/{slug}/pairing/jobs`, `GET /api/admin/jobs/{id}`,
-`POST /api/admin/events/{slug}/pairing/publish`. Calculation is done with the Java tool.
-The interface is missing.
-
-Tests: `api/tests/unit/test_pairing_generator_jar.py`, `api/tests/unit/test_pairing_generator.py`
 
 ## The matchday and after it
 

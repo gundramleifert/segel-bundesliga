@@ -1,45 +1,37 @@
-"""Admin endpoints: compute, validate, publish pairing lists (Story VA-3);
+"""Admin endpoints: draw and import pairing lists (Story VA-7);
 enter and correct race results (Story WL-2).
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Body, Depends, Query, status
+from fastapi import APIRouter, Body, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_user, require_admin, require_event_officer
 from app.db import get_session
-from app.jobs import Job, JobStatus, jobs
 from app.live import event_topic, hub
 from app.models import Event
 from app.models.auth import User
 from app.models.org import Team
 from app.models.racing import (
-    BOAT_COLORS,
     Boat,
     Flight,
     Race,
     RaceEntry,
 )
-from app.pairing import BoatSpec, load_pairing_yaml
+from app.pairing import load_pairing_yaml
 from app.pairing.catalog import CatalogError, catalog_entries, load_entry, shuffle_pairing
 from app.pairing.generator import (
-    GenerationRequest,
-    OptimizerSettings,
     PairingGeneratorError,
-    generate_pairing,
 )
 from app.pairing.importer import PairingImportError
 from app.problems import Problem
 from app.schemas.admin import (
     AdminRaceOut,
     AdminRacesOut,
-    JobOut,
     PairingImportRequest,
-    PairingJobRequest,
-    PublishRequest,
     PublishResult,
     RaceEntryOut,
     RaceResultsIn,
@@ -70,142 +62,6 @@ from app.services.sap_scoring import refuse_if_scored_on_sap
 from app.tracking.service import active_course
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
-
-# Reduced settings for a quick preview. The default corresponds to the
-# configuration of actual matchdays and takes correspondingly long.
-FAST = OptimizerSettings(
-    loops=400,
-    match_individuals=60,
-    boat_individuals=100,
-    swap_teams=30,
-    swap_boats=40,
-    swap_races=20,
-)
-
-
-@router.post(
-    "/events/{event_id}/pairing/jobs",
-    response_model=JobOut,
-    status_code=status.HTTP_202_ACCEPTED,
-    dependencies=[Depends(require_admin)],
-    summary="Compute pairing list",
-)
-async def start_pairing_job(
-    event_id: int,
-    request: PairingJobRequest,
-    session: AsyncSession = Depends(get_session),
-) -> JobOut:
-    """Starts the computation in the background.
-
-    Depending on settings, the run takes seconds to many minutes — that's why it's a job with
-    progress rather than a waiting request. The result is **not** automatically
-    published; the organizer sees the quality report first.
-
-    The event has to be ready (Story VA-8) — except for the catalog reason, since computing
-    a list is exactly what one does when the catalog holds none — and its configuration
-    must not be frozen: once a race has started, the list underneath it stays.
-    """
-    event = await get_or_404(session, Event, event_id)
-    await require_editable_configuration(session, event.id)
-    await require_ready(session, event, ignore={CATALOG_REASON})
-    teams = await event_entries(session, event.id)
-    if len(teams) < request.boats:
-        raise Problem(
-            422,
-            "pairing-too-few-teams",
-            f"Only {len(teams)} teams registered, but {request.boats} boats.",
-            teams=len(teams),
-            boats=request.boats,
-        )
-    if len(teams) % request.boats:
-        raise Problem(
-            422,
-            "pairing-uneven-teams",
-            f"{len(teams)} teams cannot be evenly distributed across {request.boats} boats.",
-            teams=len(teams),
-            boats=request.boats,
-        )
-
-    team_ids = [team.id for team in teams]
-    generation = GenerationRequest(
-        teams=[team.name for team in teams],
-        boats=[
-            BoatSpec(number=n + 1, color=BOAT_COLORS[n % len(BOAT_COLORS)])
-            for n in range(request.boats)
-        ],
-        flights=request.flights,
-        title=event.title,
-        optimizer=(FAST if request.effort == "fast" else OptimizerSettings(seed=request.seed)),
-    )
-
-    async def work(job: Job) -> PairingDraft:
-        result = await generate_pairing(
-            generation,
-            on_progress=lambda p: job.report(p.fraction, p.message),
-        )
-        draft = PairingDraft.from_import(result.pairing, team_ids)
-        draft.quality = result.summary()
-        return draft
-
-    return _job_out(jobs.start("pairing", work))
-
-
-@router.get(
-    "/jobs/{job_id}",
-    response_model=JobOut,
-    dependencies=[Depends(require_admin)],
-    summary="Job status",
-)
-async def get_job(job_id: str) -> JobOut:
-    job = jobs.get(job_id)
-    if job is None:
-        raise Problem(404, "job-not-found", "This job does not exist (anymore).")
-    return _job_out(job)
-
-
-@router.delete(
-    "/jobs/{job_id}",
-    response_model=JobOut,
-    dependencies=[Depends(require_admin)],
-    summary="Cancel job",
-)
-async def cancel_job(job_id: str) -> JobOut:
-    job = jobs.get(job_id)
-    if job is None:
-        raise Problem(404, "job-not-found", "This job does not exist (anymore).")
-    jobs.cancel(job_id)
-    return _job_out(job)
-
-
-@router.post(
-    "/events/{event_id}/pairing/publish",
-    response_model=PublishResult,
-    dependencies=[Depends(require_admin)],
-    summary="Publish computed list",
-)
-async def publish_job_result(
-    event_id: int,
-    request: PublishRequest,
-    session: AsyncSession = Depends(get_session),
-) -> PublishResult:
-    event = await get_or_404(session, Event, event_id)
-    await require_editable_configuration(session, event.id)
-    job = jobs.get(request.job_id)
-    if job is None:
-        raise Problem(404, "job-not-found", "This job does not exist (anymore).")
-    if job.status != JobStatus.DONE:
-        raise Problem(
-            409,
-            "job-not-complete",
-            f"The job is not complete (status: {job.status}).",
-            job_status=str(job.status),
-        )
-    draft = job.result
-    if not isinstance(draft, PairingDraft):
-        raise Problem(409, "job-without-pairing-list", "This job contains no pairing list.")
-
-    return PublishResult(**(await _publish(session, event, draft))._asdict(), quality=draft.quality)
-
 
 class CatalogEntryOut(BaseModel):
     """A finished size from the catalog."""
@@ -731,18 +587,3 @@ async def _publish(session: AsyncSession, event: Event, draft: PairingDraft) -> 
     # pairing tab both read it. After the commit (Story B-5).
     hub.publish(event_topic(event.id))
     return created
-
-
-def _job_out(job: Job) -> JobOut:
-    quality = job.result.quality if isinstance(job.result, PairingDraft) else {}
-    return JobOut(
-        id=job.id,
-        kind=job.kind,
-        status=job.status,
-        progress=job.progress,
-        message=job.message,
-        error=job.error,
-        created_at=job.created_at,
-        finished_at=job.finished_at,
-        quality=quality,
-    )

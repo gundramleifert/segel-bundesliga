@@ -301,9 +301,10 @@ These points were deliberately decided this way; bypassing them costs a lot late
   `api/app/pairing/schedule.py` is **not a replacement**: it does not optimize boat swaps
   between flights and creates roughly 27 instead of 0. Before porting, this metric must be
   included — see `docs/findings.md`, section 2.
-- **An optimization run takes minutes, not seconds.** It belongs in a background job with
-  progress indication, never in an HTTP request.
-- **The default is therefore the catalog** (`api/app/pairing/schedules/`): per configuration
+- **The site never computes a pairing list; it takes the catalog's** (decided 2026-11-07,
+  Story VA-3 dropped with its compute job): an optimization run takes minutes and is done
+  once, offline, per configuration.
+- **The catalog** (`api/app/pairing/schedules/`): per configuration
   (teams/boats/flights) **one** stored `out.yml`, computed once. A seed value shuffles starting
   positions in milliseconds and leaves every quality metric unchanged — they depend on structure,
   not names. Extend with:
