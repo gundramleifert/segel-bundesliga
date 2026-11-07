@@ -16,7 +16,7 @@ from app.models import Club, ClubBankAccount, Payment, PaymentRun, PaymentStatus
 from app.models.auth import User
 from app.problems import Problem
 from app.routers.personal import BankAccountIn, BankAccountOut
-from app.services import payments
+from app.services import dpa, payments
 from app.services.personal import bic_for, checked_iban
 
 router = APIRouter(tags=["payments"])
@@ -100,12 +100,14 @@ async def _club(session: AsyncSession, club_id: int, acting: User) -> Club:
     if club is None:
         raise Problem(404, "club-not-found", "No such club.")
     payments.require_pay_for(acting, club_id)
+    await dpa.ensure(session, acting, club_id)
     return club
 
 
 async def _run(session: AsyncSession, run_id: int, acting: User) -> PaymentRun:
     run = await payments.load_run(session, run_id)
     payments.require_pay_for(acting, run.payer_club_id)
+    await dpa.ensure(session, acting, run.payer_club_id)
     return run
 
 

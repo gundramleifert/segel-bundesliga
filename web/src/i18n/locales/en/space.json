@@ -520,6 +520,9 @@
     "why": "Your club is responsible for its members' data; the Deutsche Segel-Liga processes it here on the club's behalf. Art. 28 GDPR requires this agreement for that. Until it is accepted you cannot add or change people, register a squad or name a crew.",
     "version": "Version {version}",
     "authorized": "I may represent the club or act on behalf of its board (§ 26 BGB), and I accept this agreement for the club.",
-    "accept": "Accept for the club"
+    "accept": "Accept for the club",
+    "accepted": "Data processing agreement, version {version}: accepted on {date} by {name}.",
+    "read": "Read the agreement",
+    "hide": "Hide the agreement"
   }
 }

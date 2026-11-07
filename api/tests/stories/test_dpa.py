@@ -9,8 +9,9 @@ from uuid import uuid4
 
 from app.db import SessionLocal
 from app.models import Club
-from app.models.auth import Role
+from app.models.auth import Grant, Relation, Role
 from app.services.dpa import DPA_VERSION
+from tests.accounts import account
 from tests.stories.test_login_and_roles import (
     _admin_headers,
     _headers,
@@ -113,3 +114,48 @@ class TestDpa:
         club = await _club()
         office = await _admin_headers(client, caplog)
         assert (await _add_member(client, office, club)).status_code == 201
+
+
+class TestDpaMoneyAndEvents:
+    """V-17: claims, the club's money and the club's own events wait on the agreement too."""
+
+    async def test_a_claim_does_not_reach_a_club_without_the_agreement(self, client, caplog):
+        """A member drafts a claim on the club; submitting it is `dpa-required`."""
+        club = await _club()
+        email = f"member-{uuid4().hex[:6]}@example.com"
+        await account(email, Grant(relation=Relation.MEMBER, club_id=club))
+        member = await _headers(client, caplog, email)
+        draft = await client.post(
+            "/api/claims", headers=member, json={"title": "Fahrt", "club_id": club}
+        )
+        assert draft.status_code == 201, draft.text
+
+        submitted = await client.post(f"/api/claims/{draft.json()['id']}/submit", headers=member)
+        assert submitted.status_code == 409, submitted.text
+        assert _problem_code(submitted) == "dpa-required"
+
+    async def test_the_treasurer_saves_no_account_without_the_agreement(self, client, caplog):
+        club = await _club()
+        email = f"cash-{uuid4().hex[:6]}@example.com"
+        await account(email, Grant(relation=Relation.TREASURER, club_id=club), dpa_accepted=False)
+        treasurer = await _headers(client, caplog, email)
+        saved = await client.put(
+            f"/api/clubs/{club}/bank-account",
+            headers=treasurer,
+            json={"holder": "Segelclub Vertrag", "iban": "DE89370400440532013000"},
+        )
+        assert saved.status_code == 409, saved.text
+        assert _problem_code(saved) == "dpa-required"
+
+    async def test_a_club_hosts_no_event_of_its_own_without_the_agreement(self, client, caplog):
+        club = await _club()
+        email = f"host-{uuid4().hex[:6]}@example.com"
+        await make_user(email, Role.TEAM_MANAGER, club_id=club, dpa_accepted=False)
+        manager = await _headers(client, caplog, email)
+        created = await client.post(
+            "/api/admin/events",
+            headers=manager,
+            json={"title": "Vereinsregatta", "host_club_id": club},
+        )
+        assert created.status_code == 409, created.text
+        assert _problem_code(created) == "dpa-required"

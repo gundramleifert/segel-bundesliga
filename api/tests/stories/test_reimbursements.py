@@ -18,7 +18,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import AuditLog, Club, Event, Series
 from app.models.auth import Grant, Relation, Role, User
-from tests.accounts import account
+from tests.accounts import accept_dpa, account
 from tests.stories.test_login_and_roles import _headers, _problem_code
 
 IBAN = "DE89370400440532013000"
@@ -63,7 +63,10 @@ async def world() -> World:
         orphan = Event(slug=f"o-{tag}", title=f"Orphan {tag}")
         session.add_all([event, orphan])
         await session.commit()
-        return World(club.id, other.id, series.id, event.id, orphan.id)
+    # Both clubs accepted the data processing agreement (Story V-17): a claim reaches them.
+    await accept_dpa(club.id)
+    await accept_dpa(other.id)
+    return World(club.id, other.id, series.id, event.id, orphan.id)
 
 
 async def _title_tag(event_id: int) -> str:

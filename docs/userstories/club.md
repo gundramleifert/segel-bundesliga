@@ -25,7 +25,7 @@ above — and [A-9](administration.md#a-9--accept-or-reject-participation) is ad
 
 ## Data processing agreement
 
-### V-17 ◐ Accept the data processing agreement first
+### V-17 ● Accept the data processing agreement first
 As a **club admin** I want to **accept the association's data processing agreement once,
 online, before my club works with its people here**, so that **the club, as controller of
 its members' data, has the contract Art. 28 GDPR requires with the association that
@@ -47,10 +47,13 @@ Acceptance criteria:
   club and version, and logged.
 - Until then the club's side refuses with `dpa-required` (409), naming the club: adding,
   inviting, accepting and removing members; creating and changing people; registering a
-  squad; naming a crew. The person's own steps — asking to join, leaving, accepting an
+  squad; naming a crew; submitting a claim the club pays, and deciding or paying it; the
+  club's bank account and payment runs; creating an event the club hosts outside a series.
+  A draft claim stays the claimant's own. The person's own steps — asking to join, leaving, accepting an
   invitation — and everything the **league office** (site `admin`) does stay open: the
   association acts for itself there, not for the club.
-- The club's `admin` sees the to-do `dpa_missing`, linking to *People*.
+- The club's `admin` sees the to-do `dpa_missing`, linking to *People*. Once accepted,
+  *People* says which version was accepted when and by whom, and the text stays readable.
 - `GET /api/clubs/{id}/dpa` tells the club's organizers which version is in force and
   whether and when it was accepted, and by whom.
 
@@ -60,8 +63,7 @@ Tests: `api/tests/stories/test_dpa.py`
 
 Open: the agreement's text still needs the association's lawyer's release; the
 sub-processors it names (Hetzner, STRATO) may change — and Presentec joins them if the site
-is hosted through Presentec at Hetzner. Claims, payment runs and the club's events as host
-are not gated yet.
+is hosted through Presentec at Hetzner.
 
 ## Members
 

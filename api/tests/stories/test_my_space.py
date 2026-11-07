@@ -41,6 +41,7 @@ from app.models.org import TeamStatus
 from app.models.racing import RaceStatus
 from app.services import people
 from app.services.participation import activate
+from tests.accounts import accept_dpa
 from tests.stories.test_personal_space import upload
 from tests.stories.test_reimbursements import login, submitted
 
@@ -53,12 +54,15 @@ def _tag() -> str:
 
 
 async def _club(name: str = "Club") -> int:
+    """A fresh club, which has accepted the data processing agreement (Story V-17)."""
     tag = _tag()
     async with SessionLocal() as session:
         club = Club(slug=f"c-{tag}", name=f"{name} {tag}", short_name="C")
         session.add(club)
         await session.commit()
-        return club.id
+        club_id = club.id
+    await accept_dpa(club_id)
+    return club_id
 
 
 async def _series(**fields) -> int:

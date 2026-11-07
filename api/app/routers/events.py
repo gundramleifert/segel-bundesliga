@@ -50,6 +50,7 @@ from app.services import (
     candidate_clubs,
     check_squad_limits,
     configuration_frozen,
+    dpa,
     event_entries,
     event_readiness,
     event_state,
@@ -370,6 +371,9 @@ async def create_event(
     _can_create(acting, request.host_club_id, series.id if series else None)
     if request.host_club_id is not None:
         await get_or_404(session, Club, request.host_club_id)
+        if series is None and not authz.check(acting, Relation.ADMIN, Relation.RACE_OFFICER):
+            # The club's own event, not the league's (Story V-17).
+            await dpa.ensure(session, acting, request.host_club_id)
     if request.venue_id is not None:
         await get_or_404(session, Venue, request.venue_id)
 

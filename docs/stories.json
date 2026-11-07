@@ -1601,7 +1601,7 @@
  },
  "V-17": {
   "title": "Accept the data processing agreement first",
-  "status": "◐",
+  "status": "●",
   "role": "Club: its admin and its team manager",
   "phase": "Data processing agreement",
   "file": "docs/userstories/club.md",

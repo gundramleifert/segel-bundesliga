@@ -26,7 +26,7 @@ from app.models import (
 )
 from app.models.auth import Relation, User
 from app.problems import Problem
-from app.services import expenses, payments, uploads
+from app.services import dpa, expenses, payments, uploads
 from app.services.audit import EntityType, audit
 from app.services.expenses import UnclaimableReason
 from app.services.personal import RECEIPTS
@@ -518,6 +518,7 @@ async def submit_claim(
     acting: User = Depends(current_user),
 ) -> ClaimOut:
     claim = await _visible(session, claim_id, acting)
+    await _paying_club_accepted(session, acting, claim)
     await expenses.submit(session, acting, claim)
     return await _saved(session, claim_id, acting)
 
@@ -541,7 +542,16 @@ async def _decidable(session: AsyncSession, claim_id: int, acting: User) -> Expe
     than the claimant's 404, so a manager learns it is not theirs."""
     claim = await expenses.load(session, claim_id)
     expenses.require_decider(acting, claim)
+    await _paying_club_accepted(session, acting, claim)
     return claim
+
+
+async def _paying_club_accepted(session: AsyncSession, acting: User, claim: ExpenseClaim) -> None:
+    """A claim reaches the club that pays it only once that club accepted the data
+    processing agreement (Story V-17); a draft stays the claimant's own."""
+    payer = await expenses.paying_club(session, claim)
+    if payer is not None:
+        await dpa.ensure(session, acting, payer.id)
 
 
 @router.post("/api/claims/{claim_id}/approve", response_model=ClaimOut, summary="Approve a claim")

@@ -520,6 +520,9 @@
     "why": "Euer Verein ist für die Daten seiner Mitglieder verantwortlich, die Deutsche Segel-Liga verarbeitet sie hier in seinem Auftrag. Dafür verlangt Art. 28 DSGVO diesen Vertrag. Bis er angenommen ist, könnt ihr keine Personen aufnehmen oder ändern, keinen Kader melden und keine Crew aufstellen.",
     "version": "Fassung {version}",
     "authorized": "Ich darf den Verein vertreten oder handle im Auftrag seines Vorstands (§ 26 BGB), und ich nehme diesen Vertrag für den Verein an.",
-    "accept": "Für den Verein annehmen"
+    "accept": "Für den Verein annehmen",
+    "accepted": "Auftragsverarbeitungsvertrag, Fassung {version}: angenommen am {date} von {name}.",
+    "read": "Vertrag lesen",
+    "hide": "Vertrag ausblenden"
   }
 }
