@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import { test as base } from "@playwright/test";
+import { type APIRequestContext, test as base } from "@playwright/test";
 import * as allure from "allure-js-commons";
 
 /** The `test` every spec here imports — Playwright's, pointed at this worker's own stack.
@@ -15,7 +15,39 @@ import * as allure from "allure-js-commons";
  * `use.baseURL` in the config, but it can override the fixture that provides it, and every
  * spec navigates with relative paths.
  */
-export const test = base.extend<{ allureNoStory: void }, { stackBaseURL: string }>({
+/** The practice season (`app/practice.py`): a published series of a division's real
+ *  clubs in the league `practice`, a squad of ten per club, and a final, a live and a
+ *  planned act with crews and results. The seed has nothing invented, so a test that
+ *  needs a squad, a crew or a live act asks for this. Club ids are keys as strings. */
+export type Season = {
+  label: string;
+  series: number;
+  final: number;
+  live: number;
+  planned: number;
+  squads: Record<string, number[]>;
+  registrations: Record<string, number>;
+};
+
+async function practiceSeason(request: APIRequestContext, level: 1 | 2): Promise<Season> {
+  // Built by the first call on this stack, read by every later one (`/api/dev`).
+  const response = await request.post(`/api/dev/season?level=${level}`);
+  if (!response.ok()) throw new Error(`practice season: ${response.status()} ${await response.text()}`);
+  return (await response.json()) as Season;
+}
+
+export const test = base.extend<
+  { allureNoStory: void; season: Season; season2: Season },
+  { stackBaseURL: string }
+>({
+  /** The 1. Liga's clubs' practice season. */
+  season: async ({ request }, use) => {
+    await use(await practiceSeason(request, 1));
+  },
+  /** The 2. Liga's — the test club ASVW's; its planned act is ASVW's to host. */
+  season2: async ({ request }, use) => {
+    await use(await practiceSeason(request, 2));
+  },
   // A test in no story group ("Foundations") lands in Allure's "(no story)" group, the
   // same one the backend's story-less tests go to — rather than loose at the report's root.
   allureNoStory: [

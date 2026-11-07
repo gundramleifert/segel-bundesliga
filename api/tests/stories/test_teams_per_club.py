@@ -1,31 +1,25 @@
 """Story VA-13: a club enters more than one team — an option of the event.
 
-The seed's ASVW is registered for the 2. Liga 2026 with a squad; each test makes its own
-acts in that series, so the seeded acts stay as they are.
+The test club ASVW is registered for the practice 2. Liga (`season_2`) with a squad; each
+test makes its own acts in that series, so the season's acts stay as they are.
 """
 
 from __future__ import annotations
 
 from uuid import uuid4
 
-from sqlalchemy import select
-
-from app.db import SessionLocal
-from app.models import Team, TeamMembership
 from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
-SERIES = "demo-2-2026"
 
-
-async def _act(client, headers, ids, *, teams_per_club: int, team_count: int = 18) -> int:
+async def _act(client, headers, season_2, *, teams_per_club: int, team_count: int = 18) -> int:
     response = await client.post(
         "/api/admin/events",
         headers=headers,
         json={
             "title": f"Act {uuid4().hex[:6]}",
-            "series": ids.series(SERIES),
+            "series": season_2.series,
             "team_count": team_count,
             "teams_per_club": teams_per_club,
         },
@@ -41,35 +35,13 @@ async def _enter(client, headers, event_id: int, clubs: list[int]):
     )
 
 
-async def _asvw_squad(ids) -> list[int]:
-    async with SessionLocal() as session:
-        registration = (
-            await session.execute(
-                select(Team.id).where(
-                    Team.club_id == ids.club("asvw"),
-                    Team.series_id == ids.series(SERIES),
-                    Team.event_id.is_(None),
-                )
-            )
-        ).scalar_one()
-        return list(
-            (
-                await session.execute(
-                    select(TeamMembership.person_id)
-                    .where(TeamMembership.team_id == registration)
-                    .order_by(TeamMembership.person_id)
-                )
-            ).scalars()
-        )
-
-
 class TestTeamsPerClub:
     """VA-13: as an organizer I let a club enter several teams in one event."""
 
-    async def test_a_club_listed_twice_enters_two_teams(self, client, caplog, ids):
+    async def test_a_club_listed_twice_enters_two_teams(self, client, caplog, ids, season_2):
         """Story VA-13: `ASVW` and `ASVW 2`, each its own entry, numbered."""
         headers = await admin(client, caplog, "va13-two@example.com")
-        event_id = await _act(client, headers, ids, teams_per_club=2)
+        event_id = await _act(client, headers, season_2, teams_per_club=2)
         asvw = ids.club("asvw")
 
         response = await _enter(client, headers, event_id, [asvw, asvw])
@@ -77,20 +49,22 @@ class TestTeamsPerClub:
         teams = sorted((p["number"], p["name"]) for p in response.json() if p["club"]["id"] == asvw)
         assert teams == [(1, "ASVW"), (2, "ASVW 2")]
 
-    async def test_more_teams_than_the_event_allows_are_refused(self, client, caplog, ids):
+    async def test_more_teams_than_the_event_allows_are_refused(
+        self, client, caplog, ids, season_2
+    ):
         """Story VA-13: one team per club is the normal case; a second needs the option."""
         headers = await admin(client, caplog, "va13-one@example.com")
-        event_id = await _act(client, headers, ids, teams_per_club=1)
+        event_id = await _act(client, headers, season_2, teams_per_club=1)
         asvw = ids.club("asvw")
 
         response = await _enter(client, headers, event_id, [asvw, asvw])
         assert response.status_code == 422, response.text
         assert response.json()["type"].endswith("/too-many-teams-per-club")
 
-    async def test_any_number_of_teams_up_to_the_event_s_size(self, client, caplog, ids):
+    async def test_any_number_of_teams_up_to_the_event_s_size(self, client, caplog, ids, season_2):
         """Story VA-13: three teams of one club, and fewer again takes the highest away."""
         headers = await admin(client, caplog, "va13-three@example.com")
-        event_id = await _act(client, headers, ids, teams_per_club=3)
+        event_id = await _act(client, headers, season_2, teams_per_club=3)
         asvw = ids.club("asvw")
 
         three = await _enter(client, headers, event_id, [asvw, asvw, asvw])
@@ -103,7 +77,9 @@ class TestTeamsPerClub:
         two = await _enter(client, headers, event_id, [asvw, asvw])
         assert sorted(p["number"] for p in two.json() if p["club"]["id"] == asvw) == [1, 2]
 
-    async def test_a_club_cannot_enter_more_teams_than_the_event_has(self, client, caplog, ids):
+    async def test_a_club_cannot_enter_more_teams_than_the_event_has(
+        self, client, caplog, ids, season_2
+    ):
         """Story VA-13: the option runs from 1 up to the number of teams."""
         headers = await admin(client, caplog, "va13-size@example.com")
         response = await client.post(
@@ -113,19 +89,21 @@ class TestTeamsPerClub:
         )
         assert response.status_code == 422, response.text
 
-        event_id = await _act(client, headers, ids, teams_per_club=2, team_count=6)
+        event_id = await _act(client, headers, season_2, teams_per_club=2, team_count=6)
         patched = await client.patch(
             f"/api/admin/events/{event_id}", headers=headers, json={"teams_per_club": 7}
         )
         assert patched.status_code == 422, patched.text
 
-    async def test_every_team_is_lined_up_from_the_club_s_one_squad(self, client, caplog, ids):
+    async def test_every_team_is_lined_up_from_the_club_s_one_squad(
+        self, client, caplog, ids, season_2
+    ):
         """Story VA-13: a sailor sails for ASVW 1 at one act and ASVW 2 at the next —
         always for ASVW, and never for two teams in the same act."""
         headers = await admin(client, caplog, "va13-squad@example.com")
         asvw = ids.club("asvw")
-        first_act = await _act(client, headers, ids, teams_per_club=2)
-        second_act = await _act(client, headers, ids, teams_per_club=2)
+        first_act = await _act(client, headers, season_2, teams_per_club=2)
+        second_act = await _act(client, headers, season_2, teams_per_club=2)
         teams: dict[tuple[int, int], int] = {}
         for event_id in (first_act, second_act):
             entered = await _enter(client, headers, event_id, [asvw, asvw])
@@ -133,7 +111,7 @@ class TestTeamsPerClub:
             for p in entered.json():
                 if p["club"]["id"] == asvw:
                     teams[(event_id, p["number"])] = p["team_id"]
-        squad = await _asvw_squad(ids)
+        squad = sorted(season_2.squads[asvw])
         person = squad[0]
 
         async def line_up(event_id: int, number: int, person_ids: list[int]):
@@ -159,11 +137,13 @@ class TestTeamsPerClub:
         other = await line_up(first_act, 2, [squad[1]])
         assert other.status_code == 200, other.text
 
-    async def test_the_event_s_organizer_sets_and_changes_the_number(self, client, caplog, ids):
+    async def test_the_event_s_organizer_sets_and_changes_the_number(
+        self, client, caplog, ids, season_2
+    ):
         """Story VA-13: the organizer's parameter, changeable — but never below the teams a
         club has already entered."""
         headers = await admin(client, caplog, "va13-org-admin@example.com")
-        event_id = await _act(client, headers, ids, teams_per_club=1)
+        event_id = await _act(client, headers, season_2, teams_per_club=1)
         email = "va13-organizer@example.com"
         await make_user(email)
         granted = await client.post(
@@ -195,17 +175,17 @@ class TestTeamsPerClub:
         )
         assert lowered.status_code == 200, lowered.text
 
-    async def test_the_club_page_names_each_team_s_crew(self, client, caplog, ids):
+    async def test_the_club_page_names_each_team_s_crew(self, client, caplog, ids, season_2):
         """Story VA-13: `ASVW` and `ASVW 2` in one act are two crews on the club page, each
         under its own name — never one list of eight."""
         headers = await admin(client, caplog, "va13-club-page@example.com")
         asvw = ids.club("asvw")
-        event_id = await _act(client, headers, ids, teams_per_club=2)
+        event_id = await _act(client, headers, season_2, teams_per_club=2)
         published = await client.post(f"/api/admin/events/{event_id}/publish", headers=headers)
         assert published.status_code == 200, published.text
         entered = await _enter(client, headers, event_id, [asvw, asvw])
         team_ids = {p["number"]: p["team_id"] for p in entered.json() if p["club"]["id"] == asvw}
-        squad = await _asvw_squad(ids)
+        squad = sorted(season_2.squads[asvw])
         for number, people in ((1, squad[:2]), (2, squad[2:4])):
             lined_up = await client.put(
                 f"/api/admin/events/{event_id}/crew",

@@ -69,6 +69,29 @@ async def seeded(database_url: str):
     await engine.dispose()
 
 
+@pytest.fixture(scope="session")
+async def season(seeded):
+    """The practice season of the 1. Liga's clubs (`app.practice`): a published series,
+    a squad of ten per club, a final, a live and a planned act with crews and results.
+    Built once for the run — the seed has nothing invented."""
+    from app.db import SessionLocal
+    from app.practice import season as practice_season
+
+    async with SessionLocal() as session:
+        return await practice_season(session, level=1)
+
+
+@pytest.fixture(scope="session")
+async def season_2(seeded):
+    """The same for the 2. Liga's clubs — the test club ASVW's; its planned act is
+    ASVW's to host."""
+    from app.db import SessionLocal
+    from app.practice import season as practice_season
+
+    async with SessionLocal() as session:
+        return await practice_season(session, level=2)
+
+
 @pytest.fixture
 async def client(seeded):
     from httpx import ASGITransport, AsyncClient

@@ -4,6 +4,7 @@ Both show personal data — but only what appears on every results list anyway.
 Email and birth year do not belong on a public page.
 """
 
+import pytest
 from sqlalchemy import select
 
 from app.db import SessionLocal
@@ -13,11 +14,14 @@ from app.models import Club
 # that would sort alphabetically before it. ASVW is registered in three leagues.
 CLUB = "asvw"
 
+# The squads live in the 2. Liga's practice season — the seed names nobody who sailed.
+pytestmark = pytest.mark.usefixtures("season_2")
+
 
 def squad_team(club: dict) -> dict:
-    """The club's entry with a squad: the demo series' — the real 2026 series have none,
-    no source says who sailed (docs/PLAN_SEEDING.md)."""
-    return next(t for t in club["teams"] if t["series"]["slug"].startswith("demo-"))
+    """The club's entry with a squad: the practice season's — the real 2026 series have
+    none, no source says who sailed (docs/PLAN_SEEDING.md)."""
+    return next(t for t in club["teams"] if t["series"]["slug"].startswith("practice-"))
 
 
 async def first_club() -> int:

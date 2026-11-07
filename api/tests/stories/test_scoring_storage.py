@@ -8,44 +8,19 @@ from sqlalchemy import func, select
 
 from app.db import SessionLocal
 from app.models import (
-    Event,
     EventStanding,
     Flight,
     Race,
     RaceEntry,
     ResultCode,
-    Series,
 )
 from app.models.auth import Role
 from app.services import recompute_event
 
-LEAGUE = "demo-1-2026"
-
-
-async def matchday(number: int) -> int:
-    """The n-th matchday **of the seeded first league**.
-
-    Qualified by series on purpose: matchday numbers count from 1 within their own series,
-    so any test that creates a series of its own also creates a "matchday 1". Asking for
-    the number alone found more than one row as soon as that happened.
-    """
-    async with SessionLocal() as session:
-        return (
-            await session.execute(
-                select(Event.id)
-                .join(Series, Event.series_id == Series.id)
-                .where(Series.slug == LEAGUE, Event.matchday == number)
-            )
-        ).scalar_one()
-
-
-async def first_matchday() -> int:
-    return await matchday(1)
-
 
 class TestStoredPoints:
-    async def test_every_scored_result_has_stored_points(self, seeded):
-        event_id = await first_matchday()
+    async def test_every_scored_result_has_stored_points(self, season):
+        event_id = season.final
         async with SessionLocal() as session:
             unscoredcount = (
                 await session.execute(
@@ -62,8 +37,8 @@ class TestStoredPoints:
             ).scalar_one()
         assert unscoredcount == 0
 
-    async def test_unraced_entry_has_no_points(self, seeded):
-        planned = await matchday(3)
+    async def test_unraced_entry_has_no_points(self, season):
+        planned = season.planned
         async with SessionLocal() as session:
             with_points = (
                 await session.execute(
@@ -76,8 +51,8 @@ class TestStoredPoints:
             ).scalar_one()
         assert with_points == 0
 
-    async def test_stored_event_standing_covers_all_teams(self, seeded):
-        event_id = await first_matchday()
+    async def test_stored_event_standing_covers_all_teams(self, season):
+        event_id = season.final
         async with SessionLocal() as session:
             rows = (
                 (
@@ -96,9 +71,9 @@ class TestStoredPoints:
         # Low-point: lower is better.
         assert [row.net_points for row in rows] == sorted(row.net_points for row in rows)
 
-    async def test_protest_decision_pulls_points_along(self, seeded):
+    async def test_protest_decision_pulls_points_along(self, season):
         """The actual reason for separating raw data and points."""
-        event_id = await first_matchday()
+        event_id = season.final
 
         async with SessionLocal() as session:
             entry = (
@@ -142,6 +117,12 @@ class TestStoredPoints:
             # From 1 point to 7 — the event standing must have worsened by 6.
             assert standing.net_points > 0
 
+            # The season is shared by the run: the protest is withdrawn again.
+            after.code = ResultCode.FINISHED
+            after.finish_position = 1
+            await recompute_event(session, event_id)
+            await session.commit()
+
 
 class TestSeriesStanding:
     """Whoever misses an event gets participant count + 1 for that event.
@@ -150,14 +131,8 @@ class TestSeriesStanding:
     Failing to compete must never be better than competing and placing last.
     """
 
-    async def _series(self) -> int:
-        async with SessionLocal() as session:
-            return (
-                await session.execute(select(Series.id).where(Series.slug == "demo-1-2026"))
-            ).scalar_one()
-
-    async def test_who_was_everywhere_stands_with_their_placements(self, client, ids):
-        table = (await client.get(f"/api/series/{ids.series('demo-1-2026')}/table")).json()
+    async def test_who_was_everywhere_stands_with_their_placements(self, client, season):
+        table = (await client.get(f"/api/series/{season.series}/table")).json()
 
         assert len(table["rows"]) == 18
         for row in table["rows"]:
@@ -169,20 +144,20 @@ class TestSeriesStanding:
         assert points == sorted(points)
         assert [z["rank"] for z in table["rows"]] == list(range(1, len(points) + 1))
 
-    async def test_latecomer_gets_substitute_scoring(self, client, caplog, ids):
+    async def test_latecomer_gets_substitute_scoring(self, client, caplog, season):
         """A club assigned to the series later has not sailed anywhere — and the substitute
         scoring is worse than last place, the actual reason for the rule."""
         from tests.stories.test_series_assignment import as_role, new_club
 
         header = await as_role(client, caplog, "sw-latecomer@example.com", Role.ADMIN)
         club = await new_club(client, header, "Latecomer Sailing Club", "ZSC")
-        await client.put(
-            f"/api/admin/clubs/{club['id']}/series",
-            headers=header,
-            json={"series": [ids.series("demo-1-2026")]},
-        )
-
-        table = (await client.get(f"/api/series/{ids.series('demo-1-2026')}/table")).json()
+        series_path = f"/api/admin/clubs/{club['id']}/series"
+        await client.put(series_path, headers=header, json={"series": [season.series]})
+        try:
+            table = (await client.get(f"/api/series/{season.series}/table")).json()
+        finally:
+            # The season is shared by the run: the latecomer leaves it again.
+            await client.put(series_path, headers=header, json={"series": []})
         new_team = next(z for z in table["rows"] if z["team"]["club"]["slug"] == club["slug"])
 
         # 18 teams participated each time, so 19 per event.

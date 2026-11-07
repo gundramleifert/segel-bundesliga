@@ -15,12 +15,12 @@ import asyncio
 import socket
 from typing import Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import authz
+from app import authz, practice
 from app.auth import create_access_token
 from app.config import settings
 from app.db import get_session
@@ -298,3 +298,35 @@ async def start_emulation(request: EmulateIn) -> EmulateOut:
         ),
     )
     return EmulateOut(job_id=job.id)
+
+
+class SeasonOut(BaseModel):
+    """The practice season's ids (`app.practice.Season`): club ids as strings, JSON's."""
+
+    label: str
+    series: int
+    final: int
+    live: int
+    planned: int
+    squads: dict[str, list[int]]
+    registrations: dict[str, int]
+
+
+@router.post("/season", response_model=SeasonOut, summary="The practice season")
+async def practice_season(
+    level: int = Query(default=1, ge=1, le=2), session: AsyncSession = Depends(get_session)
+) -> SeasonOut:
+    """The browser suite's ``season`` fixture (`e2e/fixtures.ts`): squads, crews and a
+    final, a live and a planned act on a published series of the 1. or 2. Liga's clubs —
+    built on the first call, read on every later one. The seed holds nothing invented
+    (`app.practice`); development only, like everything under ``/api/dev``."""
+    built = await practice.season(session, level=level)
+    return SeasonOut(
+        label=built.label,
+        series=built.series,
+        final=built.final,
+        live=built.live,
+        planned=built.planned,
+        squads={str(k): v for k, v in built.squads.items()},
+        registrations={str(k): v for k, v in built.registrations.items()},
+    )

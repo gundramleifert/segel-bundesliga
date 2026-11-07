@@ -17,8 +17,6 @@ from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
-EVENT = "demo-2-2026-act-3"  # planned, drawn, ASVW's
-
 
 async def _scored_on(client, headers, event_id: int, source: str) -> None:
     response = await client.patch(
@@ -28,11 +26,11 @@ async def _scored_on(client, headers, event_id: int, source: str) -> None:
 
 
 class TestTheEventChoosesItsScoring:
-    async def test_on_sap_the_race_control_steps_aside(self, client, caplog, ids):
+    async def test_on_sap_the_race_control_steps_aside(self, client, caplog, season_2):
         """VA-14, WL-5: with SAP chosen, the site offers neither its result entry nor its
         race control, and refuses a race signal; back on this site, both return."""
         headers = await admin(client, caplog, f"scoring-{uuid4().hex[:8]}@example.com")
-        event_id = ids.event(EVENT)
+        event_id = season_2.planned  # planned, drawn, ASVW's
         races = (await client.get(f"/api/admin/events/{event_id}/races", headers=headers)).json()
         race_id = races["races"][0]["id"]
 
@@ -62,12 +60,12 @@ class TestTheEventChoosesItsScoring:
 
     @pytest.mark.parametrize("user", [None, "admin"])
     async def test_sap_is_offered_only_where_it_is_reachable(
-        self, client, caplog, ids, monkeypatch, user
+        self, client, caplog, season_2, monkeypatch, user
     ):
         """VA-14: the choice is offered when this installation has SAP's credentials — and
         never to someone who cannot change the event."""
         headers = await admin(client, caplog, f"sap-{uuid4().hex[:8]}@example.com") if user else {}
-        event_id = ids.event(EVENT)
+        event_id = season_2.planned  # planned, drawn, ASVW's
         monkeypatch.setattr(settings, "sap_user", None)
         access = (await client.get(f"/api/events/{event_id}/access", headers=headers)).json()
         assert access["sap"] is False
