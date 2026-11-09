@@ -59,5 +59,6 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A server started in one sandboxed Bash call is unreachable from the next one](the-bash-sandbox-has-a-network-namespace-per-call.md)
 - [Tones booked from a React effect come out late or twice when the page falls behind; sound needs its own timer](tones-booked-from-a-react-effect-come-out-late-or-twice-when-the-page-falls-behi.md)
 - [TracTrac results are only reachable as the viewer's PDF export; its data API answers 401 and must not be faked](tractrac-results-are-only-reachable-as-the-viewer-s-pdf-export-its-data-api-answ.md)
+- [Two Playwright actions in a row never catch a stale-render bug: dispatch both events in one task](two-playwright-actions-in-a-row-never-catch-a-stale-render-bug-dispatch-both-eve.md)
 - [weed server preallocates every volume unless told not to, whatever its help says](weed-server-preallocates-every-volume-unless-told-not-to-whatever-its-help-says.md)
 - [Without reference/PairingList cloned, the lifecycle e2e test fails on a missing PDF link, not on a missing tool](without-reference-pairinglist-cloned-the-lifecycle-e2e-test-fails-on-a-missing-p.md)
