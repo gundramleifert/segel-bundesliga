@@ -82,10 +82,13 @@ async function openOffice(
 
 /** The row of the manage list belonging to a freshly created event, opened.
  *
- * The event id isn't known to the test, so the row is found by its title and the id is
+ * The event id isn't known to the test, so the row is searched by its title and the id is
  * read back off the row's own testid — every control in the panel is keyed by it.
  */
 async function openPanel(page: Page, title: string): Promise<string> {
+  // Searched for, not scrolled to: the list is paged, and on a stack the suite has run
+  // on before, a new event need not be on the first page (Story A-13).
+  await page.getByTestId("admin-manage-events-search-input").fill(title);
   const row = page
     .getByTestId("admin-manage-events-list")
     .getByRole("listitem")
@@ -483,6 +486,7 @@ describeStory("A-11/Z-10: the league office, a section per area", () => {
       "accounts",
       "news",
       "media",
+      "jury",
     ]);
 
     // An unknown section opens the office's overview instead of erroring.
@@ -662,11 +666,24 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     return manager!.email;
   }
 
-  test("reaches the squad without ever touching an admin route", async ({ page }, testInfo) => {
+  test("reaches the squad without ever touching an admin route", async ({ page, season2 }, testInfo) => {
     const email = await aTeamManager(page);
     // The club they manage — not the first card: other specs make test people members of
     // further clubs, and on those the squad is read-only.
     const clubId = await managedClub(page.request, email);
+    // The practice season's squad of ten again, as it was built: an earlier run on this
+    // stack added one to it. The squad is the club's registration for the series.
+    const teamId = season2.registrations[String(clubId)];
+    const reset = await page.request.put(`/api/admin/teams/${teamId}/members`, {
+      headers: await bearer(page.request, ADMIN),
+      data: {
+        members: season2.squads[String(clubId)].map((id, i) => ({
+          person_id: id,
+          role: i === 0 ? "helm" : i < 4 ? "crew" : "substitute",
+        })),
+      },
+    });
+    expect(reset.ok(), await reset.text()).toBeTruthy();
     await signIn(page, email);
 
     // The defect this story fixes: the permission existed and there was no door. So the
@@ -686,9 +703,9 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     // says the right screen arrived; the squads are a section of the club (Story Z-10).
     await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
     await openSection(page, "club", "squads");
-    // The club's entry with a squad: the demo's — the real 2026 registrations have none.
-    const sized = page.locator('[data-testid^="my-club-team-size-"]').filter({ hasText: /^[1-9]/ }).first();
-    const teamId = (await sized.getAttribute("data-testid"))!.replace("my-club-team-size-", "");
+    // The club's entry with a squad: the practice season's — the real 2026 registrations
+    // have none.
+    await expect(page.getByTestId(`my-club-team-size-${teamId}`)).toHaveText(/^[1-9]/);
     await page.getByTestId(`my-club-team-toggle-${teamId}`).click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes-selected-list")).toBeVisible();
@@ -701,7 +718,7 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     // already sails. Not decoration: a person may be registered in several clubs at once,
     // eighteen people in this data share a surname, and the row is the only thing that
     // tells them apart (Story V-1).
-    // The seeded squad sits at the series' maximum, so nobody on the left is addable —
+    // The practice squad sits at the series' maximum, so nobody on the left is addable —
     // the limit is set per series and enforced (Story V-1). Raise it the way the league
     // office would, then add one.
     const selected = page.getByTestId("admin-squad-panes-selected-list").getByRole("listitem");
@@ -711,9 +728,10 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
         { headers: await bearer(page.request, ADMIN) },
       )
     ).json()) as { series_id: number; squad_max: number; members: unknown[] };
+    // Room for exactly one more, so a repeated run never walks the limit up.
     const raised = await page.request.patch(`/api/admin/series/${squad.series_id}`, {
       headers: await bearer(page.request, ADMIN),
-      data: { squad_max: squad.squad_max + 5 },
+      data: { squad_max: squad.members.length + 1 },
     });
     expect(raised.ok(), await raised.text()).toBeTruthy();
     await page.reload();
@@ -724,8 +742,9 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     const before = await selected.count();
     // A squad takes only the club's own people (Story V-4): those of other clubs are on the
     // left, greyed with that reason, never a button.
-    // Another club's code: the seed's sailors are `Alice1 NRV`, so this finds only them.
-    await page.getByTestId("admin-squad-panes-filter-input").fill("NRV");
+    // Another club's code, a 2. Liga club like ASVW: the practice season's sailors are
+    // `Alice2 DTYC P2`, so this finds only them.
+    await page.getByTestId("admin-squad-panes-filter-input").fill("DTYC");
     await expect(
       page.locator('[data-testid^="admin-squad-panes-available-taken-"]').first(),
     ).toBeVisible();

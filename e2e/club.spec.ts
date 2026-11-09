@@ -18,9 +18,6 @@ import { bearer, devUsers, managedClub, signIn, type DevUser } from "./session";
 test.describe.configure({ mode: "serial" });
 
 const ADMIN = "admin@sbl.example.com";
-// The test club sails the 2. Liga (app.seed), whose acts follow the 1. Liga's three.
-const CLUB_ACTS = [4, 5, 6]; // demo-2-2026-act-1 … act-3
-const PLANNED_ACT = 6; // demo-2-2026-act-3, planned — the one still to be lined up
 
 async function aTeamManager(request: APIRequestContext): Promise<DevUser> {
   // ASVW is the test club (`app/seed_users.py`), with a team in every seeded series.
@@ -44,13 +41,28 @@ async function openMyClub(
 }
 
 describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday from my club's page", () => {
-  test("the matchdays are listed and a crew is named from the squad", async ({ page, request }) => {
+  test("the matchdays are listed and a crew is named from the squad", async ({ page, request, season2 }) => {
+    // The test club sails the 2. Liga's practice season; its planned act is still to be lined up.
+    const CLUB_ACTS = [season2.final, season2.live, season2.planned];
+    const PLANNED_ACT = season2.planned;
     const manager = await aTeamManager(request);
+    const clubId = await managedClub(request, manager.email);
+    // The practice crew of four again, as the season built it: an earlier run on this
+    // stack added a substitute, and the squad of ten would run out of people to add.
+    const squad = season2.squads[String(clubId)];
+    const reset = await request.put(`/api/admin/events/${PLANNED_ACT}/crew`, {
+      headers: await bearer(request, ADMIN),
+      data: {
+        team_id: season2.registrations[String(clubId)],
+        members: squad.slice(0, 4).map((id, i) => ({ person_id: id, role: i === 0 ? "helm" : "crew" })),
+      },
+    });
+    expect(reset.ok(), await reset.text()).toBeTruthy();
     await signIn(page, manager.email);
-    await openMyClub(page, await managedClub(request, manager.email));
+    await openMyClub(page, clubId);
     await expect(page.getByTestId("my-club-events-list")).toBeVisible();
 
-    // Every seeded act of the club's league is there — "these three", not "exactly
+    // Every act of the club's practice season is there — "these three", not "exactly
     // three": the lifecycle spec adds events on the same stack (see docs/gotchas).
     for (const act of CLUB_ACTS) {
       await expect(page.getByTestId(`my-club-event-${act}`)).toBeVisible();

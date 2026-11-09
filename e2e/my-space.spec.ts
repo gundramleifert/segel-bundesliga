@@ -133,8 +133,8 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
   });
 
   test("a helper sees the event they help at, and nothing on it but their claims", async ({ page }) => {
-    // Seeded: `helper` on two planned matchdays and nothing else — the person the old
-    // screens had no door for. Their only event is over, so it is not folded away.
+    // Seeded: `helper` on ASVW's Warnemünde 2027 and nothing else — the person the old
+    // screens had no door for. Their only event is planned, so it is not folded away.
     await signIn(page, "helfer@sbl.example.com");
     await page.goto("/me");
     // In the switcher: the event, and no club. The entry is the link; its chip list
@@ -143,8 +143,8 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     const entry = page.locator('a[data-testid^="workspace-switcher-event-"]').filter({
       has: page.locator('[data-testid$="-relations-helper"]'),
     });
-    // Two: the demo's act 3 and ASVW's Warnemünde 2027, the same relation on each.
-    await expect(entry).toHaveCount(2);
+    // One: ASVW's Warnemünde 2027 (`app/seed_users.py`).
+    await expect(entry).toHaveCount(1);
     await expect(page.getByTestId("workspace-switcher-clubs")).toHaveCount(0);
 
     await entry.first().click();
@@ -216,15 +216,31 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
 });
 
 describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list", () => {
-  // The test club. Its adults 0 and 1 sign in `waiver.spec.ts`; these take 2 and 3, one
-  // per browser project, still unsigned.
+  // The test club. Of its practice squad's adults these take from the third on, one
+  // still unsigned per browser project (`waiver.spec.ts` keeps to the first two).
   const DOMAIN = "asvw.example.com";
 
-  test("the sailor sees the badge, accepts in the notice, and the notice is gone", async ({ page, request }, testInfo) => {
-    const adults = (await seededSailors(request, DOMAIN)).filter((s) => bornIn(s) > 0 && bornIn(s) <= 2004);
-    const email = adults[testInfo.project.name === "mobile" ? 3 : 2]!.email!;
+  test("the sailor sees the badge, accepts in the notice, and the notice is gone", async ({ page, request, season2 }, testInfo) => {
+    // A sailor needs a series to sign for: the test club's squad in the 2. Liga's practice
+    // season (`app/practice.py`) — the seed names nobody in a squad.
+    const adults = (await seededSailors(request, "asvw.practice.example.com")).filter(
+      (s) => bornIn(s) > 0 && bornIn(s) <= 2004,
+    );
+    // The first still unsigned — the stack outlives a run, and a signed one stays signed.
+    // Each browser project keeps to its own half, from the third on.
+    let email: string | undefined;
+    for (const adult of adults.slice(2).filter((_, i) => i % 2 === (testInfo.project.name === "mobile" ? 1 : 0))) {
+      const mine = (await (await request.get("/api/waiver/me", { headers: await bearer(request, adult.email!) })).json()) as {
+        competitions: { scope: string; scope_id: number; status: string }[];
+      };
+      if (mine.competitions.some((c) => c.scope === "series" && c.scope_id === season2.series && c.status === "missing")) {
+        email = adult.email!;
+        break;
+      }
+    }
+    expect(email, "an adult of the practice squad still to sign").toBeDefined();
 
-    await signIn(page, email);
+    await signIn(page, email!);
     await page.goto("/");
     await expect(page.getByTestId("layout-profile-badge")).toBeVisible();
 
@@ -268,7 +284,7 @@ describeStory("F-2: the people who work an event claim their costs on it", () =>
     await signIn(page, "jury@sbl.example.com");
     await page.goto("/me/profile/claims");
     const target = page.getByTestId("my-space-claim-target");
-    await expect(target.locator("option", { hasText: "Act 3" })).toHaveCount(1);
+    await expect(target.locator("option", { hasText: "Warnemünde" })).toHaveCount(1);
     await expect(page.getByTestId("my-space-claim-unavailable")).toHaveCount(0);
   });
 });
@@ -291,8 +307,8 @@ describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a messag
     await signIn(page, JURY);
     await page.goto("/me/profile/claims");
     const target = page.getByTestId("my-space-claim-target");
-    const act3 = await target.locator("option", { hasText: "Act 3" }).getAttribute("value");
-    await target.selectOption(act3!);
+    const event = await target.locator("option", { hasText: "Warnemünde" }).getAttribute("value");
+    await target.selectOption(event!);
     await page.getByTestId("my-space-claim-title").fill(title);
     await page.getByTestId("my-space-claim-create").click();
     const card = page.getByTestId("my-space-claims-list").locator(":scope > li", { hasText: title });

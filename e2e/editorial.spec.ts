@@ -226,15 +226,40 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(content.getByRole("img")).toHaveCount(0);
   });
 
-  test("the list filters by league and state", async ({ page }) => {
+  test("the list filters by league and state", async ({ page }, testInfo) => {
+    // Its own posts — the seed publishes no example — one each that the filters keep and
+    // drop, dated today so they lead the list whatever other specs have written.
+    const headers = await bearer(page.request, EDITOR);
+    const stamp = `${testInfo.project.name} ${Date.now()}`;
+    const league = async (slug: string) =>
+      ((await (await page.request.get(`/api/leagues/${slug}`)).json()) as { league: { id: number } }).league.id;
+    const made: number[] = [];
+    const post = async (title: string, leagueId: number, published: boolean) => {
+      const response = await page.request.post("/api/admin/posts", {
+        headers,
+        data: { title: `${title} ${stamp}`, league_id: leagueId, published },
+      });
+      expect(response.ok(), await response.text()).toBeTruthy();
+      made.push(((await response.json()) as { id: number }).id);
+    };
+    await post("Promotion race", await league("2-liga"), true);
+    await post("Promotion draft", await league("2-liga"), false);
+    await post("Title race", await league("1-liga"), true);
+
     await signIn(page, EDITOR);
     await page.goto("/office/news");
     await page.getByTestId("admin-posts-state-filter").selectOption("published");
+    // One filter in the address before the next: each change copies the address as it was
+    // last rendered, so two at once lose the first (`web/src/lib/listParams.ts`).
+    await expect(page).toHaveURL(/state=published/);
     await page.getByTestId("admin-posts-league-filter").selectOption("2-liga");
     const list = page.getByTestId("admin-posts-section");
-    await expect(list.getByRole("link", { name: /Promotion race/ })).toHaveCount(1);
-    await expect(list.getByRole("link", { name: /ASVW takes the lead/ })).toHaveCount(0);
+    await expect(list.getByRole("link", { name: `Promotion race ${stamp}` })).toHaveCount(1);
+    await expect(list.getByRole("link", { name: `Promotion draft ${stamp}` })).toHaveCount(0);
+    await expect(list.getByRole("link", { name: `Title race ${stamp}` })).toHaveCount(0);
     await expect(page).toHaveURL(/state=published/);
+
+    for (const id of made) expect((await page.request.delete(`/api/admin/posts/${id}`, { headers })).ok()).toBeTruthy();
   });
 
   test("a club's team manager has no league office, and no post page", async ({ page }) => {
@@ -270,8 +295,8 @@ describeStory("R-1/Z-2: a series' editor writes about that series and organizes 
     await page.getByTestId("admin-post-publish-button").click();
     await expect(page.getByTestId("admin-post-save-success")).toBeVisible();
     await page.getByTestId("admin-post-view-link").click();
-    // Her series is the demo's 2. Liga (app/seed_users.py), so the post is the demo league's.
-    await expect(page).toHaveURL(/\/demo\/news\//);
+    // Her series is the 2. Liga 2026 (app/seed_users.py), so the post is the 2. Liga's.
+    await expect(page).toHaveURL(/\/2-liga\/news\//);
   });
 });
 

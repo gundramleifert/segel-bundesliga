@@ -1,7 +1,7 @@
 import { describeStory, expect, test } from "./fixtures";
 
 import { chooseLanguage, expectNoSidewaysScroll, openUserMenu } from "./layout";
-import { picturesFor, signIn } from "./session";
+import { bearer, picturesFor, signIn } from "./session";
 
 /** E2E cut along the user stories — see docs/userstories/.
  *
@@ -16,11 +16,11 @@ import { picturesFor, signIn } from "./session";
  * series belongs to no league, so it keeps its own page.
  */
 
-// The real 2026 acts are all sailed; a planned and a live act are the demo league's —
-// invented, published on test stacks and staging only (`seed_test_setup --publish-demo`).
+// The real 2026 acts are all sailed; a planned and a live act are the practice league's —
+// invented, built by the `season` fixture (`app/practice.py`), so a test on them asks for it.
 const FINISHED_ACT = "/1-liga/2026/act-1"; // dsbl-1-2026-act-1, Starnberg, as sailed
-const PLANNED_ACT = "/demo/2026/act-3"; // demo-1-2026-act-3, event 3, planned
-const LIVE_ACT_RESULTS = "/demo/2026/act-2/results"; // demo-1-2026-act-2, event 2, live
+const PLANNED_ACT = "/practice/2026/act-3"; // practice-1-2026-act-3, season.planned
+const LIVE_ACT_RESULTS = "/practice/2026/act-2/results"; // practice-1-2026-act-2, season.live
 const STANDINGS = "/1-liga/standings";
 
 // The pictures behind a page are the library's (Story R-3), and the seed has only Sven
@@ -37,7 +37,7 @@ const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
  *  answer the same question — does it fit the viewport it is being read on. */
 const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/", "site-home-now"],
-  ["/1-liga/news/asvw-takes-the-lead", "site-article"],
+  ["/1-liga/news/wannsee-nrv-und-asvw-gewinnen-den-fuenften-spieltag", "site-article"], // a real report, always published
   ["/1-liga", "site-chapter-standings"],
   ["/2-liga", "site-chapter-standings"],
   [STANDINGS, "site-standings-dsbl-1-2026"],
@@ -134,8 +134,9 @@ describeStory("B-2: as a fan I read up on how a matchday went", () => {
 
   test("extrapolated, the live matchday sorts by the projection and keeps the official place", async ({
     page,
+    season,
   }) => {
-    // The seeded live act is 32 of 48 races sailed: flight 11 is under way, so some teams
+    // The practice season's live act is 32 of 48 races sailed: flight 11 is under way, so some teams
     // carry an estimate and the projection can reorder them.
     await page.goto(LIVE_ACT_RESULTS);
     const rows = page.getByTestId("matchday-standings-table").locator("tbody tr");
@@ -170,7 +171,7 @@ describeStory("B-2: as a fan I read up on how a matchday went", () => {
     expect(projected.map((row) => row.rank).sort((a, b) => a - b)).toEqual(officialRanks);
   });
 
-  test("a planned matchday has no results yet, but does have a draw", async ({ page }) => {
+  test("a planned matchday has no results yet, but does have a draw", async ({ page, season }) => {
     await page.goto(PLANNED_ACT);
     // Before racing, the page opens on its notice board (Story B-15).
     await expect(page.getByTestId("site-act-notice-board")).toBeVisible();
@@ -182,7 +183,7 @@ describeStory("B-2: as a fan I read up on how a matchday went", () => {
 });
 
 describeStory("B-3: as a sailor I see when I am on which boat", () => {
-  test("the pairing list names the boats by their colour", async ({ page }) => {
+  test("the pairing list names the boats by their colour", async ({ page, season }) => {
     await page.goto(`${PLANNED_ACT}/pairing`);
     const header = page.getByTestId("matchday-pairing-table").locator("thead th");
     for (const colour of ["Black", "Green", "Dark blue", "Red", "Gray", "Orange"]) {
@@ -190,7 +191,7 @@ describeStory("B-3: as a sailor I see when I am on which boat", () => {
     }
   });
 
-  test("the three races of a flight read as one block", async ({ page }) => {
+  test("the three races of a flight read as one block", async ({ page, season }) => {
     await page.goto(`${PLANNED_ACT}/pairing`);
     await expect(page.getByTestId("matchday-pairing-row-1")).toBeVisible();
 
@@ -205,7 +206,7 @@ describeStory("B-3: as a sailor I see when I am on which boat", () => {
     await expect(flightCell(4)).toHaveText("2");
   });
 
-  test("each club in the draw leads to its own page", async ({ page }) => {
+  test("each club in the draw leads to its own page", async ({ page, season }) => {
     await page.goto(`${PLANNED_ACT}/pairing`);
     const club = page.getByTestId("matchday-pairing-club-link-1-1");
     await expect(club).toBeVisible();
@@ -271,7 +272,7 @@ test.describe("Foundations", () => {
     await expect(page).toHaveURL(/\/legal-notice$/);
   });
 
-  test("the page never scrolls sideways — not even with a wide table", async ({ page }, testInfo) => {
+  test("the page never scrolls sideways — not even with a wide table", async ({ page, season }, testInfo) => {
     await page.goto(`${PLANNED_ACT}/pairing`);
     await expect(page.getByTestId("matchday-pairing-row-1")).toBeVisible();
     // Via the shared helper, which also checks that the browser has not zoomed the page
@@ -282,7 +283,7 @@ test.describe("Foundations", () => {
     await expectNoSidewaysScroll(page, testInfo);
   });
 
-  test("every public page fits its viewport", async ({ page }, testInfo) => {
+  test("every public page fits its viewport", async ({ page, season }, testInfo) => {
     // One list, so a new page is one line rather than a new test — and so this runs on
     // the phone viewport too, where fitting is the whole question.
     for (const [path, ready] of PUBLIC_PAGES) {
@@ -304,15 +305,15 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     }
   }
 
-  test("the row names the association and every league, and the home page one name", async ({ page }) => {
+  test("the row names the association and every league, and the home page one name", async ({ page, season }) => {
     await page.goto("/");
     // One page, one name — counted only once the page has loaded (docs/gotchas/: a
     // strict-mode locator checked straight after `goto` passes before the duplicate shows).
     await expect(page.getByTestId("site-home-now")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
 
-    // "Demo" only where the demo is published — test stacks and staging, never a real site.
-    const names = ["Association", "1. Liga", "2. Liga", "Junioren", "DSL-Pokal", "Demo"];
+    // "Practice" only once a test built the practice season (`season`) — never a real site.
+    const names = ["Association", "1. Liga", "2. Liga", "Junioren", "DSL-Pokal", "Practice"];
     if ((page.viewportSize()?.width ?? 0) < 768) {
       await expect(page.getByTestId("site-leagues")).toBeHidden();
       await expect(page.getByTestId("site-menu").locator("summary")).toContainText("Association");
@@ -492,8 +493,8 @@ describeStory("B-13: one row of navigation names the leagues", () => {
 });
 
 describeStory("B-14: a league's page in chapters", () => {
-  test("the chapters lead to their own pages, Results first and titled so while a matchday is live", async ({ page }) => {
-    await page.goto("/demo");
+  test("the chapters lead to their own pages, Results first and titled so while a matchday is live", async ({ page, season }) => {
+    await page.goto("/practice");
     // Act 2 is being sailed, so Results is there and opens the page; the seed has no
     // earlier year, so no Archive.
     const chapters = page.getByTestId("site-chapters").locator("section[data-chapter]");
@@ -508,21 +509,21 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-chapter-dots").getByRole("link")).toHaveCount(5);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Act 2");
     await expect(page.getByTestId("site-chapter-archive")).toHaveCount(0);
-    // The demo's 1. Liga first five, from its table.
-    await expect(page.getByTestId("site-top-five-demo-1-2026").getByRole("listitem")).toHaveCount(5);
+    // The practice 1. Liga's first five, from its table.
+    await expect(page.getByTestId(`site-top-five-${season.label}`).getByRole("listitem")).toHaveCount(5);
 
     await page.getByTestId("site-chapter-standings-more").click();
-    await expect(page).toHaveURL(/\/demo\/standings$/);
+    await expect(page).toHaveURL(/\/practice\/standings$/);
   });
 
-  test("Results is the running act", async ({ page }) => {
-    await page.goto("/demo");
+  test("Results is the running act", async ({ page, season }) => {
+    await page.goto("/practice");
     await page.getByTestId("site-chapter-results-more").click();
-    await expect(page).toHaveURL(/\/demo\/2026\/act-2\/results$/);
+    await expect(page).toHaveURL(/\/practice\/2026\/act-2\/results$/);
     await expect(page.getByTestId("site-act-results")).toBeVisible();
   });
 
-  test("Results is there only while a matchday is live; About names the clubs", async ({ page }) => {
+  test("Results is there only while a matchday is live; About names the clubs", async ({ page, season }) => {
     // The juniors have teams but no matchday in the seed: nothing is live there.
     await page.goto("/junioren-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
@@ -534,8 +535,8 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
     await expect(page.getByTestId("site-top-five-dsbl-2-2026")).toHaveCount(1);
     await expect(page.getByTestId("site-top-five-dsbl-2-2026").locator("[data-empty]")).toHaveCount(0);
-    // The demo league has an act under way.
-    await page.goto("/demo");
+    // The practice league has an act under way.
+    await page.goto("/practice");
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(1);
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-about-clubs").getByRole("listitem").first()).toBeVisible();
@@ -548,9 +549,9 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect.poll(() => page.getByTestId("site-chapters").evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   });
 
-  test("the dots claim their own column and nothing more", async ({ page }) => {
-    // The demo's league: its act 2 is live, so the page has all five chapters.
-    await page.goto("/demo");
+  test("the dots claim their own column and nothing more", async ({ page, season }) => {
+    // The practice league: its act 2 is live, so the page has all five chapters.
+    await page.goto("/practice");
     const dots = page.getByTestId("site-chapter-dots");
     await expect(dots.getByRole("link")).toHaveCount(5);
     // The names are laid over the chapter; the touch area is the dots. It was 145 px of a
@@ -613,23 +614,42 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.locator('[data-dot="about"]')).toHaveAttribute("aria-current", "true");
   });
 
-  test("the chapters are filled: the season's matchdays, news with pictures, videos, facts", async ({ page }) => {
+  test("the chapters are filled: the season's matchdays, news with pictures, videos, facts", async ({ page, season }) => {
     await page.goto("/1-liga");
     // Every act of the year — at least the seed's three; the lifecycle spec adds its own.
     await expect.poll(() => page.getByTestId("site-season-strip").getByRole("listitem").count()).toBeGreaterThanOrEqual(3);
     await expect(page.getByTestId("site-news-tiles").getByRole("link").first()).toBeVisible();
     await expect(page.getByTestId("site-video-tiles").getByRole("listitem")).toHaveCount(3);
     await expect(page.getByTestId("site-about-facts").getByRole("listitem").first()).toBeVisible();
-    // Only while an act is live — the real 2026 is over; the demo's act 2 is live.
-    await page.goto("/demo");
+    // Only while an act is live — the real 2026 is over; the practice act 2 is live.
+    await page.goto("/practice");
     await expect(page.getByTestId("site-live-progress")).toHaveCount(1);
     await page.goto("/");
     await expect(page.getByTestId("site-home-services").getByRole("listitem")).toHaveCount(6);
   });
 
   test("a news article has its own page: lead, byline, text, and more news", async ({ page }) => {
+    // The invented examples are drafts on every site since the demo went (2026-11-06):
+    // this test publishes the one it reads, as editorial would.
+    const headers = await bearer(page.request, "redaktion@sbl.example.com");
+    const found = await page.request.get("/api/admin/posts?q=ASVW takes the lead", { headers });
+    const post = ((await found.json()) as { items: { id: number; slug: string }[] }).items.find(
+      (item) => item.slug === "asvw-takes-the-lead",
+    );
+    expect(post, "the seeded example article").toBeTruthy();
+    const published = await page.request.patch(`/api/admin/posts/${post!.id}`, { headers, data: { published: true } });
+    expect(published.ok(), await published.text()).toBeTruthy();
+
     await page.goto("/1-liga/news");
-    await page.getByTestId("site-news-asvw-takes-the-lead").click();
+    // Other specs write news of today, so a September article may be past the first page.
+    const link = page.getByTestId("site-news-asvw-takes-the-lead");
+    const more = page.getByTestId("site-news-more-button");
+    await expect(link.or(more).first()).toBeVisible();
+    for (let i = 0; i < 10 && !(await link.isVisible()) && (await more.isVisible()); i++) {
+      await more.click({ timeout: 5_000 }).catch(() => undefined);
+      await expect(more).toBeEnabled({ timeout: 5_000 }).catch(() => undefined);
+    }
+    await link.click();
     await expect(page).toHaveURL(/\/1-liga\/news\/asvw-takes-the-lead$/);
     await expect(page.getByTestId("site-article-lead")).toBeVisible();
     await expect(page.getByTestId("site-article-byline")).toBeVisible();
@@ -638,12 +658,12 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-article-related").getByRole("listitem")).toHaveCount(3);
   });
 
-  test("the season's board is Manage2Sail's notice of race, a matchday's board is real", async ({ page }) => {
+  test("the season's board is Manage2Sail's notice of race, a matchday's board is real", async ({ page, season }) => {
     // Nothing invented on a notice board (Story A-14): the season's documents are the
     // ones Manage2Sail publishes, linked there.
     await page.goto("/1-liga/notice-board");
-    const season = page.getByTestId("site-season-documents-dsbl-1-2026");
-    await expect(season.getByRole("link", { name: /Notice of Race 2026/ })).toHaveAttribute("href", /manage2sail\.com/);
+    const documents = page.getByTestId("site-season-documents-dsbl-1-2026");
+    await expect(documents.getByRole("link", { name: /Notice of Race 2026/ })).toHaveAttribute("href", /manage2sail\.com/);
     await expect(page.getByTestId("site-example-note")).toHaveCount(0);
     // A matchday's notices are the event's own since Story VA-11 — nothing invented there.
     await page.goto(PLANNED_ACT);
@@ -692,22 +712,22 @@ describeStory("B-15: the matchday page", () => {
     expect(look.background).not.toBe(look.text);
   });
 
-  test("the live tab leads to SAP Sailing, or says there is no live tracking", async ({ page }) => {
+  test("the live tab leads to SAP Sailing, or says there is no live tracking", async ({ page, season }) => {
     // The site's own map is gone (2026-11-06): an event not on SAP has no live view.
-    await page.goto("/demo/2026/act-2/live");
+    await page.goto("/practice/2026/act-2/live");
     await expect(page.getByTestId("matchday-live-none")).toBeVisible();
     // The old address of the map leads to the act's live tab.
-    await page.goto("/events/2/live");
-    await expect(page).toHaveURL(/\/demo\/2026\/act-2\/live/);
+    await page.goto(`/events/${season.live}/live`);
+    await expect(page).toHaveURL(/\/practice\/2026\/act-2\/live/);
   });
 });
 
 describeStory("B-16: old addresses lead to the new pages", () => {
-  test("an event's and a series' old address lead to the league's pages", async ({ page }) => {
-    await page.goto("/events/1");
-    await expect(page).toHaveURL(/\/demo\/2026\/act-1\?division=1$/);
-    await page.goto("/events/3?view=pairing");
-    await expect(page).toHaveURL(/\/demo\/2026\/act-3\/pairing\?division=3$/);
+  test("an event's and a series' old address lead to the league's pages", async ({ page, season }) => {
+    await page.goto(`/events/${season.final}`);
+    await expect(page).toHaveURL(new RegExp(`/practice/2026/act-1\\?division=${season.final}$`));
+    await page.goto(`/events/${season.planned}?view=pairing`);
+    await expect(page).toHaveURL(new RegExp(`/practice/2026/act-3/pairing\\?division=${season.planned}$`));
     await page.goto("/series/1");
     await expect(page).toHaveURL(/\/1-liga\/2026\/standings$/);
   });
@@ -721,9 +741,9 @@ describeStory("B-16: old addresses lead to the new pages", () => {
     await expect(page).toHaveURL(/\/1-liga\/2026\/act-3\/pairing\?division=3$/);
   });
 
-  test("the short paths go to the running act and the last results", async ({ page }) => {
-    await page.goto("/demo/live");
-    await expect(page).toHaveURL(/\/demo\/2026\/act-2\/live$/);
+  test("the short paths go to the running act and the last results", async ({ page, season }) => {
+    await page.goto("/practice/live");
+    await expect(page).toHaveURL(/\/practice\/2026\/act-2\/live$/);
     // The last results the 1. Liga has: its Finale, act 6.
     await page.goto("/1-liga/results");
     await expect(page).toHaveURL(/\/1-liga\/2026\/act-6\/results$/);

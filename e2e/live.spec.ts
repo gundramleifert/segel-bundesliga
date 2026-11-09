@@ -12,12 +12,11 @@ import { bearer } from "./session";
  * (the results tab's own taps are WL-2's business), and the first page's race count moves
  * on its own.
  *
- * The seeded second act of the 1st Segel-Bundesliga is live and two-thirds sailed, so it
+ * The practice season's second act (`season.live`) is live and two-thirds sailed, so it
  * has a stream and open races. The result is taken back at the end, so the other specs
- * find the seed the way they expect it.
+ * find the season the way they expect it.
  */
 
-const LIVE_EVENT = 2; // demo-1-2026-act-2
 const COMMITTEE = "admin@sbl.example.com";
 
 interface AdminRace {
@@ -30,9 +29,10 @@ describeStory("B-5: as a spectator I follow live updates", () => {
     browser,
     page,
     baseURL,
+    season,
   }) => {
     // The spectator: a guest, one tab, never reloaded.
-    await page.goto(`/events/${LIVE_EVENT}`);
+    await page.goto(`/events/${season.live}`);
     const badge = page.getByTestId("matchday-live-badge");
     await expect(badge).toHaveAttribute("data-state", "live");
     const count = page.getByTestId("matchday-races-count");
@@ -43,13 +43,13 @@ describeStory("B-5: as a spectator I follow live updates", () => {
     const api = committee.request;
     const headers = await bearer(api, COMMITTEE);
     const races = (await (
-      await api.get(`/api/admin/events/${LIVE_EVENT}/races`, { headers })
+      await api.get(`/api/admin/events/${season.live}/races`, { headers })
     ).json()) as { races: AdminRace[] };
     const open = races.races.find((race) => race.entries.some((entry) => entry.code === null));
-    expect(open, "the seeded live act should still have an open race").toBeTruthy();
+    expect(open, "the live act should still have an open race").toBeTruthy();
 
     const entered = await api.put(
-      `/api/admin/events/${LIVE_EVENT}/races/${open!.id}/result`,
+      `/api/admin/events/${season.live}/races/${open!.id}/result`,
       {
         headers,
         data: {
@@ -70,7 +70,7 @@ describeStory("B-5: as a spectator I follow live updates", () => {
     } finally {
       // Back to the seed: `code: null` clears a boat's result (Story WL-2).
       const cleared = await api.put(
-        `/api/admin/events/${LIVE_EVENT}/races/${open!.id}/result`,
+        `/api/admin/events/${season.live}/races/${open!.id}/result`,
         {
           headers,
           data: { results: open!.entries.map((entry) => ({ boat_number: entry.boat_number, code: null })) },
@@ -81,10 +81,10 @@ describeStory("B-5: as a spectator I follow live updates", () => {
     }
   });
 
-  test("/live leads to the running event", async ({ page }) => {
+  test("/live leads to the running event", async ({ page, season }) => {
     await page.goto("/live");
     // Through the event's address to its act, which opens on the results while racing.
-    await expect(page).toHaveURL(new RegExp(`/demo/2026/act-2\\?division=${LIVE_EVENT}$`));
+    await expect(page).toHaveURL(new RegExp(`/practice/2026/act-2\\?division=${season.live}$`));
     await expect(page.getByTestId("matchday-live-badge")).toBeVisible();
   });
 });

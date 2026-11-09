@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 import type { APIRequestContext, Page } from "@playwright/test";
 
-import { expect, test } from "./fixtures";
+import { expect, type Season, test } from "./fixtures";
 import { bearer, bornIn, managedClub, seededSailors, signIn } from "./session";
 
 /** The handbook's screenshots (`web/src/handbook/*.md`, `![…](shot:<id>)`), captured from
@@ -31,8 +31,9 @@ const EDITOR = "redaktion@sbl.example.com";
 const CLUB_ADMIN = "board@asvw.example.com";
 const TEAM_MANAGER = "teams@asvw.example.com";
 const TREASURER = "treasurer@asvw.example.com";
-const TEST_SERIES = "demo-1-2026";
-const TEST_EVENT = "demo-2-2026-act-3"; // the demo's planned act, the test club's (app/seed_users.py)
+// The events come from the 2. Liga's practice season (`app/practice.py`, the `season2`
+// fixture): its planned act is the test club's to host, its live act is racing. The seed
+// has neither — its acts are sailed and named nobody.
 
 type Ids = {
   clubId: number;
@@ -264,8 +265,8 @@ const SHOTS: Shot[] = [
     phone: false,
   },
   {
-    // The live act: the seed's race officer `regatta@` holds the planned one only, so the
-    // league office's race officer runs this one.
+    // The live act: the seed's race officer `regatta@` holds none of the practice acts, so
+    // the league office's race officer runs this one.
     id: "help-race-control",
     as: () => SITE_RACE_OFFICER,
     path: (d) => `/events/${d.liveEventId}/race-control`,
@@ -407,28 +408,46 @@ const SHOTS: Shot[] = [
 
 // ------------------------------------------------------------------------- the ids
 
-async function lookUp(request: APIRequestContext): Promise<Ids> {
-  const clubId = await managedClub(request, TEAM_MANAGER);
+/** The event the organizer's shots show, while a shot runs — `afterEach` takes the tuple
+ *  back, since other specs count what `orga@` holds on a stack that is reused. */
+let organizing: string | undefined;
+
+/** Makes `orga@` the manager of the practice season's planned act, as the seed makes them
+ *  of Warnemünde 2027 — a draft with no crews, so no check-in to show. */
+async function organize(request: APIRequestContext, event: number): Promise<void> {
+  organizing = `event:${event}`;
+  const added = await request.post("/api/auth/tuples", {
+    headers: await bearer(request, ADMIN),
+    data: { user: ORGANIZER, relation: "manager", object: organizing },
+  });
+  // A run that stopped before its undo left the tuple behind.
+  if (!added.ok()) expect(await added.text()).toContain("tuple-exists");
+}
+
+test.afterEach(async ({ request }) => {
+  if (!organizing) return;
   const headers = await bearer(request, ADMIN);
-  const response = await request.get("/api/events", { headers });
-  expect(response.ok(), await response.text()).toBeTruthy();
-  const body = (await response.json()) as unknown;
-  const events = (Array.isArray(body) ? body : (body as { items: unknown[] }).items) as {
+  const rows = (await (await request.get(`/api/auth/tuples?object=${organizing}`, { headers })).json()) as {
     id: number;
-    slug: string;
-    status: string;
+    user: string;
+    relation: string;
   }[];
-  const planned = events.find((e) => e.slug === TEST_EVENT);
-  const live = events.find((e) => e.slug.startsWith(`${TEST_SERIES}-`) && e.status === "live");
-  expect(planned, `the seed has ${TEST_EVENT}`).toBeTruthy();
-  expect(live, `the seed has a live act of ${TEST_SERIES}`).toBeTruthy();
+  for (const row of rows.filter((r) => r.user === ORGANIZER && r.relation === "manager")) {
+    expect((await request.delete(`/api/auth/tuples/${row.id}`, { headers })).ok()).toBeTruthy();
+  }
+  organizing = undefined;
+});
+
+async function lookUp(request: APIRequestContext, season: Season): Promise<Ids> {
+  const clubId = await managedClub(request, TEAM_MANAGER);
+  await organize(request, season.planned);
   // An adult of the club with an account, the same one on every run.
   const adults = (await seededSailors(request, "asvw.example.com"))
     .filter((s) => bornIn(s) && bornIn(s) <= new Date().getFullYear() - 18)
     .map((s) => s.email!)
     .sort();
   expect(adults.length, "the seed gives ASVW adult sailors").toBeGreaterThan(0);
-  return { clubId, eventId: planned!.id, liveEventId: live!.id, sailor: adults[0] };
+  return { clubId, eventId: season.planned, liveEventId: season.live, sailor: adults[0] };
 }
 
 // ------------------------------------------------------------------- data for a shot
@@ -657,12 +676,12 @@ test.describe("Foundations: handbook screenshots", () => {
   test.skip(!process.env.HANDBOOK_SHOTS, "set HANDBOOK_SHOTS=1 to capture the handbook's screenshots");
 
   for (const shot of SHOTS) {
-    test(shot.id, { tag: shot.phone ? ["@phone"] : [] }, async ({ page, request }, testInfo) => {
+    test(shot.id, { tag: shot.phone ? ["@phone"] : [] }, async ({ page, request, season2 }, testInfo) => {
       const phone = testInfo.project.name === "mobile";
       test.skip(phone && !shot.phone, "no phone version of this shot");
       if (!phone) await page.setViewportSize({ width: 1280, height: 800 });
 
-      const ids = await lookUp(request);
+      const ids = await lookUp(request, season2);
       Object.assign(ids, (await shot.setup?.(request, ids)) ?? {});
       await signIn(page, shot.as(ids));
       mkdirSync(OUT, { recursive: true });

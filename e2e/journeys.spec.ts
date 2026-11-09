@@ -8,20 +8,20 @@ import { describeJourney, expect, step, test } from "./fixtures";
  */
 
 describeJourney("J-9: a fan follows an act", () => {
-  // Read-only, on the demo league (`/demo`, `seed_test_setup --publish-demo`): the real
-  // 2026 season is over and names no crews, so the walk takes the demo's 1. Liga — act 1
+  // Read-only, on the practice league (`/practice`, the `season` fixture): the real 2026
+  // season is over and names no crews, so the walk takes the practice 1. Liga — act 1
   // sailed, act 2 under way with every crew named, act 3 drawn. Its branches (a hidden
   // profile, a missed act) have nothing in the seed to point at; the pytest walk takes them.
-  test("from the league's page to the standings", async ({ page }) => {
+  test("from the league's page to the standings", async ({ page, season }) => {
     await step("J-9.1", "a fan opens the league's page — the act being sailed comes first", async () => {
-      await page.goto("/demo");
+      await page.goto("/practice");
       await expect(page.getByTestId("site-chapter-results")).toBeVisible();
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Act 2");
     });
 
     await step("J-9.2", "the fan opens the act's page — its tab in the address", async () => {
       await page.getByTestId("site-chapter-results-more").click();
-      await expect(page).toHaveURL(/\/demo\/2026\/act-2\/results$/);
+      await expect(page).toHaveURL(/\/practice\/2026\/act-2\/results$/);
       await expect(page.getByTestId("site-act-tab-results")).toHaveAttribute("aria-current", "page");
     });
 
@@ -47,19 +47,19 @@ describeJourney("J-9: a fan follows an act", () => {
       await page.locator('a[data-testid^="matchday-crew-sailor-link-"]').first().click();
       await expect(page).toHaveURL(/\/people\/\d+$/);
       await expect(page.getByTestId("sailor-registrations-section")).toBeVisible();
-      // This act is among the matchdays they are lined up for (event 2 in the seed).
-      await expect(page.getByTestId("sailor-lineup-row-2")).toBeVisible();
+      // This act is among the matchdays they are lined up for.
+      await expect(page.getByTestId(`sailor-lineup-row-${season.live}`)).toBeVisible();
     });
 
     await step("J-9.8", "the fan opens the year's standings — the running act counts", async () => {
-      await page.goto("/demo");
+      await page.goto("/practice");
       await page.getByTestId("site-chapter-standings-more").click();
-      await expect(page).toHaveURL(/\/demo\/standings$/);
-      const table = page.getByTestId("site-standings-demo-1-2026");
+      await expect(page).toHaveURL(/\/practice\/standings$/);
+      const table = page.getByTestId(`site-standings-${season.label}`);
       await expect(table.getByTestId("site-standings-table").locator("tbody tr")).toHaveCount(18);
       // The act's column heading leads back to the act.
-      await table.getByTestId("site-standings-event-link-2").click();
-      await expect(page).toHaveURL(/\/demo\/2026\/act-2\/results$/);
+      await table.getByTestId(`site-standings-event-link-${season.live}`).click();
+      await expect(page).toHaveURL(/\/practice\/2026\/act-2\/results$/);
     });
   });
 });

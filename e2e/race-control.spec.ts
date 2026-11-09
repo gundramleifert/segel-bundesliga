@@ -1,6 +1,6 @@
-import type { Page } from "@playwright/test";
+import type { APIRequestContext, APIResponse, Page } from "@playwright/test";
 
-import { describeStory, expect, test } from "./fixtures";
+import { describeStory, expect, type Season, test } from "./fixtures";
 import { bearer, signIn } from "./session";
 
 /** Story WL-3: start, recall and finish races from one screen, in a real browser.
@@ -11,17 +11,52 @@ import { bearer, signIn } from "./session";
  * has a place — and that after the finish the next race is the one on screen, without a
  * reload.
  *
- * The seeded second act of the 1st Segel-Bundesliga is live and two-thirds sailed, so it
- * has a current race. Running this leaves that race finished, which is the state the
- * other specs' assumptions about the seed still hold under (an open race remains).
+ * Each test runs its own act, built through the API and started — a stand-alone act
+ * of twelve of the practice season's clubs on six boats — so its first race is up
+ * however often the suite has run on this stack. The practice season's live act would
+ * run out of races, a finished race being final.
  */
 
-const LIVE_EVENT = 2; // demo-1-2026-act-2
 const COMMITTEE = "admin@sbl.example.com";
 
+/** A fresh live act: twelve clubs, six boats, eight flights (a catalog size), published
+ *  (the screen reads the public event), drawn and started — as an organizer would,
+ *  through the API. */
+async function liveAct(request: APIRequestContext, season: Season): Promise<number> {
+  const headers = await bearer(request, COMMITTEE);
+  const ok = async (response: APIResponse) => {
+    expect(response.ok(), await response.text()).toBeTruthy();
+    return response.json();
+  };
+  const day = new Date().toISOString().slice(0, 10);
+  const event = (await ok(
+    await request.post("/api/admin/events", {
+      headers,
+      data: {
+        title: `Race control e2e ${Date.now()}`,
+        starts_on: day,
+        team_count: 12,
+        flight_count: 8,
+        published: true,
+      },
+    }),
+  )) as { id: number };
+  const clubs = Object.keys(season.registrations).slice(0, 12).map(Number);
+  await ok(await request.put(`/api/admin/events/${event.id}/clubs`, { headers, data: { clubs } }));
+  await ok(await request.post(`/api/admin/events/${event.id}/pairing/from-catalog`, { headers, data: { seed: 1 } }));
+  await ok(await request.post(`/api/admin/events/${event.id}/start`, { headers }));
+  return event.id;
+}
+
 describeStory("WL-3: as race committee I run one race at a time", () => {
-  // The specs share one live race. Whatever a test leaves behind — AP hoisted, a race
-  // running — would make every later one fail at its first button, so it is cleared here.
+  let LIVE_EVENT = 0;
+  test.beforeEach(async ({ request, season }, testInfo) => {
+    // The guest's test reads the practice season's published live act; it changes nothing.
+    LIVE_EVENT = testInfo.title.startsWith("a guest") ? season.live : await liveAct(request, season);
+  });
+
+  // Whatever a test leaves behind — AP hoisted, a race running — is cleared here, so an
+  // act left on the stack is in a state the committee could pick up from.
   test.afterEach(async ({ request }) => {
     const headers = await bearer(request, COMMITTEE);
     const base = `/api/admin/events/${LIVE_EVENT}/races`;

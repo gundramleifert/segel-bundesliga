@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
+import { bearer } from "./session";
 
 /** Story R-3: every picture behind a page comes from the media library (decided
  *  2026-10-23), and pictures may be deleted from it at any time. So a page must stand
@@ -14,8 +15,27 @@ const PAGES: [path: string, ready: string][] = [
   ["/1-liga", "site-chapter-standings"],
   ["/1-liga/news", "site-depth-page"],
   ["/1-liga/media", "site-depth-page"],
-  ["/1-liga/news/asvw-takes-the-lead", "site-article"],
+  // and an article without a cover of its own — `article` below makes one.
 ];
+
+/** A published 1. Liga article with no cover photo: its picture behind is the library's.
+ *  The seed's photo-less ones are invented examples, drafts since the demo went. */
+async function article(page: Page): Promise<string> {
+  const headers = await bearer(page.request, "redaktion@sbl.example.com");
+  const league = (await (await page.request.get("/api/leagues/1-liga")).json()) as { league: { id: number } };
+  const made = await page.request.post("/api/admin/posts", {
+    headers,
+    data: {
+      title: `No cover ${Date.now()}`,
+      teaser: "A report with no picture of its own.",
+      body: "<p>The library alone decides what is behind it.</p>",
+      league_id: league.league.id,
+      published: true,
+    },
+  });
+  expect(made.ok(), await made.text()).toBeTruthy();
+  return `/1-liga/news/${((await made.json()) as { slug: string }).slug}`;
+}
 
 type Library = "empty" | "failing" | "files-gone";
 
@@ -38,7 +58,7 @@ describeStory("R-3: a page stands without its pictures", () => {
       const errors: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
       await library(page, state);
-      for (const [path, ready] of PAGES) {
+      for (const [path, ready] of [...PAGES, [await article(page), "site-article"]]) {
         await page.goto(path);
         await expect(page.getByTestId(ready).first(), path).toBeVisible();
         // No picture is drawn where there is none to draw; a broken one is hidden.

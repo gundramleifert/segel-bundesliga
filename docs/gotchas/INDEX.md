@@ -40,6 +40,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [HeroUI owns `--color-surface`; naming our own token that overrode it made every card invisible](heroui-owns-the-surface-color-token.md)
 - [A field with a server-side default is *required* in the generated request type](openapi-typescript-marks-defaulted-request-fields-required.md)
 - [orval's override.query flags invert its GET/non-GET split, so a POST gets a query hook](orval-s-override-query-flags-invert-its-get-non-get-split-so-a-post-gets-a-query.md)
+- [pkill -f kills the shell that runs it when its pattern is also in that shell's command line](pkill-f-kills-the-shell-that-runs-it-when-its-pattern-is-also-in-that-shell-s-co.md)
 - [`locator.count()` does not auto-wait; `toHaveCount()` does](playwright-count-does-not-auto-wait.md)
 - [Playwright in the sandbox shows every cross-origin image as broken, even with the proxy's credentials; route them through route.fetch](playwright-in-the-sandbox-shows-every-cross-origin-image-as-broken-even-with-the.md)
 - [Playwright accepts unknown `use` keys silently — `reducedMotion` moved under `contextOptions`](playwright-moved-reducedmotion-into-contextoptions.md)

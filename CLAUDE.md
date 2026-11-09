@@ -34,7 +34,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/deploy-server.md` | **Running the site on a server** — the Compose stack's runbook: machine, first install with sops, HTTPS, updates, backups; what still makes it pre-production |
 | `deploy/compose/` | **The whole site in Docker Compose** — Postgres, API, the SPA behind Caddy, SeaweedFS; started with `compose.sh`, secrets sops-encrypted in `secrets.sops.env` (recipients: `.sops.yaml`); `README.md` there |
 | `deploy/sap-local/` | **SAP Sailing Analytics on one machine** — the live scoring SAP hosts for us, run locally to build the integration against; the Google Cloud project with the Maps key; `README.md` there |
-| `docs/PLAN_SEEDING.md` | **What a fresh installation starts with** — the real 2022–2026 results, news, press and pictures, no examples; the site seed vs the demo layer, sources and their rights, phases S-0…S-6, open questions |
+| `docs/PLAN_SEEDING.md` | **What a fresh installation starts with** — the real 2022–2026 results, news, press and pictures, no examples; the site seed and why nothing invented is in it, sources and their rights, phases S-0…S-6, open questions |
 | `docs/PLAN_MEDIA.md` | **Pictures** — the media library and the automatic layout (galleries, shapes, crops), the plan Story R-2 is written from |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |
 | `api/app/imports/` | **Imports** from SAP Sailing (past DSBL matchdays, results) and Manage2Sail (entries, notice-board documents) — `uv run python -m app.imports --help`, Story A-14 |
@@ -159,28 +159,31 @@ results, dates — imported from TracTrac's recorded scoreboards
 (`app/seed_data/dsbl-2026/`, `app.imports tractrac`), and **the Junioren-Liga's** four acts
 (decided 2026-10-23) from SAP's recorded answer (`app/seed_junioren.py`,
 `app/seed_data/junioren-2026/`); `app.imports sap` refreshes them from SAP. No
-source names who sailed, so the real acts have no squads or crews. **Everything invented
-is in the demo series** `demo-1-2026` / `demo-2-2026` — the same 36 clubs with made-up
-squads and three made-up weekends each (one final, one live, one planned) — **never
-published by the seed**; `seed_test_setup --publish-demo` (`app.seed.publish_demo`)
-publishes them in a league of their own, `/demo`: the test suite, the e2e stacks and
-staging (`SEED_PUBLISH_DEMO=true`, `deploy/compose/`), never a real site. The people who sign in are
-concentrated:
+source names who sailed, so the real acts have no squads or crews. **The seed holds
+nothing invented** (the demo series went on 2026-11-06). **A test that needs a squad, a
+crew or a live act builds it — through a fixture** (decided 2026-11-08): the
+*practice season* (`app/practice.py`), a published series of a division's 18 real clubs
+in the league `practice`, ten new people per club as its squad, and three acts — final,
+live (two thirds sailed), planned — with the catalog's draw, crews and raw results. pytest
+asks for `season` / `season_2` (`tests/conftest.py`, built once per run); Playwright for
+`season` / `season2` (`e2e/fixtures.ts`), which build it on the stack through
+`POST /api/dev/season` — dev login only, so never on a real site or staging. A test that
+changes the shared season puts it back. The people who sign in are concentrated:
 
 - **club** ASVW, a 2. Liga club (decided 2026-10-21; it was NRV): `board@asvw.example.com` (its `admin`,
   Gundram Leifert), `teams@` (its `manager`, the team manager, Gunnar Voigt),
   `treasurer@`, and every ASVW sailor — all members of it. A sailor needs an
   account to sign a waiver; a sailor of any other club has none, and the specs pick their
   adults and juniors from ASVW's squad;
-- **series** the demo's 2. Liga 2026 (`demo-2-2026`), ASVW's: `serie@` (its `manager`, and
+- **series** the 2. Liga 2026 (`dsbl-2-2026`), ASVW's: `serie@` (its `manager`, and
   of the 1. and 2. Liga's 2027 drafts); `presse@` (its `editor`, Paula Presse — writes about its
   matchdays, organizes nothing);
   `junioren@` (Jocki Hellmich, `manager` of the Junioren-Segelliga 2026 and its 2027
   draft);
-- **event** its act 3 (`demo-2-2026-act-3`), still planned, **hosted by ASVW** — so its claims are ASVW's to pay
-  and ASVW's officials are the event's too: `orga@` (manager, Peter Weichel), `regatta@`
-  (race officer, Malte Rackow), `jury@` (Heiko Thölmann), `helfer@` (helper, Johannes
-  Machur). Every demo act has a host club (DTYC, KYC, ASVW);
+- **event** Warnemünde 2027 (`dsbl-1-2027-warnemuende`), **hosted by ASVW** — so its claims
+  are ASVW's to pay and ASVW's officials are the event's too: `orga@` (manager), `regatta@`
+  (race officer), `jury@`, `helfer@` (helper). A test that needs them on a practice act
+  grants it there itself;
 - the **league office** `admin@`, `redaktion@` (editor — the journalist, Sven Jürgensen,
   who writes and keeps pictures and organizes nothing), `wl@` (race officer, Christoph Zanter), and
   `gast@sbl.example.com` with no relation.
@@ -199,7 +202,7 @@ from the 2026 tables** (decided 2026-11-02, `seed.py::_first_division_next_year`
 each with its draw. The 2. Liga 2027 has no clubs yet: its 2026 places 13–18 requalify at the
 DSL-Pokal. `scripts/sap-season.py` plays the 1. Liga's season on the local SAP. **ASVW hosts Warnemünde 2027**, so its
 officials are that event's organizers — and `orga@`, `regatta@`, `jury@` and `helfer@` hold
-their relation on it too, as on the demo's act 3 (decided 2026-11-06). Only what was announced is seeded; nothing invented.
+their relation on it (decided 2026-11-06). Only what was announced is seeded; nothing invented.
 
 The role switcher groups them the same way (league office · series · event · club ·
 sailors · guest, the `group` of `/api/dev/users`), the sailors folded until searched.
@@ -271,7 +274,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   The current year is asked **per league**. News, press, pictures and documents come from
   the API; only the videos and the association's own texts are static content behind
   hooks (`web/src/content/`). **Nothing invented is static content**: an example belongs
-  to the demo layer (`publish_demo`), and a notice board shows what Manage2Sail published
+  to a test's practice season (`app/practice.py`), and a notice board shows what Manage2Sail published
   (Story A-14).
 - **An Event can belong to a Series, but need not.** `series_id` and `matchday`
   are optional. The normal case is an Event within a Series; a cup or training weekend stands
@@ -717,7 +720,7 @@ below — `start <N>`, `pr`, `merge` (only on the user's word), `handover`, `acc
 **An issue is done when its stakeholder accepts it on staging, not when its PR merges.**
 Many issues come from stakeholders, and they judge a change by using it, not by reading a
 diff — and the place they can use it is **staging**, which runs `main` (decided
-2026-10-28: the Render instance is gone; staging is to be a second Compose stack with the demo published (`docs/deploy-server.md`) — and, like production, **without the dev login**, which `compose.yaml` fixes off (decided 2026-10-28); until it runs, a change is shown on a local stack). So the
+2026-10-28: the Render instance is gone; staging is to be a second Compose stack (`docs/deploy-server.md`) — and, like production, **without the dev login**, which `compose.yaml` fixes off (decided 2026-10-28); until it runs, a change is shown on a local stack). So the
 PR **refers** to the issue and never closes it, and between merge and close the issue
 carries the label **`in-stakeholder-review`**. While nothing is in production, `main` is
 allowed to hold changes not yet accepted; that changes when there is a production.

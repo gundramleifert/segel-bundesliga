@@ -2,7 +2,7 @@ import type { APIRequestContext, Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
 import { listedSections, openSwitcher } from "./layout";
-import { bearer, devUsers, signIn } from "./session";
+import { bearer, signIn } from "./session";
 
 /** Story Z-10, issue #35: the plan's §5 — what real people see — walked per seeded account.
  *
@@ -22,12 +22,13 @@ import { bearer, devUsers, signIn } from "./session";
  *   one and walks *My children*);
  * - *Club admin + treasurer* in one person — the seed splits them (`board@`, `treasurer@`);
  *   both are walked, and the club's admin alone already has all four *Money* pages;
- * - *Race officer at Act 2, jury at Act 3* — the seed has one of each on Act 3
- *   (`regatta@`, `jury@`), walked separately;
+ * - *Race officer at Act 2, jury at Act 3* — the seed has one of each on one event
+ *   (`regatta@`, `jury@` on Warnemünde 2027), walked separately;
  * - *Sailor who also helps at an event* — no seeded sailor is a helper (`my-space.spec.ts`
  *   walks the helper; `test_workspace.ts` the sum of both).
  *
- * Read-only: nothing is written, so it runs on any stack beside the other specs.
+ * Read-only but for the practice season (`app/practice.py`), which the sailor's row needs —
+ * the seed names no sailor in any crew — and which is built once per stack.
  */
 
 /** An object of the seed, by its slug — ids are the database's business. */
@@ -49,24 +50,31 @@ type Person = {
 
 const ME = ["overview", "account", "clubs", "waivers", "claims", "documents", "bank"];
 const ASVW: Ref = "club:asvw";
-const LIGA2: Ref = "series:demo-2-2026";
-const ACT1: Ref = "event:demo-2-2026-act-1";
-const ACT2: Ref = "event:demo-2-2026-act-2";
-const ACT3: Ref = "event:demo-2-2026-act-3";
-// ASVW hosts it, and the event cast holds its relations there too (`app/seed_users.py`).
+// The test series: `serie@` manages it, `presse@` writes about it (`app/seed_users.py`).
+const LIGA2: Ref = "series:dsbl-2-2026";
+// The 2. Liga's practice season, `season2` — its slugs, checked against the fixture.
+const PRACTICE = "practice-2-2026";
+const PRACTICE_SERIES: Ref = `series:${PRACTICE}`;
+const ACT1: Ref = `event:${PRACTICE}-act-1`;
+const ACT2: Ref = `event:${PRACTICE}-act-2`;
+const ACT3: Ref = `event:${PRACTICE}-act-3`;
+// ASVW hosts it, and the event cast holds its relations there (`app/seed_users.py`).
 const WARNEMUENDE: Ref = "event:dsbl-1-2027-warnemuende";
 const SERIES_ORGANIZER = ["overview", "events", "standings", "registrations", "dates", "scoring", "officials"];
 
-/** An adult of ASVW who sails the 2. Liga and is in its acts' crews — §5's first row. */
+/** An adult of ASVW who sails the 2. Liga's practice season and is in its acts' crews —
+ *  §5's first row. Its squad's people are made by `app/practice.py`, adults all. */
 async function anAdultSailor(request: APIRequestContext): Promise<string> {
-  for (const user of await devUsers(request)) {
-    if (!user.email.endsWith("@asvw.example.com") || user.roles.length) continue;
+  const admin = await bearer(request, "admin@sbl.example.com");
+  const listed = await request.get("/api/auth/users?q=asvw.practice.example.com&limit=20", { headers: admin });
+  expect(listed.ok(), await listed.text()).toBeTruthy();
+  for (const user of ((await listed.json()) as { items: { email: string }[] }).items) {
     const mine = (await (await request.get("/api/me/contexts", { headers: await bearer(request, user.email) })).json()) as {
       contexts: { kind: string; relations: string[] }[];
     };
     if (mine.contexts.filter((c) => c.kind === "event" && c.relations.includes("sailor")).length === 3) return user.email;
   }
-  throw new Error("no ASVW sailor in the 2. Liga's three acts — has app/seed_users.py changed?");
+  throw new Error("no ASVW sailor in the practice season's three acts — has app/practice.py changed?");
 }
 
 const PEOPLE: Person[] = [
@@ -75,7 +83,7 @@ const PEOPLE: Person[] = [
     who: anAdultSailor,
     contexts: [
       { ref: ASVW, relations: ["member"], sections: ["overview", "people", "squads", "crews", "my-claims"] },
-      { ref: LIGA2, relations: ["sailor"], sections: ["overview", "team", "events", "standings"] },
+      { ref: PRACTICE_SERIES, relations: ["sailor"], sections: ["overview", "team", "events", "standings"] },
       { ref: ACT1, relations: ["sailor"], sections: ["overview", "crew"] },
       { ref: ACT2, relations: ["sailor"], sections: ["overview", "crew"] },
       { ref: ACT3, relations: ["sailor"], sections: ["overview", "crew"] },
@@ -120,11 +128,11 @@ const PEOPLE: Person[] = [
     ],
   },
   {
-    row: "Event manager of Act 3 (orga@)",
+    row: "Event manager of Warnemünde 2027 (orga@)",
     who: "orga@sbl.example.com",
     contexts: [
       {
-        ref: ACT3,
+        ref: WARNEMUENDE,
         relations: ["manager"],
         // Set up, Race day, Money (both) — no Editorial.
         sections: [
@@ -132,26 +140,13 @@ const PEOPLE: Person[] = [
           "check-in", "race-control", "results", "notice-board", "my-claims", "decide-claims",
         ],
       },
-      {
-        ref: WARNEMUENDE,
-        relations: ["manager"],
-        sections: [
-          "overview", "general", "clubs", "boats", "pairing", "scoring", "publication", "people",
-          "check-in", "race-control", "results", "notice-board", "my-claims", "decide-claims",
-        ],
-      },
     ],
   },
   {
-    row: "Race officer at Act 3 (regatta@)",
+    row: "Race officer at Warnemünde 2027 (regatta@)",
     who: "regatta@sbl.example.com",
     contexts: [
       {
-        ref: ACT3,
-        relations: ["race_officer"],
-        sections: ["overview", "check-in", "race-control", "results", "notice-board", "my-claims"],
-      },
-      {
         ref: WARNEMUENDE,
         relations: ["race_officer"],
         sections: ["overview", "check-in", "race-control", "results", "notice-board", "my-claims"],
@@ -159,18 +154,16 @@ const PEOPLE: Person[] = [
     ],
   },
   {
-    row: "Jury at Act 3 (jury@)",
+    row: "Jury at Warnemünde 2027 (jury@)",
     who: "jury@sbl.example.com",
     contexts: [
-      { ref: ACT3, relations: ["jury"], sections: ["overview", "notice-board", "my-claims"] },
       { ref: WARNEMUENDE, relations: ["jury"], sections: ["overview", "notice-board", "my-claims"] },
     ],
   },
   {
-    row: "Helper at Act 3 (helfer@)",
+    row: "Helper at Warnemünde 2027 (helfer@)",
     who: "helfer@sbl.example.com",
     contexts: [
-      { ref: ACT3, relations: ["helper"], sections: ["overview", "my-claims"] },
       { ref: WARNEMUENDE, relations: ["helper"], sections: ["overview", "my-claims"] },
     ],
   },
@@ -215,7 +208,7 @@ const PEOPLE: Person[] = [
     row: "Site admin",
     who: "admin@sbl.example.com",
     // Complete, but for Imports, which has no screen (run from the command line).
-    office: ["overview", "clubs", "series", "events", "people", "accounts", "news", "media"],
+    office: ["overview", "clubs", "series", "events", "people", "accounts", "news", "media", "jury"],
     contexts: [],
   },
   {
@@ -251,7 +244,8 @@ async function switcherEntries(page: Page): Promise<string[]> {
 
 describeStory("Z-10: what real people see — the plan's §5, per seeded account", () => {
   for (const person of PEOPLE) {
-    test(`§5: ${person.row}`, async ({ page, request }) => {
+    test(`§5: ${person.row}`, async ({ page, request, season2 }) => {
+      expect(season2.label, "the practice season's slug").toBe(PRACTICE);
       const ids = await seededIds(request);
       const email = typeof person.who === "string" ? person.who : await person.who(request);
       const entry = (ref: Ref) => {

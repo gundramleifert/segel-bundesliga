@@ -9,19 +9,15 @@ const ADMIN = "admin@sbl.example.com";
 const TEAM_MANAGER = "teams@asvw.example.com";
 
 describeStory("VA-13: a club enters more than one team", () => {
-  test("the organizer gives a club a second team in the clubs block", async ({ page, request }, testInfo) => {
+  test("the organizer gives a club a second team in the clubs block", async ({ page, request, season2 }, testInfo) => {
     const headers = await bearer(request, ADMIN);
     const asvw = await managedClub(request, TEAM_MANAGER);
-    const series = (await (await request.get("/api/admin/series?limit=50", { headers })).json()) as {
-      items: { id: number; slug: string }[];
-    };
-    const second = series.items.find((s) => s.slug === "demo-2-2026")!;
     // No act number: the server takes the next free one, so a second run on the same
     // stack (or the other browser project) makes its own act.
     const title = `Two teams e2e ${testInfo.project.name} ${Date.now()}`;
     const created = await request.post("/api/admin/events", {
       headers,
-      data: { title, series: second.id },
+      data: { title, series: season2.series }, // ASVW's practice season
     });
     expect(created.ok(), await created.text()).toBeTruthy();
     const event = (await created.json()) as { id: number; teams_per_club: number };
