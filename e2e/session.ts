@@ -81,6 +81,45 @@ export function bornIn(sailor: SeededSailor): number {
   return Number(sailor.birth_date?.slice(0, 4) ?? 0);
 }
 
+// ----------------------------------------------------------------- A squad of new people
+
+/** A series of its own with the test club ASVW registered and a squad of people new to the
+ *  site, one per date of birth — nobody has signed anything for them. For a spec that
+ *  changes what a sailor has on file (a waiver confirmed stays confirmed): built fresh
+ *  each run, so it runs again on the same stack, and never touches the seeded squads,
+ *  which are full and which other specs read. */
+export async function newSquad(
+  request: APIRequestContext,
+  label: string,
+  births: string[],
+): Promise<{ series: number; clubId: number; people: SeededSailor[] }> {
+  const headers = await bearer(request, "admin@sbl.example.com");
+  const clubId = await managedClub(request, "teams@asvw.example.com");
+  const stamp = `${label} ${Date.now()}`;
+  const response = await request.post("/api/admin/series", {
+    headers,
+    data: { name: stamp, year: 2026, starts_on: "2026-05-01", clubs: [clubId] },
+  });
+  expect(response.ok(), await response.text()).toBeTruthy();
+  const series = (await response.json()) as { id: number; clubs: { team_id: number }[] };
+  const people: SeededSailor[] = [];
+  for (const [i, birth_date] of births.entries()) {
+    const email = `${stamp.replaceAll(" ", "-").toLowerCase()}-${i}@asvw.example.com`;
+    const created = await request.post("/api/admin/people", {
+      headers,
+      data: { first_name: `Sailor ${i + 1}`, last_name: label, email, birth_date, club_id: clubId },
+    });
+    expect(created.ok(), await created.text()).toBeTruthy();
+    people.push((await created.json()) as SeededSailor);
+  }
+  const squad = await request.put(`/api/admin/teams/${series.clubs[0]!.team_id}/members`, {
+    headers,
+    data: { members: people.map((p) => ({ person_id: p.id })) },
+  });
+  expect(squad.ok(), await squad.text()).toBeTruthy();
+  return { series: series.id, clubId, people };
+}
+
 // ----------------------------------------------------------------- A picture in the library
 
 /** Puts the site's own photos (`web/public/media/`) into a series' library, as an editor

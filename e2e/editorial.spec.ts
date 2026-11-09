@@ -70,7 +70,11 @@ describeStory("R-1: editorial writes news and press releases", () => {
       el.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }));
       async function picture(name: string) {
         const canvas = Object.assign(document.createElement("canvas"), { width: 40, height: 30 });
-        canvas.getContext("2d")!.fillRect(0, 0, 40, 30);
+        // Pixels no run has sent before: the library answers a known picture with its old entry.
+        const context = canvas.getContext("2d")!;
+        context.fillRect(0, 0, 40, 30);
+        context.fillStyle = "white";
+        context.fillText(String(Date.now()), 2, 20);
         const blob = await new Promise<Blob>((done) => canvas.toBlob((b) => done(b!), "image/png"));
         return new File([blob], name, { type: "image/png" });
       }

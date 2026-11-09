@@ -86,24 +86,32 @@ describeStory("VA-8: what was set at creation is changed in the event's own sect
     request,
   }, testInfo) => {
     const eventId = await act3(request);
-    await signIn(page, ORGA);
-    await page.goto(`/me/event/${eventId}/general`);
-    const title = page.getByTestId("me-event-general-title");
-    await expect(title).toBeVisible();
-    const renamed = `Act 3 (${testInfo.project.name} ${Date.now() % 100000})`;
-    await title.fill(renamed);
-    await page.getByTestId("me-event-general-save").click();
-    await expect(page.getByTestId("me-event-general-message-success")).toBeVisible();
-    const stored = await request.get(`/api/admin/events/${eventId}`, { headers: await bearer(request, ORGA) });
-    expect(((await stored.json()) as { title: string }).title).toBe(renamed);
+    // The seeded event other specs find by its name (my-space's claims): renamed here, so
+    // put back afterwards — the stack outlives this run.
+    const headers = await bearer(request, ORGA);
+    const before = (await (await request.get(`/api/admin/events/${eventId}`, { headers })).json()) as { title: string };
+    try {
+      await signIn(page, ORGA);
+      await page.goto(`/me/event/${eventId}/general`);
+      const title = page.getByTestId("me-event-general-title");
+      await expect(title).toBeVisible();
+      const renamed = `Act 3 (${testInfo.project.name} ${Date.now() % 100000})`;
+      await title.fill(renamed);
+      await page.getByTestId("me-event-general-save").click();
+      await expect(page.getByTestId("me-event-general-message-success")).toBeVisible();
+      const stored = await request.get(`/api/admin/events/${eventId}`, { headers: await bearer(request, ORGA) });
+      expect(((await stored.json()) as { title: string }).title).toBe(renamed);
 
-    await openSection(page, "event", "boats");
-    const name = page.getByTestId("admin-events-boat-name-input-0");
-    const boatName = `Boat one ${testInfo.project.name} ${Date.now() % 100000}`;
-    await name.fill(boatName);
-    await page.getByTestId("me-event-boats-save").click();
-    await expect(page.getByTestId("me-event-boats-message-success")).toBeVisible();
-    const boats = await request.get(`/api/admin/events/${eventId}/boats`, { headers: await bearer(request, ORGA) });
-    expect(((await boats.json()) as { name: string }[])[0]!.name).toBe(boatName);
+      await openSection(page, "event", "boats");
+      const name = page.getByTestId("admin-events-boat-name-input-0");
+      const boatName = `Boat one ${testInfo.project.name} ${Date.now() % 100000}`;
+      await name.fill(boatName);
+      await page.getByTestId("me-event-boats-save").click();
+      await expect(page.getByTestId("me-event-boats-message-success")).toBeVisible();
+      const boats = await request.get(`/api/admin/events/${eventId}/boats`, { headers: await bearer(request, ORGA) });
+      expect(((await boats.json()) as { name: string }[])[0]!.name).toBe(boatName);
+    } finally {
+      await request.patch(`/api/admin/events/${eventId}`, { headers, data: { title: before.title } });
+    }
   });
 });

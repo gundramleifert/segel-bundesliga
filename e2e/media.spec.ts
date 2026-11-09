@@ -108,7 +108,9 @@ describeStory("R-2: a picture library fed by upload links", () => {
     // Picked again, from the library's grid: once more into the text, and as the cover.
     await page.getByTestId("admin-post-editor-image").click();
     await picker.getByTestId("admin-post-editor-picker-search").fill(name);
-    await picker.getByTestId("admin-post-editor-picker-grid").getByRole("button").first().click();
+    // The name is unique: wait for the search's one answer, not the unfiltered grid's first.
+    await expect(picker.getByTestId("admin-post-editor-picker-grid").getByRole("button")).toHaveCount(1);
+    await picker.getByTestId("admin-post-editor-picker-grid").getByRole("button").click();
     await expect(content.getByRole("img")).toHaveCount(2);
 
     // Selected in the text, it shows the library's alt text, and correcting it there
@@ -124,7 +126,9 @@ describeStory("R-2: a picture library fed by upload links", () => {
     await page.getByTestId("admin-post-photo-library-button").click();
     const cover = page.getByTestId("admin-post-photo-picker");
     await cover.getByTestId("admin-post-photo-picker-search").fill(name);
-    await cover.getByTestId("admin-post-photo-picker-grid").getByRole("button").first().click();
+    // The name is unique: wait for the search's one answer, not the unfiltered grid's first.
+    await expect(cover.getByTestId("admin-post-photo-picker-grid").getByRole("button")).toHaveCount(1);
+    await cover.getByTestId("admin-post-photo-picker-grid").getByRole("button").click();
     await expect(page.getByTestId("admin-post-photo-preview")).toHaveAttribute("src", src!);
   });
 
@@ -174,15 +178,20 @@ describeStory("R-2: editorial changes many pictures at once", () => {
     await page.goto("/office/media");
     await choosePictures(page, count, "admin-media-upload-input");
     const plural = count === 1 ? "picture" : "pictures";
-    await expect(page.getByTestId("admin-media-upload-summary")).toHaveText(`${count} of ${count} ${plural} received`);
+    // The server makes four WebP sizes per picture; on a busy stack that outlasts 5 s.
+    await expect(page.getByTestId("admin-media-upload-summary")).toHaveText(`${count} of ${count} ${plural} received`, {
+      timeout: 15_000,
+    });
     // An arrived picture is shown by the library's small copy, no longer by the file.
     await expect(page.getByTestId("admin-media-upload-item-0-preview")).toHaveAttribute("src", /^\/api\/media\/[0-9a-f]{32}-480\.webp$/);
-    const tiles = page.getByTestId("admin-media-grid").getByRole("listitem");
-    await expect(tiles.first().getByTestId(/^admin-media-tile-\d+$/)).toBeVisible();
+    // Each tile found by its picture, never by its place: until the grid refetches, the
+    // first tiles are an earlier run's pictures.
     const ids: string[] = [];
     for (let i = 0; i < count; i++) {
-      const testId = await tiles.nth(i).getByTestId(/^admin-media-tile-\d+$/).getAttribute("data-testid");
-      ids.push(testId!.replace("admin-media-tile-", ""));
+      const src = await page.getByTestId(`admin-media-upload-item-${i}-preview`).getAttribute("src");
+      const tile = page.getByTestId("admin-media-grid").locator(`[data-testid^="admin-media-tile-"]:has(img[src="${src}"])`);
+      await expect(tile).toBeVisible();
+      ids.push((await tile.getAttribute("data-testid"))!.replace("admin-media-tile-", ""));
     }
     return ids;
   }

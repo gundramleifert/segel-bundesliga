@@ -362,6 +362,8 @@ function ImageBar({ editor, src, testId }: { editor: Editor; src: string; testId
   const [entry, setEntry] = useState<{ id: number; credit: string | null } | null>(null);
   const [alt, setAlt] = useState(String(editor.getAttributes("image").alt ?? ""));
   const [state, setState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  // The library's answer can land after the editor started typing; it must not undo that.
+  const typed = useRef(false);
 
   useEffect(() => {
     if (!name) return;
@@ -370,7 +372,7 @@ function ImageBar({ editor, src, testId }: { editor: Editor; src: string; testId
       .then((item) => {
         if (!live) return;
         setEntry({ id: item.id, credit: item.credit ?? null });
-        setAlt(item.alt);
+        if (!typed.current) setAlt(item.alt);
       })
       .catch(() => undefined);
     return () => {
@@ -400,6 +402,7 @@ function ImageBar({ editor, src, testId }: { editor: Editor; src: string; testId
           className={`${INPUT_CLASS} min-w-0 flex-1 py-1`}
           value={alt}
           onChange={(e) => {
+            typed.current = true;
             setAlt(e.target.value);
             setState("idle");
           }}

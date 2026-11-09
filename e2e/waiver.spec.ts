@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
-import { bearer, bornIn, seededSailors, signIn, type SeededSailor } from "./session";
+import { bearer, newSquad, signIn, type SeededSailor } from "./session";
 
 /** Stories S-1 and VA-5: the liability waiver, from the sailor's own account.
  *
@@ -17,7 +17,6 @@ import { bearer, bornIn, seededSailors, signIn, type SeededSailor } from "./sess
 test.describe.configure({ mode: "serial" });
 
 const ADMIN = "admin@sbl.example.com";
-const CLUB_DOMAIN = "asvw.example.com"; // fields a first-league team and a juniors team
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
   "base64",
@@ -32,16 +31,14 @@ async function openAccount(page: Page): Promise<void> {
 
 let adult: SeededSailor;
 let junior: SeededSailor;
+let seriesId: number;
 
 test.beforeAll(async ({ request }, testInfo) => {
-  const sailors = await seededSailors(request, CLUB_DOMAIN);
-  // Each browser project takes its own pair: the two projects can share one stack, and a
-  // waiver confirmed by the first run would already be "cleared" for the second.
-  const nth = testInfo.project.name === "mobile" ? 1 : 0;
-  adult = sailors.filter((s) => bornIn(s) > 0 && bornIn(s) <= 2004)[nth]!;
-  junior = sailors.filter((s) => bornIn(s) >= 2009)[nth]!;
-  expect(adult, "a seeded adult of the club").toBeTruthy();
-  expect(junior, "a seeded junior of the club").toBeTruthy();
+  // An adult and a junior who have signed nothing, and a third who never will: the
+  // organizer's list shows them as missing.
+  const squad = await newSquad(request, `Waiver e2e ${testInfo.project.name}`, ["1990-05-01", "2012-05-01", "1992-05-01"]);
+  seriesId = squad.series;
+  [adult, junior] = squad.people as [SeededSailor, SeededSailor];
 });
 
 describeStory("S-1: as a sailor I submit the liability waiver from my account", () => {
@@ -104,24 +101,13 @@ describeStory("VA-5: as the organizer I only check off what is on file", () => {
     page,
     request,
   }, testInfo) => {
-    // A juniors event, so that the minor's row is on someone's check-in list. Creating it
-    // adopts the series' registrations as participants (CLAUDE.md, Domain decisions).
+    // An act of the spec's own series, so that the minor's row is on someone's check-in
+    // list. Creating it adopts the series' registrations as participants (CLAUDE.md).
     const headers = await bearer(request, ADMIN);
-    const series = (await (await request.get("/api/admin/series?limit=50", { headers })).json()) as {
-      items: { id: number; slug: string }[];
-    };
-    const juniors = series.items.find((s) => s.slug === "junioren-2026")!;
-    // One act per browser project: the two can share a stack, and an act number is unique
-    // within its series.
-    const matchday = testInfo.project.name === "mobile" ? 78 : 77;
+    const title = `Check-in e2e ${testInfo.project.name} ${Date.now()}`;
     const created = await request.post("/api/admin/events", {
       headers,
-      data: {
-        title: `Juniors check-in e2e ${matchday}`,
-        starts_on: "2026-08-15",
-        series: juniors.id,
-        matchday,
-      },
+      data: { title, starts_on: "2026-08-15", series: seriesId, matchday: 1 },
     });
     expect(created.ok(), await created.text()).toBeTruthy();
     const eventId = ((await created.json()) as { id: number }).id;
@@ -131,7 +117,7 @@ describeStory("VA-5: as the organizer I only check off what is on file", () => {
     await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
     // Searched for, not scrolled to: the list is paged, and with the real 2026 season in
     // the seed this act is not on the first page (Story A-13).
-    await page.getByTestId("admin-manage-events-search-input").fill(`Juniors check-in e2e ${matchday}`);
+    await page.getByTestId("admin-manage-events-search-input").fill(title);
     await page.getByTestId(`admin-manage-event-toggle-${eventId}`).click();
 
     await expect(page.getByTestId(`admin-manage-event-waivers-summary-${eventId}`)).toBeVisible();

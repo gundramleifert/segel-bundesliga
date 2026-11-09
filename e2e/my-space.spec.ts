@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { APIRequestContext, Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
 import { listedSections, openSection, openSwitcher, openUserMenu } from "./layout";
@@ -277,14 +277,25 @@ describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a b
   });
 });
 
+/** The option value of the event `jury@` sits on (Warnemünde 2027, `app/seed_users.py`) —
+ *  found by the relation, not by its title, which workspace-event.spec.ts renames. */
+async function juryEvent(request: APIRequestContext): Promise<string> {
+  const response = await request.get("/api/me/contexts", { headers: await bearer(request, "jury@sbl.example.com") });
+  const { contexts } = (await response.json()) as { contexts: { kind: string; id: number; relations: string[] }[] };
+  const event = contexts.find((c) => c.kind === "event" && c.relations.includes("jury"));
+  expect(event, "jury@ sits on a seeded event").toBeTruthy();
+  return `event:${event!.id}`;
+}
+
 describeStory("F-2: the people who work an event claim their costs on it", () => {
   test("the jury of the test event starts a claim on it — its host club pays", async ({ page }) => {
     // The test event is hosted by the test club (`app.seed`), so the jury has somewhere
     // to claim: the complaint that started this was a jury with nothing to choose.
+    const event = await juryEvent(page.request);
     await signIn(page, "jury@sbl.example.com");
     await page.goto("/me/profile/claims");
     const target = page.getByTestId("my-space-claim-target");
-    await expect(target.locator("option", { hasText: "Warnemünde" })).toHaveCount(1);
+    await expect(target.locator(`option[value="${event}"]`)).toHaveCount(1);
     await expect(page.getByTestId("my-space-claim-unavailable")).toHaveCount(0);
   });
 });
@@ -307,8 +318,7 @@ describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a messag
     await signIn(page, JURY);
     await page.goto("/me/profile/claims");
     const target = page.getByTestId("my-space-claim-target");
-    const event = await target.locator("option", { hasText: "Warnemünde" }).getAttribute("value");
-    await target.selectOption(event!);
+    await target.selectOption(await juryEvent(page.request));
     await page.getByTestId("my-space-claim-title").fill(title);
     await page.getByTestId("my-space-claim-create").click();
     const card = page.getByTestId("my-space-claims-list").locator(":scope > li", { hasText: title });

@@ -23,7 +23,9 @@ describeStory("JU-1/JU-2/JU-3/JU-4/JU-5: the jury organizer staffs an event from
     await page.getByTestId("office-jury-add-open").click();
     await page.getByTestId("office-jury-candidate-search").fill(email);
     await page.getByTestId(`office-jury-candidate-add-${userId}`).click();
-    await page.keyboard.press("Escape");
+    // Escape inside the dialog: the added candidate's button is gone, and with it the focus.
+    await page.getByTestId("office-jury-candidate-search").press("Escape");
+    await expect(page.getByTestId("office-jury-candidate-search")).toHaveCount(0);
     await expect(page.getByTestId(`office-jury-row-${userId}`)).toBeVisible();
 
     // JU-3: the event a column, the judge ticked and asked.
