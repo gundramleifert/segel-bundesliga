@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { PAGE_SIZE } from "../api/useApi";
@@ -28,6 +29,16 @@ import { PAGE_SIZE } from "../api/useApi";
  */
 export function useListParams(limit: number = PAGE_SIZE): ListParams {
   const [params, setParams] = useSearchParams();
+  // The address as last written, not as last rendered: two changes before the next render
+  // (a state filter, then a league filter) would otherwise both start from the same old
+  // `params`, and the second would drop the first. setSearchParams does not queue updates
+  // the way setState does — its functional form gets the rendered value too. Each render
+  // resets this to the router's answer, which by then carries every write — synced after
+  // the commit, before any handler of the new render can run.
+  const latest = useRef(params);
+  useLayoutEffect(() => {
+    latest.current = params;
+  }, [params]);
 
   const page = Math.max(1, Number(params.get("page") ?? 1) || 1);
   const sort = params.get("sort");
@@ -37,11 +48,12 @@ export function useListParams(limit: number = PAGE_SIZE): ListParams {
    *  `?view=pairing` and `?tab=events` are somebody else's and must survive. A `null`
    *  removes the key, so a default never shows up in the address bar. */
   const update = (changes: Record<string, string | null>) => {
-    const next = new URLSearchParams(params);
+    const next = new URLSearchParams(latest.current);
     for (const [key, value] of Object.entries(changes)) {
       if (value === null) next.delete(key);
       else next.set(key, value);
     }
+    latest.current = next;
     // `replace`: paging through a list should not fill the Back button with every step
     // someone took on the way — Back belongs to the page they came from.
     setParams(next, { replace: true });

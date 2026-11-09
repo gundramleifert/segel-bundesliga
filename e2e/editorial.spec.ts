@@ -248,11 +248,22 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
     await signIn(page, EDITOR);
     await page.goto("/office/news");
-    await page.getByTestId("admin-posts-state-filter").selectOption("published");
-    // One filter in the address before the next: each change copies the address as it was
-    // last rendered, so two at once lose the first (`web/src/lib/listParams.ts`).
+    // Both filters in one task, before React renders again: the second change must build
+    // on the first, not on the address as last rendered (`web/src/lib/listParams.ts`).
+    // `selectOption` twice would not show it — Playwright waits, and the render slips in.
+    await page.getByTestId("admin-posts-league-filter").waitFor();
+    await page.evaluate(() => {
+      for (const [id, value] of [
+        ["admin-posts-state-filter", "published"],
+        ["admin-posts-league-filter", "2-liga"],
+      ]) {
+        const select = document.querySelector(`[data-testid="${id}"]`) as HTMLSelectElement;
+        select.value = value;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
     await expect(page).toHaveURL(/state=published/);
-    await page.getByTestId("admin-posts-league-filter").selectOption("2-liga");
+    await expect(page).toHaveURL(/league=2-liga/);
     const list = page.getByTestId("admin-posts-section");
     await expect(list.getByRole("link", { name: `Promotion race ${stamp}` })).toHaveCount(1);
     await expect(list.getByRole("link", { name: `Promotion draft ${stamp}` })).toHaveCount(0);
