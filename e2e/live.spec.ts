@@ -81,10 +81,13 @@ describeStory("B-5: as a spectator I follow live updates", () => {
     }
   });
 
-  test("/live leads to the running event", async ({ page, season }) => {
+  test("/live leads to the running event", async ({ page, season, season2 }) => {
     await page.goto("/live");
     // Through the event's address to its act, which opens on the results while racing.
-    await expect(page).toHaveURL(new RegExp(`/practice/2026/act-2\\?division=${season.live}$`));
+    // Both divisions' act 2 run the same weekend, and the earliest start comes first, then
+    // the lowest id (`get_live_now`) — whichever season this stack built first.
+    const running = Math.min(season.live, season2.live);
+    await expect(page).toHaveURL(new RegExp(`/practice/2026/act-2\\?division=${running}$`));
     await expect(page.getByTestId("matchday-live-badge")).toBeVisible();
   });
 });
