@@ -39,7 +39,7 @@ from app.models import (
     Event,
     EventCrew,
     Flight,
-    Grant,
+    Grant,  # noqa: TID251 — REVIEW 4.5
     ImportRun,
     Payment,
     PaymentRun,

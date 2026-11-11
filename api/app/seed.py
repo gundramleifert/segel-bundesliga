@@ -45,7 +45,7 @@ from app.models import (
     Venue,
     WaiverText,
 )
-from app.models.auth import Grant, Relation, User
+from app.models.auth import Grant, Relation, User  # noqa: TID251 — REVIEW 4.5
 from app.models.racing import BOAT_COLORS
 from app.pairing.catalog import load_entry, shuffle_pairing
 from app.seed_junioren import seed_cup, seed_junioren

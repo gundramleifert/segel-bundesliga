@@ -26,7 +26,7 @@ from app.models import WaiverConfirmation
 from app.models.auth import (
     MODEL,
     SCHEMA,
-    Grant,
+    Grant,  # noqa: TID251 — REVIEW 4.5
     ObjectType,
     Relation,
     Role,

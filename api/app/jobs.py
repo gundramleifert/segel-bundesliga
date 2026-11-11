@@ -79,7 +79,7 @@ class JobRegistry:
             job.status = JobStatus.CANCELLED
             job.error = "The job was cancelled."
             raise
-        except Exception as exc:  # noqa: BLE001 — the job must not bring down the server
+        except Exception as exc:
             job.status = JobStatus.FAILED
             job.error = str(exc)
             logger.exception("Job %s (%s) failed", job.id, job.kind)
@@ -116,7 +116,7 @@ class JobRegistry:
         for job in running:
             try:
                 await job.task  # type: ignore[arg-type]
-            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+            except (asyncio.CancelledError, Exception):
                 pass
 
 

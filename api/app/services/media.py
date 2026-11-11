@@ -372,7 +372,7 @@ def public_of(event_id: int | None, series_id: int | None) -> Select:
         )
         where = or_(MediaItem.series_id.in_(public_series), MediaItem.event_id.in_(events))
     else:
-        return select(MediaItem).where(False)  # noqa: FBT003 — nothing named, no gallery
+        return select(MediaItem).where(False)
     return (
         select(MediaItem)
         .where(where)

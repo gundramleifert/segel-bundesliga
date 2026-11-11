@@ -47,7 +47,9 @@ target-version = "py312"
 extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "TID251"]
+# RUF100: a `# noqa` that suppresses nothing is an error — so a known violation, once
+# fixed, cannot leave its exemption behind (the rules below are a ratchet).
+select = ["E", "F", "I", "UP", "B", "TID251", "RUF100"]
 # B008 verbietet Funktionsaufrufe in Argument-Defaults. Bei FastAPI ist genau das die
 # vorgesehene Schreibweise für Depends() und Query() — hier also ein Fehlalarm.
 ignore = ["B008"]
@@ -59,9 +61,19 @@ ignore = ["B008"]
 "fastapi.HTTPException".msg = "Raise app.problems.Problem(status, code, title) instead."
 "fastapi.exceptions.HTTPException".msg = "Raise app.problems.Problem(status, code, title) instead."
 "starlette.exceptions.HTTPException".msg = "Raise app.problems.Problem(status, code, title) instead."
+# Permissions are asked through app/authz.py and written through app/services/grants.py —
+# nothing else touches the tuple table (CLAUDE.md, "Permissions are relation tuples").
+# The places that still do carry `# noqa: TID251` and a review number (docs/REVIEW_2026-11.md).
+"app.models.auth.Grant".msg = "Ask app.authz (check/read/list_objects), write through app.services.grants."
+"app.models.Grant".msg = "Ask app.authz (check/read/list_objects), write through app.services.grants."
 
 [tool.ruff.lint.per-file-ignores]
 "app/main.py" = ["TID251"]
+# The owners of the tuple table, and the tests, which build their state with it.
+"app/services/grants.py" = ["TID251"]
+"app/authz.py" = ["TID251"]
+"app/models/__init__.py" = ["TID251"]
+"tests/**" = ["TID251"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

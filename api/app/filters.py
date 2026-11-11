@@ -41,7 +41,7 @@ from app.models import (
     TeamMembership,
     Venue,
 )
-from app.models.auth import Grant, Relation, User
+from app.models.auth import Grant, Relation, User  # noqa: TID251 — REVIEW 4.5
 from app.models.base import utcnow
 from app.pagination import apply_search
 from app.problems import Problem

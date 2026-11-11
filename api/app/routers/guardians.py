@@ -28,7 +28,7 @@ from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
 from app.models import Club, ClubMembership, MembershipStatus, Person
-from app.models.auth import Grant, ObjectType, Relation, User
+from app.models.auth import Grant, ObjectType, Relation, User  # noqa: TID251 — REVIEW 4.5
 from app.problems import Problem
 from app.services import grants
 from app.services.waivers import is_minor

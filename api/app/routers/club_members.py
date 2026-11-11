@@ -36,7 +36,7 @@ from app.models import (
     Team,
     TeamMembership,
 )
-from app.models.auth import Grant, ObjectType, Relation, User
+from app.models.auth import Grant, ObjectType, Relation, User  # noqa: TID251 — REVIEW 4.5
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubMemberIn, ClubMemberOut, ClubPersonOut

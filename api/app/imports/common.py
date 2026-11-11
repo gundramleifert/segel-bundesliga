@@ -124,7 +124,7 @@ async def run_import(
         run = await start_run(session, source, reference)
         try:
             await work(session, report)
-        except Exception as error:  # noqa: BLE001 — the run records it
+        except Exception as error:
             await session.rollback()
             report = Report(errors=[f"{reference}: {type(error).__name__}: {error}"])
             run = await start_run(session, source, reference)

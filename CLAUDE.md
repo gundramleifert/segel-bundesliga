@@ -770,7 +770,7 @@ reviewer can read.
 
 ## Working here
 
-Three habits. They exist because each one was learned the expensive way, and the cost of
+Four habits. They exist because each one was learned the expensive way, and the cost of
 re-learning falls on whoever comes next.
 
 ### Before you debug, read `docs/gotchas/INDEX.md`
@@ -808,6 +808,23 @@ Do not write a note for an ordinary bug you fixed, or for something `CLAUDE.md` 
 reasoning is gone and only the diff is left — and the diff is precisely the part that does
 *not* carry why you first went the wrong way. A task where you were wrong at least once,
 and no note came out of it, is a task that quietly threw away its most useful product.
+
+### A rule is a check, not a sentence
+
+A rule that lives only in this file gets broken — by the next agent that never read the
+paragraph. So every rule that can be checked is: **ruff** where an import says it
+(`TID251` in `api/pyproject.toml` — `HTTPException`, the `Grant` table outside
+`authz.py`/`grants.py`), and **`api/tests/architecture/test_rules.py`** for the rest —
+one writer per status, one creator per `Team`, no router importing a router, every
+`Problem` code worded in both languages, `CLAUDE.md`'s permission table against `MODEL`.
+Each rule keeps its known violations in a list with their item in
+`docs/REVIEW_2026-11.md`, and the list is a **ratchet**: a new violation fails, and so
+does a fixed one still listed — `RUF100` does the same for a `# noqa` that suppresses
+nothing. **Never add to a list to get green; fix the code.** A known defect in behaviour
+is a test of the right behaviour marked `xfail(strict=True)`
+(`tests/architecture/test_known_defects.py`): it passes the day the fix lands, and
+`strict` makes that a failure until the marker goes. A new rule in this file comes with
+its check, or says why there cannot be one.
 
 ### When you do something twice, make it a function
 

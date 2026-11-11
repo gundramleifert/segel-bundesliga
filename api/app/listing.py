@@ -46,7 +46,7 @@ from app.problems import Problem
 __all__ = ["ListDepends", "ListFilter"]
 
 
-def ListDepends(filter_class: type[ListFilter]):  # noqa: N802 — a FastAPI dependency
+def ListDepends(filter_class: type[ListFilter]):
     """The dependency a route takes its list's filter with — by alias, so ``?sort=``
     reaches the ``order_by`` field."""
     return FilterDepends(filter_class, by_alias=True)
@@ -69,7 +69,7 @@ class ListFilter(Filter):
         search_columns: ClassVar[tuple[Any, ...]] = ()
 
     @field_validator("*", mode="before", check_fields=False)
-    def validate_order_by(cls, value: Any, field: ValidationInfo) -> Any:  # noqa: N805
+    def validate_order_by(cls, value: Any, field: ValidationInfo) -> Any:
         """Replaces the library's check (same name, so it is overridden): only a declared
         column, and the refusal names the ones that are."""
         if field.field_name != cls.Constants.ordering_field_name:
