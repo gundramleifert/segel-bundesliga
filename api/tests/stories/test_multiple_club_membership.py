@@ -41,8 +41,9 @@ class TestOncePerCompetition:
             f"(series, person, count): {duplicates}"
         )
 
-    async def test_database_rejects_second_lineup_in_same_event(self, seeded):
-        """At the event level, the database enforces the rule."""
+    async def test_database_rejects_second_lineup_in_same_event(self, season):
+        """At the event level, the database enforces the rule. The crews are the practice
+        season's — the seed has none; the refused insert leaves it as it was."""
         async with SessionLocal() as session:
             crew = (await session.execute(select(EventCrew).limit(1))).scalar_one()
             other_team = (

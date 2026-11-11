@@ -107,15 +107,13 @@ async def _build(session: AsyncSession, level: int, label: str) -> None:
     ).scalar_one()
     # The clubs that sailed the real first act — sailed and over, so no test changes
     # them, as one may the series' registrations (a 19th club has no draw in the catalog).
+    # IN, not a join with DISTINCT: Postgres cannot compare a club's JSON column.
     first_act = select(Event.id).where(Event.series_id == real.id, Event.matchday == 1)
+    entered = select(Team.club_id).where(Team.event_id == first_act.scalar_subquery())
     clubs = list(
         (
             await session.execute(
-                select(Club)
-                .join(Team, Team.club_id == Club.id)
-                .where(Team.event_id == first_act.scalar_subquery())
-                .order_by(Club.short_name)
-                .distinct()
+                select(Club).where(Club.id.in_(entered)).order_by(Club.short_name)
             )
         ).scalars()
     )

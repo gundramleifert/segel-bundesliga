@@ -22,12 +22,20 @@ with `could not identify an equality operator for type json`.
 **Rule** — name a unique constraint by hand when a second one on the table starts with the
 same column; count non-null columns with `CASE WHEN … THEN 1 ELSE 0 END` or compare
 `(a IS NULL) <> (b IS NULL)`; select ids with `IN (subquery)` instead of `DISTINCT` over a
-whole entity. Before trusting a model change on Postgres, run the suite against it once
-(below).
+whole entity. Before trusting a model change or a new query, run the suite on Postgres:
+`SBL_TEST_DATABASE_URL=postgresql+asyncpg://sbl:sbl@localhost:5432/sbl uv run pytest -n auto`
+against `compose.dev.yml` (Tilt's `pytest-postgres` button). The rule above was known and
+still broken once more — `app/practice.py` selected clubs with `DISTINCT` (2026-11-11) —
+so the run, not this note, is what catches it.
 
 **Evidence** — the suite against `postgres:17.6-alpine`, with `SBL_DATABASE_URL` and a
 `NullPool` engine patched into `tests/conftest.py` for the run (asyncpg connections are
 bound to one event loop, and every test gets its own): 925 passed, 8 failed, all the
 foreign-key one above. `alembic check` against it: no differences.
 
-**Seen** — 2026-10-27, branch `compose-setup`.
+Since 2026-11-11 that run is built in: `tests/conftest.py` gives each xdist worker its
+own Postgres database, and one event loop for the whole run (`pyproject.toml`,
+`asyncio_default_*_loop_scope = "session"`) replaces the `NullPool` patch — 1058 passed,
+the same as on SQLite.
+
+**Seen** — 2026-10-27, branch `compose-setup`; again 2026-11-11 (`app/practice.py`).
