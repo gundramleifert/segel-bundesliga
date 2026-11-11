@@ -23,8 +23,9 @@ looser:
 * **A filter with a meaning of its own** — "a series' posts, its events' too" — is a
   method ``where_<field>(value)`` returning its clause, or ``None`` for "no filter"; the
   library's own operators handle the rest.
-* **Text sorts regardless of case** — ``lower()`` of a string column: SQLite's own
-  order puts every lowercase name after ``Z``, which no reader expects (#47).
+* **Text sorts regardless of case** — ``lower()`` of a string column, so the order does
+  not hang on the database's collation: a byte-wise one puts every lowercase name after
+  ``Z``, which no reader expects (#47).
 * **The default order is the tie-break**, appended after the requested sort, so equal rows
   never wander between pages.
 """

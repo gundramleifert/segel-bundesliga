@@ -150,9 +150,7 @@ async def my_contexts(
     ``office``, beside the contexts."""
     space = await my_space(session, acting)
     return MySpaceOut(
-        me=MeOut(
-            name=space.name, needs=[_need(n) for n in space.needs], relations=space.relations
-        ),
+        me=MeOut(name=space.name, needs=[_need(n) for n in space.needs], relations=space.relations),
         contexts=[_context_out(c) for c in space.contexts],
         office=(
             OfficeOut(

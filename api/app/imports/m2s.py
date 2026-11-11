@@ -215,11 +215,7 @@ async def import_m2s(
 
 
 def _same(stored: Any, value: Any) -> bool:
-    """Equal, reading a moment SQLite gave back without its offset as UTC."""
-    if isinstance(stored, datetime) and isinstance(value, datetime):
-        if stored.tzinfo is None:
-            stored = stored.replace(tzinfo=UTC)
-        return stored == value
+    """Equal — two moments compare by the instant, whatever their zones."""
     return stored == value
 
 
@@ -417,7 +413,7 @@ async def _documents(
             "kind": document_kind(title),
             "url": document_url(document["Id"]),
             "extension": (document.get("Extension") or "").lower()[:16] or None,
-            # In UTC: SQLite keeps a moment's wall time and drops its offset.
+            # In UTC, the one zone every stored moment is written in.
             "published_at": (
                 datetime.fromisoformat(document["PublishedDate"]).astimezone(UTC)
                 if document.get("PublishedDate")

@@ -3,8 +3,8 @@ from datetime import UTC, datetime
 from sqlalchemy import DateTime, MetaData, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-# Without fixed names, Alembic cannot modify constraints in SQLite batch mode: the
-# table is rewritten there, and every constraint must be addressable for that.
+# Fixed names, so a migration can name the constraint it alters or drops — and two
+# unique constraints on one table must not share a name (see app/models/common.py).
 NAMENSKONVENTION = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
@@ -15,23 +15,13 @@ NAMENSKONVENTION = {
 
 
 class Base(DeclarativeBase):
-    """Common base for all models.
-
-    Deliberately no Postgres-specific types (JSONB, ARRAY) in the models, so the same
-    migrations run against SQLite (development) and Postgres (production).
-    """
+    """Common base for all models."""
 
     metadata = MetaData(naming_convention=NAMENSKONVENTION)
 
 
 def utcnow() -> datetime:
     return datetime.now(UTC)
-
-
-def as_utc(value: datetime) -> datetime:
-    """``value`` with its zone: SQLite hands back naive times even for a timezone-aware
-    column, and they were written in UTC."""
-    return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
 
 
 class TimestampMixin:

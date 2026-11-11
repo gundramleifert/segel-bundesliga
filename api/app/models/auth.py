@@ -346,8 +346,8 @@ class User(Base, TimestampMixin):
     identities: Mapped[list[Identity]] = relationship(
         back_populates="user", cascade="all, delete-orphan", lazy="selectin"
     )
-    # Only so the credential goes with a deleted account: SQLite enforces no foreign keys
-    # and reuses ids, so a row left behind would belong to the next account. Plain lazy
+    # Only so the credential goes with a deleted account — its foreign key would refuse
+    # the delete otherwise. Plain lazy
     # loading on purpose — the delete cascade loads it inside the flush, and nothing else
     # ever reads it through here (`app/services/passwords.py` queries it by `user_id`).
     password_credential: Mapped[PasswordCredential | None] = relationship(
@@ -405,8 +405,7 @@ class Grant(Base, TimestampMixin):
     __tablename__ = "access_grant"
     __table_args__ = (
         UniqueConstraint("user_id", "relation", "club_id", "series_id", "event_id", "person_id"),
-        # CASE, not `(club_id IS NOT NULL) + …`: adding booleans is SQLite's, and
-        # Postgres has no `boolean + boolean`.
+        # CASE, not `(club_id IS NOT NULL) + …`: Postgres has no `boolean + boolean`.
         CheckConstraint(
             "(CASE WHEN club_id IS NULL THEN 0 ELSE 1 END)"
             " + (CASE WHEN series_id IS NULL THEN 0 ELSE 1 END)"

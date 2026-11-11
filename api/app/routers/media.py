@@ -612,8 +612,6 @@ async def _detail(session: AsyncSession, item: MediaItem) -> MediaDetail:
 def _key_out(key: ImportKey, use: media.KeyUse | None) -> ImportKeyOut:
     now = utcnow()
     expires = key.expires_at
-    if expires is not None and expires.tzinfo is None:  # SQLite hands back naive times
-        expires = expires.replace(tzinfo=now.tzinfo)
     return ImportKeyOut(
         id=key.id,
         label=key.label,

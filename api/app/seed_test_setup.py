@@ -65,9 +65,7 @@ async def _has_series() -> bool:
         return (await conn.execute(select(Series.id).limit(1))).first() is not None
 
 
-async def seed_test_setup(
-    *, reset: bool = False, if_empty: bool = False
-) -> None:
+async def seed_test_setup(*, reset: bool = False, if_empty: bool = False) -> None:
     target = settings.database_url.split("@")[-1]
     print(f"Database: {target}\n")
 
@@ -107,11 +105,7 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        asyncio.run(
-            seed_test_setup(
-                reset=args.reset, if_empty=args.if_empty
-            )
-        )
+        asyncio.run(seed_test_setup(reset=args.reset, if_empty=args.if_empty))
     finally:
         asyncio.run(engine.dispose())
 

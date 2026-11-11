@@ -7,10 +7,10 @@ API client is generated (``scripts/gen-api-client.sh``).
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from typing import Any, Literal, NamedTuple
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 from app.crests import crest_url
 from app.models.auth import Relation
@@ -526,13 +526,6 @@ class AnnouncementOut(BaseModel):
     created_at: datetime
     #: The publisher's display name; empty once the account is gone.
     author: str | None = None
-
-    @field_validator("created_at")
-    @classmethod
-    def _utc(cls, value: datetime) -> datetime:
-        # Written in UTC, but SQLite stores no zone and hands it back naive — serialized
-        # without one, a browser reads it as local time and the board is hours off.
-        return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
 
 
 class PairingRow(BaseModel):

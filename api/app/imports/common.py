@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models import Club, Event, ExternalId, ImportRun, Series, Team, Venue
@@ -197,9 +197,8 @@ async def club_by_code(session: AsyncSession, code: str, source: str) -> Club | 
     """The one club here whose short name **is** this code and that no other key of this
     source claims yet — the first-run bridge to a club this site already has.
 
-    Case-insensitive (`VSaW` here, `VSAW` at Manage2Sail) — compared in Python, because
-    SQLite's `lower()` folds ASCII only and would never find `BYCÜ` from `BYCü`, where
-    Postgres would. Two clubs with the same code here means nothing is guessed.
+    Case-insensitive (`VSaW` here, `VSAW` at Manage2Sail), against the codes read once per
+    session. Two clubs with the same code here means nothing is guessed.
     """
     candidates = (await _clubs_by_code(session)).get(code.strip().casefold(), [])
     if len(candidates) != 1:
@@ -265,15 +264,11 @@ async def venue_for_city(session: AsyncSession, report: Report, city: str) -> Ve
     slug = slugify(city)
     venue = (await session.execute(select(Venue).where(Venue.slug == slug))).scalar_one_or_none()
     if venue is None:
-        # In Python, not SQL: SQLite's lower() would miss the Ü of Überlingen.
-        venue = next(
-            (
-                v
-                for v in (await session.execute(select(Venue))).scalars()
-                if v.city.casefold() == city.casefold()
-            ),
-            None,
-        )
+        venue = (
+            await session.execute(
+                select(Venue).where(func.lower(Venue.city) == city.lower()).limit(1)
+            )
+        ).scalar_one_or_none()
     if venue is None:
         venue = Venue(slug=slug, name=city, city=city)
         session.add(venue)

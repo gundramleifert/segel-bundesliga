@@ -97,11 +97,6 @@ async def _hash(password: str) -> str:
     return await hash_secret(_normalize(password))
 
 
-def _utc(value: datetime | None) -> datetime | None:
-    # SQLite hands back naive datetimes even for a timezone-aware column.
-    return value if value is None or value.tzinfo else value.replace(tzinfo=UTC)
-
-
 async def credential_of(session: AsyncSession, user_id: int) -> PasswordCredential | None:
     return (
         await session.execute(
@@ -114,7 +109,7 @@ async def _check(session: AsyncSession, user: User, row: PasswordCredential, pas
     """Verify against one account's credential, counting a failure and locking on every
     fifth. While locked, even the right password fails — and still pays for a verify."""
     now = datetime.now(UTC)
-    locked = (_utc(row.locked_until) or now) > now
+    locked = (row.locked_until or now) > now
     if not await _verify(row.hash, password) or locked:
         if not locked:
             row.failed_attempts += 1

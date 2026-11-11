@@ -63,6 +63,7 @@ from app.tracking.service import active_course
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
+
 class CatalogEntryOut(BaseModel):
     """A finished size from the catalog."""
 

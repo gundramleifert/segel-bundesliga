@@ -115,14 +115,10 @@ class AdminRaceOut(BaseModel):
 
     @field_serializer("started_at", "finished_at")
     def _utc(self, value: datetime | None) -> str | None:
-        # The columns are timezone-aware and written in UTC, but SQLite stores no zone and
-        # hands the value back naive — so the same start serialized as `…Z` from the
-        # session that wrote it and as `…` (no zone) once reloaded. One shape, always.
+        # One shape for the committee's screen: UTC, written with `Z`.
         if value is None:
             return None
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=UTC)
-        return value.isoformat().replace("+00:00", "Z")
+        return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
 class RaceStartIn(BaseModel):

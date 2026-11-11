@@ -24,7 +24,7 @@ SAP's address is ``https://www.sapsailing.com/sailingserver/api``, or ``SBL_SAP_
 / ``--base-url`` for another SAP instance — the public one has no season after 2023.
 
 Repeatable: a second run with the same data changes nothing. Imported competitions stay
-drafts unless ``--publish``. Uses the database of ``SBL_DATABASE_URL`` (``api/sbl.db``).
+drafts unless ``--publish``. Uses the database of ``SBL_DATABASE_URL``.
 """
 
 from __future__ import annotations
@@ -199,9 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = asyncio.run(_run(args))
     finally:
-        # Closing the last connection folds the WAL back into the file — without it the
-        # build leaves an `sbl.db-wal` beside the database (docs/gotchas: copying a
-        # WAL-mode SQLite file copies half the database).
+        # The pool's connections belong to the loop that opened them: close them in a loop.
         asyncio.run(engine.dispose())
     if report is None:
         return 0

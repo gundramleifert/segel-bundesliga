@@ -300,8 +300,8 @@ class TestChangingAndRemoving:
         assert "password_cleared" in await audited("pw-cleared@example.com")
 
     async def test_the_password_goes_with_a_deleted_account(self, client, caplog):
-        """Z-9 with Z-7: deleting the account deletes its password — SQLite reuses ids,
-        and a credential left behind would belong to the next account."""
+        """Z-9 with Z-7: deleting the account deletes its password — no credential is left
+        behind without its account."""
         headers = await with_password(client, caplog, "pw-gone@example.com")
         assert (await client.delete("/api/auth/me", headers=headers)).status_code == 204
         async with SessionLocal() as session:

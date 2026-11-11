@@ -36,7 +36,7 @@ from app.config import settings
 from app.mail import MailError, send_invitation
 from app.models import Club, ClubMembership, InvitationState, MembershipStatus, Person
 from app.models.auth import Relation, User
-from app.models.base import as_utc, utcnow
+from app.models.base import utcnow
 from app.problems import Problem
 from app.schemas.public import InvitationOut
 from app.services import dpa, people
@@ -54,7 +54,7 @@ def state_of(row: ClubMembership, now: datetime | None = None) -> InvitationStat
         return None
     if row.invitation_used_at is not None:
         return InvitationState.USED
-    if as_utc(row.invitation_expires_at) <= (now or utcnow()):
+    if row.invitation_expires_at <= (now or utcnow()):
         return InvitationState.EXPIRED
     return InvitationState.PENDING
 
@@ -67,7 +67,7 @@ def out(row: ClubMembership) -> InvitationOut | None:
     return InvitationOut(
         club_id=row.club_id,
         person_id=row.person_id,
-        expires_at=as_utc(row.invitation_expires_at),
+        expires_at=row.invitation_expires_at,
         state=state,
     )
 

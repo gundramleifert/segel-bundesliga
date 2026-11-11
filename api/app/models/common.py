@@ -28,8 +28,8 @@ class ExternalId(Base, TimestampMixin):
     __tablename__ = "external_id"
     __table_args__ = (
         # Named by hand: the convention names a constraint after its first column only, and
-        # two constraints on `source` would both be `uq_external_id_source` — which SQLite
-        # accepts and Postgres refuses (constraint names are unique per schema there).
+        # two constraints on `source` would both be `uq_external_id_source`, which Postgres
+        # refuses (constraint names are unique per schema).
         UniqueConstraint(
             "source", "entity_type", "external_key", name="uq_external_id_external_key"
         ),

@@ -238,12 +238,15 @@ class TestSapImport:
         await _import_berlin(db)
         async with db() as session:
             for code in ("NRV", "VSaW", "BYCÜ"):
-                # In Python: SQLite's lower() leaves the Ü of BYCÜ alone.
-                clubs = [
-                    club
-                    for club in (await session.execute(select(Club))).scalars()
-                    if club.short_name.casefold() == code.casefold()
-                ]
+                clubs = (
+                    (
+                        await session.execute(
+                            select(Club).where(func.lower(Club.short_name) == code.lower())
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
                 assert len(clubs) == 1, code
                 keys = (
                     (

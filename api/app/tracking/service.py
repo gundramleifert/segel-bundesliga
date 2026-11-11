@@ -54,12 +54,6 @@ from app.tracking.ranking import metres_to_go
 from app.tracking.settings import tracking_settings
 from app.tracking.tactics import laylines, leader_line
 
-
-def _aware(value: datetime) -> datetime:
-    """SQLite hands timezone-aware columns back naive; they were written in UTC."""
-    return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
-
-
 # ------------------------------------------------------------------------- course
 
 
@@ -116,7 +110,7 @@ def course_out(course: Course) -> CourseOut:
         wind_from_deg=course.wind_from_deg,
         marks=[MarkOut(role=m.role, lat=m.lat, lon=m.lon) for m in course.marks],
         waypoints=[w.name for w in geometry.waypoints()],
-        created_at=_aware(course.created_at),
+        created_at=course.created_at,
     )
 
 
@@ -241,7 +235,7 @@ async def trackers_out(session: AsyncSession, trackers: list[Tracker]) -> list[T
                 boat_number=numbers.get(t.boat_id) if t.boat_id is not None else None,
                 mark_role=t.mark_role,
                 device_token=t.device_token,
-                active_from=_aware(t.active_from),
+                active_from=t.active_from,
             )
             for t in trackers
         ),
@@ -274,11 +268,11 @@ async def ingest_fixes(session: AsyncSession, token: str, fixes: list[FixIn]) ->
     tracker = (
         await session.execute(select(Tracker).where(Tracker.device_token == token))
     ).scalar_one_or_none()
-    if tracker is None or (tracker.active_to is not None and _aware(tracker.active_to) <= now):
+    if tracker is None or (tracker.active_to is not None and tracker.active_to <= now):
         raise UnknownTracker(token)
     times = [f.t for f in fixes]
     known = {
-        _aware(t)
+        t
         for t in (
             await session.execute(
                 select(Fix.t).where(
@@ -290,7 +284,7 @@ async def ingest_fixes(session: AsyncSession, token: str, fixes: list[FixIn]) ->
     stored = 0
     seen: set[datetime] = set()
     for fix in fixes:
-        t = _aware(fix.t)
+        t = fix.t
         if t in known or t in seen:
             continue
         seen.add(t)
@@ -311,8 +305,8 @@ def _race_info(race: Race, flight: Flight) -> LiveRaceInfo:
         sequence=race.sequence,
         flight=flight.number,
         status=race.status,
-        started_at=_aware(race.started_at) if race.started_at else None,
-        finished_at=_aware(race.finished_at) if race.finished_at else None,
+        started_at=race.started_at if race.started_at else None,
+        finished_at=race.finished_at if race.finished_at else None,
         signal=race.signal,
         start_sequence=race.start_sequence,
     )
@@ -394,7 +388,7 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
         ).all()
     )
     since = (
-        _aware(race.started_at) - timedelta(seconds=tracking_settings.snapshot_lookback_s)
+        race.started_at - timedelta(seconds=tracking_settings.snapshot_lookback_s)
         if race is not None and race.started_at is not None
         else now - timedelta(seconds=tracking_settings.idle_lookback_s)
     )
@@ -442,9 +436,7 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
         ]
     if course is not None and race is not None:
         tracks = {
-            boat.number: [
-                GeoFix(_aware(f.t), f.lat, f.lon, f.sog, f.cog) for f in by_tracker[tracker.id]
-            ]
+            boat.number: [GeoFix(f.t, f.lat, f.lon, f.sog, f.cog) for f in by_tracker[tracker.id]]
             for tracker, boat in trackers
         }
         ranked = {r.state.boat: r for r in pipeline.analyse(tracks, geometry)}
@@ -475,7 +467,7 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
         if not track:
             continue
         last = track[-1]
-        trail = [f for f in track if _aware(f.t) >= trail_from]
+        trail = [f for f in track if f.t >= trail_from]
         step = max(1, len(trail) // tracking_settings.trail_max_points)
         r = ranked.get(boat.number)
         leg = r.state.leg if r else None
@@ -484,7 +476,7 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
                 boat_number=boat.number,
                 color=boat.color,
                 team=teams.get(boat.number),
-                t=_aware(last.t),
+                t=last.t,
                 lat=last.lat,
                 lon=last.lon,
                 sog_kn=round(last.sog / KNOT, 2),

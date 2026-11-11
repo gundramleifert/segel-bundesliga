@@ -362,7 +362,6 @@ class TestEveryInvitationIsLogged:
             "invitation_resent",
             "invitation_withdrawn",
         ]
-        # Asked before the next person exists: SQLite hands the deleted record's id on.
         sent, token = await _invite(client, caplog, admin, club, _address())
         second = sent.json()
         await client.post(
