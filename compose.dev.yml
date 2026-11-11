@@ -1,0 +1,95 @@
+# The backing services for local development: Postgres, SeaweedFS (S3), Mailpit (mail).
+# The API and the frontend still run on the host (`tilt up`, or uvicorn --reload and
+# `pnpm dev`), so a code change reloads in a second instead of rebuilding an image.
+# The whole site in containers, as production runs it, is deploy/compose/.
+#
+#   docker compose -f compose.dev.yml up -d      # start
+#   docker compose -f compose.dev.yml down       # stop, keep the data
+#   docker compose -f compose.dev.yml down -v    # stop and throw the data away
+#
+# Then point the API at them (each block on its own; leave one out to keep SQLite, the
+# local uploads directory, or mails written to the log):
+#
+#   export SBL_DATABASE_URL=postgresql+asyncpg://sbl:sbl@localhost:5432/sbl
+#
+#   export SBL_STORAGE=s3 SBL_S3_ENDPOINT_URL=http://localhost:8333 SBL_S3_BUCKET=sbl-uploads \
+#          SBL_S3_ACCESS_KEY_ID=sbl-dev SBL_S3_SECRET_ACCESS_KEY=sbl-dev-secret
+#
+#   export SBL_SMTP_HOST=localhost SBL_SMTP_PORT=1025 SBL_SMTP_STARTTLS=false
+#
+# and set the database up once: `cd api && uv run python -m app.seed_test_setup --reset`.
+# Sent mail (login codes, invitations) is read at http://localhost:8025.
+#
+# Every credential here is a throwaway for this machine, and every port is bound to
+# 127.0.0.1 only. The versions follow deploy/compose/compose.yaml — change both together.
+name: segelliga-dev
+
+services:
+  db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_USER: sbl
+      POSTGRES_PASSWORD: sbl
+      POSTGRES_DB: sbl
+    ports:
+      - "127.0.0.1:${DEV_DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sbl -d sbl"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # The API creates its bucket itself before the first call (app/storage.py — and see the
+  # gotcha on SeaweedFS remembering a bucket asked about before it existed).
+  storage:
+    image: chrislusf/seaweedfs:3.97
+    command:
+      - server
+      - -dir=/data
+      - -ip=storage
+      - -ip.bind=0.0.0.0
+      - -volume.max=0
+      # Off explicitly, as in deploy/compose/: otherwise every volume takes 1 GB up front.
+      - -master.volumePreallocate=false
+      - -master.volumeSizeLimitMB=1024
+      - -s3
+      - -s3.config=/etc/seaweedfs/s3.json
+    configs:
+      - source: s3-config
+        target: /etc/seaweedfs/s3.json
+    ports:
+      - "127.0.0.1:${DEV_S3_PORT:-8333}:8333"
+    volumes:
+      - storage-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8333/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 20s
+      retries: 10
+
+  # Catches every mail the API sends, instead of delivering it; the web UI shows them.
+  mail:
+    image: axllent/mailpit:v1.28.4
+    ports:
+      - "127.0.0.1:${DEV_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${DEV_MAIL_UI_PORT:-8025}:8025"
+
+configs:
+  s3-config:
+    content: |
+      {
+        "identities": [
+          {
+            "name": "sbl",
+            "credentials": [{ "accessKey": "sbl-dev", "secretKey": "sbl-dev-secret" }],
+            "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+          }
+        ]
+      }
+
+volumes:
+  db-data:
+  storage-data:

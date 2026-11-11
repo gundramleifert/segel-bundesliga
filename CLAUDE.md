@@ -32,6 +32,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy-server.md` | **Running the site on a server** — the Compose stack's runbook: machine, first install with sops, HTTPS, updates, backups; what still makes it pre-production |
+| `compose.dev.yml` | **Backing services for development** — Postgres, SeaweedFS (S3), Mailpit; the API and web stay on the host, the header says which `SBL_*` to export |
 | `deploy/compose/` | **The whole site in Docker Compose** — Postgres, API, the SPA behind Caddy, SeaweedFS; started with `compose.sh`, secrets sops-encrypted in `secrets.sops.env` (recipients: `.sops.yaml`); `README.md` there |
 | `deploy/sap-local/` | **SAP Sailing Analytics on one machine** — the live scoring SAP hosts for us, run locally to build the integration against; the Google Cloud project with the Maps key; `README.md` there |
 | `docs/PLAN_SEEDING.md` | **What a fresh installation starts with** — the real 2022–2026 results, news, press and pictures, no examples; the site seed and why nothing invented is in it, sources and their rights, phases S-0…S-6, open questions |
