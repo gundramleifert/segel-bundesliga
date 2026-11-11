@@ -34,8 +34,11 @@ Contains **41 event directories** with real pairings since 2023 (DSBL, SCL, JSCL
 DSL Cup, US Sailing League).
 
 **Decision (29.08.2026):** The JAR generates the Pairing lists — offline, into the
-catalog (Story VA-7); the site never computes one (decided 2026-11-07, Story VA-3 dropped). A port to Python comes later.
-Integrated via `api/app/pairing/generator.py`.
+catalog (Story VA-7); the site never computes one (decided 2026-11-07, Story VA-3 dropped).
+**Since 2026-11-11 this project runs no Java at all:** the tool is run in its own
+repository, and its `pairing_list.yml` is stored with
+`python -m app.pairing.catalog pairing_list.yml --teams … --boats … --flights …`; the
+printed list is drawn in Python (`app/pairing/pdf.py`).
 
 ### Why Not Python — The Numbers
 
@@ -69,8 +72,7 @@ those the Java tool itself outputs.
 - The tool reports per Flight `###### Flight N ######` and at the end 
   `saved Shuttles: in habour: … at sea: … - boat changes: …`. Both are captured: the 
   first for progress display, the second as a sanity check against our own numbers.
-- Java 17 or newer required. If Java or the JAR is missing, the backend continues running — 
-  just without the ability to compute new lists.
+- Java 17 or newer required — in the tool's own repository, not here.
 
 ### Output Formats (verified against `events/2026_DSBL-1`)
 

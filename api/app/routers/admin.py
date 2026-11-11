@@ -23,9 +23,6 @@ from app.models.racing import (
 )
 from app.pairing import load_pairing_yaml
 from app.pairing.catalog import CatalogError, catalog_entries, load_entry, shuffle_pairing
-from app.pairing.generator import (
-    PairingGeneratorError,
-)
 from app.pairing.importer import PairingImportError
 from app.problems import Problem
 from app.schemas.admin import (
@@ -577,12 +574,7 @@ async def _teams_of_event(session: AsyncSession, event_id: int) -> dict[int, Tea
 
 async def _publish(session: AsyncSession, event: Event, draft: PairingDraft) -> PublishedPairing:
     # A list that cannot be published is a typed 409 (`PairingPublishError`).
-    try:
-        created = await publish_pairing(session, event, draft)
-    except PairingGeneratorError as exc:
-        raise Problem(
-            503, "pairing-generator-failed", "The pairing tool failed.", detail=str(exc)
-        ) from exc
+    created = await publish_pairing(session, event, draft)
     await session.commit()
     # A new pairing list changes who is on which boat — the running-race view and the
     # pairing tab both read it. After the commit (Story B-5).

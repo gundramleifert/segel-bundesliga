@@ -12,7 +12,6 @@ included; that is where the work happens.
 
 from __future__ import annotations
 
-import logging
 import re
 from collections.abc import Iterable
 from datetime import date
@@ -58,7 +57,7 @@ from app.pagination import (
     page_of,
     paginate,
 )
-from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
+from app.pairing.pdf import render_pdf
 from app.problems import Problem
 from app.routers.people import connected_to_person
 from app.schemas.public import (
@@ -1089,7 +1088,6 @@ async def get_pairing(
         event=_event_out(event),
         boats=[BoatOut.model_validate(boat) for boat in boats],
         races=[rows[key] for key in sorted(rows)],
-        pdf_available=renderer_available(),
     )
 
 
@@ -1137,19 +1135,7 @@ async def download_pairing_pdf(
             event_id=event.id,
         )
 
-    try:
-        pdf = await render_pdf(request)
-    except PairingPdfError as error:
-        # The renderer is a separate program, and a server without a Java runtime is a
-        # deployment state, not a bad request: say so instead of answering 500. The reason
-        # goes to the log, not into the response — it names paths on the server, and this
-        # endpoint answers anyone.
-        logging.getLogger(__name__).error("Rendering the pairing list failed: %s", error)
-        raise Problem(
-            503,
-            "pairing-pdf-unavailable",
-            "The pairing list could not be rendered.",
-        ) from error
+    pdf = await render_pdf(request)
 
     # A crew's own sheet is named after the club, so eighteen downloads in one folder stay
     # apart. `request.team_index` is set exactly when `team` was given.

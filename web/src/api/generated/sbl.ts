@@ -186,6 +186,7 @@ import type {
   PostCreate,
   PostOut,
   PostUpdate,
+  PracticeSeasonParams,
   ProblemDetails,
   ProvidersOut,
   PublishResult,
@@ -200,6 +201,7 @@ import type {
   RunOut,
   SapResultsOut,
   SapSendOut,
+  SeasonOut,
   SeriesAdminOut,
   SeriesAssignment,
   SeriesCreate,
@@ -21175,6 +21177,91 @@ export const useStartEmulation = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getStartEmulationMutationOptions(options), queryClient);
+    }
+
+export const getPracticeSeasonUrl = (params?: PracticeSeasonParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/dev/season?${stringifiedParams}` : `/api/dev/season`
+}
+
+/**
+ * The browser suite's ``season`` fixture (`e2e/fixtures.ts`): squads, crews and a
+ * final, a live and a planned act on a published series of the 1. or 2. Liga's clubs —
+ * built on the first call, read on every later one. The seed holds nothing invented
+ * (`app.practice`); development only, like everything under ``/api/dev``.
+ * @summary The practice season
+ */
+export const practiceSeason = async (params?: PracticeSeasonParams, options?: RequestInit): Promise<SeasonOut> => {
+
+  return http<SeasonOut>(getPracticeSeasonUrl(params),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getPracticeSeasonMutationKey = () => ['practiceSeason'] as const;
+
+export const getPracticeSeasonMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof practiceSeason>>, TError,PracticeSeasonMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof practiceSeason>>, TError,PracticeSeasonMutationVariables, TContext> => {
+
+const mutationKey = getPracticeSeasonMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof practiceSeason>>, PracticeSeasonMutationVariables> = (props) => {
+          const {params} = props ?? {};
+
+          return  practiceSeason(params,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PracticeSeasonMutationResult = NonNullable<Awaited<ReturnType<typeof practiceSeason>>>
+
+    export type PracticeSeasonMutationError = ErrorType<ProblemDetails>
+    export type PracticeSeasonMutationVariables = {params?: PracticeSeasonParams}
+
+    /**
+ * @summary The practice season
+ */
+export const usePracticeSeason = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof practiceSeason>>, TError,PracticeSeasonMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof practiceSeason>>,
+        TError,
+        PracticeSeasonMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPracticeSeasonMutationOptions(options), queryClient);
     }
 
 export const getIndexUrl = () => {

@@ -89,10 +89,9 @@ matchdays a year. Hence **§2.3**.
 ### 2.3 SAP as an oracle, never a runtime
 
 Run SAP's `docker compose up` **once, locally**, feed it recorded tracks, read its mark
-passings and legs back through the v1 API, and assert our implementation matches. This is
-the pattern `api/tests/unit/test_pairing_generator_jar.py` already uses against the Java
-pairing tool. Recorded outputs go to `api/tests/fixtures/` (rule: external systems are never
-called live in tests).
+passings and legs back through the v1 API, and assert our implementation matches.
+Recorded outputs go to `api/tests/fixtures/` (rule: external systems are never called live
+in tests).
 
 ---
 

@@ -1,37 +1,22 @@
-"""Printing a pairing list, against the real Java tool (Story B-3).
+"""Printing a pairing list (Story B-3).
 
-Skipped where Java or the JAR is missing — the backend runs without both, just without
-the ability to hand out a printable list.
-
-What is worth testing here is the **chain**: our draw written in the shape the tool reads,
-the tool started, a PDF read back. The layout inside the PDF belongs to the tool and is not
-ours to assert; the number of pages is, because one page per team is what the caller asks
-for.
+The sheet is drawn here, in Python, so its layout is ours to assert: the pages a caller
+asks for, the names and numbers on them, the paper's orientation — read back from the
+PDF itself, as a printer would get it.
 """
 
-import re
-import shutil
-import zlib
-from pathlib import Path
+from io import BytesIO
 
 import pytest
-import yaml
+from pypdf import PdfReader
 
-from app.config import settings
 from app.pairing import BoatSpec, PairingSlot
 from app.pairing.pdf import (
     PairingPdfError,
     PdfRequest,
     PrintSettings,
+    boat_color,
     render_pdf,
-    renderer_available,
-)
-
-JAR = Path(settings.pairing_jar)
-
-needs_jar = pytest.mark.skipif(
-    not JAR.is_file() or shutil.which(settings.java_binary) is None,
-    reason="Java runtime or pairing-list JAR not available",
 )
 
 COLORS = ["BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE"]
@@ -75,48 +60,83 @@ def request_for(teams: int = 12, flights: int = 3, boats: int = 6, **kwargs) -> 
     )
 
 
-def page_count(pdf: bytes) -> int:
-    """Counts `/Type /Page` objects — enough for a file this tool wrote itself."""
-    return len(re.findall(rb"/Type\s*/Page[^s]", pdf))
+def pages(pdf: bytes) -> list:
+    return PdfReader(BytesIO(pdf)).pages
 
 
-def page_text(pdf: bytes) -> bytes:
-    """The pages' drawing commands, inflated — the text shows up as `(…)Tj`."""
-    text = b""
-    for stream in re.findall(rb"stream\r?\n(.*?)endstream", pdf, re.S):
-        try:
-            text += zlib.decompress(stream)
-        except zlib.error:
-            pass  # a font or an image, not a page
-    return text
+def text(page) -> str:
+    return page.extract_text()
 
 
-@needs_jar
+def lines(page) -> list[str]:
+    """The page's text, a cell or a heading to a line."""
+    return [line.strip() for line in text(page).splitlines()]
+
+
 async def test_every_team_gets_its_own_page():
     """The overview plus one page per club — the sheet a crew takes to the boat."""
     pdf = await render_pdf(request_for(teams=12))
 
-    assert page_count(pdf) == 1 + 12
+    assert len(pages(pdf)) == 1 + 12
+    assert lines(pages(pdf)[6])[1] == "T05", "page 7 is T05's, named under the title"
 
 
-@needs_jar
 async def test_the_overview_alone_is_one_page():
     pdf = await render_pdf(request_for(teams=12, settings=PrintSettings(team_pages=False)))
 
-    assert page_count(pdf) == 1
+    assert len(pages(pdf)) == 1
 
 
-@needs_jar
+async def test_the_overview_carries_the_title_every_boat_and_every_race():
+    pdf = await render_pdf(
+        request_for(teams=18, flights=16, title="Act 5", settings=PrintSettings(team_pages=False))
+    )
+
+    page = text(pages(pdf)[0])
+    assert page.startswith("Act 5")
+    assert all(f"Boat {n}" in page for n in range(1, 7))
+    assert "48" in page.split(), "16 flights of 3 races: the last race is 48"
+
+
+async def test_a_league_matchday_fits_one_page_at_its_own_size():
+    """48 rows, nothing configured: 8pt, the size league matchdays have always printed at.
+    The organizer knows the venue's printer — a size they chose overrules it, even when
+    that takes more paper."""
+    own = await render_pdf(
+        request_for(teams=18, flights=16, settings=PrintSettings(team_pages=False))
+    )
+    organizers = await render_pdf(
+        request_for(teams=18, flights=16, settings=PrintSettings(font_size=14, team_pages=False))
+    )
+
+    assert len(pages(own)) == 1
+    assert len(pages(organizers)) > 1, "a bigger font needs more paper"
+
+
+@pytest.mark.parametrize(
+    ("teams", "flights", "size"),
+    [(12, 7, 10), (18, 14, 10), (18, 16, 8), (18, 18, 8), (18, 20, 7), (24, 16, 7), (24, 17, 6)],
+)
+def test_the_font_size_follows_the_number_of_rows(teams, flights, size):
+    """Up to 42 rows 10pt, 56 8pt, 64 7pt, beyond 6pt — read off the archive's sheets."""
+    assert request_for(teams=teams, flights=flights).font_size == size
+    assert (
+        request_for(teams=teams, flights=flights, settings=PrintSettings(font_size=11)).font_size
+        == 11
+    )
+
+
 async def test_a_crew_can_print_its_own_sheet_alone():
     """Story B-3: one team's page, not the file with a page for every club in it.
 
-    Each marks its own races — the cache must not hand one crew another's page.
+    Each names its own club — the cache must not hand one crew another's page.
     """
     first = await render_pdf(request_for(teams=12, flights=3, team_index=0))
     second = await render_pdf(request_for(teams=12, flights=3, team_index=1))
 
-    assert page_count(first) == page_count(second) == 1
-    assert first != second
+    assert len(pages(first)) == len(pages(second)) == 1
+    assert lines(pages(first)[0])[1] == "T00"
+    assert lines(pages(second)[0])[1] == "T01"
 
 
 async def test_a_team_outside_the_list_is_refused():
@@ -124,51 +144,11 @@ async def test_a_team_outside_the_list_is_refused():
         await render_pdf(request_for(teams=12, team_index=99))
 
 
-def test_no_font_size_is_sent_unless_the_organizer_chose_one():
-    """The size a sheet is printed at is the tool's decision, from the rows it has.
+async def test_landscape_turns_the_paper():
+    pdf = await render_pdf(request_for(settings=PrintSettings(landscape=True, team_pages=False)))
 
-    It used to be decided here, which meant a plain command-line run of the tool got a flat
-    10pt that does not fit a league matchday on one page. The table moved into
-    `DisplayConfig.fontsize`, so every caller gets it — and this sends nothing at all unless
-    somebody overruled it.
-    """
-    display = yaml.safe_load(request_for(teams=18, flights=16).files()["display_cfg.yml"])
-    assert "fontsize" not in display
-
-    chosen = request_for(settings=PrintSettings(font_size=11)).files()["display_cfg.yml"]
-    assert yaml.safe_load(chosen)["fontsize"] == 11
-
-
-@needs_jar
-async def test_the_organizers_font_size_wins_over_the_tools_own():
-    """48 rows, nothing configured: the tool's own default has to be the small one.
-
-    The organizer knows the venue's printer; the tool only knows the configuration — a
-    font size they chose overrules it, even when that takes more paper.
-    """
-    tools_own = await render_pdf(
-        request_for(teams=18, flights=16, settings=PrintSettings(team_pages=False))
-    )
-    organizers = await render_pdf(
-        request_for(teams=18, flights=16, settings=PrintSettings(font_size=12, team_pages=False))
-    )
-
-    assert page_count(tools_own) == 1
-    assert page_count(organizers) > 1, "a bigger font needs more paper"
-
-
-def test_an_installation_without_the_tool_says_so_instead_of_pretending():
-    """Story B-3: the screen asks this to leave the download out.
-
-    A deployment may carry no renderer at all — the free test image did until Java was
-    added to it — and a button whose only possible answer is 503 is worse than no button.
-    """
-    assert renderer_available(jar=Path("/does/not/exist.jar")) is False
-
-
-@needs_jar
-def test_an_installation_with_the_tool_offers_it():
-    assert renderer_available() is True
+    box = pages(pdf)[0].mediabox
+    assert box.width > box.height
 
 
 def test_a_stored_setting_that_makes_no_sense_still_prints():
@@ -179,109 +159,79 @@ def test_a_stored_setting_that_makes_no_sense_still_prints():
     assert PrintSettings.from_json({"font_size": "big"}).font_size is None
 
 
-@needs_jar
-async def test_a_color_the_tool_does_not_know_still_renders():
-    """Hex and names both work; anything else prints in the default colour, with a warning.
+def test_a_boat_colour_is_a_known_name_or_hex():
+    """What the organizer picked is what the sheet is printed with: the Java tool's names,
+    German ones included, and the `#rrggbb` (or `#rgb`) a colour picker produces."""
+    assert boat_color("BLACK") == (0, 0, 0)
+    assert boat_color("darkblue") == boat_color("DUNKELBLAU") == (0, 0, 139)
+    assert boat_color("#123456") == (0x12, 0x34, 0x56)
+    assert boat_color("abc") == (0xAA, 0xBB, 0xCC)
+    assert boat_color("rebeccapurple") is None
+    assert boat_color(None) is None
 
-    A race committee hands this sheet out on the morning of an event, so one boat in the
-    wrong colour has to beat no sheet at all. The tool decides that now — it used to be
-    decided here, by sending it no colour at all (Story B-3).
-    """
-    request = request_for(teams=6, boats=6)
-    unknown = ["#123456", "#abc", "BLACK", "rebeccapurple", None, "GREEN"]
+
+async def test_a_colour_nobody_knows_still_prints():
+    """One boat in the wrong colour beats no sheet on the morning of an event."""
+    plain = request_for(teams=6, boats=6)
+    colors = ["#123456", "#abc", "BLACK", "rebeccapurple", None, "GREEN"]
     request = PdfRequest(
-        teams=request.teams,
-        boats=[BoatSpec(number=n + 1, color=color) for n, color in enumerate(unknown)],
-        slots=request.slots,
-        title=request.title,
+        teams=plain.teams,
+        boats=[BoatSpec(number=n + 1, color=color) for n, color in enumerate(colors)],
+        slots=plain.slots,
+        title=plain.title,
     )
 
-    pdf = await render_pdf(request)
-
-    assert pdf.startswith(b"%PDF")
+    assert len(pages(await render_pdf(request))) == 1 + 6
 
 
-@needs_jar
 async def test_a_fleet_that_is_not_filled_evenly_still_prints():
-    """17 teams on 6 boats: one seat per flight stays empty and must not shift the rest."""
+    """17 teams on 6 boats: one seat per flight stays empty, printed as such, and the
+    padding seat gets no page of its own."""
     pdf = await render_pdf(request_for(teams=17, flights=2))
 
-    assert page_count(pdf) == 1 + 17
+    assert len(pages(pdf)) == 1 + 17
+    assert "empty boat" in text(pages(pdf)[0])
 
 
-@needs_jar
-async def test_a_second_print_of_the_same_list_comes_from_the_cache():
-    """Eighteen crews downloading one list start one JVM. The tool stamps the render time
-    into the file, so equal bytes are proof the cache answered, not a second render."""
-    first = await render_pdf(request_for())
-    second = await render_pdf(request_for())
+async def test_a_named_boat_is_headed_by_its_name():
+    plain = request_for(teams=6, boats=6, settings=PrintSettings(team_pages=False))
+    request = PdfRequest(
+        teams=plain.teams,
+        boats=[BoatSpec(number=1, color="RED", name="Rot 1")]
+        + [BoatSpec(number=n + 1, color="GRAY") for n in range(1, 6)],
+        slots=plain.slots,
+        title=plain.title,
+        settings=plain.settings,
+    )
+
+    header = lines(pages(await render_pdf(request))[0])[1:8]
+    assert header == ["Flight", "Race", "Rot 1", "Boat 1", "Boat 2", "Boat 3", "Boat 4"], (
+        "the unnamed boats count from 1 again"
+    )
+
+
+async def test_a_second_print_of_the_same_list_comes_from_the_cache(monkeypatch):
+    """Eighteen crews downloading one list render it once."""
+    from app.pairing import pdf as module
+
+    calls = 0
+    real = module._render
+
+    def counting(request):
+        nonlocal calls
+        calls += 1
+        return real(request)
+
+    monkeypatch.setattr(module, "_render", counting)
+    first = await render_pdf(request_for(title="Cache probe"))
+    second = await render_pdf(request_for(title="Cache probe"))
 
     assert first == second
+    assert calls == 1
 
 
-@needs_jar
 async def test_a_different_title_renders_a_different_file():
-    """The cache is keyed by the content it renders, and the title is part of that.
-    Checked in the page itself: two renders differ by their timestamps anyway, so
-    unequal bytes alone would pass with the title ignored."""
+    """The cache is keyed by what is rendered, and the title is part of that."""
     second = await render_pdf(request_for(title="Act 2"))
 
-    assert b"(Act 2)Tj" in page_text(second)
-
-
-async def test_a_missing_jar_is_reported_helpfully():
-    # A title of its own, because the cache would otherwise answer from a rendering an
-    # earlier test in this file already paid for — and never reach the missing JAR.
-    with pytest.raises(PairingPdfError, match="mvn -DskipTests package"):
-        await render_pdf(request_for(title="No JAR here"), jar=Path("/does/not/exist.jar"))
-
-
-def test_the_draw_is_written_as_the_tool_reads_it():
-    """0-based team indices, position in the string is the boat — no tool needed for this."""
-    files = request_for(teams=12, flights=2).files()
-
-    pairing = yaml.safe_load(files["pairing_list.yml"])
-    assert len(pairing["flights"]) == 2
-    for flight in pairing["flights"]:
-        seats = [int(n) for race in flight["races"] for n in race.split(",")]
-        assert sorted(seats) == list(range(12)), "each team sails once per flight"
-
-    config = yaml.safe_load(files["schedule_cfg.yml"])
-    assert config["flights"] == 2
-    assert config["teams"] == [f"T{i:02d}" for i in range(12)]
-    assert [boat["color"] for boat in config["boats"]] == COLORS
-
-
-def test_empty_seats_are_written_as_padding_indices():
-    """The tool pads the team list itself; the draw has to name those seats."""
-    request = PdfRequest(
-        teams=[f"T{i}" for i in range(4)],
-        boats=[BoatSpec(number=n + 1, color=None) for n in range(6)],
-        slots=slots_for(teams=4, flights=1, boats=6),
-        title="Short fleet",
-    )
-
-    flights = yaml.safe_load(request.files()["pairing_list.yml"])["flights"]
-
-    assert flights[0]["races"] == ["1,2,3,0,4,5"], "seats 4 and 5 are the empty ones"
-
-
-def test_a_color_is_handed_over_exactly_as_it_is_stored():
-    """Hex included — the tool reads it (`PdfCreator.parseHexColor`).
-
-    This used to translate a hex value into an invented upper-case palette entry plus an
-    `additional_colors` map, because the tool knew named colors only. It knows hex now, so
-    there is nothing to translate: what the organizer picked is what the sheet is printed
-    with, and a command-line user can write `#1a2b3c` in their own configuration too.
-    """
-    request = PdfRequest(
-        teams=["A", "B"],
-        boats=[BoatSpec(number=1, color="#123456"), BoatSpec(number=2, color="BLACK")],
-        slots=slots_for(teams=2, flights=1, boats=2),
-        title="Colors",
-    )
-    files = request.files()
-
-    colors = [boat["color"] for boat in yaml.safe_load(files["schedule_cfg.yml"])["boats"]]
-    assert colors == ["#123456", "BLACK"]
-    assert "additional_colors" not in yaml.safe_load(files["display_cfg.yml"])
+    assert text(pages(second)[0]).startswith("Act 2")

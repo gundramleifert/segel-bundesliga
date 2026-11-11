@@ -33,6 +33,7 @@ dependencies = [
 dev = [
     "allure-pytest>=2.16.2",
     "moto[s3]>=5.1",
+    "pypdf>=7.0.1",
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
     "pytest-xdist>=3.8.0",

@@ -7,12 +7,10 @@ Open the note whose rule matches what you are about to do, or what just surprise
 
 - [A browser declares a file's type from its name, not its content](a-browser-declares-a-file-s-type-from-its-name-not-its-content.md)
 - [A card grid's 1fr track is floored at min-content, so the overflow only appears once test data is long enough](a-card-grid-s-1fr-track-is-floored-at-min-content-so-the-overflow-only-appears-o.md)
-- [A failed maven package leaves a truncated jar behind, and it fails because the sandbox denies /tmp](a-failed-maven-package-leaves-a-truncated-jar-behind-and-it-fails-because-the-sa.md)
 - [A HeroUI Button takes the focus on press, so an editor's toolbar loses the next keystroke unless it sets preventFocusOnPress](a-heroui-button-takes-the-focus-on-press-so-an-editor-s-toolbar-loses-the-next-k.md)
 - [A mask-image on a scrolling box makes it a backdrop root, so every backdrop-blur inside it blurs nothing](a-mask-image-on-a-scrolling-box-makes-it-a-backdrop-root-so-every-backdrop-blur-.md)
 - [A mutation fired from a ticking effect repeats until its refetch lands, and each repeat's invalidation cancels that refetch](a-mutation-fired-from-a-ticking-effect-repeats-until-its-refetch-lands-and-each-.md)
 - [A native select takes its text colour from the page but paints its own white field and list, so on a white-text surface it is white on white](a-native-select-takes-its-text-colour-from-the-page-but-paints-its-own-white-fie.md)
-- [A PDF from the pairing tool is never byte-identical twice, so equal bytes prove the cache and unequal bytes prove nothing](a-pdf-from-the-pairing-tool-is-never-byte-identical-twice-so-equal-bytes-prove-t.md)
 - [A picture smaller than 1600 px offered a srcset size the server refused — large seed pictures hid it](a-picture-smaller-than-1600-px-offered-a-srcset-size-the-server-refused-large-se.md)
 - [A problem or to-do code renamed in the backend breaks no compile: the frontend compares it as a string](a-problem-or-to-do-code-renamed-in-the-backend-breaks-no-compile-the-frontend-co.md)
 - [`require_ready` answers with a *different* code depending on how many things are missing](a-readiness-refusal-carries-two-different-codes.md)
@@ -58,4 +56,3 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [TracTrac results are only reachable as the viewer's PDF export; its data API answers 401 and must not be faked](tractrac-results-are-only-reachable-as-the-viewer-s-pdf-export-its-data-api-answ.md)
 - [Two Playwright actions in a row never catch a stale-render bug: dispatch both events in one task](two-playwright-actions-in-a-row-never-catch-a-stale-render-bug-dispatch-both-eve.md)
 - [weed server preallocates every volume unless told not to, whatever its help says](weed-server-preallocates-every-volume-unless-told-not-to-whatever-its-help-says.md)
-- [Without reference/PairingList cloned, the lifecycle e2e test fails on a missing PDF link, not on a missing tool](without-reference-pairinglist-cloned-the-lifecycle-e2e-test-fails-on-a-missing-p.md)

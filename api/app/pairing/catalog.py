@@ -28,9 +28,11 @@ permutation of team indices leaves all these metrics unchanged. The seed makes t
 draw reproducible at the same time: in case of dispute, it can be reconstructed from the
 catalog entry and seed.
 
-To compute and store a new entry::
+A new entry is computed **outside this project**, by the Java tool in its own repository
+(``gundramleifert/PairingList``, ``Optimizer``) — minutes of optimization, once per size.
+Its ``pairing_list.yml`` is then stored here, checked on the way in::
 
-    uv run python -m app.pairing.catalog --teams 18 --boats 6 --flights 16
+    uv run python -m app.pairing.catalog pairing_list.yml --teams 18 --boats 6 --flights 16
 """
 
 from __future__ import annotations
@@ -237,63 +239,27 @@ def to_yaml(slots: list[PairingSlot], teams: int, boats: int) -> str:
     return "\n".join(lines) + "\n"
 
 
-async def _generate(teams: int, boats: int, flights: int, seed: int, loops: int) -> str:
-    """Computes a new entry — using the Java tool, falling back to the Python generator."""
-    from app.models.racing import BOAT_COLORS
-    from app.pairing.generator import (
-        GenerationRequest,
-        OptimizerSettings,
-        PairingGeneratorError,
-        generate_pairing,
-    )
-    from app.pairing.importer import BoatSpec
-    from app.pairing.schedule import build_pairing
-
-    request = GenerationRequest(
-        teams=[f"T{index + 1:02d}" for index in range(teams)],
-        boats=[
-            BoatSpec(number=n + 1, color=BOAT_COLORS[n] if n < len(BOAT_COLORS) else None)
-            for n in range(boats)
-        ],
-        flights=flights,
-        title=f"Catalog {teams}/{boats}/{flights}",
-        optimizer=OptimizerSettings(seed=seed, loops=loops),
-    )
-
-    try:
-        result = await generate_pairing(request)
-        print(f"Java tool: {result.summary()}")
-        slots = result.pairing.slots
-    except PairingGeneratorError as error:
-        print(f"Java tool unavailable ({error}) — Python generator as fallback.")
-        slots = build_pairing(team_count=teams, flights=flights, boats=boats, seed=seed)
-
-    return to_yaml(slots, teams, boats)
-
-
 def main() -> None:
     import argparse
-    import asyncio
+    import shutil
 
-    parser = argparse.ArgumentParser(description="Store a finished pairing list in the catalog")
+    parser = argparse.ArgumentParser(
+        description="Store a pairing list the Java tool computed in the catalog"
+    )
+    parser.add_argument("pairing_list", type=Path, help="the tool's pairing_list.yml")
     parser.add_argument("--teams", type=int, required=True)
     parser.add_argument("--boats", type=int, default=6)
     parser.add_argument("--flights", type=int, required=True)
-    parser.add_argument("--seed", type=int, default=1240)
-    parser.add_argument(
-        "--loops",
-        type=int,
-        default=20_000,
-        help="Optimizer loops. Fewer is faster and gets worse.",
-    )
     args = parser.parse_args()
 
-    content = asyncio.run(_generate(args.teams, args.boats, args.flights, args.seed, args.loops))
     SCHEDULE_DIR.mkdir(parents=True, exist_ok=True)
     target = SCHEDULE_DIR / f"t{args.teams}-b{args.boats}-f{args.flights}.yml"
-    target.write_text(content, encoding="utf-8")
-
-    checked = load_entry(args.teams, args.boats, args.flights)
+    shutil.copyfile(args.pairing_list, target)
+    try:
+        checked = load_entry(args.teams, args.boats, args.flights)
+    except Exception:
+        target.unlink()
+        raise
     print(f"Stored: {target} — {len(checked.slots)} starting positions, {checked.flights} flights")
 
 

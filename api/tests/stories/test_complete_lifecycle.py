@@ -211,25 +211,17 @@ class TestTheCompleteLifecycle:
         assert event_id in {row["id"] for row in await all_items(client, "/api/events")}
 
         step("J-1.8", "the pairing list prints, or the server says it cannot")
-        # The drawn list ends up on paper (B-3): the sheet is public now, and the same
-        # endpoint says whether this server can print. Asserted either way rather than
-        # skipped, so an installation without Java still proves the endpoint answers
-        # honestly instead of silently testing nothing.
+        # The drawn list ends up on paper (B-3): the sheet is public now.
         pairing = await client.get(f"/api/events/{event_id}/pairing")
         assert pairing.status_code == 200, pairing.text
         sheet = await client.get(f"/api/events/{event_id}/pairing.pdf")
-        if pairing.json()["pdf_available"]:
-            assert sheet.status_code == 200, sheet.text
-            assert sheet.headers["content-type"] == "application/pdf"
-            assert sheet.content.startswith(b"%PDF")
-            one_crew = await client.get(
-                f"/api/events/{event_id}/pairing.pdf?team={pairing.json()['races'][0]['teams_by_boat']['1']['id']}"
-            )
-            assert one_crew.status_code == 200, one_crew.text
-            assert one_crew.content.startswith(b"%PDF")
-        else:
-            assert sheet.status_code == 503
-            assert sheet.json()["type"].endswith("/pairing-pdf-unavailable")
+        assert sheet.status_code == 200, sheet.text
+        assert sheet.headers["content-type"] == "application/pdf"
+        assert sheet.content.startswith(b"%PDF")
+        first_team = pairing.json()["races"][0]["teams_by_boat"]["1"]["id"]
+        one_crew = await client.get(f"/api/events/{event_id}/pairing.pdf?team={first_team}")
+        assert one_crew.status_code == 200, one_crew.text
+        assert one_crew.content.startswith(b"%PDF")
 
         step("J-1.9", "organizer starts the event")
         started = await client.post(f"/api/admin/events/{event_id}/start", headers=headers)

@@ -6,17 +6,8 @@ If one fails, something is broken that people will notice on the website.
 
 import pytest
 
-from app.pairing.pdf import renderer_available
 from tests.pages import all_items
 from tests.stories.test_create_event import admin, event_with_participants, league_clubs
-
-# Printing goes through the Java tool; without it the rest of the story still holds. The
-# same function the API answers `pdf_available` with, so this suite is asking "can this
-# machine print?" exactly once rather than re-deriving it from a JAR path and a PATH scan.
-_RENDERER_HERE = renderer_available()
-needs_pairing_jar = pytest.mark.skipif(
-    not _RENDERER_HERE, reason="Java runtime or pairing-list JAR not available"
-)
 
 
 class TestSeriesTable:
@@ -122,17 +113,6 @@ class TestPairingList:
             assert len(teams) == 18, f"Flight {flight} is not a complete round"
             assert len(set(teams)) == 18, f"Flight {flight} has a team twice"
 
-    async def test_the_list_says_whether_it_can_be_printed_here(self, client, season):
-        """Story B-3: a deployment may carry no renderer, and the page has to know.
-
-        Without this the site offers a download whose only possible answer is 503 — which
-        is what the free test instance did until Java was put in its image.
-        """
-        pairing = (await client.get(f"/api/events/{season.planned}/pairing")).json()
-
-        assert pairing["pdf_available"] is _RENDERER_HERE
-
-    @needs_pairing_jar
     async def test_the_list_can_be_taken_to_the_dock_on_paper(self, client, season):
         """The sheet that gets printed and pinned up — Story B-3."""
         response = await client.get(f"/api/events/{season.planned}/pairing.pdf")
@@ -142,7 +122,6 @@ class TestPairingList:
         assert "practice-1-2026-act-3-pairing-list.pdf" in response.headers["content-disposition"]
         assert response.content.startswith(b"%PDF")
 
-    @needs_pairing_jar
     async def test_a_club_entered_after_the_draw_does_not_break_the_sheet(self, client, caplog):
         """The sheet prints the teams that were **drawn**; the entry list can have moved on.
 
@@ -177,7 +156,6 @@ class TestPairingList:
         assert response.status_code == 200, response.text
         assert response.content.startswith(b"%PDF")
 
-    @needs_pairing_jar
     async def test_a_crew_can_print_its_own_sheet(self, client, season):
         """Story B-3: one club's page, not the file with a page for every club in it."""
         from app.text import slugify

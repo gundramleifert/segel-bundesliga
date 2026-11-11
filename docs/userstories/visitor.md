@@ -161,24 +161,25 @@ Acceptance criteria:
   question this table previously refused to answer.
 - **The list is downloadable as a PDF** — the sheet that gets printed, pinned up at the
   clubhouse and handed to crews, who do not read a matchday off a phone at the dock. One page
-  carries the whole grid; then one page per club, with that club's races marked and the teams
-  it shares a shuttle with — the sheet a crew actually uses.
-- Rendering is done by the **Java tool** (`reference/PairingList`), which owns the print
-  layout, via a new entry point `PdfExport`: schedule configuration and pairing list in, one
-  PDF out. `Optimizer` printed PDFs only as a by-product of a draw, and `ReuseSchedule` writes
-  a whole event directory. A second layout in Python would be a second thing to keep in step
-  with the first, and the printed list has looked like this for years.
-- Our boats carry **any** color (Story VA-6 offers a color picker), and the color is handed
-  over exactly as it is stored. The tool reads both a name it knows and the `#rrggbb` a
-  picker produces; anything else it prints in the default color with a warning, because a
-  sheet handed out on the morning of an event must not fail over a color name. That used to
-  be ~35 lines of translation here, inventing `additional_colors` entries — **the knowledge
-  belongs in the tool**, where a plain command-line run gets it too.
-- The rendering is **cached by its own content**: the same list, boats and title yield the
-  same file. Nothing has to be invalidated when a draw is replaced — a different draw is a
-  different key. Without it every visitor starts a JVM.
+  carries the whole grid; then one page per club, with that club's races marked — the sheet a
+  crew actually uses.
+- Rendered **in Python** (`app/pairing/pdf.py`, reportlab — decided 2026-11-11), in the
+  layout the Java tool (`reference/PairingList`, `PdfCreator`) has printed for years: the
+  title, the grid with a narrow Flight and Race column and one column per boat headed in its
+  colour, a thin gap between flights, a crew's own seat dark. It was the Java tool's job
+  before; a JVM, a Maven build and a jar in every image and every CI run, for one table, was
+  more than the table is worth. The tool keeps its own sheet for a command-line run; the two
+  may now drift apart, and the site's is this one.
+- Our boats carry **any** color (Story VA-6 offers a color picker), and the color is used
+  exactly as it is stored: a name the Java tool knew (`BLACK`, `DARKBLUE`, `GRAU`…) or the
+  `#rrggbb` a picker produces. Anything else prints in white, because a sheet handed out on
+  the morning of an event must not fail over a color name. The heading's text is black or
+  white, whichever reads on that colour.
+- The rendering is **cached by its own content**: the same list, boats, title and settings
+  yield the same file. Nothing has to be invalidated when a draw is replaced — a different
+  draw is a different key.
 - **A crew can print its own sheet alone** (`?team=`): the same page the full file holds for
-  that club — its races marked, its shuttle partners named — and nothing else. Finding one's
+  that club — its races marked — and nothing else. Finding one's
   page among eighteen is what a crew would otherwise do at the dock, in the wind, on paper.
   A club picker sits next to the download; "all clubs" stays the default, because the notice
   board wants the whole thing. The file is named after the club, so eighteen downloads in one
@@ -192,23 +193,14 @@ Acceptance criteria:
   the paper; nobody else does. `factor_flight_race_width` and the per-team pages are unanimous
   across all 43 archived events, so they are not offered as choices. Set in the event's
   *Set up › Pairing list* section in My space, beside the draw (Z-10, #32).
-- **An unset font size is not sent at all** — the tool picks it from the number of rows
-  (`flights × races`): up to 42 rows 10pt, up to 56 8pt, up to 64 7pt, beyond that 6pt, a
-  table read off those same 43 events, every one a sheet that was printed and sailed by. A
-  league matchday still prints at 8pt, exactly as it always has. This was decided here once,
-  which meant the tool's own default stayed a flat 10pt that does not fit 48 rows on a page:
-  the site got a good sheet and everyone else got a bad one. It lives in
-  `DisplayConfig.fontsize` now.
+- **An unset font size follows the number of rows** (`flights × races`): up to 42 rows 10pt,
+  up to 56 8pt, up to 64 7pt, beyond that 6pt — the table the Java tool read off its 43
+  archived events, every one a sheet that was printed and sailed by. A league matchday
+  prints at 8pt, exactly as it always has.
 - A stored setting is **read back defensively**: anything unexpected in the column falls back
-  to letting the tool decide. A sheet that will not print is worse than one printed at the
-  wrong size.
-- **The download appears only where the server can print.** The renderer is a separate
-  program, and an installation may not carry it — the free test image had no JRE at all
-  until one was added, so the button sat there answering 503. The pairing response says
-  `pdf_available`, and the page leaves the picker and the link out when it is false: an
-  offer that cannot be honoured is worse than no offer. The deployment now builds the tool
-  from a pinned commit into its image (`deploy/compose/api.Dockerfile`), so the answer
-  there is yes.
+  to the defaults. A sheet that will not print is worse than one printed at the wrong size.
+- **Every installation can print** — nothing outside the API process is needed, so the page
+  always offers the download and the club picker.
 
 Endpoints: `GET /api/events/{id}/pairing` (JSON),
 `GET /api/events/{id}/pairing.pdf[?team={team_id}]`.

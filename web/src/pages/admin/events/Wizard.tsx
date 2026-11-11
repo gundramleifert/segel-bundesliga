@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import {
   getDownloadPairingPdfUrl,
   getGetReadinessQueryKey,
-  useGetPairing,
   useGetReadiness,
   usePublishEvent,
   useUnpublishEvent,
@@ -216,10 +215,6 @@ function ReadyStep({
   const hasPairing = readiness.data?.has_pairing_list ?? false;
   const complete = ready && hasPairing;
   const published = event.published ?? false;
-  // The public pairing endpoint: a draft answers 404 there, so it is asked only once the
-  // event is published — and it is what says whether this server can print (Story B-3).
-  const pairing = useGetPairing(event.id, { query: { enabled: published && hasPairing } });
-  const pdfAvailable = pairing.data?.pdf_available ?? false;
 
   const refresh = () => invalidate("/api/admin/events", "/api/events", "/api/series");
   const publishEvent = usePublishEvent({
@@ -283,9 +278,9 @@ function ReadyStep({
           </Link>
         )}
         {/* A plain anchor, not a generated hook: the answer is a PDF, and `api/http.ts`
-            parses everything it handles as JSON. Shown only where the server can print,
-            because a link whose only answer is 503 is worse than none. */}
-        {published && hasPairing && pdfAvailable && (
+            parses everything it handles as JSON. The public endpoint answers a draft with
+            404, so the link waits for publication. */}
+        {published && hasPairing && (
           <a
             href={getDownloadPairingPdfUrl(event.id)}
             download

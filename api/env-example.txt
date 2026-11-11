@@ -33,9 +33,6 @@ SBL_SMTP_PASSWORD=
 SBL_MAIL_FROM=website@deutsche-segelliga.de
 SBL_MAIL_FROM_NAME=Deutsche Segel-Liga
 
-# Pairing generator: JAR from reference/PairingList, built with "mvn -DskipTests package"
-SBL_PAIRING_JAR=../reference/PairingList/target/pairing-list-1.0-SNAPSHOT-jar-with-dependencies.jar
-
 # Development only: /api/dev issues access tokens **without verification** and the role
 # switcher appears in the UI. A security hole in any reachable environment — the server
 # warns on startup while it is on. e2e/lifecycle.spec.ts needs it.
