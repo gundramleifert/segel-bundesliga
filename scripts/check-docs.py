@@ -1211,9 +1211,14 @@ def main(argv: list[str]) -> int:
     print(f"{len(known)} stories, {len(all_journeys)} journeys, {len(entries)} gotchas")
     for problem in problems:
         print(f"  ✗ {problem}")
-    # Warnings never fail the gate, and are printed after the problems so they never hide one.
-    for warning in warnings:
-        print(f"  ! {warning}")
+    # Warnings never fail the gate. Listed only on request (`--warnings`, the handbook
+    # skill's view): a list printed on every run, and never acted on, teaches everyone to
+    # stop reading the output — problems included.
+    if "--warnings" in argv:
+        for warning in warnings:
+            print(f"  ! {warning}")
+    elif warnings:
+        print(f"  {len(warnings)} handbook/journey warnings — scripts/check-docs.py --warnings lists them")
     return 1 if problems else 0
 
 

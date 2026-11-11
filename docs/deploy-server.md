@@ -13,18 +13,17 @@ keeps a club's real data:
 
 - **The first start also seeds the test system.** `db-setup` runs `app.seed_test_setup` on
   an empty database: the real 2026 season (results, news, pictures) — and also the 44 test
-  accounts (`@….example.com`) and the demo series of invented data. The demo series stay
-  unpublished here (`SEED_PUBLISH_DEMO=false`), but the accounts exist. A seed without
-  them is the next step of `docs/PLAN_SEEDING.md` (S-0); so is staging as a restored
-  copy of prod.
+  accounts (`@….example.com`). A seed without them is the next step of
+  `docs/PLAN_SEEDING.md` (S-0); so is staging as a restored copy of prod.
 - **An update can lose the data.** As long as nothing is in production there is **one**
   Alembic migration, regenerated whenever the models change (CLAUDE.md, "Migrations").
   An existing database cannot be upgraded across such a change: `alembic upgrade head`
   finds nothing to do and the code meets a schema it does not expect. Such an update is a
   reset.
 
-Both end the day the project starts a migration chain and a production seed. Until then,
-anything entered on the server is test data.
+Both end with the first production deploy that holds real data: its migration becomes the
+baseline, and every later model change is a migration on top (CLAUDE.md, "Migrations").
+Until then, anything entered on the server is test data.
 
 ## What the machine needs
 

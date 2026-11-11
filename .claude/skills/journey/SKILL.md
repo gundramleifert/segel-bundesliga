@@ -61,7 +61,7 @@ list** and the index; this skill is the procedure. `$ARGUMENTS` picks the mode.
    say `(offline)` in `Who`. No `;` inside a diagram — it ends a Mermaid line.
 6. **Add it to the index** in `journeys.md` (the checker refuses an unlisted file).
 7. **Walk it** — see Tests below. Then set the marker by the rule (○/◐/●).
-8. `python3 scripts/check-docs.py --fix` and `python3 scripts/check-docs.py`; then the
+8. `python3 scripts/check-docs.py --fix` and `python3 scripts/check-docs.py --warnings`; then the
    walk(s) and `scripts/check.sh`.
 9. **Report**: the diagram's step list, stories used, stories found wrong or missing,
    `Open:` decisions for the stakeholder, the warnings (uncovered steps).
@@ -82,7 +82,7 @@ help pages citing those stories are the `handbook` skill's update mode.
 
 ## `check [J-n]`
 
-`python3 scripts/check-docs.py` and read its journey lines: problems (✗) fail
+`python3 scripts/check-docs.py --warnings` and read its journey lines: problems (✗) fail
 `scripts/check.sh`, warnings (!) are steps no test covers. Then run the walks named on
 the journey's `Tests:` line.
 

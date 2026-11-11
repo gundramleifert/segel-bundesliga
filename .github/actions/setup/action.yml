@@ -1,0 +1,49 @@
+name: setup
+description: Python and uv, Node and pnpm, every dependency, and the pairing tool's jar.
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v6
+      with: { python-version: "3.12", enable-cache: true, cache-dependency-glob: api/uv.lock }
+    - uses: pnpm/action-setup@v4
+      with: { version: 11.24.0 }
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: pnpm
+        cache-dependency-path: |
+          pnpm-lock.yaml
+          web/pnpm-lock.yaml
+    - name: Install
+      shell: bash
+      run: |
+        pnpm install --frozen-lockfile
+        (cd web && pnpm install --frozen-lockfile)
+        (cd api && uv sync --frozen)
+
+    # The printed pairing list is the Java tool's (app/pairing/pdf.py). Without its jar the
+    # site leaves the download out and the tests about it fail or skip — so it is built
+    # here from the commit the Dockerfiles pin (keep the three equal), once per commit.
+    - uses: actions/setup-java@v4
+      with: { distribution: temurin, java-version: "17" }
+    - id: jar
+      shell: bash
+      run: |
+        ref=$(sed -n 's/^ARG PAIRING_LIST_REF=//p' deploy/compose/api.Dockerfile)
+        echo "ref=$ref" >> "$GITHUB_OUTPUT"
+        echo "SBL_PAIRING_JAR=$RUNNER_TEMP/pairing/pairing-list.jar" >> "$GITHUB_ENV"
+    - uses: actions/cache@v4
+      id: jar-cache
+      with:
+        path: ${{ runner.temp }}/pairing
+        key: pairing-list-${{ steps.jar.outputs.ref }}
+    - name: Build the pairing tool
+      if: steps.jar-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        mkdir -p "$RUNNER_TEMP/pairing-src" "$RUNNER_TEMP/pairing"
+        curl -fsSL "https://codeload.github.com/gundramleifert/PairingList/tar.gz/${{ steps.jar.outputs.ref }}" \
+          | tar -xz --strip-components=1 -C "$RUNNER_TEMP/pairing-src"
+        (cd "$RUNNER_TEMP/pairing-src" && mvn -B -q -DskipTests package)
+        cp "$RUNNER_TEMP"/pairing-src/target/pairing-list-1.0-SNAPSHOT-jar-with-dependencies.jar \
+          "$RUNNER_TEMP/pairing/pairing-list.jar"

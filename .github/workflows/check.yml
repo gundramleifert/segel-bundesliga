@@ -27,22 +27,7 @@ jobs:
           --health-cmd "pg_isready -U sbl -d sbl" --health-interval 5s --health-retries 20
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-        with: { python-version: "3.12", enable-cache: true, cache-dependency-glob: api/uv.lock }
-      - uses: pnpm/action-setup@v4
-        with: { version: 11.24.0 }
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            web/pnpm-lock.yaml
-      - name: Install
-        run: |
-          pnpm install --frozen-lockfile
-          (cd web && pnpm install --frozen-lockfile)
-          (cd api && uv sync --frozen)
+      - uses: ./.github/actions/setup
       - name: scripts/check.sh
         run: scripts/check.sh
 
@@ -58,23 +43,8 @@ jobs:
           --health-cmd "pg_isready -U sbl -d sbl" --health-interval 5s --health-retries 20
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-        with: { python-version: "3.12", enable-cache: true, cache-dependency-glob: api/uv.lock }
-      - uses: pnpm/action-setup@v4
-        with: { version: 11.24.0 }
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            web/pnpm-lock.yaml
-      - name: Install
-        run: |
-          pnpm install --frozen-lockfile
-          (cd web && pnpm install --frozen-lockfile)
-          (cd api && uv sync --frozen)
-          pnpm exec playwright install --with-deps chromium
+      - uses: ./.github/actions/setup
+      - run: pnpm exec playwright install --with-deps chromium
       # Four stacks, one per Playwright worker (playwright.config.ts) — each its own
       # Postgres database, seeded once and copied (scripts/dev-stack.sh).
       - name: Start the stacks

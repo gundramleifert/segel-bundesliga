@@ -47,8 +47,8 @@ Structure lock (`content-model.md` § Structure lock): compare with
   explains yet;
 - a page over the length budget (`writing-guide.md` § Short), counted without tables.
 
-`check-docs.py` has no warnings channel yet: add one, printed after the problems, so a
-warning never fails the gate and never hides.
+Warnings never fail the gate. `check-docs.py` counts them on every run and lists them
+with `--warnings` — run that when working on the handbook.
 
 ## `--fix`
 
