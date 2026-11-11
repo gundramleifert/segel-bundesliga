@@ -1,0 +1,99 @@
+# Keeps main green: scripts/check.sh and the browser suite on every push and pull request,
+# both against Postgres — the site's one database (CLAUDE.md § Database). Nothing here
+# that check.sh does not do locally: the job is the list, run where nobody can skip it.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # The same server as compose.dev.yml, so app.config's default URL needs no setting.
+    services:
+      db:
+        image: postgres:17.6-alpine
+        env: { POSTGRES_USER: sbl, POSTGRES_PASSWORD: sbl, POSTGRES_DB: sbl }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sbl -d sbl" --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { python-version: "3.12", enable-cache: true, cache-dependency-glob: api/uv.lock }
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.24.0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            web/pnpm-lock.yaml
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          (cd web && pnpm install --frozen-lockfile)
+          (cd api && uv sync --frozen)
+      - name: scripts/check.sh
+        run: scripts/check.sh
+
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      db:
+        image: postgres:17.6-alpine
+        env: { POSTGRES_USER: sbl, POSTGRES_PASSWORD: sbl, POSTGRES_DB: sbl }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sbl -d sbl" --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { python-version: "3.12", enable-cache: true, cache-dependency-glob: api/uv.lock }
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.24.0 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            web/pnpm-lock.yaml
+      - name: Install
+        run: |
+          pnpm install --frozen-lockfile
+          (cd web && pnpm install --frozen-lockfile)
+          (cd api && uv sync --frozen)
+          pnpm exec playwright install --with-deps chromium
+      # Four stacks, one per Playwright worker (playwright.config.ts) — each its own
+      # Postgres database, seeded once and copied (scripts/dev-stack.sh).
+      - name: Start the stacks
+        run: |
+          scripts/dev-stack.sh --workers 4 > "$RUNNER_TEMP/stack.log" 2>&1 &
+          for _ in $(seq 1 180); do
+            grep -q '^ready' "$RUNNER_TEMP/stack.log" && exit 0
+            grep -qE 'failed|in use' "$RUNNER_TEMP/stack.log" && break
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/stack.log"; exit 1
+      - name: Playwright
+        run: pnpm exec playwright test
+      - name: Server logs
+        if: failure()
+        run: tail -n 100 /tmp/sbl-dev-stack/*.log
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7

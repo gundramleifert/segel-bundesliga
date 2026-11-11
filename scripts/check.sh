@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Everything that has to be green before a commit, in the order that fails fastest.
 #
-# Not a CI script — it is the list you would otherwise have to remember, and the reason it
-# exists is that the pieces are easy to *half*-run. Two traps in particular:
+# The list you would otherwise have to remember — CI runs exactly this
+# (.github/workflows/check.yml), and so should you before a commit: the pieces are easy to
+# *half*-run. Two traps in particular:
 #
 #   * `tsc --noEmit` checks **nothing** in this Vite template (it uses project references).
 #     The real check is `pnpm typecheck`, i.e. `tsc -b`.
@@ -11,8 +12,8 @@
 #     catches a config option that has silently moved between Playwright versions
 #     (docs/gotchas/playwright-moved-reducedmotion-into-contextoptions.md).
 #
-# The e2e suite is deliberately NOT run here: it needs servers (scripts/dev-stack.sh) and a
-# throwaway database, so it is a separate, deliberate step.
+# The e2e suite is deliberately NOT run here: it needs servers (scripts/dev-stack.sh) and
+# throwaway databases, so it is a separate step — CI's job `e2e`.
 #
 #   scripts/check.sh          # everything
 #   scripts/check.sh --fast   # skip the backend test suite (~40 s)
