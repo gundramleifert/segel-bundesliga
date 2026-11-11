@@ -1,10 +1,11 @@
 """Common test setup.
 
-Each test run gets a fresh SQLite database with the complete seed: the real 2026 season
-of every league, and the demo series' three invented matchdays — one finished, one live,
-one planned — with their made-up squads. Story tests check against realistic data
-volumes — 18 teams and 48 races per matchday — rather than hand-crafted minimal cases
-where scoring errors would go unnoticed.
+Each test run gets a fresh database (SQLite, or Postgres with `SBL_TEST_DATABASE_URL`)
+with the complete seed: the real 2026 season of every league. What needs squads, crews or
+a live act asks for the practice season (`season`, `season_2`) — three acts, one final,
+one live, one planned. Story tests check against realistic data volumes — 18 teams and
+48 races per matchday — rather than hand-crafted minimal cases where scoring errors would
+go unnoticed.
 """
 
 import asyncio
@@ -17,10 +18,41 @@ import pytest
 
 # Must come at the very top, not in a fixture: app.config builds its settings on
 # import, and the engine depends on it. Once any test module imports app.config,
-# the database URL is fixed. Production uses Postgres — the test suite deliberately
-# runs against SQLite so it works without a running server.
+# the database URL is fixed. By default the suite runs on SQLite, so it works without a
+# running server; production is Postgres, and SQLite accepts schema and queries Postgres
+# refuses (docs/gotchas). `SBL_TEST_DATABASE_URL` names a Postgres server
+# (compose.dev.yml: postgresql+asyncpg://sbl:sbl@localhost:5432/sbl) — each worker then
+# gets a fresh database of its own there, dropped and created at the start of the run.
 _TEST_DB_DIR = Path(tempfile.mkdtemp(prefix="sbl-tests-"))
-os.environ["SBL_DATABASE_URL"] = f"sqlite+aiosqlite:///{_TEST_DB_DIR / 'test.db'}"
+
+
+def _fresh_postgres_database(server_url: str) -> str:
+    """A newly created database for this worker on the server `server_url` names (whose
+    own database is only used to issue CREATE DATABASE), as a URL."""
+    import asyncpg
+    from sqlalchemy.engine import make_url
+
+    server = make_url(server_url)
+    name = f"sbl_test_{os.environ.get('PYTEST_XDIST_WORKER', 'main')}"
+
+    async def recreate() -> None:
+        dsn = server.set(drivername="postgresql").render_as_string(hide_password=False)
+        connection = await asyncpg.connect(dsn)
+        try:
+            # WITH (FORCE): a run that crashed may have left a connection open.
+            await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+            await connection.execute(f'CREATE DATABASE "{name}"')
+        finally:
+            await connection.close()
+
+    asyncio.run(recreate())
+    return server.set(database=name).render_as_string(hide_password=False)
+
+
+if _postgres := os.environ.get("SBL_TEST_DATABASE_URL"):
+    os.environ["SBL_DATABASE_URL"] = _fresh_postgres_database(_postgres)
+else:
+    os.environ["SBL_DATABASE_URL"] = f"sqlite+aiosqlite:///{_TEST_DB_DIR / 'test.db'}"
 os.environ.setdefault("SBL_JWT_SECRET", "testgeheimnis-nur-fuer-die-testsuite")
 # Uploads (sailor photos, Story S-2) also get their own throwaway directory — otherwise
 # a test run would leave files behind under the real api/uploads/, and SQLite's reused

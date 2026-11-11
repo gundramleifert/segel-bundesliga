@@ -59,8 +59,9 @@ uv run pytest -n auto                    # one worker per core; plain `pytest` f
 
 Or **`tilt up`** at the repo root (`Tiltfile`): backend with `SBL_DEV_LOGIN=true` and
 frontend in one dashboard, the API client regenerated when a route or schema changes, and
-buttons for `reset-db` and `check`. It uses the real `api/sbl.db`; the e2e stacks stay
-`scripts/dev-stack.sh`'s job.
+buttons for `reset-db`, `check` and `pytest-postgres`. It starts `compose.dev.yml`
+(Postgres, SeaweedFS, Mailpit — Docker required) and points the API at it; the e2e stacks
+stay `scripts/dev-stack.sh`'s job.
 
 `app.seed_test_setup` sets up a **fresh installation** completely: migrations,
 reference data (`app.seed`), accounts (`app.seed_users`). Repeatable; `--reset` drops all
@@ -71,13 +72,14 @@ regenerated when models change rather than creating a chain —
 `rm alembic/versions/*.py`, then `alembic revision --autogenerate`, then
 `seed_test_setup --reset`.
 
-**Database:** **SQLite** for now — `api/sbl.db`, no server to start. The default is
-`sqlite+aiosqlite:///./sbl.db` in `app.config`. Postgres stays the eventual production
-target, so Postgres-specific types (JSONB, ARRAY) are still avoided in the model, and
-Alembic runs in **batch mode** for SQLite (see `api/alembic/env.py`). The **test suite**
-uses its own SQLite file so tests run without any external state; the test URL is set in
-`api/tests/conftest.py` **at module level**, not in a fixture, because `app.config` builds
-its settings on import.
+**Database:** production is **Postgres**; `tilt up` develops on Postgres too
+(`compose.dev.yml`). Without it the default is SQLite, `sqlite+aiosqlite:///./sbl.db` in
+`app.config`, no server to start — so the model must work on both: no Postgres-only types
+(JSONB, ARRAY), and Alembic runs in **batch mode** for SQLite (see `api/alembic/env.py`).
+The **test suite** runs on its own SQLite file by default; with
+`SBL_TEST_DATABASE_URL` (a Postgres server URL) each xdist worker gets a fresh database of
+its own there. The test URL is set in `api/tests/conftest.py` **at module level**, not in
+a fixture, because `app.config` builds its settings on import.
 
 **The frontend's API client is generated, never written.** `scripts/gen-api-client.sh`
 reads the OpenAPI document straight off the FastAPI app object — no server to start, and
