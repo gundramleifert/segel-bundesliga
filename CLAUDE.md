@@ -147,9 +147,9 @@ lapsed one is the admin's to-do `invitation_expired`.
 `SBL_DEV_LOGIN=true` enables `/api/dev`: there you can list test accounts and issue access tokens
 **without verification**. A role switcher then appears in the UI (bottom right). Deliberately a
 separate setting, not tied to `debug` — in a reachable environment this would be a security hole,
-and the server warns on startup while it is on. **Never on in production or staging**
-(decided 2026-10-28): the Compose stack fixes it off in `compose.yaml`; it is for `tilt up`
-and `scripts/dev-stack.sh` only.
+and the server warns on startup while it is on. **Never on in production or on the Compose
+staging**: `compose.yaml` fixes it off; it is for `tilt up` and `scripts/dev-stack.sh` —
+and, until the Compose staging replaces it, the interim Render instance (`api/render.env`).
 
 `app.seed_users` creates a **small cast on one club, one series, one event** — 44 accounts. **The 2026 season is real** (decided 2026-10-27,
 `docs/PLAN_SEEDING.md`): the 1. and 2. Liga's 11 acts as sailed — clubs, pairing lists,
@@ -354,10 +354,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   WL-5) — two places to type a result would be two results.
 - **Permissions are relation tuples, `user:relation:object`, and the model is OpenFGA's
   DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`, the facade
-  `app/authz.py`, the writes `app/services/grants.py`). Object types `site`, `club`, `series`, `event`, `sailor`; relations
+  `app/authz.py`, the writes `app/services/grants.py`). Object types `site`, `club`, `series`, `event`, `person`; **`MODEL` is the
+  source of truth — where this paragraph or the table below disagrees, `MODEL` wins**; relations
   `admin` (site), `editor` (site, series, event — news, press and pictures, nothing
   else), `manager` (the organizer — club, series, event),
-  `race_officer` (site, series, event), `jury` (series, event), `helper` (event — works
+  `race_officer` (site, series, event), `jury` (series, event; the site's `jury_organizer`
+  appoints `judge`s, Stories JU-*), `helper` (event — works
   the day, holds no power on it, Story VA-12), `treasurer` (club,
   event — the host club pays its events' costs, so its treasurer is every hosted event's,
   Story F-1), `guardian` (sailor — a parent the child's club linked, who accepts a
@@ -586,7 +588,7 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Create and maintain Events | `admin`, site `race_officer`; the `manager` of the event, its series or its host club |
 | Pairing lists, accounts | `admin` |
 | See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
-| Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
+| Enter results, run races, trackers | `race_officer` of the event — held on it, its series or the site |
 | Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club is invited and accepts, or asks and the club's admin accepts (V-15); one whose account cannot sign in yet only the site's `admin` adds |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
 | Create people (sailors) — a member of the club at once | `admin`; the club's `admin` for their own club — never its `manager` |
