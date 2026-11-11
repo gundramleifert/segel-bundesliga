@@ -24,10 +24,10 @@ RECORDS = sorted(FOLDER.glob("*-liga-act-*.json"))
 
 
 @pytest.fixture
-async def db(tmp_path):
+async def db(empty_database):
     from app.text import slugify
 
-    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'tractrac.db'}")
+    engine = create_async_engine(empty_database)
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     sessions = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)

@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: b40e75fcb130
+Revision ID: 38168fc9f5d0
 Revises:
-Create Date: 2026-11-07 19:33:34.723863
+Create Date: 2026-11-11 21:49:02.246378
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "b40e75fcb130"
+revision: str = "38168fc9f5d0"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -29,20 +29,18 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_app_user")),
     )
-    with op.batch_alter_table("app_user", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_app_user_email"), ["email"], unique=True)
-
+    op.create_index(op.f("ix_app_user_email"), "app_user", ["email"], unique=True)
     op.create_table(
         "audit_log",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -54,21 +52,19 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_audit_log")),
     )
-    with op.batch_alter_table("audit_log", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_audit_log_entity_id"), ["entity_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_audit_log_entity_type"), ["entity_type"], unique=False)
-
+    op.create_index(op.f("ix_audit_log_entity_id"), "audit_log", ["entity_id"], unique=False)
+    op.create_index(op.f("ix_audit_log_entity_type"), "audit_log", ["entity_type"], unique=False)
     op.create_table(
         "club",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -85,20 +81,18 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_club")),
     )
-    with op.batch_alter_table("club", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_club_slug"), ["slug"], unique=True)
-
+    op.create_index(op.f("ix_club_slug"), "club", ["slug"], unique=True)
     op.create_table(
         "external_id",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -109,13 +103,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_external_id")),
@@ -124,10 +118,8 @@ def upgrade() -> None:
             "source", "entity_type", "external_key", name="uq_external_id_external_key"
         ),
     )
-    with op.batch_alter_table("external_id", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_external_id_entity_id"), ["entity_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_external_id_source"), ["source"], unique=False)
-
+    op.create_index(op.f("ix_external_id_entity_id"), "external_id", ["entity_id"], unique=False)
+    op.create_index(op.f("ix_external_id_source"), "external_id", ["source"], unique=False)
     op.create_table(
         "import_run",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -140,20 +132,18 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_import_run")),
     )
-    with op.batch_alter_table("import_run", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_import_run_source"), ["source"], unique=False)
-
+    op.create_index(op.f("ix_import_run_source"), "import_run", ["source"], unique=False)
     op.create_table(
         "league",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -165,20 +155,18 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_league")),
     )
-    with op.batch_alter_table("league", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_league_slug"), ["slug"], unique=True)
-
+    op.create_index(op.f("ix_league_slug"), "league", ["slug"], unique=True)
     op.create_table(
         "login_code",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -190,21 +178,19 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_login_code")),
     )
-    with op.batch_alter_table("login_code", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_login_code_email"), ["email"], unique=False)
-        batch_op.create_index(batch_op.f("ix_login_code_expires_at"), ["expires_at"], unique=False)
-
+    op.create_index(op.f("ix_login_code_email"), "login_code", ["email"], unique=False)
+    op.create_index(op.f("ix_login_code_expires_at"), "login_code", ["expires_at"], unique=False)
     op.create_table(
         "venue",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -217,20 +203,18 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_venue")),
     )
-    with op.batch_alter_table("venue", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_venue_slug"), ["slug"], unique=True)
-
+    op.create_index(op.f("ix_venue_slug"), "venue", ["slug"], unique=True)
     op.create_table(
         "waiver_text",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -244,20 +228,18 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_waiver_text")),
     )
-    with op.batch_alter_table("waiver_text", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_waiver_text_version"), ["version"], unique=True)
-
+    op.create_index(op.f("ix_waiver_text_version"), "waiver_text", ["version"], unique=True)
     op.create_table(
         "bank_account",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -268,13 +250,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -293,13 +275,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -319,13 +301,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -340,9 +322,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_club_dpa")),
         sa.UniqueConstraint("club_id", "version", name=op.f("uq_club_dpa_club_id")),
     )
-    with op.batch_alter_table("club_dpa", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_club_dpa_club_id"), ["club_id"], unique=False)
-
+    op.create_index(op.f("ix_club_dpa_club_id"), "club_dpa", ["club_id"], unique=False)
     op.create_table(
         "identity",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -352,13 +332,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -367,10 +347,8 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_identity")),
         sa.UniqueConstraint("provider", "subject", name=op.f("uq_identity_provider")),
     )
-    with op.batch_alter_table("identity", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_identity_provider"), ["provider"], unique=False)
-        batch_op.create_index(batch_op.f("ix_identity_user_id"), ["user_id"], unique=False)
-
+    op.create_index(op.f("ix_identity_provider"), "identity", ["provider"], unique=False)
+    op.create_index(op.f("ix_identity_user_id"), "identity", ["user_id"], unique=False)
     op.create_table(
         "judge_licence",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -385,9 +363,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_judge_licence")),
         sa.UniqueConstraint("user_id", "licence", name=op.f("uq_judge_licence_user_id")),
     )
-    with op.batch_alter_table("judge_licence", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_judge_licence_user_id"), ["user_id"], unique=False)
-
+    op.create_index(op.f("ix_judge_licence_user_id"), "judge_licence", ["user_id"], unique=False)
     op.create_table(
         "password_credential",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -399,13 +375,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -427,13 +403,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -447,11 +423,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_payment_run")),
         sa.UniqueConstraint("message_id", name=op.f("uq_payment_run_message_id")),
     )
-    with op.batch_alter_table("payment_run", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_payment_run_payer_club_id"), ["payer_club_id"], unique=False
-        )
-
+    op.create_index(
+        op.f("ix_payment_run_payer_club_id"), "payment_run", ["payer_club_id"], unique=False
+    )
     op.create_table(
         "person",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -465,13 +439,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -480,12 +454,8 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_person")),
         sa.UniqueConstraint("user_id", name=op.f("uq_person_user_id")),
     )
-    with op.batch_alter_table("person", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_person_email"), ["email"], unique=True)
-        batch_op.create_index(
-            batch_op.f("ix_person_federation_id"), ["federation_id"], unique=False
-        )
-
+    op.create_index(op.f("ix_person_email"), "person", ["email"], unique=True)
+    op.create_index(op.f("ix_person_federation_id"), "person", ["federation_id"], unique=False)
     op.create_table(
         "personal_document",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -500,13 +470,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -519,9 +489,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_personal_document")),
         sa.UniqueConstraint("stored_name", name=op.f("uq_personal_document_stored_name")),
     )
-    with op.batch_alter_table("personal_document", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_personal_document_user_id"), ["user_id"], unique=False)
-
+    op.create_index(
+        op.f("ix_personal_document_user_id"), "personal_document", ["user_id"], unique=False
+    )
     op.create_table(
         "series",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -541,13 +511,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -555,11 +525,9 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_series")),
     )
-    with op.batch_alter_table("series", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_series_league_id"), ["league_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_series_slug"), ["slug"], unique=True)
-        batch_op.create_index(batch_op.f("ix_series_year"), ["year"], unique=False)
-
+    op.create_index(op.f("ix_series_league_id"), "series", ["league_id"], unique=False)
+    op.create_index(op.f("ix_series_slug"), "series", ["slug"], unique=True)
+    op.create_index(op.f("ix_series_year"), "series", ["year"], unique=False)
     op.create_table(
         "club_membership",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -574,13 +542,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -607,12 +575,12 @@ def upgrade() -> None:
         ),
         sa.UniqueConstraint("person_id", "club_id", name=op.f("uq_club_membership_person_id")),
     )
-    with op.batch_alter_table("club_membership", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_club_membership_club_id"), ["club_id"], unique=False)
-        batch_op.create_index(
-            batch_op.f("ix_club_membership_person_id"), ["person_id"], unique=False
-        )
-
+    op.create_index(
+        op.f("ix_club_membership_club_id"), "club_membership", ["club_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_club_membership_person_id"), "club_membership", ["person_id"], unique=False
+    )
     op.create_table(
         "event",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -643,13 +611,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -662,12 +630,10 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_event")),
         sa.UniqueConstraint("series_id", "matchday", name=op.f("uq_event_series_id")),
     )
-    with op.batch_alter_table("event", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_event_host_club_id"), ["host_club_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_event_series_id"), ["series_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_event_slug"), ["slug"], unique=True)
-        batch_op.create_index(batch_op.f("ix_event_venue_id"), ["venue_id"], unique=False)
-
+    op.create_index(op.f("ix_event_host_club_id"), "event", ["host_club_id"], unique=False)
+    op.create_index(op.f("ix_event_series_id"), "event", ["series_id"], unique=False)
+    op.create_index(op.f("ix_event_slug"), "event", ["slug"], unique=True)
+    op.create_index(op.f("ix_event_venue_id"), "event", ["venue_id"], unique=False)
     op.create_table(
         "payment",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -686,13 +652,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -711,16 +677,10 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_payment")),
     )
-    with op.batch_alter_table("payment", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_payment_payee_user_id"), ["payee_user_id"], unique=False
-        )
-        batch_op.create_index(
-            batch_op.f("ix_payment_payer_club_id"), ["payer_club_id"], unique=False
-        )
-        batch_op.create_index(batch_op.f("ix_payment_run_id"), ["run_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_payment_status"), ["status"], unique=False)
-
+    op.create_index(op.f("ix_payment_payee_user_id"), "payment", ["payee_user_id"], unique=False)
+    op.create_index(op.f("ix_payment_payer_club_id"), "payment", ["payer_club_id"], unique=False)
+    op.create_index(op.f("ix_payment_run_id"), "payment", ["run_id"], unique=False)
+    op.create_index(op.f("ix_payment_status"), "payment", ["status"], unique=False)
     op.create_table(
         "access_grant",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -733,13 +693,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -775,14 +735,12 @@ def upgrade() -> None:
             name=op.f("uq_access_grant_user_id"),
         ),
     )
-    with op.batch_alter_table("access_grant", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_access_grant_club_id"), ["club_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_access_grant_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_access_grant_person_id"), ["person_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_access_grant_relation"), ["relation"], unique=False)
-        batch_op.create_index(batch_op.f("ix_access_grant_series_id"), ["series_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_access_grant_user_id"), ["user_id"], unique=False)
-
+    op.create_index(op.f("ix_access_grant_club_id"), "access_grant", ["club_id"], unique=False)
+    op.create_index(op.f("ix_access_grant_event_id"), "access_grant", ["event_id"], unique=False)
+    op.create_index(op.f("ix_access_grant_person_id"), "access_grant", ["person_id"], unique=False)
+    op.create_index(op.f("ix_access_grant_relation"), "access_grant", ["relation"], unique=False)
+    op.create_index(op.f("ix_access_grant_series_id"), "access_grant", ["series_id"], unique=False)
+    op.create_index(op.f("ix_access_grant_user_id"), "access_grant", ["user_id"], unique=False)
     op.create_table(
         "boat",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -794,22 +752,20 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(["event_id"], ["event.id"], name=op.f("fk_boat_event_id_event")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_boat")),
         sa.UniqueConstraint("event_id", "number", name=op.f("uq_boat_event_id")),
     )
-    with op.batch_alter_table("boat", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_boat_event_id"), ["event_id"], unique=False)
-
+    op.create_index(op.f("ix_boat_event_id"), "boat", ["event_id"], unique=False)
     op.create_table(
         "course",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -822,21 +778,19 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(["event_id"], ["event.id"], name=op.f("fk_course_event_id_event")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_course")),
     )
-    with op.batch_alter_table("course", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_course_event_id"), ["event_id"], unique=False)
-
+    op.create_index(op.f("ix_course_event_id"), "course", ["event_id"], unique=False)
     op.create_table(
         "event_announcement",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -849,13 +803,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -870,14 +824,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_event_announcement")),
         sa.UniqueConstraint("event_id", "number", name=op.f("uq_event_announcement_event_id")),
     )
-    with op.batch_alter_table("event_announcement", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_event_announcement_author_id"), ["author_id"], unique=False
-        )
-        batch_op.create_index(
-            batch_op.f("ix_event_announcement_event_id"), ["event_id"], unique=False
-        )
-
+    op.create_index(
+        op.f("ix_event_announcement_author_id"), "event_announcement", ["author_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_event_announcement_event_id"), "event_announcement", ["event_id"], unique=False
+    )
     op.create_table(
         "event_document",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -892,13 +844,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -912,12 +864,12 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_event_document")),
     )
-    with op.batch_alter_table("event_document", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_event_document_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(
-            batch_op.f("ix_event_document_series_id"), ["series_id"], unique=False
-        )
-
+    op.create_index(
+        op.f("ix_event_document_event_id"), "event_document", ["event_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_event_document_series_id"), "event_document", ["series_id"], unique=False
+    )
     op.create_table(
         "expense_claim",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -937,13 +889,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -970,17 +922,18 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_expense_claim")),
     )
-    with op.batch_alter_table("expense_claim", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_expense_claim_claimant_user_id"), ["claimant_user_id"], unique=False
-        )
-        batch_op.create_index(batch_op.f("ix_expense_claim_club_id"), ["club_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_expense_claim_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(
-            batch_op.f("ix_expense_claim_payer_club_id"), ["payer_club_id"], unique=False
-        )
-        batch_op.create_index(batch_op.f("ix_expense_claim_status"), ["status"], unique=False)
-
+    op.create_index(
+        op.f("ix_expense_claim_claimant_user_id"),
+        "expense_claim",
+        ["claimant_user_id"],
+        unique=False,
+    )
+    op.create_index(op.f("ix_expense_claim_club_id"), "expense_claim", ["club_id"], unique=False)
+    op.create_index(op.f("ix_expense_claim_event_id"), "expense_claim", ["event_id"], unique=False)
+    op.create_index(
+        op.f("ix_expense_claim_payer_club_id"), "expense_claim", ["payer_club_id"], unique=False
+    )
+    op.create_index(op.f("ix_expense_claim_status"), "expense_claim", ["status"], unique=False)
     op.create_table(
         "flight",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -989,22 +942,20 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(["event_id"], ["event.id"], name=op.f("fk_flight_event_id_event")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_flight")),
         sa.UniqueConstraint("event_id", "number", name=op.f("uq_flight_event_id")),
     )
-    with op.batch_alter_table("flight", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_flight_event_id"), ["event_id"], unique=False)
-
+    op.create_index(op.f("ix_flight_event_id"), "flight", ["event_id"], unique=False)
     op.create_table(
         "import_key",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1020,13 +971,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1052,11 +1003,9 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_import_key")),
     )
-    with op.batch_alter_table("import_key", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_import_key_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_import_key_key_hash"), ["key_hash"], unique=True)
-        batch_op.create_index(batch_op.f("ix_import_key_series_id"), ["series_id"], unique=False)
-
+    op.create_index(op.f("ix_import_key_event_id"), "import_key", ["event_id"], unique=False)
+    op.create_index(op.f("ix_import_key_key_hash"), "import_key", ["key_hash"], unique=True)
+    op.create_index(op.f("ix_import_key_series_id"), "import_key", ["series_id"], unique=False)
     op.create_table(
         "jury_request",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1070,13 +1019,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1094,10 +1043,8 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_jury_request")),
         sa.UniqueConstraint("event_id", "user_id", name=op.f("uq_jury_request_event_id")),
     )
-    with op.batch_alter_table("jury_request", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_jury_request_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_jury_request_user_id"), ["user_id"], unique=False)
-
+    op.create_index(op.f("ix_jury_request_event_id"), "jury_request", ["event_id"], unique=False)
+    op.create_index(op.f("ix_jury_request_user_id"), "jury_request", ["user_id"], unique=False)
     op.create_table(
         "post",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1120,13 +1067,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1143,13 +1090,11 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_post")),
     )
-    with op.batch_alter_table("post", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_post_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_post_kind"), ["kind"], unique=False)
-        batch_op.create_index(batch_op.f("ix_post_league_id"), ["league_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_post_series_id"), ["series_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_post_slug"), ["slug"], unique=True)
-
+    op.create_index(op.f("ix_post_event_id"), "post", ["event_id"], unique=False)
+    op.create_index(op.f("ix_post_kind"), "post", ["kind"], unique=False)
+    op.create_index(op.f("ix_post_league_id"), "post", ["league_id"], unique=False)
+    op.create_index(op.f("ix_post_series_id"), "post", ["series_id"], unique=False)
+    op.create_index(op.f("ix_post_slug"), "post", ["slug"], unique=True)
     op.create_table(
         "team",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1166,13 +1111,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1187,19 +1132,17 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_team")),
         sa.UniqueConstraint("club_id", "event_id", "number", name=op.f("uq_team_club_id")),
     )
-    with op.batch_alter_table("team", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_team_club_id"), ["club_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_team_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_team_series_id"), ["series_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_team_status"), ["status"], unique=False)
-        batch_op.create_index(
-            "uq_team_series_registration",
-            ["club_id", "series_id"],
-            unique=True,
-            sqlite_where=sa.text("event_id IS NULL"),
-            postgresql_where=sa.text("event_id IS NULL"),
-        )
-
+    op.create_index(op.f("ix_team_club_id"), "team", ["club_id"], unique=False)
+    op.create_index(op.f("ix_team_event_id"), "team", ["event_id"], unique=False)
+    op.create_index(op.f("ix_team_series_id"), "team", ["series_id"], unique=False)
+    op.create_index(op.f("ix_team_status"), "team", ["status"], unique=False)
+    op.create_index(
+        "uq_team_series_registration",
+        "team",
+        ["club_id", "series_id"],
+        unique=True,
+        postgresql_where=sa.text("event_id IS NULL"),
+    )
     op.create_table(
         "waiver_confirmation",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1217,13 +1160,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1251,34 +1194,35 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_waiver_confirmation")),
     )
-    with op.batch_alter_table("waiver_confirmation", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_waiver_confirmation_event_id"), ["event_id"], unique=False
-        )
-        batch_op.create_index(
-            batch_op.f("ix_waiver_confirmation_person_id"), ["person_id"], unique=False
-        )
-        batch_op.create_index(
-            batch_op.f("ix_waiver_confirmation_series_id"), ["series_id"], unique=False
-        )
-        batch_op.create_index(
-            batch_op.f("ix_waiver_confirmation_waiver_text_id"), ["waiver_text_id"], unique=False
-        )
-        batch_op.create_index(
-            "uq_waiver_conf_event",
-            ["person_id", "event_id", "waiver_text_id"],
-            unique=True,
-            sqlite_where=sa.text("series_id IS NULL"),
-            postgresql_where=sa.text("series_id IS NULL"),
-        )
-        batch_op.create_index(
-            "uq_waiver_conf_series",
-            ["person_id", "series_id", "waiver_text_id"],
-            unique=True,
-            sqlite_where=sa.text("event_id IS NULL"),
-            postgresql_where=sa.text("event_id IS NULL"),
-        )
-
+    op.create_index(
+        op.f("ix_waiver_confirmation_event_id"), "waiver_confirmation", ["event_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_waiver_confirmation_person_id"), "waiver_confirmation", ["person_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_waiver_confirmation_series_id"), "waiver_confirmation", ["series_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_waiver_confirmation_waiver_text_id"),
+        "waiver_confirmation",
+        ["waiver_text_id"],
+        unique=False,
+    )
+    op.create_index(
+        "uq_waiver_conf_event",
+        "waiver_confirmation",
+        ["person_id", "event_id", "waiver_text_id"],
+        unique=True,
+        postgresql_where=sa.text("series_id IS NULL"),
+    )
+    op.create_index(
+        "uq_waiver_conf_series",
+        "waiver_confirmation",
+        ["person_id", "series_id", "waiver_text_id"],
+        unique=True,
+        postgresql_where=sa.text("event_id IS NULL"),
+    )
     op.create_table(
         "event_crew",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1289,13 +1233,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1308,11 +1252,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_event_crew")),
         sa.UniqueConstraint("event_id", "person_id", name=op.f("uq_event_crew_event_id")),
     )
-    with op.batch_alter_table("event_crew", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_event_crew_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_event_crew_person_id"), ["person_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_event_crew_team_id"), ["team_id"], unique=False)
-
+    op.create_index(op.f("ix_event_crew_event_id"), "event_crew", ["event_id"], unique=False)
+    op.create_index(op.f("ix_event_crew_person_id"), "event_crew", ["person_id"], unique=False)
+    op.create_index(op.f("ix_event_crew_team_id"), "event_crew", ["team_id"], unique=False)
     op.create_table(
         "event_standing",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1326,13 +1268,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1344,10 +1286,10 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_event_standing")),
         sa.UniqueConstraint("event_id", "team_id", name=op.f("uq_event_standing_event_id")),
     )
-    with op.batch_alter_table("event_standing", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_event_standing_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_event_standing_team_id"), ["team_id"], unique=False)
-
+    op.create_index(
+        op.f("ix_event_standing_event_id"), "event_standing", ["event_id"], unique=False
+    )
+    op.create_index(op.f("ix_event_standing_team_id"), "event_standing", ["team_id"], unique=False)
     op.create_table(
         "expense_item",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1362,13 +1304,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1385,9 +1327,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_expense_item")),
     )
-    with op.batch_alter_table("expense_item", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_expense_item_claim_id"), ["claim_id"], unique=False)
-
+    op.create_index(op.f("ix_expense_item_claim_id"), "expense_item", ["claim_id"], unique=False)
     op.create_table(
         "mark",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1399,13 +1339,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1414,9 +1354,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_mark")),
         sa.UniqueConstraint("course_id", "role", name=op.f("uq_mark_course_id")),
     )
-    with op.batch_alter_table("mark", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_mark_course_id"), ["course_id"], unique=False)
-
+    op.create_index(op.f("ix_mark_course_id"), "mark", ["course_id"], unique=False)
     op.create_table(
         "media_item",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1439,13 +1377,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1478,15 +1416,13 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_media_item")),
         sa.UniqueConstraint("import_key_id", "external_id", name="import_external_id"),
     )
-    with op.batch_alter_table("media_item", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_media_item_event_id"), ["event_id"], unique=False)
-        batch_op.create_index(
-            batch_op.f("ix_media_item_import_key_id"), ["import_key_id"], unique=False
-        )
-        batch_op.create_index(batch_op.f("ix_media_item_name"), ["name"], unique=True)
-        batch_op.create_index(batch_op.f("ix_media_item_series_id"), ["series_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_media_item_sha256"), ["sha256"], unique=True)
-
+    op.create_index(op.f("ix_media_item_event_id"), "media_item", ["event_id"], unique=False)
+    op.create_index(
+        op.f("ix_media_item_import_key_id"), "media_item", ["import_key_id"], unique=False
+    )
+    op.create_index(op.f("ix_media_item_name"), "media_item", ["name"], unique=True)
+    op.create_index(op.f("ix_media_item_series_id"), "media_item", ["series_id"], unique=False)
+    op.create_index(op.f("ix_media_item_sha256"), "media_item", ["sha256"], unique=True)
     op.create_table(
         "payment_allocation",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1496,13 +1432,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint("amount_cents > 0", name=op.f("ck_payment_allocation_amount_positive")),
@@ -1519,14 +1455,12 @@ def upgrade() -> None:
             "payment_id", "claim_id", name=op.f("uq_payment_allocation_payment_id")
         ),
     )
-    with op.batch_alter_table("payment_allocation", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_payment_allocation_claim_id"), ["claim_id"], unique=False
-        )
-        batch_op.create_index(
-            batch_op.f("ix_payment_allocation_payment_id"), ["payment_id"], unique=False
-        )
-
+    op.create_index(
+        op.f("ix_payment_allocation_claim_id"), "payment_allocation", ["claim_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_payment_allocation_payment_id"), "payment_allocation", ["payment_id"], unique=False
+    )
     op.create_table(
         "race",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1544,13 +1478,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1562,10 +1496,8 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_race")),
         sa.UniqueConstraint("flight_id", "number_in_flight", name=op.f("uq_race_flight_id")),
     )
-    with op.batch_alter_table("race", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_race_flight_id"), ["flight_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_race_sequence"), ["sequence"], unique=False)
-
+    op.create_index(op.f("ix_race_flight_id"), "race", ["flight_id"], unique=False)
+    op.create_index(op.f("ix_race_sequence"), "race", ["sequence"], unique=False)
     op.create_table(
         "series_standing",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1579,13 +1511,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1597,12 +1529,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_series_standing")),
         sa.UniqueConstraint("series_id", "team_id", name=op.f("uq_series_standing_series_id")),
     )
-    with op.batch_alter_table("series_standing", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_series_standing_series_id"), ["series_id"], unique=False
-        )
-        batch_op.create_index(batch_op.f("ix_series_standing_team_id"), ["team_id"], unique=False)
-
+    op.create_index(
+        op.f("ix_series_standing_series_id"), "series_standing", ["series_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_series_standing_team_id"), "series_standing", ["team_id"], unique=False
+    )
     op.create_table(
         "team_membership",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1614,13 +1546,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1632,12 +1564,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_team_membership")),
         sa.UniqueConstraint("team_id", "person_id", name=op.f("uq_team_membership_team_id")),
     )
-    with op.batch_alter_table("team_membership", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_team_membership_person_id"), ["person_id"], unique=False
-        )
-        batch_op.create_index(batch_op.f("ix_team_membership_team_id"), ["team_id"], unique=False)
-
+    op.create_index(
+        op.f("ix_team_membership_person_id"), "team_membership", ["person_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_team_membership_team_id"), "team_membership", ["team_id"], unique=False
+    )
     op.create_table(
         "tracker",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1650,24 +1582,22 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(["boat_id"], ["boat.id"], name=op.f("fk_tracker_boat_id_boat")),
         sa.ForeignKeyConstraint(["event_id"], ["event.id"], name=op.f("fk_tracker_event_id_event")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_tracker")),
     )
-    with op.batch_alter_table("tracker", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_tracker_boat_id"), ["boat_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_tracker_device_token"), ["device_token"], unique=True)
-        batch_op.create_index(batch_op.f("ix_tracker_event_id"), ["event_id"], unique=False)
-
+    op.create_index(op.f("ix_tracker_boat_id"), "tracker", ["boat_id"], unique=False)
+    op.create_index(op.f("ix_tracker_device_token"), "tracker", ["device_token"], unique=True)
+    op.create_index(op.f("ix_tracker_event_id"), "tracker", ["event_id"], unique=False)
     op.create_table(
         "expense_document",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1681,13 +1611,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1713,12 +1643,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_expense_document")),
         sa.UniqueConstraint("stored_name", name=op.f("uq_expense_document_stored_name")),
     )
-    with op.batch_alter_table("expense_document", schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f("ix_expense_document_claim_id"), ["claim_id"], unique=False
-        )
-        batch_op.create_index(batch_op.f("ix_expense_document_item_id"), ["item_id"], unique=False)
-
+    op.create_index(
+        op.f("ix_expense_document_claim_id"), "expense_document", ["claim_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_expense_document_item_id"), "expense_document", ["item_id"], unique=False
+    )
     op.create_table(
         "fix",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1734,10 +1664,8 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_fix")),
         sa.UniqueConstraint("tracker_id", "t", name=op.f("uq_fix_tracker_id")),
     )
-    with op.batch_alter_table("fix", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_fix_t"), ["t"], unique=False)
-        batch_op.create_index(batch_op.f("ix_fix_tracker_id"), ["tracker_id"], unique=False)
-
+    op.create_index(op.f("ix_fix_t"), "fix", ["t"], unique=False)
+    op.create_index(op.f("ix_fix_tracker_id"), "fix", ["tracker_id"], unique=False)
     op.create_table(
         "race_entry",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -1752,13 +1680,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(["boat_id"], ["boat.id"], name=op.f("fk_race_entry_boat_id_boat")),
@@ -1768,263 +1696,173 @@ def upgrade() -> None:
         sa.UniqueConstraint("race_id", "boat_id", name="uq_race_entry_race_boat"),
         sa.UniqueConstraint("race_id", "team_id", name="uq_race_entry_race_team"),
     )
-    with op.batch_alter_table("race_entry", schema=None) as batch_op:
-        batch_op.create_index(batch_op.f("ix_race_entry_boat_id"), ["boat_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_race_entry_race_id"), ["race_id"], unique=False)
-        batch_op.create_index(batch_op.f("ix_race_entry_team_id"), ["team_id"], unique=False)
-
+    op.create_index(op.f("ix_race_entry_boat_id"), "race_entry", ["boat_id"], unique=False)
+    op.create_index(op.f("ix_race_entry_race_id"), "race_entry", ["race_id"], unique=False)
+    op.create_index(op.f("ix_race_entry_team_id"), "race_entry", ["team_id"], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    with op.batch_alter_table("race_entry", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_race_entry_team_id"))
-        batch_op.drop_index(batch_op.f("ix_race_entry_race_id"))
-        batch_op.drop_index(batch_op.f("ix_race_entry_boat_id"))
-
+    op.drop_index(op.f("ix_race_entry_team_id"), table_name="race_entry")
+    op.drop_index(op.f("ix_race_entry_race_id"), table_name="race_entry")
+    op.drop_index(op.f("ix_race_entry_boat_id"), table_name="race_entry")
     op.drop_table("race_entry")
-    with op.batch_alter_table("fix", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_fix_tracker_id"))
-        batch_op.drop_index(batch_op.f("ix_fix_t"))
-
+    op.drop_index(op.f("ix_fix_tracker_id"), table_name="fix")
+    op.drop_index(op.f("ix_fix_t"), table_name="fix")
     op.drop_table("fix")
-    with op.batch_alter_table("expense_document", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_expense_document_item_id"))
-        batch_op.drop_index(batch_op.f("ix_expense_document_claim_id"))
-
+    op.drop_index(op.f("ix_expense_document_item_id"), table_name="expense_document")
+    op.drop_index(op.f("ix_expense_document_claim_id"), table_name="expense_document")
     op.drop_table("expense_document")
-    with op.batch_alter_table("tracker", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_tracker_event_id"))
-        batch_op.drop_index(batch_op.f("ix_tracker_device_token"))
-        batch_op.drop_index(batch_op.f("ix_tracker_boat_id"))
-
+    op.drop_index(op.f("ix_tracker_event_id"), table_name="tracker")
+    op.drop_index(op.f("ix_tracker_device_token"), table_name="tracker")
+    op.drop_index(op.f("ix_tracker_boat_id"), table_name="tracker")
     op.drop_table("tracker")
-    with op.batch_alter_table("team_membership", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_team_membership_team_id"))
-        batch_op.drop_index(batch_op.f("ix_team_membership_person_id"))
-
+    op.drop_index(op.f("ix_team_membership_team_id"), table_name="team_membership")
+    op.drop_index(op.f("ix_team_membership_person_id"), table_name="team_membership")
     op.drop_table("team_membership")
-    with op.batch_alter_table("series_standing", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_series_standing_team_id"))
-        batch_op.drop_index(batch_op.f("ix_series_standing_series_id"))
-
+    op.drop_index(op.f("ix_series_standing_team_id"), table_name="series_standing")
+    op.drop_index(op.f("ix_series_standing_series_id"), table_name="series_standing")
     op.drop_table("series_standing")
-    with op.batch_alter_table("race", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_race_sequence"))
-        batch_op.drop_index(batch_op.f("ix_race_flight_id"))
-
+    op.drop_index(op.f("ix_race_sequence"), table_name="race")
+    op.drop_index(op.f("ix_race_flight_id"), table_name="race")
     op.drop_table("race")
-    with op.batch_alter_table("payment_allocation", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_payment_allocation_payment_id"))
-        batch_op.drop_index(batch_op.f("ix_payment_allocation_claim_id"))
-
+    op.drop_index(op.f("ix_payment_allocation_payment_id"), table_name="payment_allocation")
+    op.drop_index(op.f("ix_payment_allocation_claim_id"), table_name="payment_allocation")
     op.drop_table("payment_allocation")
-    with op.batch_alter_table("media_item", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_media_item_sha256"))
-        batch_op.drop_index(batch_op.f("ix_media_item_series_id"))
-        batch_op.drop_index(batch_op.f("ix_media_item_name"))
-        batch_op.drop_index(batch_op.f("ix_media_item_import_key_id"))
-        batch_op.drop_index(batch_op.f("ix_media_item_event_id"))
-
+    op.drop_index(op.f("ix_media_item_sha256"), table_name="media_item")
+    op.drop_index(op.f("ix_media_item_series_id"), table_name="media_item")
+    op.drop_index(op.f("ix_media_item_name"), table_name="media_item")
+    op.drop_index(op.f("ix_media_item_import_key_id"), table_name="media_item")
+    op.drop_index(op.f("ix_media_item_event_id"), table_name="media_item")
     op.drop_table("media_item")
-    with op.batch_alter_table("mark", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_mark_course_id"))
-
+    op.drop_index(op.f("ix_mark_course_id"), table_name="mark")
     op.drop_table("mark")
-    with op.batch_alter_table("expense_item", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_expense_item_claim_id"))
-
+    op.drop_index(op.f("ix_expense_item_claim_id"), table_name="expense_item")
     op.drop_table("expense_item")
-    with op.batch_alter_table("event_standing", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_event_standing_team_id"))
-        batch_op.drop_index(batch_op.f("ix_event_standing_event_id"))
-
+    op.drop_index(op.f("ix_event_standing_team_id"), table_name="event_standing")
+    op.drop_index(op.f("ix_event_standing_event_id"), table_name="event_standing")
     op.drop_table("event_standing")
-    with op.batch_alter_table("event_crew", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_event_crew_team_id"))
-        batch_op.drop_index(batch_op.f("ix_event_crew_person_id"))
-        batch_op.drop_index(batch_op.f("ix_event_crew_event_id"))
-
+    op.drop_index(op.f("ix_event_crew_team_id"), table_name="event_crew")
+    op.drop_index(op.f("ix_event_crew_person_id"), table_name="event_crew")
+    op.drop_index(op.f("ix_event_crew_event_id"), table_name="event_crew")
     op.drop_table("event_crew")
-    with op.batch_alter_table("waiver_confirmation", schema=None) as batch_op:
-        batch_op.drop_index(
-            "uq_waiver_conf_series",
-            sqlite_where=sa.text("event_id IS NULL"),
-            postgresql_where=sa.text("event_id IS NULL"),
-        )
-        batch_op.drop_index(
-            "uq_waiver_conf_event",
-            sqlite_where=sa.text("series_id IS NULL"),
-            postgresql_where=sa.text("series_id IS NULL"),
-        )
-        batch_op.drop_index(batch_op.f("ix_waiver_confirmation_waiver_text_id"))
-        batch_op.drop_index(batch_op.f("ix_waiver_confirmation_series_id"))
-        batch_op.drop_index(batch_op.f("ix_waiver_confirmation_person_id"))
-        batch_op.drop_index(batch_op.f("ix_waiver_confirmation_event_id"))
-
+    op.drop_index(
+        "uq_waiver_conf_series",
+        table_name="waiver_confirmation",
+        postgresql_where=sa.text("event_id IS NULL"),
+    )
+    op.drop_index(
+        "uq_waiver_conf_event",
+        table_name="waiver_confirmation",
+        postgresql_where=sa.text("series_id IS NULL"),
+    )
+    op.drop_index(op.f("ix_waiver_confirmation_waiver_text_id"), table_name="waiver_confirmation")
+    op.drop_index(op.f("ix_waiver_confirmation_series_id"), table_name="waiver_confirmation")
+    op.drop_index(op.f("ix_waiver_confirmation_person_id"), table_name="waiver_confirmation")
+    op.drop_index(op.f("ix_waiver_confirmation_event_id"), table_name="waiver_confirmation")
     op.drop_table("waiver_confirmation")
-    with op.batch_alter_table("team", schema=None) as batch_op:
-        batch_op.drop_index(
-            "uq_team_series_registration",
-            sqlite_where=sa.text("event_id IS NULL"),
-            postgresql_where=sa.text("event_id IS NULL"),
-        )
-        batch_op.drop_index(batch_op.f("ix_team_status"))
-        batch_op.drop_index(batch_op.f("ix_team_series_id"))
-        batch_op.drop_index(batch_op.f("ix_team_event_id"))
-        batch_op.drop_index(batch_op.f("ix_team_club_id"))
-
+    op.drop_index(
+        "uq_team_series_registration",
+        table_name="team",
+        postgresql_where=sa.text("event_id IS NULL"),
+    )
+    op.drop_index(op.f("ix_team_status"), table_name="team")
+    op.drop_index(op.f("ix_team_series_id"), table_name="team")
+    op.drop_index(op.f("ix_team_event_id"), table_name="team")
+    op.drop_index(op.f("ix_team_club_id"), table_name="team")
     op.drop_table("team")
-    with op.batch_alter_table("post", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_post_slug"))
-        batch_op.drop_index(batch_op.f("ix_post_series_id"))
-        batch_op.drop_index(batch_op.f("ix_post_league_id"))
-        batch_op.drop_index(batch_op.f("ix_post_kind"))
-        batch_op.drop_index(batch_op.f("ix_post_event_id"))
-
+    op.drop_index(op.f("ix_post_slug"), table_name="post")
+    op.drop_index(op.f("ix_post_series_id"), table_name="post")
+    op.drop_index(op.f("ix_post_league_id"), table_name="post")
+    op.drop_index(op.f("ix_post_kind"), table_name="post")
+    op.drop_index(op.f("ix_post_event_id"), table_name="post")
     op.drop_table("post")
-    with op.batch_alter_table("jury_request", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_jury_request_user_id"))
-        batch_op.drop_index(batch_op.f("ix_jury_request_event_id"))
-
+    op.drop_index(op.f("ix_jury_request_user_id"), table_name="jury_request")
+    op.drop_index(op.f("ix_jury_request_event_id"), table_name="jury_request")
     op.drop_table("jury_request")
-    with op.batch_alter_table("import_key", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_import_key_series_id"))
-        batch_op.drop_index(batch_op.f("ix_import_key_key_hash"))
-        batch_op.drop_index(batch_op.f("ix_import_key_event_id"))
-
+    op.drop_index(op.f("ix_import_key_series_id"), table_name="import_key")
+    op.drop_index(op.f("ix_import_key_key_hash"), table_name="import_key")
+    op.drop_index(op.f("ix_import_key_event_id"), table_name="import_key")
     op.drop_table("import_key")
-    with op.batch_alter_table("flight", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_flight_event_id"))
-
+    op.drop_index(op.f("ix_flight_event_id"), table_name="flight")
     op.drop_table("flight")
-    with op.batch_alter_table("expense_claim", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_expense_claim_status"))
-        batch_op.drop_index(batch_op.f("ix_expense_claim_payer_club_id"))
-        batch_op.drop_index(batch_op.f("ix_expense_claim_event_id"))
-        batch_op.drop_index(batch_op.f("ix_expense_claim_club_id"))
-        batch_op.drop_index(batch_op.f("ix_expense_claim_claimant_user_id"))
-
+    op.drop_index(op.f("ix_expense_claim_status"), table_name="expense_claim")
+    op.drop_index(op.f("ix_expense_claim_payer_club_id"), table_name="expense_claim")
+    op.drop_index(op.f("ix_expense_claim_event_id"), table_name="expense_claim")
+    op.drop_index(op.f("ix_expense_claim_club_id"), table_name="expense_claim")
+    op.drop_index(op.f("ix_expense_claim_claimant_user_id"), table_name="expense_claim")
     op.drop_table("expense_claim")
-    with op.batch_alter_table("event_document", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_event_document_series_id"))
-        batch_op.drop_index(batch_op.f("ix_event_document_event_id"))
-
+    op.drop_index(op.f("ix_event_document_series_id"), table_name="event_document")
+    op.drop_index(op.f("ix_event_document_event_id"), table_name="event_document")
     op.drop_table("event_document")
-    with op.batch_alter_table("event_announcement", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_event_announcement_event_id"))
-        batch_op.drop_index(batch_op.f("ix_event_announcement_author_id"))
-
+    op.drop_index(op.f("ix_event_announcement_event_id"), table_name="event_announcement")
+    op.drop_index(op.f("ix_event_announcement_author_id"), table_name="event_announcement")
     op.drop_table("event_announcement")
-    with op.batch_alter_table("course", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_course_event_id"))
-
+    op.drop_index(op.f("ix_course_event_id"), table_name="course")
     op.drop_table("course")
-    with op.batch_alter_table("boat", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_boat_event_id"))
-
+    op.drop_index(op.f("ix_boat_event_id"), table_name="boat")
     op.drop_table("boat")
-    with op.batch_alter_table("access_grant", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_access_grant_user_id"))
-        batch_op.drop_index(batch_op.f("ix_access_grant_series_id"))
-        batch_op.drop_index(batch_op.f("ix_access_grant_relation"))
-        batch_op.drop_index(batch_op.f("ix_access_grant_person_id"))
-        batch_op.drop_index(batch_op.f("ix_access_grant_event_id"))
-        batch_op.drop_index(batch_op.f("ix_access_grant_club_id"))
-
+    op.drop_index(op.f("ix_access_grant_user_id"), table_name="access_grant")
+    op.drop_index(op.f("ix_access_grant_series_id"), table_name="access_grant")
+    op.drop_index(op.f("ix_access_grant_relation"), table_name="access_grant")
+    op.drop_index(op.f("ix_access_grant_person_id"), table_name="access_grant")
+    op.drop_index(op.f("ix_access_grant_event_id"), table_name="access_grant")
+    op.drop_index(op.f("ix_access_grant_club_id"), table_name="access_grant")
     op.drop_table("access_grant")
-    with op.batch_alter_table("payment", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_payment_status"))
-        batch_op.drop_index(batch_op.f("ix_payment_run_id"))
-        batch_op.drop_index(batch_op.f("ix_payment_payer_club_id"))
-        batch_op.drop_index(batch_op.f("ix_payment_payee_user_id"))
-
+    op.drop_index(op.f("ix_payment_status"), table_name="payment")
+    op.drop_index(op.f("ix_payment_run_id"), table_name="payment")
+    op.drop_index(op.f("ix_payment_payer_club_id"), table_name="payment")
+    op.drop_index(op.f("ix_payment_payee_user_id"), table_name="payment")
     op.drop_table("payment")
-    with op.batch_alter_table("event", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_event_venue_id"))
-        batch_op.drop_index(batch_op.f("ix_event_slug"))
-        batch_op.drop_index(batch_op.f("ix_event_series_id"))
-        batch_op.drop_index(batch_op.f("ix_event_host_club_id"))
-
+    op.drop_index(op.f("ix_event_venue_id"), table_name="event")
+    op.drop_index(op.f("ix_event_slug"), table_name="event")
+    op.drop_index(op.f("ix_event_series_id"), table_name="event")
+    op.drop_index(op.f("ix_event_host_club_id"), table_name="event")
     op.drop_table("event")
-    with op.batch_alter_table("club_membership", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_club_membership_person_id"))
-        batch_op.drop_index(batch_op.f("ix_club_membership_club_id"))
-
+    op.drop_index(op.f("ix_club_membership_person_id"), table_name="club_membership")
+    op.drop_index(op.f("ix_club_membership_club_id"), table_name="club_membership")
     op.drop_table("club_membership")
-    with op.batch_alter_table("series", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_series_year"))
-        batch_op.drop_index(batch_op.f("ix_series_slug"))
-        batch_op.drop_index(batch_op.f("ix_series_league_id"))
-
+    op.drop_index(op.f("ix_series_year"), table_name="series")
+    op.drop_index(op.f("ix_series_slug"), table_name="series")
+    op.drop_index(op.f("ix_series_league_id"), table_name="series")
     op.drop_table("series")
-    with op.batch_alter_table("personal_document", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_personal_document_user_id"))
-
+    op.drop_index(op.f("ix_personal_document_user_id"), table_name="personal_document")
     op.drop_table("personal_document")
-    with op.batch_alter_table("person", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_person_federation_id"))
-        batch_op.drop_index(batch_op.f("ix_person_email"))
-
+    op.drop_index(op.f("ix_person_federation_id"), table_name="person")
+    op.drop_index(op.f("ix_person_email"), table_name="person")
     op.drop_table("person")
-    with op.batch_alter_table("payment_run", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_payment_run_payer_club_id"))
-
+    op.drop_index(op.f("ix_payment_run_payer_club_id"), table_name="payment_run")
     op.drop_table("payment_run")
     op.drop_table("password_credential")
-    with op.batch_alter_table("judge_licence", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_judge_licence_user_id"))
-
+    op.drop_index(op.f("ix_judge_licence_user_id"), table_name="judge_licence")
     op.drop_table("judge_licence")
-    with op.batch_alter_table("identity", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_identity_user_id"))
-        batch_op.drop_index(batch_op.f("ix_identity_provider"))
-
+    op.drop_index(op.f("ix_identity_user_id"), table_name="identity")
+    op.drop_index(op.f("ix_identity_provider"), table_name="identity")
     op.drop_table("identity")
-    with op.batch_alter_table("club_dpa", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_club_dpa_club_id"))
-
+    op.drop_index(op.f("ix_club_dpa_club_id"), table_name="club_dpa")
     op.drop_table("club_dpa")
     op.drop_table("club_bank_account")
     op.drop_table("bank_account")
-    with op.batch_alter_table("waiver_text", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_waiver_text_version"))
-
+    op.drop_index(op.f("ix_waiver_text_version"), table_name="waiver_text")
     op.drop_table("waiver_text")
-    with op.batch_alter_table("venue", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_venue_slug"))
-
+    op.drop_index(op.f("ix_venue_slug"), table_name="venue")
     op.drop_table("venue")
-    with op.batch_alter_table("login_code", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_login_code_expires_at"))
-        batch_op.drop_index(batch_op.f("ix_login_code_email"))
-
+    op.drop_index(op.f("ix_login_code_expires_at"), table_name="login_code")
+    op.drop_index(op.f("ix_login_code_email"), table_name="login_code")
     op.drop_table("login_code")
-    with op.batch_alter_table("league", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_league_slug"))
-
+    op.drop_index(op.f("ix_league_slug"), table_name="league")
     op.drop_table("league")
-    with op.batch_alter_table("import_run", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_import_run_source"))
-
+    op.drop_index(op.f("ix_import_run_source"), table_name="import_run")
     op.drop_table("import_run")
-    with op.batch_alter_table("external_id", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_external_id_source"))
-        batch_op.drop_index(batch_op.f("ix_external_id_entity_id"))
-
+    op.drop_index(op.f("ix_external_id_source"), table_name="external_id")
+    op.drop_index(op.f("ix_external_id_entity_id"), table_name="external_id")
     op.drop_table("external_id")
-    with op.batch_alter_table("club", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_club_slug"))
-
+    op.drop_index(op.f("ix_club_slug"), table_name="club")
     op.drop_table("club")
-    with op.batch_alter_table("audit_log", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_audit_log_entity_type"))
-        batch_op.drop_index(batch_op.f("ix_audit_log_entity_id"))
-
+    op.drop_index(op.f("ix_audit_log_entity_type"), table_name="audit_log")
+    op.drop_index(op.f("ix_audit_log_entity_id"), table_name="audit_log")
     op.drop_table("audit_log")
-    with op.batch_alter_table("app_user", schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f("ix_app_user_email"))
-
+    op.drop_index(op.f("ix_app_user_email"), table_name="app_user")
     op.drop_table("app_user")
     # ### end Alembic commands ###

@@ -189,7 +189,6 @@ class Team(Base, TimestampMixin):
             "club_id",
             "series_id",
             unique=True,
-            sqlite_where=text("event_id IS NULL"),
             postgresql_where=text("event_id IS NULL"),
         ),
         CheckConstraint(

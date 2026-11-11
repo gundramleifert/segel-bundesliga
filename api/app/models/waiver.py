@@ -105,7 +105,6 @@ class WaiverConfirmation(Base, TimestampMixin):
             "series_id",
             "waiver_text_id",
             unique=True,
-            sqlite_where=text("event_id IS NULL"),
             postgresql_where=text("event_id IS NULL"),
         ),
         Index(
@@ -114,7 +113,6 @@ class WaiverConfirmation(Base, TimestampMixin):
             "event_id",
             "waiver_text_id",
             unique=True,
-            sqlite_where=text("series_id IS NULL"),
             postgresql_where=text("series_id IS NULL"),
         ),
     )

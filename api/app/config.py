@@ -1,6 +1,7 @@
 import os
 from enum import StrEnum
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Docker Secrets and Kubernetes mount secret files here, one file per
@@ -36,11 +37,19 @@ class Settings(BaseSettings):
         env_file=".env", env_prefix="SBL_", extra="ignore", secrets_dir=_SECRETS_DIR
     )
 
-    # SQLite — a file next to the code, no server to start first. For the data volumes of a
-    # league this is more than sufficient; Postgres remains the goal once it goes into
-    # production. Therefore Postgres-specific types (JSONB, ARRAY) stay out of the model,
-    # and Alembic runs in batch mode for SQLite.
-    database_url: str = "sqlite+aiosqlite:///./sbl.db"
+    # Postgres, everywhere: the default is compose.dev.yml's development server. A URL a
+    # host hands out (`postgres://…`, `postgresql://…` — Render's) is taken as it comes and
+    # given the async driver (`_async_driver` below).
+    database_url: str = "postgresql+asyncpg://sbl:sbl@localhost:5432/sbl"
+
+    @field_validator("database_url")
+    @classmethod
+    def _async_driver(cls, url: str) -> str:
+        for plain in ("postgres://", "postgresql://"):
+            if url.startswith(plain):
+                return "postgresql+asyncpg://" + url.removeprefix(plain)
+        return url
+
     cors_origins: list[str] = ["http://localhost:5173"]
     debug: bool = True
 

@@ -1,11 +1,10 @@
 """Common test setup.
 
-Each test run gets a fresh database (SQLite, or Postgres with `SBL_TEST_DATABASE_URL`)
-with the complete seed: the real 2026 season of every league. What needs squads, crews or
-a live act asks for the practice season (`season`, `season_2`) — three acts, one final,
-one live, one planned. Story tests check against realistic data volumes — 18 teams and
-48 races per matchday — rather than hand-crafted minimal cases where scoring errors would
-go unnoticed.
+Each test run gets a fresh Postgres database with the complete seed: the real 2026 season
+of every league. What needs squads, crews or a live act asks for the practice season
+(`season`, `season_2`) — three acts, one final, one live, one planned. Story tests check
+against realistic data volumes — 18 teams and 48 races per matchday — rather than
+hand-crafted minimal cases where scoring errors would go unnoticed.
 """
 
 import asyncio
@@ -18,44 +17,44 @@ import pytest
 
 # Must come at the very top, not in a fixture: app.config builds its settings on
 # import, and the engine depends on it. Once any test module imports app.config,
-# the database URL is fixed. By default the suite runs on SQLite, so it works without a
-# running server; production is Postgres, and SQLite accepts schema and queries Postgres
-# refuses (docs/gotchas). `SBL_TEST_DATABASE_URL` names a Postgres server
-# (compose.dev.yml: postgresql+asyncpg://sbl:sbl@localhost:5432/sbl) — each worker then
-# gets a fresh database of its own there, dropped and created at the start of the run.
+# the database URL is fixed. The suite runs on a Postgres server — compose.dev.yml's
+# unless `SBL_TEST_DATABASE_URL` names another — and each xdist worker gets fresh
+# databases of its own there, dropped and created at the start of the run.
 _TEST_DB_DIR = Path(tempfile.mkdtemp(prefix="sbl-tests-"))
+_SERVER_URL = os.environ.get(
+    "SBL_TEST_DATABASE_URL", "postgresql+asyncpg://sbl:sbl@localhost:5432/sbl"
+)
+_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "main")
 
 
-def _fresh_postgres_database(server_url: str) -> str:
-    """A newly created database for this worker on the server `server_url` names (whose
-    own database is only used to issue CREATE DATABASE), as a URL."""
+async def _fresh_database(name: str) -> str:
+    """The database `name` on the test server, dropped and created empty, as a URL. The
+    server's own database is only used to issue the CREATE DATABASE."""
     import asyncpg
     from sqlalchemy.engine import make_url
 
-    server = make_url(server_url)
-    name = f"sbl_test_{os.environ.get('PYTEST_XDIST_WORKER', 'main')}"
-
-    async def recreate() -> None:
-        dsn = server.set(drivername="postgresql").render_as_string(hide_password=False)
+    server = make_url(_SERVER_URL)
+    dsn = server.set(drivername="postgresql").render_as_string(hide_password=False)
+    try:
         connection = await asyncpg.connect(dsn)
-        try:
-            # WITH (FORCE): a run that crashed may have left a connection open.
-            await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
-            await connection.execute(f'CREATE DATABASE "{name}"')
-        finally:
-            await connection.close()
-
-    asyncio.run(recreate())
+    except OSError as error:
+        raise RuntimeError(
+            f"No Postgres for the tests at {server.host}:{server.port} — start it with "
+            "`docker compose -f compose.dev.yml up -d db` (or set SBL_TEST_DATABASE_URL)."
+        ) from error
+    try:
+        # WITH (FORCE): a run that crashed may have left a connection open.
+        await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        await connection.execute(f'CREATE DATABASE "{name}"')
+    finally:
+        await connection.close()
     return server.set(database=name).render_as_string(hide_password=False)
 
 
-if _postgres := os.environ.get("SBL_TEST_DATABASE_URL"):
-    os.environ["SBL_DATABASE_URL"] = _fresh_postgres_database(_postgres)
-else:
-    os.environ["SBL_DATABASE_URL"] = f"sqlite+aiosqlite:///{_TEST_DB_DIR / 'test.db'}"
+os.environ["SBL_DATABASE_URL"] = asyncio.run(_fresh_database(f"sbl_test_{_WORKER}"))
 os.environ.setdefault("SBL_JWT_SECRET", "testgeheimnis-nur-fuer-die-testsuite")
 # Uploads (sailor photos, Story S-2) also get their own throwaway directory — otherwise
-# a test run would leave files behind under the real api/uploads/, and SQLite's reused
+# a test run would leave files behind under the real api/uploads/, and a fresh database's
 # ids (see test_login_and_roles.py::make_user) could make one run's leftover photo look
 # like it belongs to an unrelated sailor in the next.
 # Assigned, not `setdefault`: pytest-xdist's workers inherit the environment of the
@@ -69,6 +68,13 @@ os.environ["SBL_RETENTION_PURGE_HOURS"] = "0"
 os.environ["SBL_SAP_BOATS"] = json.dumps(
     {c: f"sap-boat-{c.lower()}" for c in ("BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE")}
 )
+
+
+@pytest.fixture
+async def empty_database() -> str:
+    """A database of no tables, apart from the seeded one — for a test that builds its own
+    small world (an import into nothing, a send to SAP). Emptied again for each test."""
+    return await _fresh_database(f"sbl_test_{_WORKER}_empty")
 
 
 @pytest.fixture(scope="session")

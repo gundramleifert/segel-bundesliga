@@ -35,9 +35,7 @@ def do_run_migrations(connection: Connection) -> None:
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        # SQLite kann Spalten nicht in-place ändern; Batch-Modus schreibt die Tabelle um.
-        render_as_batch=connection.dialect.name == "sqlite",
-        # Damit der Batch-Modus die vorhandenen Constraints benennen kann.
+        # Fixed constraint names, so a later migration can name what it alters or drops.
         naming_convention=target_metadata.naming_convention,
     )
     with context.begin_transaction():
