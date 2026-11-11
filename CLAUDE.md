@@ -220,7 +220,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
   becomes a data migration. Read endpoints recalculate fresh anyway, so forgotten recalculation
   never shows wrong numbers.
 - **Series instead of League + Season.** A `Series` is a set of events scored together —
-  "1st Segel-Bundesliga 2026". The name carries the year; there is no separate season field.
+  "1st Segel-Bundesliga 2026". `Series.year` is what finds the current year and a
+  league's years; the name carries the year only for display.
   Terms: see `docs/concepts.md`.
 - **`Team` is the enrollment** — to a Series, to an Event, or to both.
   `event_id` empty means **registration for the Series** (Squad and public visibility depend on

@@ -33,7 +33,7 @@ NON_DISCARDABLE_CODES = frozenset({ResultCode.DNE})
 
 @dataclass(frozen=True)
 class ScoringConfig:
-    """Scoring parameters of a league. Comes from ``League.scoring``, not from code."""
+    """Scoring parameters of a series. Comes from ``Series.scoring``, not from code."""
 
     # After how many races sailed, each discard applies, in ascending order.
     # Empty = no discards (the normal case for a Bundesliga matchday).
