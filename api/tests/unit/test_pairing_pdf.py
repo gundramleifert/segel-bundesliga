@@ -25,8 +25,8 @@ COLORS = ["BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE"]
 def slots_for(teams: int, flights: int, boats: int = 6) -> list[PairingSlot]:
     """A valid draw without the optimizer: every team sails once per flight.
 
-    Deliberately not ``build_pairing`` — that one refuses a fleet the boats do not divide
-    evenly, and an uneven fleet is exactly one of the cases this file has to cover.
+    Shifted by one per flight; an uneven fleet — one of the cases this file covers —
+    leaves the last seats of a flight empty.
     """
     races_per_flight = -(-teams // boats)
     slots: list[PairingSlot] = []

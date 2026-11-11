@@ -1,8 +1,7 @@
 """Import of pairing lists from the Java tool ``PairingList``.
 
-This is the main path to a pairing list: the draw is created there, printed as PDF,
-and just needs to be imported here. The own generator in ``app.pairing.schedule``
-is the fallback for special cases.
+This is the only path to a pairing list: the draw is created there and just needs to be
+imported here (through the catalog, ``app.pairing.catalog``).
 
 Two input formats, both from the same run:
 

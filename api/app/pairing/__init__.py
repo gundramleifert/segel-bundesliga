@@ -8,7 +8,7 @@ from app.pairing.importer import (
     parse_schedule_config,
 )
 from app.pairing.logistics import LogisticsReport, logistics_report, to_flights
-from app.pairing.schedule import PairingSlot, build_pairing, pairing_report
+from app.pairing.schedule import PairingSlot, pairing_report
 
 __all__ = [
     "BoatSpec",
@@ -17,7 +17,6 @@ __all__ = [
     "PairingImportError",
     "PairingSlot",
     "ScheduleConfig",
-    "build_pairing",
     "load_pairing_csv",
     "load_pairing_yaml",
     "logistics_report",

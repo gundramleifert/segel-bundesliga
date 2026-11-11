@@ -35,8 +35,8 @@ class TestTheCatalog:
     def test_the_stored_list_needs_no_boat_changes(self):
         """This is why it is stored rather than recomputed.
 
-        The Python generator produces about 27 boat changes here; the stored run of the
-        Java tool needs none. That quality is exactly what must survive being reused.
+        A simple generator produces about 27 boat changes here (docs/findings.md § 2); the
+        stored run of the Java tool needs none. That quality must survive being reused.
         """
         report = quality(load_entry(18, 6, 16))
         assert report["boat_changes"] == 0
