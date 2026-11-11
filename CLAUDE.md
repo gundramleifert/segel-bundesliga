@@ -40,7 +40,6 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `api/app/imports/` | **Imports** from SAP Sailing (past DSBL matchdays, results) and Manage2Sail (entries, notice-board documents) — `uv run python -m app.imports --help`, Story A-14 |
 | `api/app/tracking/` | **Boats on the water** — geometry, polar, course, passings, ranking, the emulator; `settings.py` holds every tuned constant (`SBL_TRACKING_*`) |
 | `reference/` | Shallow clones of external repos for reference, not versioned |
-| `~/.claude/plans/iterative-jingling-willow.md` | The original overall plan — its Phase 5 (live, tracking) is superseded by `docs/PLAN_LIVE_IMPLEMENTATION.md` |
 
 Each reference repo has its own `CLAUDE.md` with details:
 `reference/PairingList` (user's pairing generator), `reference/sailing-analytics`
@@ -152,15 +151,14 @@ and the server warns on startup while it is on. **Never on in production or stag
 (decided 2026-10-28): the Compose stack fixes it off in `compose.yaml`; it is for `tilt up`
 and `scripts/dev-stack.sh` only.
 
-`app.seed_users` creates a **small cast on one club, one series, one event** — 44 accounts
-(decided 2026-10-17; it was 370). **The 2026 season is real** (decided 2026-10-27,
+`app.seed_users` creates a **small cast on one club, one series, one event** — 44 accounts. **The 2026 season is real** (decided 2026-10-27,
 `docs/PLAN_SEEDING.md`): the 1. and 2. Liga's 11 acts as sailed — clubs, pairing lists,
 results, dates — imported from TracTrac's recorded scoreboards
 (`app/seed_data/dsbl-2026/`, `app.imports tractrac`), and **the Junioren-Liga's** four acts
 (decided 2026-10-23) from SAP's recorded answer (`app/seed_junioren.py`,
 `app/seed_data/junioren-2026/`); `app.imports sap` refreshes them from SAP. No
 source names who sailed, so the real acts have no squads or crews. **The seed holds
-nothing invented** (the demo series went on 2026-11-06). **A test that needs a squad, a
+nothing invented**. **A test that needs a squad, a
 crew or a live act builds it — through a fixture** (decided 2026-11-08): the
 *practice season* (`app/practice.py`), a published series of a division's 18 real clubs
 in the league `practice`, ten new people per club as its squad, and three acts — final,
@@ -170,7 +168,7 @@ asks for `season` / `season_2` (`tests/conftest.py`, built once per run); Playwr
 `POST /api/dev/season` — dev login only, so never on a real site or staging. A test that
 changes the shared season puts it back. The people who sign in are concentrated:
 
-- **club** ASVW, a 2. Liga club (decided 2026-10-21; it was NRV): `board@asvw.example.com` (its `admin`,
+- **club** ASVW, a 2. Liga club: `board@asvw.example.com` (its `admin`,
   Gundram Leifert), `teams@` (its `manager`, the team manager, Gunnar Voigt),
   `treasurer@`, and every ASVW sailor — all members of it. A sailor needs an
   account to sign a waiver; a sailor of any other club has none, and the specs pick their
@@ -189,7 +187,7 @@ changes the shared season puts it back. The people who sign in are concentrated:
   `gast@sbl.example.com` with no relation.
 
 **Next year, to practise on** (`app.seed`, decided 2026-10-22): the 1. and 2.
-Segel-Bundesliga 2027 (the 2. since 2026-11-01, for the SAP send) and the
+Segel-Bundesliga 2027 and the
 Junioren-Segelliga 2027 are **drafts**, so the public site stays on 2026.
 Six weekends, with hosts (league office, 2026-11-01): Friedrichshafen (WYC with KYC,
 act 1, 16–18 April), Überlingen (BYCÜ with SMCÜ, 2), Berlin (BYCB, 3), Kiel/Strande (KYC,
@@ -217,7 +215,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Points are derived, not entered.** The source of truth is raw data in
   `RaceEntry` (`code`, `finish_position`, `redress_points`). From that,
   `app/services/standings.py::recompute_event` writes `points`/`is_discarded` fields and
-  `EventStanding` and `SeasonStanding` records. Stored for queries, sorting and export — **never
+  `EventStanding` and `SeriesStanding` records. Stored for queries, sorting and export — **never
   set by hand**. A protest decision changes one row of raw data, then recalculate; it never
   becomes a data migration. Read endpoints recalculate fresh anyway, so forgotten recalculation
   never shows wrong numbers.
@@ -286,7 +284,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **The Event defines the configuration.** `Event.team_count`, `boat_count` and `flight_count`
   determine everything else: `races_per_flight = ceil(team_count / boat_count)`. No magic constants
   in code.
-- **Scoring rules belong to the League** (`League.scoring` as JSON), not in code.
+- **Scoring rules belong to the Series** (`Series.scoring` as JSON), not in code.
   Women's and youth leagues score differently, and rules change between years.
 - **External systems are matched via `ExternalId`, never by name comparison.** Club
   and team names are spelled differently in SAP Sailing, manage2sail, and here
@@ -597,7 +595,6 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Link a parent to a person as guardian | the manager or admin of a club the person is a member of; site `admin` |
 | Confirm a waiver for a person | the person; `admin`; the manager of a club they are a member of; their linked `guardian` while they are a minor |
 | Write news and press releases, keep pictures | `editor` of the site (all); of a series or an event (that regatta's) |
-| Register Squad for Series | `admin`, `team_manager` (own club only) |
 | **Create** Event | additionally the `manager` of the series (its acts, naming any host) or of the host club (outside a series only) |
 | File an expense claim | `race_officer`/`jury`/`manager`/`helper` held directly on the event (or the first three on its series); `member` of the club |
 | Decide and pay a claim | the event's direct `manager`, `treasurer` of event or club (and their admins); never the claimant |
@@ -629,10 +626,9 @@ story ID in the docstring. New features are added to stories first, then tested.
   **The suite is parallel, with one stack per worker.** `dev-stack.sh` runs N backends
   over N SQLite files and N web servers; `e2e/fixtures.ts` points each worker at its own
   via `parallelIndex` (**not** `workerIndex`, which keeps climbing as workers are
-  replaced). The shared database was what forced a single worker: `lifecycle.spec.ts`
-  writes, and a second worker read lists while the first changed them. It also runs
-  against a **built** bundle rather than the dev server — the suite is dominated by page
-  loads, and a build costs two seconds. Together: 3.7 minutes down to 34 seconds.
+  replaced) — `lifecycle.spec.ts` writes, so workers must not share a database. It runs
+  against a **built** bundle rather than the dev server: the suite is dominated by page
+  loads, and a build costs two seconds.
   Two projects: `chromium` and `mobile` (Pixel 7) — the site is read mostly on mobile.
   `e2e/lifecycle.spec.ts` signs in through `/api/dev/login`, so the backend needs
   `SBL_DEV_LOGIN=true`; it also **writes** (clubs, series, events), so point it at a
@@ -673,9 +669,8 @@ story ID in the docstring. New features are added to stories first, then tested.
   **Evidence mode** — `EVIDENCE=1 playwright test` (`pnpm e2e:evidence`) records a video,
   a final screenshot and a full trace of every test, and writes an HTML report to
   `e2e-evidence/report/` (`pnpm e2e:evidence:show`): what each story's test actually
-  showed. Off by default — it about doubles the run and writes ~450 MB. It is also a
-  slower run, and that is useful in itself: it is what exposed a duplicate `h1` a fast
-  run never saw (docs/gotchas).
+  showed. Off by default — it about doubles the run and writes ~450 MB. Being slower, it
+  also catches render races a fast run misses (docs/gotchas).
 
   **One report over both suites: Allure** — `scripts/allure-report.sh` (`--no-e2e` for the
   backend alone) runs pytest with `--alluredir`, the browser suite in evidence mode, and
@@ -683,8 +678,7 @@ story ID in the docstring. New features are added to stories first, then tested.
   Allure decorator: `api/tests/conftest.py` reads the story IDs from the docstrings,
   `e2e/fixtures.ts` from the `describeStory` titles, both take titles, roles and phases
   from `docs/stories.json`. A journey's `step()`s are Allure steps; videos, screenshots
-  and traces are attached. Chosen over ReportPortal (a server of ~11 containers) and the
-  test-management SaaS tools (a second home for the stories) on 2026-10-04.
+  and traces are attached.
 
   **`docs/traceability.md`** is the static half: every story with the tests its `Tests:`
   line names, the browser groups tagged with it and the journeys that walk it — including
@@ -710,17 +704,20 @@ never SAP's hosted server, never an imitation — and are skipped when it is not
 
 ## From issue to merge
 
-Work is tracked as **GitHub issues** on `gundramleifert/segel-bundesliga` and reaches
-`main` only through a pull request. **`/issue`** (`.claude/skills/issue/`) walks every step
-below — `start <N>`, `pr`, `merge` (only on the user's word), `handover`, `accepted` /
-`rejected`, plus `new` and `status`. One issue, one branch, one PR — never commit to
-`main` directly. The tool is the `gh` CLI (`gh auth login` once; in the sandbox it needs
+Work is tracked as **GitHub issues** on `gundramleifert/segel-bundesliga`. **Committing
+directly to `main` is allowed** (the user's decision): a branch and a pull request are for
+work someone should read before it lands, not a gate on every change. The steps below are
+that branch-and-PR path; **`/issue`** (`.claude/skills/issue/`) walks it — `start <N>`,
+`pr`, `merge` (only on the user's word), `handover`, `accepted` / `rejected`, plus `new`
+and `status`. The tool is the `gh` CLI (`gh auth login` once; in the sandbox it needs
 `api.github.com` and `github.com`).
 
 **An issue is done when its stakeholder accepts it on staging, not when its PR merges.**
 Many issues come from stakeholders, and they judge a change by using it, not by reading a
-diff — and the place they can use it is **staging**, which runs `main` (decided
-2026-10-28: the Render instance is gone; staging is to be a second Compose stack (`docs/deploy-server.md`) — and, like production, **without the dev login**, which `compose.yaml` fixes off (decided 2026-10-28); until it runs, a change is shown on a local stack). So the
+diff — and the place they can use it is **staging**. Today that is still the Render
+instance (`render.yaml`, free tier, SQLite baked into the image, **with** the dev login);
+it is to be replaced by a second Compose stack (`docs/deploy-server.md`) which, like
+production, runs **without the dev login** (`compose.yaml` fixes it off). So the
 PR **refers** to the issue and never closes it, and between merge and close the issue
 carries the label **`in-stakeholder-review`**. While nothing is in production, `main` is
 allowed to hold changes not yet accepted; that changes when there is a production.
@@ -909,11 +906,10 @@ the other template, for a caller that knows the reader's language.
 concept in `docs/concepts.md`): error responses are `application/problem+json`. A router
 raises `Problem(status, code, title, **extra)`; the stable `type` (`/errors/<code>`) is the
 contract, and the frontend maps `<code>` to the `errors` i18n namespace. Typed errors carry
-**no** sentence of their own. Plain `HTTPException` / validation errors are also rendered as
-problem+json (generic type, `detail` preserved). `app/routers/waivers.py` is the worked
-example; other routers migrate incrementally.
+**no** sentence of their own. Routers raise only `Problem`, never a bare `HTTPException`;
+validation errors are rendered as problem+json too (generic type, `detail` preserved).
 
-**Domain terms** are now consistently translated throughout the codebase (code, docs, comments):
+**Domain terms** — the German word and the English one used in code, docs and comments:
 Wettfahrt → Race, Flight → Flight (unchanged), Spieltag → Matchday, Wettfahrtleitung → Race
 committee, Serie → Series, Verein → Club, Segler → Sailor, Mannschaft → Team, Kader → Squad,
 Aufstellung → Lineup, Liga → League, Jahrgang → Year, Boot → Boat, Pairing-Liste → Pairing
