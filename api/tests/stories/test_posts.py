@@ -293,7 +293,7 @@ class TestWritePosts:
         assert refused.status_code == 422
         assert refused.json()["type"].endswith("/media-invalid-type")
 
-        assert (await client.get("/api/media/..%2Fsbl.db")).status_code == 404
+        assert (await client.get("/api/media/..%2Fpyproject.toml")).status_code == 404
 
     async def test_the_title_is_a_field_never_the_texts_first_line(self, client, caplog):
         """R-1: a text that starts with the title again is refused — nothing is cut away."""

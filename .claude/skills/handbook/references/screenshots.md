@@ -13,7 +13,7 @@ One spec, `e2e/handbook-shots.spec.ts`, kept out of the normal run (`test.skip` 
 `HANDBOOK_SHOTS=1`) so `playwright test` stays fast. It reuses what the suite has:
 
 - **The stack**: `scripts/dev-stack.sh --workers 1` — seeded throwaway database,
-  `SBL_DEV_LOGIN=true`. Never `api/sbl.db`.
+  `SBL_DEV_LOGIN=true`. Never the development database.
 - **The role**: `signIn(page, email)` from `e2e/session.ts`, with the seeded accounts
   (CLAUDE.md § Testing different roles): a club's `manager`, `regatta@` (race officer),
   `orga@` (manager), `jury@`, `helfer@`, `admin@`, `redaktion@`, one sailor account,

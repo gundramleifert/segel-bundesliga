@@ -333,10 +333,8 @@ password. Open: the league office asks Manage2Sail whether they offer OAuth/OIDC
 
 ## 5. Environment
 
-- **No Docker, no Postgres** installed in this WSL2 environment. Development therefore runs
-  on **SQLite** (`sqlite+aiosqlite:///./sbl.db`); the production target remains Postgres.
-  Therefore the data model contains no PG-specific types (no JSONB, no ARRAY).
-- Add Postgres: `sudo apt install -y postgresql`, then `sudo service postgresql start`
+- **Postgres everywhere** (since 2026-11-11): development and both test suites run on
+  `compose.dev.yml`'s Postgres; Docker Engine in WSL2 via `scripts/install-docker-wsl.sh`.
   (required after each restart in WSL without systemd).
 - `uv` requires `UV_CACHE_DIR` in a scratch area — `~/.cache` is read-only in this session.
 

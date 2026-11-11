@@ -5,7 +5,8 @@
 # the step before `pnpm exec playwright test`. It exists because getting it right by hand
 # takes several commands and a few environment variables that are easy to forget — and
 # because `e2e/lifecycle.spec.ts` *writes* (clubs, series, events), so pointing it at
-# `api/sbl.db` would quietly fill your development database with "E2E Draft Cup 1789…".
+# the development database would quietly fill it with "E2E Draft Cup 1789…". Its databases
+# are `sbl_e2e_<i>` on compose.dev.yml's Postgres (`SBL_E2E_SERVER_URL` names another).
 #
 #   scripts/dev-stack.sh                # one stack, built bundle — what the suite wants
 #   scripts/dev-stack.sh --workers 4    # four isolated stacks, for a parallel run
@@ -63,25 +64,45 @@ export SBL_DEV_LOGIN=true
 # without verification at all, it is not the weak link. Set SBL_JWT_SECRET to override.
 export SBL_JWT_SECRET="${SBL_JWT_SECRET:-dev-stack-throwaway-not-a-secret}"
 export UV_CACHE_DIR="${UV_CACHE_DIR:-${TMPDIR:-/tmp}/uv-cache}"
+SERVER="${SBL_E2E_SERVER_URL:-postgresql+asyncpg://sbl:sbl@localhost:5432/sbl}"
+url_of() { echo "${SERVER%/*}/sbl_e2e_$1"; }
+
+# Drops and creates databases on $SERVER: `fresh <name>` empty, `copy <name> <template>`
+# as a copy of a seeded one — CREATE DATABASE … TEMPLATE, milliseconds instead of a seed.
+db_admin() {
+  (cd "$ROOT/api" && uv run python - "$SERVER" "$@" <<'PY'
+import asyncio, sys
+import asyncpg
+from sqlalchemy.engine import make_url
+
+server, verb, name, *rest = sys.argv[1:]
+async def main():
+    dsn = make_url(server).set(drivername="postgresql").render_as_string(hide_password=False)
+    connection = await asyncpg.connect(dsn)
+    try:
+        await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        template = f' TEMPLATE "{rest[0]}"' if verb == "copy" else ""
+        await connection.execute(f'CREATE DATABASE "{name}"{template}')
+    finally:
+        await connection.close()
+asyncio.run(main())
+PY
+  )
+}
 
 if [[ "$RESEED" == 1 ]]; then
-  echo "seeding api/e2e.db (fresh) …"
-  (cd "$ROOT/api" && SBL_DATABASE_URL="sqlite+aiosqlite:///./e2e.db" \
-     uv run python -m app.seed_test_setup --reset > "$LOGS/seed.log" 2>&1) \
+  echo "seeding sbl_e2e_0 (fresh) …"
+  db_admin fresh sbl_e2e_0 > "$LOGS/seed.log" 2>&1 \
+    || { echo "no Postgres at $SERVER? (docker compose -f compose.dev.yml up -d db) — see $LOGS/seed.log"; exit 1; }
+  (cd "$ROOT/api" && SBL_DATABASE_URL="$(url_of 0)" \
+     uv run python -m app.seed_test_setup > "$LOGS/seed.log" 2>&1) \
     || { echo "seeding failed — see $LOGS/seed.log"; exit 1; }
   # Seeded once and copied, rather than seeded N times: the seed takes about ten seconds
-  # and produces the same rows every time, so copying the file is the same result in
-  # milliseconds.
-  #
-  # The database runs in WAL mode (app/db.py, Story L-1), so the freshly seeded rows may
-  # still sit in `e2e.db-wal` rather than in `e2e.db` — a copy of the main file alone is a
-  # database with the schema of an earlier checkpoint and none of the seed, and the workers
-  # that got one failed every sign-in with a 500 while worker 0 was fine
-  # (docs/gotchas). Checkpoint first, and clear a stale side file of the target.
-  (cd "$ROOT/api" && uv run python -c "import sqlite3; c = sqlite3.connect('e2e.db'); c.execute('PRAGMA wal_checkpoint(TRUNCATE)'); c.close()")
+  # and produces the same rows every time. A template must have no open connection, and
+  # the seed's are closed by now.
   for ((i = 1; i < WORKERS; i++)); do
-    rm -f "$ROOT/api/e2e-$i.db-wal" "$ROOT/api/e2e-$i.db-shm"
-    cp "$ROOT/api/e2e.db" "$ROOT/api/e2e-$i.db"
+    db_admin copy "sbl_e2e_$i" sbl_e2e_0 >> "$LOGS/seed.log" 2>&1 \
+      || { echo "copying the seed failed — see $LOGS/seed.log"; exit 1; }
   done
 fi
 
@@ -99,14 +120,14 @@ pids=()
 for ((i = 0; i < WORKERS; i++)); do
   api_port=$((8000 + i))
   web_port=$((5173 + i))
-  db=$([[ $i == 0 ]] && echo "e2e.db" || echo "e2e-$i.db")
+  db="sbl_e2e_$i"
 
   # `exec`, so the PID kept below is the server's own and the EXIT trap reaches it. Without
   # it the trap killed the subshell and left `uv` and its uvicorn running, holding the
   # port; the next run's servers then failed to bind, the readiness check below was
   # answered by the *old* ones, and the suite ran against a database this run had just
   # replaced underneath them (docs/gotchas).
-  (cd "$ROOT/api" && SBL_DATABASE_URL="sqlite+aiosqlite:///./$db" \
+  (cd "$ROOT/api" && SBL_DATABASE_URL="$(url_of "$i")" \
      exec uv run uvicorn app.main:app --port "$api_port" --host 127.0.0.1 \
      > "$LOGS/api-$i.log" 2>&1) &
   pids+=($!)

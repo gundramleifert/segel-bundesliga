@@ -52,14 +52,11 @@ Acceptance criteria:
   time, so a retried batch is idempotent. A wrong or expired token is refused.
 - A spectator gets positions for a published event only; a draft event **and a published
   event in a draft series** answer 404 — the public router's predicate, reused (B-5).
-- **Where fixes live is decided in this story, not deferred.** The free test instance bakes
-  its SQLite file into the image and resets on every sleep and redeploy, so fixes written
-  there are gone before a replay (L-3) is watched; SQLite's default journal mode takes an
-  exclusive lock per ingest commit and would block the committee's result PUT. So: WAL and a
-  busy timeout in `app/db.py`; for a deployment meant to keep a matchday, a persistent disk
-  or Postgres plus an export of the day (`GET /api/races/{id}/track`), so a day never lives
-  only in a container's filesystem. On the test instance fixes are **ephemeral by design**
-  and the page says so.
+- **Where fixes live is decided in this story, not deferred.** In Postgres, like
+  everything else (the one database since 2026-11-11), so an ingest commit never blocks the
+  committee's result PUT; and an export of the day (`GET /api/races/{id}/track`), so a day
+  never lives only in one database. The free test instance resets its database on every
+  sleep and redeploy, so there fixes are **ephemeral by design** and the page says so.
 
 What's done: `Tracker`/`Fix`, `POST /api/track/fixes` (token-gated, idempotent), WAL and a
 busy timeout in `app/db.py`, `positions` frames inline on the stream, `GET

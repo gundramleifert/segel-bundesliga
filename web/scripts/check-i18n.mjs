@@ -13,7 +13,8 @@ const BRANCHING = new Set([5, 6]); // select, plural
 
 const root = new URL("../src/i18n/locales/", import.meta.url).pathname;
 const source = "en";
-const languages = readdirSync(root);
+// Hidden entries are not languages — a tool may leave a dot-folder here (.claude/).
+const languages = readdirSync(root).filter((name) => !name.startsWith("."));
 const errors = [];
 
 function flatten(obj, prefix = "", out = new Map()) {

@@ -114,7 +114,7 @@ Enter results for it in the admin console, then read them back with the import b
    cd api && uv run python -m app.imports sap --base-url http://127.0.0.1:8888/sailingserver/api --list
    ```
 
-3. Import it into `api/sbl.db` (as a draft unless `--publish`):
+3. Import it into the development database (as a draft unless `--publish`):
 
    ```bash
    uv run python -m app.imports sap --base-url http://127.0.0.1:8888/sailingserver/api --regatta "2. Segel-Bundesliga 2027 - Warnemünde (1)"

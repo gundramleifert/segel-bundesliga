@@ -8,10 +8,16 @@
 #
 # Notes:
 #   * Free web services sleep after 15 min idle; the first request then takes ~1 min.
-#   * The database is baked into the image (SQLite). A restart or redeploy resets it to
-#     the seeded state. That is intentional here — no backup, no external DB.
+#   * The database is the Postgres `sbl-db` below. Every start of the API resets it to the
+#     seeded state (api/Dockerfile) — intentional here, no backup. Its "Internal Database
+#     URL" goes to sbl-api as the Secret File `SBL_DATABASE_URL`, like the other secrets.
+#     A free Render Postgres is deleted 30 days after it was created: make a new one then.
 #   * SBL_DEV_LOGIN=true lets anyone sign in as any role without verification. Fine for a
 #     private test URL; never do this for anything real. See docs/deploy.md.
+
+databases:
+  - name: sbl-db
+    plan: free
 
 services:
   - type: web

@@ -9,7 +9,7 @@ import * as allure from "allure-js-commons";
  * `lifecycle.spec.ts` writes to it: run two at once and a test reads a list while another
  * is changing it. Ordering those writes is not possible and not the point — the fix is to
  * stop sharing the data. `scripts/dev-stack.sh --workers N` runs N stacks, each with its
- * own SQLite file, and this hands worker *i* the *i*-th of them.
+ * own Postgres database (`sbl_e2e_<i>`), and this hands worker *i* the *i*-th of them.
  *
  * `baseURL` is an option fixture, which is why this works at all: a worker cannot change
  * `use.baseURL` in the config, but it can override the fixture that provides it, and every

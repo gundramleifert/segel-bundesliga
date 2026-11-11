@@ -25,9 +25,9 @@ export default defineConfig({
   // Parallel, with **one stack per worker**. The shared data was the problem — every spec
   // talked to one database and `lifecycle.spec.ts` writes to it, so a second worker read
   // lists while the first changed them. `scripts/dev-stack.sh --workers 4` runs four
-  // backends over four SQLite files and four web servers, and `e2e/fixtures.ts` points
-  // each worker at its own. Postgres would not have made a single shared database safe
-  // either: it is the data, not the engine.
+  // backends over four Postgres databases and four web servers, and `e2e/fixtures.ts`
+  // points each worker at its own. One shared database would not be safe on any engine:
+  // it is the data, not the engine.
   //
   // Start fewer stacks than this and the extra workers have no server to talk to, so the
   // number here and the one passed to `dev-stack.sh` belong together.

@@ -1,8 +1,6 @@
 # Copy to api/.env and adjust.
 
-# Database. The default in app/config.py is SQLite — sqlite+aiosqlite:///./sbl.db, which
-# needs no server and is what development uses today. This line is what a Postgres
-# deployment uses instead; Postgres stays the eventual production target.
+# Database — Postgres. This is also the default in app/config.py: compose.dev.yml's server.
 SBL_DATABASE_URL=postgresql+asyncpg://sbl:sbl@localhost:5432/sbl
 
 # Uploads (app/storage.py): "local" keeps them under SBL_UPLOADS_DIR, "s3" in a bucket of

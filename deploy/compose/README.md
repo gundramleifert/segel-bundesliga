@@ -139,6 +139,5 @@ Or keep the volumes and reseed the database only:
 
 ## Postgres
 
-This is the first setup that runs the site on Postgres; development and the test suite use
-SQLite. What it took is in
-`docs/gotchas/sqlite-accepts-schema-and-queries-postgres-refuses-so-the-suite-being-green-says.md`.
+The site runs on Postgres everywhere — here, in development (`compose.dev.yml`, the same
+`postgres:17.6-alpine`) and in the test suites — since 2026-11-11.

@@ -42,7 +42,8 @@ step "claude files"    bash -c '! git ls-files -co --exclude-standard .claude | 
 step "sops"            scripts/check-sops.py
 step "ruff"            bash -c 'cd api && uv run ruff check .'
 # One process per core (pytest-xdist): each worker imports conftest.py and so gets a
-# database and an uploads directory of its own. ~40 s instead of ~90 s.
+# database and an uploads directory of its own — on compose.dev.yml's Postgres, which must
+# be running (`docker compose -f compose.dev.yml up -d db`; SBL_TEST_DATABASE_URL for another).
 [[ "${1:-}" == "--fast" ]] || step "pytest" bash -c 'cd api && uv run pytest -q -n auto'
 step "web typecheck"   bash -c 'cd web && pnpm typecheck'
 step "web unit"        bash -c 'cd web && pnpm test'

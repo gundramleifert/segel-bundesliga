@@ -303,7 +303,7 @@ class TestLibrary:
         assert (await client.get("/api/admin/media", headers=manager)).status_code == 403
         made = await client.post("/api/admin/import-keys", headers=manager, json={"label": "Mine"})
         assert made.status_code == 403
-        assert (await client.get("/api/media/..%2Fsbl.db")).status_code == 404
+        assert (await client.get("/api/media/..%2Fpyproject.toml")).status_code == 404
         assert (await client.get("/api/media/0123.jpg")).status_code == 404
 
     async def test_the_same_bytes_arriving_at_once_are_one_entry(self, client, caplog):

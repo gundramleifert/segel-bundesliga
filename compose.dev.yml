@@ -7,10 +7,9 @@
 #   docker compose -f compose.dev.yml down       # stop, keep the data
 #   docker compose -f compose.dev.yml down -v    # stop and throw the data away
 #
-# Then point the API at them (each block on its own; leave one out to keep SQLite, the
-# local uploads directory, or mails written to the log):
-#
-#   export SBL_DATABASE_URL=postgresql+asyncpg://sbl:sbl@localhost:5432/sbl
+# The API's default database is this Postgres already (app/config.py). To use the other
+# two, export (each block on its own; leave one out to keep the local uploads directory,
+# or mails written to the log):
 #
 #   export SBL_STORAGE=s3 SBL_S3_ENDPOINT_URL=http://localhost:8333 SBL_S3_BUCKET=sbl-uploads \
 #          SBL_S3_ACCESS_KEY_ID=sbl-dev SBL_S3_SECRET_ACCESS_KEY=sbl-dev-secret

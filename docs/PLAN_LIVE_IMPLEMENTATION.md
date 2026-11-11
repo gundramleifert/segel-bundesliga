@@ -173,17 +173,12 @@ Numbered so stories can cite them.
 | `Tracker` | `event_id`, `boat_id` **or** `mark_role`, `device_token`, `active_from`, `active_to` | device→boat mapping; token issued from the RC screen |
 | `Fix` | `tracker_id`, `t`, `lat`, `lon`, `sog`, `cog` | ~170k rows per matchday; unique `(tracker_id, t)` makes ingest idempotent |
 
-**Where fixes live is a decision phase A has to take, not defer.** The test deployment
-baked its SQLite file into the image and **reset it on every sleep and redeploy**
-(the former Render instance) — fixes written there are gone before the replay is
-watched. And SQLite's default `journal_mode=DELETE` takes an exclusive lock per ingest
-commit, which would block the RC's result PUT and every spectator GET. So, in phase A:
-`PRAGMA journal_mode=WAL` + `busy_timeout` in `app/db.py` for development; for any
-deployment that is meant to keep a matchday, either a persistent disk or Postgres, and an
-export-after-the-day (`GET /api/races/{id}/track` → file) so a day is never only in a
-container filesystem. On the free test instance fixes are **ephemeral by design**, and the
-page says so. Retention beyond that is a later decision. Postgres-specific types stay out
-(`CLAUDE.md`). One initial migration, regenerated, as always.
+**Where fixes live: in Postgres**, the site's one database since 2026-11-11 — an ingest
+commit does not block the RC's result PUT or a spectator GET — plus an export-after-the-day
+(`GET /api/races/{id}/track` → file), so a day is never only in one database. The free test
+instance resets its database on every sleep and redeploy: there fixes are **ephemeral by
+design**, and the page says so. Retention beyond that is a later decision. One initial
+migration, regenerated, as always.
 
 ---
 
@@ -436,7 +431,7 @@ parser as reference; wind estimation.
 | J/70 polar | ✅ ORC data in `api/app/tracking/polars/j70.csv` | `fit_polar` from own tracks later, for the league's real boats |
 | SAP branding clause on a self-hosted instance | verified present in both repos' API docs | irrelevant to a port; only matters if SAP ever becomes a runtime source |
 | SAP bus factor 1 | verified | reason not to self-host; no effect on the port or the oracle |
-| Fixes on the test deployment vanish on sleep/redeploy; SQLite exclusive locks on ingest | verified (former Render instance, `app/db.py` has no pragmas) | phase A storage decision, §4 |
+| Fixes on the test deployment vanish on sleep/redeploy | verified (Render instance, reseeded on start) | phase A storage decision, §4: Postgres |
 | Race status is advisory today (no guard in the PUT, never read by scoring); recall un-freezes the event | verified (`admin.py`, `standings.py`, `event_readiness.py`) | WL-3's `race_state.py`, §7 |
 | `compute_event` runs on every GET | verified | fine for a league day's size; measure before caching |
 | Single uvicorn process | verified | `live.py` states the cost like `jobs.py`; LISTEN/NOTIFY when it changes |

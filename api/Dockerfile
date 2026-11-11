@@ -1,9 +1,10 @@
 # Backend image for a throwaway test deployment (Render, Fly.io, Koyeb, a plain VPS…).
 #
-# It bakes a freshly seeded SQLite database into the image: every container start begins
-# from the same known state, and there is no external database to run. Writes during a
-# session survive until the container restarts, then reset. That is exactly what a test
-# deployment wants — see docs/deploy.md.
+# Every container start resets its Postgres to the seed: the same known state each time.
+# Writes during a session survive until the container restarts, then reset — what a test
+# deployment wants. The database's URL is the host's to give, as the Render Secret File
+# `SBL_DATABASE_URL` (/etc/secrets/, app/config.py) — Render's own `postgresql://…` as it
+# is; app/config.py adds the async driver.
 
 # ----------------------------------------------------------------- the pairing tool
 # The printable pairing list is rendered by the Java tool (Story B-3, app/pairing/pdf.py),
@@ -43,7 +44,7 @@ COPY --from=pairing \
 ENV SBL_PAIRING_JAR=/opt/pairing-list.jar
 
 # uv, for installing the locked dependencies.
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.7 /uv /uvx /bin/
 
 WORKDIR /app
 ENV UV_LINK_MODE=copy \
@@ -64,20 +65,12 @@ ENV PATH="/app/.venv/bin:$PATH"
 # priority over this file if a host ever sets the same var as an actual env var.
 RUN cp render.env .env
 
-# Seed the database at build time — the press pictures included, downloaded from SmugMug
-# here (app/seed_media.py; one that cannot be fetched is left out). The secret here is only
-# used by the seed script to mint the sample tokens it prints; it is NOT the runtime
-# signing secret (set that as a real environment variable — SBL_JWT_SECRET — on the host).
-ARG SEED_JWT_SECRET=build-time-seed-only
-# The 2026 season as sailed (1. and 2. Liga, Junioren-Liga) is in the seed itself.
-# `publish_preview` publishes the 1. Liga 2027 — the preview of branch `vorschau`.
-RUN SBL_JWT_SECRET="$SEED_JWT_SECRET" \
-    SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db" \
-    sh -c 'python -m app.seed_test_setup --reset \
-      && python -c "import asyncio; from app.seed import publish_preview; asyncio.run(publish_preview())"'
-
-ENV SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db"
 EXPOSE 8000
 
-# Hosts inject $PORT; default to 8000 when run directly.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# On start: reset the database to the seed — the 2026 season as sailed, and the press
+# pictures, downloaded from SmugMug (app/seed_media.py; one that cannot be fetched is left
+# out) — then `publish_preview` publishes the 1. Liga 2027, the preview of branch
+# `vorschau`. Hosts inject $PORT; default to 8000 when run directly.
+CMD ["sh", "-c", "python -m app.seed_test_setup --reset \
+  && python -c 'import asyncio; from app.seed import publish_preview; asyncio.run(publish_preview())' \
+  && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

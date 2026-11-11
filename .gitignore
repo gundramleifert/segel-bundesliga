@@ -24,8 +24,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# The development database (SQLite) plus WAL files — regenerate any time with
-# `uv run python -m app.seed_test_setup --reset`.
+# A SQLite file left from before the move to Postgres (2026-11-11).
 *.db
 *.db-shm
 *.db-wal

@@ -81,7 +81,9 @@ uv run uvicorn app.main:app --reload
 ```
 
 The API runs on `http://localhost:8000`; the OpenAPI/Swagger UI is at
-`http://localhost:8000/docs`. The database is SQLite (`api/sbl.db`) — no server to start.
+`http://localhost:8000/docs`. The database is Postgres — start it first with
+`docker compose -f compose.dev.yml up -d` (or simply `tilt up`; `scripts/install-docker-wsl.sh`
+installs Docker in WSL).
 `app.seed_test_setup --reset` drops all tables and migration state first, for a clean rebuild.
 
 ### Frontend

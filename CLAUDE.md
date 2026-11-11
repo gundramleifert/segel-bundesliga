@@ -59,9 +59,9 @@ uv run pytest -n auto                    # one worker per core; plain `pytest` f
 
 Or **`tilt up`** at the repo root (`Tiltfile`): backend with `SBL_DEV_LOGIN=true` and
 frontend in one dashboard, the API client regenerated when a route or schema changes, and
-buttons for `reset-db`, `check` and `pytest-postgres`. It starts `compose.dev.yml`
-(Postgres, SeaweedFS, Mailpit — Docker required) and points the API at it; the e2e stacks
-stay `scripts/dev-stack.sh`'s job.
+buttons for `reset-db` and `check`. It starts `compose.dev.yml` (Postgres, SeaweedFS,
+Mailpit — Docker required, `scripts/install-docker-wsl.sh`) and points the API at it; the
+e2e stacks stay `scripts/dev-stack.sh`'s job.
 
 `app.seed_test_setup` sets up a **fresh installation** completely: migrations,
 reference data (`app.seed`), accounts (`app.seed_users`). Repeatable; `--reset` drops all
@@ -72,14 +72,17 @@ regenerated when models change rather than creating a chain —
 `rm alembic/versions/*.py`, then `alembic revision --autogenerate`, then
 `seed_test_setup --reset`.
 
-**Database:** production is **Postgres**; `tilt up` develops on Postgres too
-(`compose.dev.yml`). Without it the default is SQLite, `sqlite+aiosqlite:///./sbl.db` in
-`app.config`, no server to start — so the model must work on both: no Postgres-only types
-(JSONB, ARRAY), and Alembic runs in **batch mode** for SQLite (see `api/alembic/env.py`).
-The **test suite** runs on its own SQLite file by default; with
-`SBL_TEST_DATABASE_URL` (a Postgres server URL) each xdist worker gets a fresh database of
-its own there. The test URL is set in `api/tests/conftest.py` **at module level**, not in
-a fixture, because `app.config` builds its settings on import.
+**Database: Postgres, and nothing else** (decided 2026-11-11) — production, development
+and both test suites. No SQLite path, no second dialect to stay compatible with: Postgres
+types and functions are fair game. Start it with `docker compose -f compose.dev.yml up -d
+db` (or `tilt up`); `app.config`'s default URL is that server, and a `postgres://…` URL a
+host hands out gets the asyncpg driver there. The **test suite** makes fresh databases of
+its own on it — `sbl_test_<worker>`, plus `empty_database` for a test that builds its own
+small world — set in `api/tests/conftest.py` **at module level**, not in a fixture,
+because `app.config` builds its settings on import; `SBL_TEST_DATABASE_URL` names another
+server. The e2e stacks use `sbl_e2e_<i>` (`scripts/dev-stack.sh`). A command run in the
+agent sandbox cannot reach the server (its own network, no docker group): run tests with
+the sandbox off.
 
 **The frontend's API client is generated, never written.** `scripts/gen-api-client.sh`
 reads the OpenAPI document straight off the FastAPI app object — no server to start, and
@@ -630,7 +633,7 @@ story ID in the docstring. New features are added to stories first, then tested.
   failure.
 
   **The suite is parallel, with one stack per worker.** `dev-stack.sh` runs N backends
-  over N SQLite files and N web servers; `e2e/fixtures.ts` points each worker at its own
+  over N Postgres databases and N web servers; `e2e/fixtures.ts` points each worker at its own
   via `parallelIndex` (**not** `workerIndex`, which keeps climbing as workers are
   replaced) — `lifecycle.spec.ts` writes, so workers must not share a database. It runs
   against a **built** bundle rather than the dev server: the suite is dominated by page
@@ -721,7 +724,7 @@ and `status`. The tool is the `gh` CLI (`gh auth login` once; in the sandbox it 
 **An issue is done when its stakeholder accepts it on staging, not when its PR merges.**
 Many issues come from stakeholders, and they judge a change by using it, not by reading a
 diff — and the place they can use it is **staging**. Today that is still the Render
-instance (`render.yaml`, free tier, SQLite baked into the image, **with** the dev login);
+instance (`render.yaml`, free tier, reseeded on every start, **with** the dev login);
 it is to be replaced by a second Compose stack (`docs/deploy-server.md`) which, like
 production, runs **without the dev login** (`compose.yaml` fixes it off). So the
 PR **refers** to the issue and never closes it, and between merge and close the issue
@@ -819,7 +822,8 @@ What already exists, and what each one replaced:
   specs plus `playwright.config.ts` are only covered by the **root** tsconfig.
 - **`scripts/dev-stack.sh`** — seeds a throwaway database and runs both servers, which is
   what the e2e suite needs and deliberately does not start itself. It also keeps the suite
-  away from `api/sbl.db`, which `lifecycle.spec.ts` would otherwise fill with test rows.
+  away from the development database, which `lifecycle.spec.ts` would otherwise fill with
+  test rows.
 - **`e2e/layout.ts::expectNoSidewaysScroll`** — the "does this page fit its viewport"
   check, which has to assert *two* numbers to work at all, and which names the offending
   boxes when it fails so nobody writes that probe again.

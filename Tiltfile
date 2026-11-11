@@ -103,22 +103,11 @@ local_resource(
     labels=['chores'],
 )
 
-# The backend suite on Postgres — each worker in a database of its own on the dev server
-# (tests/conftest.py). `check` still runs it on SQLite until this one is green.
-local_resource(
-    'pytest-postgres',
-    cmd='uv run pytest -q -n auto',
-    dir='api',
-    env={'SBL_TEST_DATABASE_URL': DEV_DATABASE_URL},
-    resource_deps=['db'],
-    trigger_mode=TRIGGER_MODE_MANUAL,
-    auto_init=False,
-    labels=['chores'],
-)
-
+# Everything that must be green — the backend suite included, on the dev Postgres.
 local_resource(
     'check',
     cmd='scripts/check.sh',
+    resource_deps=['db'],
     trigger_mode=TRIGGER_MODE_MANUAL,
     auto_init=False,
     labels=['chores'],
