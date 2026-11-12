@@ -25,8 +25,8 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.models.finance import ClaimStatus
 from app.problems import Problem
+from app.services import dpa, uploads
 from app.services import grants as tuple_store
-from app.services import uploads
 
 #: Where personal documents live, under the uploads directory.
 DOCUMENTS = "documents"
@@ -83,7 +83,10 @@ async def may_see_documents(session: AsyncSession, viewer: User, owner_id: int) 
         .where(Person.user_id == owner_id, ClubMembership.status == MembershipStatus.ACTIVE)
     )
     for club_id in clubs.scalars():
-        if authz.check(viewer, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
+        # Through a club only once it accepted the agreement (Story V-17, review 5.6).
+        if authz.check(viewer, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)) and (
+            authz.check(viewer, Relation.ADMIN) or await dpa.current(session, club_id)
+        ):
             return True
     event_ids = {g.event_id for g in held if g.relation in WORKS_THE_EVENT and g.event_id}
     if event_ids:

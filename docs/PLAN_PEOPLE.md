@@ -23,7 +23,8 @@ signs in is two things to the system, and "is Anna in our club?" has two answers
 - **`Person`** (today's `Sailor`, renamed everywhere — model, table, API `/api/people`,
   UI words; public `/sailors/:id` redirects to `/people/:id`): name, date of birth,
   contact email, federation id, the profile switch (S-4). It is what squads, crews,
-  waivers, results and guardians point at, as `Sailor` is today.
+  waivers, results and guardians point at, as `Sailor` is today. *Since 2026-11-12 the
+  address is the account's alone (`User.email`, read through `Person.email`).*
 - **`Person.user_id`** — the account a person signs in with: unique, and since #52
   (2026-10-28) **required — every person has an account**, with an address of its own,
   children included. Person and account are made together (`people.new_person`); an

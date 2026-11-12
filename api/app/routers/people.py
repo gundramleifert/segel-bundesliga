@@ -380,16 +380,11 @@ async def update_person(
     _can_manage_master_data(acting)
     person = await _person(session, person_id)
     await _may_change_person(session, acting, person)
-    await dpa.ensure_any(session, acting, person.club_ids)
+    await dpa.ensure_for_person(session, acting, person)
 
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
-    if (
-        "email" in changes
-        and person.email is not None
-        and email != person.email
-        and not authz.check(acting, Relation.ADMIN)
-    ):
+    if "email" in changes and email != person.email and not authz.check(acting, Relation.ADMIN):
         # The address is what links the record to an account (waivers, the profile): a
         # club's organizer gives it to someone who has none, but re-pointing it would hand
         # the person's record to another account — the league office's to do.
@@ -404,13 +399,15 @@ async def update_person(
             409, "email-taken", f"Email {email} is already taken. Emails are unique.", email=email
         )
 
+    if "email" in changes and not email:
+        raise Problem(422, "person-email-required", "Every person has an address (#52).")
+    moved = email is not None and email.strip().lower() != person.email
     for field, value in changes.items():
-        setattr(person, field, value)
-    account = await people.account_of(session, person)
-    if email and not account.signs_in:
-        # An account nobody has signed in to yet is the person's address, nothing more
-        # (#52): it follows the record, so the code or the invitation goes to the new one.
-        account.email = email
+        setattr(person, field, value.strip().lower() if field == "email" else value)
+    if moved:
+        # The person's address is their account's — one column (review 5.1). The new one
+        # is proven before it signs in, by a code or an invitation.
+        person.user.email_verified = False
 
     await session.commit()
     return PersonAdminOut.model_validate(person)

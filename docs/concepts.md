@@ -170,10 +170,12 @@ flow (`invited`, `requested`, Story V-15) came with #44.
 federation id, the profile switch (S-4). What squads, crews, waivers, results and
 guardians point at. `Sailor` until #42, renamed; there is no separate "member" record.
 
-**The account link** — `Person.user_id`, optional and unique. An account is what one
-signs in with (`User`, identities, password); **every account has exactly one person**,
-created with it or the existing person with that **verified** address. A person without
-an account is normal: children, other clubs' sailors, imports.
+**The account link** — `Person.user_id`, **required** and unique (#52, 2026-10-28,
+confirmed by the owner 2026-11-12): every person has an account and every account exactly
+one person, made together (`people.new_person`); an account made by a club is unverified
+until a code or the club's invitation proves its address. **The address is the
+account's, one column** (`User.email`; `Person.email` reads it, in Python and SQL —
+review 5.1): no second copy to drift.
 
 **`ClubMembership`** — person · club · status, the one answer to "who is in this club"
 and "who sails for it":

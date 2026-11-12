@@ -211,6 +211,7 @@
   "teams-per-club-exceeds-teams": "Ein Verein kann nicht mehr Teams melden, als die Veranstaltung hat ({team_count}).",
   "teams-per-club-below-entered": "Ein Verein hat {entered} Teams gemeldet — nehmen Sie die überzähligen zuerst heraus, dann senken Sie die Zahl.",
   "person-email-locked": "Die Adresse einer Person, die schon eine hat, ändert nur die Geschäftsstelle — sie verbindet den Eintrag mit ihrem Konto.",
+  "person-email-required": "Jede Person hat eine Adresse — die ihres Kontos.",
   "squad-on-first-team": "Der Kader des Vereins für diese Veranstaltung gehört zu seinem ersten Team.",
   "squad-registration-rejected": "Diese Meldung wurde abgelehnt; sie hat keinen Kader.",
   "squad-person-of-another-club": "Segelt für einen anderen Verein: {people}. Ein Verein nimmt nur eigene Segler auf; einem zweiten Verein ordnet die Geschäftsstelle eine Person zu.",

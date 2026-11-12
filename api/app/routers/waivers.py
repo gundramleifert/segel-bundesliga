@@ -45,7 +45,7 @@ from app.models import (
 )
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
-from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
+from app.services import current_waiver_text, dpa, event_waiver_status, is_minor, uploads
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
@@ -980,6 +980,8 @@ async def _may_confirm_for(session: AsyncSession, acting: User, person: Person) 
     if person.user_id == acting.id:
         return OWN
     if authz.check(acting, Relation.MANAGER, on=person):
+        # The club's side signing or scanning for its sailor: its agreement first (V-17).
+        await dpa.ensure_for_person(session, acting, person)
         return STAFF
     if authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.PERSON, person.id)):
         return GUARDIAN

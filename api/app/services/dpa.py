@@ -9,8 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
-from app.models import ClubDpa
-from app.models.auth import Relation, User
+from app.authz import ObjectRef
+from app.models import ClubDpa, Person
+from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 
 # shortcut: the text lives in the `legal` locale (dpa.*) beside this version, not frozen in
@@ -39,12 +40,32 @@ async def ensure(session: AsyncSession, user: User, club_id: int) -> None:
         )
 
 
-async def ensure_any(session: AsyncSession, user: User, club_ids: list[int]) -> None:
-    """For a person in several clubs: one of them having accepted is enough; a person in
-    no club is the league office's or anyone's to complete, and needs none."""
-    if not club_ids or authz.check(user, Relation.ADMIN):
-        return
+def acting_clubs(user: User, person: Person) -> list[int]:
+    """The clubs through which ``user`` acts on ``person``: those of the person's clubs
+    the user organizes (``manager``, which a club's ``admin`` is too). Empty when the
+    user acts as the person, their guardian, or the league office."""
+    return [
+        club_id
+        for club_id in person.club_ids
+        if authz.check(user, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id))
+    ]
+
+
+async def accepted_any(session: AsyncSession, club_ids: list[int]) -> bool:
     for club_id in club_ids:
         if await current(session, club_id) is not None:
-            return
-    await ensure(session, user, club_ids[0])
+            return True
+    return False
+
+
+async def ensure_for_person(session: AsyncSession, user: User, person: Person) -> None:
+    """The gate for a club's side acting on one of its people — changing them, linking a
+    parent, signing or scanning a waiver for them, reading their documents. Checked on
+    the club the user **acts through** (review 5.6): another of the person's clubs having
+    accepted does not make this one's work lawful. Someone acting not through a club —
+    the person, a guardian, the league office — passes."""
+    if authz.check(user, Relation.ADMIN):
+        return
+    clubs = acting_clubs(user, person)
+    if clubs and not await accepted_any(session, clubs):
+        await ensure(session, user, clubs[0])

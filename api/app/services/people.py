@@ -11,7 +11,7 @@ deleting it deactivates it (`app/routers/auth.py`), so the person keeps one.
 
 from __future__ import annotations
 
-from sqlalchemy import inspect, or_, select
+from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Person
@@ -43,8 +43,7 @@ async def new_person(
     person = Person(
         first_name=first_name,
         last_name=last_name,
-        email=email,
-        user_id=user.id,
+        user=user,
         club_memberships=[],
         **fields,
     )
@@ -67,9 +66,7 @@ async def person_for(session: AsyncSession, user: User) -> Person:
     elif user.person is not None:
         return user.person
     first, last = _names(user.display_name)
-    person = Person(
-        first_name=first, last_name=last, email=user.email, user_id=user.id, club_memberships=[]
-    )
+    person = Person(first_name=first, last_name=last, user=user, club_memberships=[])
     session.add(person)
     await session.flush()
     # Loaded now, so the permission checks later in this request see the person.
@@ -91,13 +88,11 @@ async def signs_in(session: AsyncSession, person: Person) -> bool:
 
 
 async def by_address(session: AsyncSession, email: str) -> Person | None:
-    """The person under this address — their own, or their account's sign-in address."""
+    """The person under this address — their account's, the only one there is."""
     email = email.strip().lower()
     return (
         await session.execute(
-            select(Person)
-            .join(User, User.id == Person.user_id)
-            .where(or_(Person.email == email, User.email == email))
+            select(Person).join(User, User.id == Person.user_id).where(User.email == email)
         )
     ).scalar_one_or_none()
 

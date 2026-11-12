@@ -400,7 +400,9 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **A member and a sailor are one `Person`, and the model knows their clubs** (decided
   2026-10-25, #40, `docs/PLAN_PEOPLE.md`; Stories V-4, Z-5, V-15). A person exists once
   and **has an account, always, with an address of its own** (#52, decided 2026-10-28,
-  children included: `Person.user_id` is required, `people.new_person` makes both), and
+  confirmed 2026-11-12; children included: `Person.user_id` is required,
+  `people.new_person` makes both). **The address is one column, the account's**
+  (`Person.email` reads `User.email`, `tests/stories/test_one_address.py`), and
   an **active** `ClubMembership` is both "member" and "sails for";
   a person's `manager` is `manager from club` over those. That one answer decides who
   puts them in a squad, changes them, signs their waiver forms and links their parents.

@@ -30,7 +30,7 @@ from app.db import get_session
 from app.models import Club, ClubMembership, MembershipStatus, Person
 from app.models.auth import Grant, ObjectType, Relation, User  # noqa: TID251 — REVIEW 4.5
 from app.problems import Problem
-from app.services import grants
+from app.services import dpa, grants
 from app.services.waivers import is_minor
 
 router = APIRouter(tags=["guardians"])
@@ -109,6 +109,7 @@ async def link_guardian(
     """Story V-13: writes `user:guardian:sailor` for an existing account, by email."""
     person = await _person(session, person_id)
     await _may_link(session, acting, person)
+    await dpa.ensure_for_person(session, acting, person)
     email = request.email.strip().lower()
     parent = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if parent is None:
@@ -143,6 +144,7 @@ async def unlink_guardian(
 ) -> Response:
     person = await _person(session, person_id)
     await _may_link(session, acting, person)
+    await dpa.ensure_for_person(session, acting, person)
     row = await session.get(Grant, tuple_id)
     if row is None or row.person_id != person.id or row.relation != Relation.GUARDIAN:
         raise Problem(404, "guardian-link-missing", "This sailor has no such guardian.")

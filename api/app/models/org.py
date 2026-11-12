@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import (
     JSON,
     CheckConstraint,
+    ColumnElement,
     Date,
     DateTime,
     ForeignKey,
@@ -14,8 +15,10 @@ from sqlalchemy import (
     Numeric,
     String,
     UniqueConstraint,
+    select,
     text,
 )
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -99,10 +102,6 @@ class Person(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     first_name: Mapped[str] = mapped_column(String(80))
     last_name: Mapped[str] = mapped_column(String(80))
-    # The link to the account: this address is how the person signs in and submits their
-    # liability waiver (Stories V-1 and S-1). Nullable, because people imported from
-    # external systems don't always come with one.
-    email: Mapped[str | None] = mapped_column(String(254), unique=True, index=True, default=None)
     birth_date: Mapped[date | None] = mapped_column(Date, default=None)
     # DSV sailing number or similar — personal data, see the deletion policy.
     federation_id: Mapped[str | None] = mapped_column(String(40), default=None, index=True)
@@ -117,7 +116,28 @@ class Person(Base, TimestampMixin):
     # squads and waivers keep pointing at a person with an account.
     user_id: Mapped[int] = mapped_column(ForeignKey("app_user.id"), unique=True)
 
-    user: Mapped[User] = relationship(back_populates="person", lazy="raise")
+    # Loaded with the person: their address is the account's (`email` below).
+    user: Mapped[User] = relationship(back_populates="person", lazy="selectin")
+
+    @hybrid_property
+    def email(self) -> str:
+        """The person's address **is** their account's — one column, ``User.email``
+        (decided 2026-11-12, review 5.1): two copies drifted, and an address changed on
+        one and registered on the other made a second person. In a query it reads the
+        account's column too."""
+        return self.user.email
+
+    @email.inplace.setter
+    def _email_setter(self, value: str) -> None:
+        self.user.email = value
+
+    @email.inplace.expression
+    @classmethod
+    def _email_expression(cls) -> ColumnElement[str]:
+        from app.models.auth import User
+
+        return select(User.email).where(User.id == cls.user_id).scalar_subquery()
+
     squad_places: Mapped[list[TeamMembership]] = relationship(back_populates="person")
     # The clubs this person is in, asked or invited to — the active ones are the ``club``
     # edge of a person in the permission model (``manager from club``,

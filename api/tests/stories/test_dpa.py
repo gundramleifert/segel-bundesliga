@@ -159,3 +159,56 @@ class TestDpaMoneyAndEvents:
         )
         assert created.status_code == 409, created.text
         assert _problem_code(created) == "dpa-required"
+
+
+class TestDpaThroughTheActingClub:
+    """Review 5.6: the gate asked whether *any* of the person's clubs had accepted — so a
+    club that never did worked on a member it shares with one that had. It now asks the
+    club the organizer acts through, on every way a club works on one of its people."""
+
+    async def _shared_member(self, client, caplog):
+        from tests.accounts import accept_dpa
+
+        accepted, never = await _club(), await _club()
+        await accept_dpa(accepted)
+        email = f"shared-{uuid4().hex[:6]}@example.com"
+        await account(
+            email,
+            Grant(relation=Relation.MEMBER, club_id=accepted),
+            Grant(relation=Relation.MEMBER, club_id=never),
+        )
+        async with SessionLocal() as session:
+            from sqlalchemy import select
+
+            from app.models import Person
+
+            person = (
+                await session.execute(select(Person).where(Person.email == email))
+            ).scalar_one()
+        organizer = f"tm-{uuid4().hex[:6]}@example.com"
+        await account(
+            organizer, Grant(relation=Relation.MANAGER, club_id=never), dpa_accepted=False
+        )
+        return person.id, await _headers(client, caplog, organizer)
+
+    async def test_changing_a_shared_member_waits_for_the_acting_clubs_agreement(
+        self, client, caplog
+    ):
+        person, organizer = await self._shared_member(client, caplog)
+
+        response = await client.patch(
+            f"/api/admin/people/{person}", headers=organizer, json={"first_name": "Changed"}
+        )
+
+        assert _problem_code(response) == "dpa-required"
+
+    async def test_linking_a_parent_waits_for_it_too(self, client, caplog):
+        person, organizer = await self._shared_member(client, caplog)
+        parent = f"parent-{uuid4().hex[:6]}@example.com"
+        await account(parent)
+
+        response = await client.post(
+            f"/api/people/{person}/guardians", headers=organizer, json={"email": parent}
+        )
+
+        assert _problem_code(response) == "dpa-required"

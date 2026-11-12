@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 652459d9d2e8
+Revision ID: d8ecf0164d43
 Revises:
-Create Date: 2026-11-12 21:44:52.049614
+Create Date: 2026-11-12 22:12:38.960181
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "652459d9d2e8"
+revision: str = "d8ecf0164d43"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -432,7 +432,6 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("first_name", sa.String(length=80), nullable=False),
         sa.Column("last_name", sa.String(length=80), nullable=False),
-        sa.Column("email", sa.String(length=254), nullable=True),
         sa.Column("birth_date", sa.Date(), nullable=True),
         sa.Column("federation_id", sa.String(length=40), nullable=True),
         sa.Column("profile_public_choice", sa.Boolean(), nullable=True),
@@ -455,7 +454,6 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_person")),
         sa.UniqueConstraint("user_id", name=op.f("uq_person_user_id")),
     )
-    op.create_index(op.f("ix_person_email"), "person", ["email"], unique=True)
     op.create_index(op.f("ix_person_federation_id"), "person", ["federation_id"], unique=False)
     op.create_table(
         "personal_document",
@@ -1761,7 +1759,6 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_personal_document_user_id"), table_name="personal_document")
     op.drop_table("personal_document")
     op.drop_index(op.f("ix_person_federation_id"), table_name="person")
-    op.drop_index(op.f("ix_person_email"), table_name="person")
     op.drop_table("person")
     op.drop_index(op.f("ix_payment_run_payer_club_id"), table_name="payment_run")
     op.drop_table("payment_run")
