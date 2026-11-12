@@ -161,6 +161,67 @@ def test_a_router_never_imports_a_router():
     _ratchet("routers do not import routers", found, KNOWN_ROUTER_IMPORTS)
 
 
+#: SQL statements built in each router — ``select``/``insert``/``update``/``delete`` calls.
+#: A router parses, authorizes, calls a service and serializes (review 7.3); a query in it
+#: is a rule nobody else can call, and the next screen writes it again. The counts are a
+#: ratchet like the lists above: a router may lose queries, never gain one.
+KNOWN_ROUTER_QUERIES = {
+    "app/routers/admin.py": 4,
+    "app/routers/announcements.py": 1,
+    "app/routers/applications.py": 5,
+    "app/routers/auth.py": 4,
+    "app/routers/club_members.py": 6,
+    "app/routers/clubs.py": 6,
+    "app/routers/crew.py": 1,
+    "app/routers/dev.py": 3,
+    "app/routers/events.py": 15,
+    "app/routers/expenses.py": 1,
+    "app/routers/guardians.py": 2,
+    "app/routers/jury.py": 5,
+    "app/routers/media.py": 5,
+    "app/routers/people.py": 12,
+    "app/routers/personal.py": 2,
+    "app/routers/posts.py": 2,
+    "app/routers/public.py": 39,
+    "app/routers/series.py": 7,
+    "app/routers/tracking.py": 1,
+    "app/routers/waivers.py": 11,
+}
+
+_STATEMENTS = {"select", "insert", "update", "delete"}
+
+
+def test_a_router_gains_no_query():
+    """Queries live in ``app/services/`` (review 7.3): where the next agent looks for the
+    rule, and where the next screen calls it instead of writing it again. A router with
+    more statements than its count fails — move the query into a service; one with fewer
+    fails too — lower its count, so the ratchet keeps what was won."""
+    found = {}
+    for name, module in MODULES.items():
+        if not name.startswith("app/routers/"):
+            continue
+        count = sum(
+            1
+            for node in ast.walk(module)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id in _STATEMENTS
+        )
+        if count:
+            found[name] = count
+    grown = {n: c for n, c in found.items() if c > KNOWN_ROUTER_QUERIES.get(n, 0)}
+    shrunk = {n: c for n, c in found.items() if c < KNOWN_ROUTER_QUERIES.get(n, 0)}
+    shrunk |= {n: 0 for n in KNOWN_ROUTER_QUERIES.keys() - found.keys()}
+    message = ["Rule: a router gains no query (move it into app/services/)"]
+    message += [
+        f"  {n}: {c} statements, {KNOWN_ROUTER_QUERIES.get(n, 0)} allowed" for n, c in grown.items()
+    ]
+    message += [
+        f"  {n}: down to {c} — lower its count in KNOWN_ROUTER_QUERIES" for n, c in shrunk.items()
+    ]
+    assert not grown and not shrunk, "\n".join(message)
+
+
 def test_a_service_never_imports_a_router():
     """Dependencies point inward: routers → services → models, never back."""
     found = {

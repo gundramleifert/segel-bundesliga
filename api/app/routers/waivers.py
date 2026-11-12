@@ -27,7 +27,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
 from app.auth import current_user, optional_user, require_admin
-from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale
 from app.models import (
@@ -45,7 +44,7 @@ from app.models import (
 )
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
-from app.services import current_waiver_text, dpa, event_waiver_status, is_minor, uploads
+from app.services import current_waiver_text, event_waiver_status, is_minor, uploads, waivers
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
@@ -304,7 +303,7 @@ async def waiver_form(
     may print their form. An adult gets the same sheet with their own signature line, for
     whoever prefers paper."""
     person = await _person(session, person_id)
-    await _may_confirm_for(session, acting, person)
+    await waivers.may_confirm_for(session, acting, person)
     required = await current_waiver_text(session)
     if required is None:
         raise Problem(404, "no-waiver-published", "No liability waiver has been published yet.")
@@ -677,130 +676,21 @@ async def _confirm(
     reference_date: date,
 ) -> WaiverConfirmationOut:
     person = await get_or_404(session, Person, request.person_id)
-
-    capacity = await _may_confirm_for(session, acting, person)
-
-    required = await current_waiver_text(session)
-    if required is None:
-        raise Problem(
-            409,
-            "no-waiver-published",
-            "No liability waiver has been published yet.",
-            detail="There is nothing to confirm.",
-        )
-
-    minor = is_minor(person.birth_date, reference_date)
-    if minor is None:
-        raise Problem(
-            422,
-            "waiver-birth-date-required",
-            "The sailor's date of birth is required to confirm the waiver.",
-            person_id=person.id,
-        )
-    if (
-        minor
-        and capacity == STAFF
-        and request.method != WaiverMethod.GUARDIAN
-        and not (request.guardian_signature_ref or "").strip()
-        and authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.PERSON, person.id))
-    ):
-        # Story S-8: in a small club the team manager is often a sailor's parent. Linked
-        # as guardian, their own click is the parent's online acceptance; the club's paper
-        # path is for when they send a guardian's name or a scan.
-        capacity = GUARDIAN
-    if capacity == GUARDIAN and not minor:
-        # Story S-8: an adult's own click is their statement — the guardianship gives
-        # the parent nothing to sign once the child is of age.
-        raise Problem(
-            422,
-            "waiver-ward-is-adult",
-            "This sailor is an adult on the competition's reference date and confirms "
-            "the waiver themselves.",
-            person_id=person.id,
-        )
-
-    guardian_name = (request.guardian_name or "").strip() or None
-    signature_ref = (request.guardian_signature_ref or "").strip() or None
-
-    where_scope = (
-        (WaiverConfirmation.series_id == scope_id)
-        if scope == "series"
-        else (WaiverConfirmation.event_id == scope_id)
-    )
-    existing = (
-        await session.execute(
-            select(WaiverConfirmation).where(
-                WaiverConfirmation.person_id == person.id,
-                WaiverConfirmation.waiver_text_id == required.id,
-                where_scope,
-            )
-        )
-    ).scalar_one_or_none()
-
-    if existing is not None:
-        # A guardian row still waiting for the scan can receive it — "the signed form
-        # arrived later" (Story S-1), not a duplicate. The name is already on the row.
-        if (
-            existing.method == WaiverMethod.GUARDIAN
-            and not existing.is_guardian_signed
-            and signature_ref is not None
-        ):
-            existing.guardian_signature_ref = signature_ref
-            if guardian_name is not None:
-                existing.guardian_name = guardian_name
-            existing.recorded_by_user_id = acting.id
-            await session.commit()
-            return _out(existing, scope, scope_id, required.version, cleared=True)
-        raise Problem(
-            409,
-            "waiver-already-confirmed",
-            "This sailor has already confirmed the current waiver version for this competition.",
-            required_version=required.version,
-            scope=scope,
-        )
-
-    method = request.method
-    if minor and capacity == GUARDIAN:
-        # The linked guardian's own click, from their own account (Story S-8): it clears
-        # the child like a signed scan does, with nothing on paper.
-        method = WaiverMethod.GUARDIAN_ONLINE
-        guardian_name = guardian_name or acting.display_name or acting.email
-    elif minor:
-        if method in (WaiverMethod.ONLINE, WaiverMethod.GUARDIAN_ONLINE):
-            raise Problem(
-                422,
-                "guardian-confirmation-needed",
-                "A sailor under 18 needs a legal guardian to sign; an online "
-                "confirmation alone is not enough.",
-                person_id=person.id,
-            )
-        method = WaiverMethod.GUARDIAN
-    else:
-        method = method or WaiverMethod.ONLINE
-
-    if method == WaiverMethod.GUARDIAN and guardian_name is None:
-        raise Problem(
-            422,
-            "guardian-name-required",
-            "A guardian confirmation needs the guardian's name.",
-        )
-
-    confirmation = WaiverConfirmation(
-        person_id=person.id,
-        waiver_text_id=required.id,
-        series_id=scope_id if scope == "series" else None,
-        event_id=scope_id if scope == "event" else None,
-        method=method,
+    done = await waivers.confirm(
+        session,
+        acting,
+        person,
+        scope=scope,
+        scope_id=scope_id,
+        reference_date=reference_date,
+        method=request.method,
         locale_shown=request.locale_shown,
-        recorded_by_user_id=acting.id,
-        user_agent=user_agent[:400] if user_agent else None,
-        guardian_name=guardian_name,
-        guardian_signature_ref=signature_ref,
+        guardian_name_in=request.guardian_name,
+        signature_ref_in=request.guardian_signature_ref,
+        user_agent=user_agent,
     )
-    session.add(confirmation)
     await session.commit()
-    cleared = method == WaiverMethod.ONLINE or confirmation.is_guardian_signed
-    return _out(confirmation, scope, scope_id, required.version, cleared=cleared)
+    return _out(done.row, scope, scope_id, done.version, cleared=done.cleared)
 
 
 async def _person(session: AsyncSession, person_id: int) -> Person:
@@ -851,7 +741,7 @@ async def _attach_scan(
     reference_date: date,
 ) -> WaiverConfirmationOut:
     person = await _person(session, person_id)
-    await _may_confirm_for(session, acting, person)
+    await waivers.may_confirm_for(session, acting, person)
 
     required = await current_waiver_text(session)
     if required is None:
@@ -963,33 +853,6 @@ async def _may_view_scan(
     if person.user_id == acting.id:
         return True
     return authz.check(acting, Relation.MANAGER, on=person)
-
-
-#: In which capacity someone may confirm for a sailor (`_may_confirm_for`).
-OWN, STAFF, GUARDIAN = "own", "staff", "guardian"
-
-
-async def _may_confirm_for(session: AsyncSession, acting: User, person: Person) -> str:
-    """The sailor's own (verified) account; the league office or the manager of a club
-    the sailor sails for (the model's ``manager`` on the sailor) — they collect their club's
-    paper forms (Stories S-1,
-    S-3); or a guardian the child's club linked to the sailor (Stories V-13, S-8). Not any
-    club's manager: the `team_manager` *summary* role once let one club sign for every
-    sailor on the site. Returns which of the three it is — the first that applies."""
-    # Their own account — linked to them by a verified address (`app/services/people.py`).
-    if person.user_id == acting.id:
-        return OWN
-    if authz.check(acting, Relation.MANAGER, on=person):
-        # The club's side signing or scanning for its sailor: its agreement first (V-17).
-        await dpa.ensure_for_person(session, acting, person)
-        return STAFF
-    if authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.PERSON, person.id)):
-        return GUARDIAN
-    raise Problem(
-        403,
-        "waiver-confirmation-forbidden",
-        "You can only confirm the waiver for yourself.",
-    )
 
 
 def _out(

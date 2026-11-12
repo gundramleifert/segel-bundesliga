@@ -828,7 +828,9 @@ A rule that lives only in this file gets broken — by the next agent that never
 paragraph. So every rule that can be checked is: **ruff** where an import says it
 (`TID251` in `api/pyproject.toml` — `HTTPException`, the `Grant` table outside
 `authz.py`/`grants.py`), and **`api/tests/architecture/test_rules.py`** for the rest —
-one writer per status, one creator per `Team`, no router importing a router, every
+one writer per status, one creator per `Team`, no router importing a router, **no router
+gaining a query** (a router parses, authorizes, calls a service, serializes — review 7.3),
+no stored point or standing, every
 `Problem` code worded in both languages, `CLAUDE.md`'s permission table against `MODEL`.
 Each rule keeps its known violations in a list with their item in
 `docs/REVIEW_2026-11.md`, and the list is a **ratchet**: a new violation fails, and so
