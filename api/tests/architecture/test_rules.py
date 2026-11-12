@@ -64,13 +64,7 @@ STATUS_OWNERS = {
 }
 
 KNOWN_STATUS_WRITES = {
-    "app/imports/sap.py: EventStatus": "REVIEW 3.3, 6.2",
-    "app/imports/sap.py: RaceStatus": "REVIEW 6.2",
-    "app/imports/tractrac.py: EventStatus": "REVIEW 3.3",
-    "app/imports/tractrac.py: RaceStatus": "REVIEW 3.3",
-    "app/practice.py: RaceStatus": "REVIEW 3.3",
     "app/routers/applications.py: TeamStatus": "REVIEW 7.3",
-    "app/routers/events.py: TeamStatus": "REVIEW 3.5",
 }
 
 

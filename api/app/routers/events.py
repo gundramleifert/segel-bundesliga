@@ -12,7 +12,6 @@ rejecting. What validity gates is the *draw* and the *start*; what freezes the s
 
 from __future__ import annotations
 
-from collections import Counter
 from datetime import date
 
 from fastapi import APIRouter, Depends, status
@@ -51,11 +50,9 @@ from app.services import (
     check_squad_limits,
     configuration_frozen,
     dpa,
-    event_entries,
     event_readiness,
     event_state,
-    has_results,
-    new_event_entry,
+    registrations,
     require_editable_configuration,
 )
 from app.services.events import MatchdayTaken, NoFreeSlug, matchday_in, place_event
@@ -755,7 +752,7 @@ async def reopen_event(event_id: int, session: AsyncSession = Depends(get_sessio
     reinstated day is prepared again, not resumed mid-race.
     """
     event = await _event(session, event_id)
-    event_state.reopen_event(event)
+    await event_state.reopen_event(session, event)
     return await _committed(session, event)
 
 
@@ -902,33 +899,12 @@ async def set_participants(
     for it. A club enters as many teams as its id is listed, no more than the event's
     ``teams_per_club`` (Story VA-13); a team taken away is the highest-numbered. And once
     racing has started the field is frozen altogether (Story VA-8) — the pairing list being
-    sailed was drawn for exactly these clubs.
+    sailed was drawn for exactly these clubs. Before that, any change clears the draw,
+    and a listed club's pending request is accepted (``services/registrations.py``).
     """
     event = await _event(session, event_id)
-    await require_editable_configuration(session, event.id)
     clubs = {club.id: club for club in await _clubs(session, request.clubs)}
-    wanted = Counter(request.clubs)
-
-    existing = await event_entries(session, event.id, accepted_only=False)
-    for team in existing:
-        if team.number <= wanted[team.club_id]:
-            # An approval from above lifts a pending request.
-            team.status = TeamStatus.ACCEPTED
-            continue
-        if await has_results(session, team):
-            raise Problem(
-                409,
-                "participation-has-results",
-                "This club cannot be removed: race results already exist.",
-                club_id=team.club_id,
-            )
-        await session.delete(team)
-
-    entered = {(team.club_id, team.number) for team in existing}
-    for club_id, count in wanted.items():
-        for number in range(1, count + 1):
-            if (club_id, number) not in entered:
-                await new_event_entry(session, event, clubs[club_id], number=number)
+    await registrations.set_event_clubs(session, event, clubs, request.clubs)
 
     await session.commit()
     return await _participants_out(session, event.id)

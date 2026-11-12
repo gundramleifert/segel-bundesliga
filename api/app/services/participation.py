@@ -251,7 +251,8 @@ async def adopt_series_registrations(session: AsyncSession, event: Event) -> lis
 
 
 async def has_results(session: AsyncSession, team: Team) -> bool:
-    """Whether racing has already happened under this participation.
+    """Whether a result was recorded under this participation — a draw's empty rows are
+    not results (review 3.2).
 
     Results hang off the entry in an event. For a series registration, that means whether
     any of its acts have been raced — otherwise a club could be removed from a series
@@ -272,23 +273,13 @@ async def has_results(session: AsyncSession, team: Team) -> bool:
         )
 
     hit = (
-        await session.execute(select(RaceEntry.id).where(RaceEntry.team_id.in_(team_ids)).limit(1))
+        await session.execute(
+            select(RaceEntry.id)
+            .where(RaceEntry.team_id.in_(team_ids), RaceEntry.code.is_not(None))
+            .limit(1)
+        )
     ).scalar_one_or_none()
     return hit is not None
-
-
-async def delete_event_entries(session: AsyncSession, series_id: int, club_id: int) -> None:
-    """Removes a club from every act of a series — when its series registration is dropped."""
-    for team in (
-        await session.execute(
-            select(Team).where(
-                Team.series_id == series_id,
-                Team.club_id == club_id,
-                Team.event_id.is_not(None),
-            )
-        )
-    ).scalars():
-        await session.delete(team)
 
 
 def check_squad_limits(squad_min: int | None, squad_max: int | None) -> None:

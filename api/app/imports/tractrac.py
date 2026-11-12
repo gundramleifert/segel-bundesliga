@@ -43,7 +43,6 @@ from app.models import (
     Club,
     Event,
     EventStanding,
-    EventStatus,
     Flight,
     League,
     Race,
@@ -52,8 +51,9 @@ from app.models import (
     Source,
     Team,
 )
-from app.models.racing import RaceStatus, ResultCode
+from app.models.racing import ResultCode
 from app.schemas.admin import ScoringIn
+from app.services import event_state, race_state
 from app.services.standings import recompute_event
 
 SOURCE = Source.TRACTRAC
@@ -471,10 +471,11 @@ async def _settle_states(
         ).scalars()
     )
     for race in races.values():
-        if race.id in scored and race.status == RaceStatus.SCHEDULED:
-            race.status = RaceStatus.FINISHED
-    if scored and event.status == EventStatus.PLANNED:
-        event.status = EventStatus.FINAL
+        if race.id in scored:
+            race_state.record_imported_finish(race)
+    if scored:
+        # A recorded scoreboard is a season sailed: over.
+        event_state.record_imported(event, over=True)
 
 
 async def _compare(

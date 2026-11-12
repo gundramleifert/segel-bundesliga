@@ -336,10 +336,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Closing an event is a declaration, never a consequence** (Story VA-10). `finish`
   (`live` → `final`) is the race committee saying racing is over; it deliberately does
   **not** require a complete race list, because a day that loses its last flights to dying
-  wind is still over. `cancel` works from `planned` and from `live`, deletes nothing, and
+  wind is still over. `cancel` works from every state, deletes nothing, and
   takes the event out of `SCORED_STATES` — so a called-off day costs nobody the
   "participants + 1" that missing an event would. Both undo via `reopen` (`final` → `live`,
-  `cancelled` → `planned`). Closing freezes nothing: a protest heard weeks later still has
+  `cancelled` → `planned`, or `live` once racing had started). **"Has racing started?"
+  has one answer, `event_readiness.racing_started`**, and any change to who sails before
+  it clears the draw (`registrations.field_changing`) — `tests/stories/test_the_field.py`.
+  Closing freezes nothing: a protest heard weeks later still has
   to land on a `final` event. The status changes **only** through these transitions
   (`app/services/event_state.py`) — `PATCH` does not carry it.
 - **An event's tools are gated on what the model answers for that event**

@@ -8,6 +8,7 @@ import pytest
 
 from tests.pages import all_items
 from tests.stories.test_create_event import admin, event_with_participants, league_clubs
+from tests.stories.test_login_and_roles import _problem_code
 
 
 class TestSeriesTable:
@@ -122,12 +123,11 @@ class TestPairingList:
         assert "practice-1-2026-act-3-pairing-list.pdf" in response.headers["content-disposition"]
         assert response.content.startswith(b"%PDF")
 
-    async def test_a_club_entered_after_the_draw_does_not_break_the_sheet(self, client, caplog):
-        """The sheet prints the teams that were **drawn**; the entry list can have moved on.
-
-        A club entered afterwards has no seat in the list. Printing the current entry list
-        instead would name one club too many and shift every index along it — whole flights
-        on the wrong boat, on the sheet people sail by.
+    async def test_a_club_entered_after_the_draw_never_prints_a_stale_sheet(self, client, caplog):
+        """A club entered after the draw has no seat in it: printing that list would name
+        one club too many and shift every index along it — whole flights on the wrong
+        boat, on the sheet people sail by. So a changed field clears the draw (review
+        3.4), and there is no sheet until the organizer draws again.
         """
         headers = await admin(client, caplog, "latecomer@sbl.example.com")
         event_id = await event_with_participants(client, headers, "Late entry", "2026-08-22")
@@ -153,8 +153,7 @@ class TestPairingList:
 
         response = await client.get(f"/api/events/{event_id}/pairing.pdf")
 
-        assert response.status_code == 200, response.text
-        assert response.content.startswith(b"%PDF")
+        assert _problem_code(response) == "pairing-list-missing"
 
     async def test_a_crew_can_print_its_own_sheet(self, client, season):
         """Story B-3: one club's page, not the file with a page for every club in it."""

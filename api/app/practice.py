@@ -36,7 +36,6 @@ from app.models import (
     Person,
     Race,
     RaceEntry,
-    RaceStatus,
     ResultCode,
     Series,
     Team,
@@ -44,7 +43,7 @@ from app.models import (
 )
 from app.models.racing import BOAT_COLORS
 from app.pairing.catalog import load_entry, shuffle_pairing
-from app.services import people
+from app.services import people, race_state
 from app.services.pairing_service import PairingDraft, publish_pairing
 from app.services.participation import activate
 from app.services.standings import recompute_after_change
@@ -240,7 +239,7 @@ async def _results(session: AsyncSession, event: Event, status: str, rng: random
         )
     ).scalars()
     for race in races:
-        race.status = RaceStatus.FINISHED
+        race_state.record_imported_finish(race)
         entries = list(
             (
                 await session.execute(

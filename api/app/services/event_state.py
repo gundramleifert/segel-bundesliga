@@ -17,7 +17,14 @@ The rules, each of which has a reason:
 * **Cancelling deletes nothing**, from ``planned`` or ``live``; the event leaves the
   scored set, so a called-off day costs nobody "participants + 1".
 * **Reopening goes back to where the event honestly was:** ``final`` → ``live`` (it was
-  being sailed), ``cancelled`` → ``planned`` (a reinstated day is prepared again).
+  being sailed), ``cancelled`` → ``planned`` (a reinstated day is prepared again) — or
+  ``live`` when racing had started before it was called off (review 3.2: as ``planned``
+  it took in new clubs and its results dropped out of the table).
+* **Cancelling works from every state**, ``final`` included: calling off a day declared
+  over is a correction, not a contradiction.
+* **An import records what happened elsewhere** (``record_imported``): a planned event
+  with results becomes ``live``, or ``final`` once its last day has passed — the same
+  field, through this module.
 * **Every transition is idempotent** — a second tap answers with the event, unchanged.
 * **Publication is untouched.** ``published`` alone decides who sees an event.
 * **Nothing here commits.** The router commits and then publishes on the live stream
@@ -31,7 +38,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Event, EventStatus, Flight, Race
 from app.problems import Problem
-from app.services.event_readiness import CATALOG_REASON, require_ready
+from app.services.event_readiness import CATALOG_REASON, racing_started, require_ready
 
 
 async def has_pairing_list(session: AsyncSession, event_id: int) -> bool:
@@ -78,18 +85,19 @@ def finish_event(event: Event) -> None:
 
 
 def cancel_event(event: Event) -> None:
-    """→ ``cancelled``, from ``planned`` or ``live`` (a ``final`` one is not refused
-    either: calling off a day declared over is a correction, not a contradiction).
-    Deletes nothing."""
+    """→ ``cancelled``, from any state — a ``final`` one included: calling off a day
+    declared over is a correction, not a contradiction. Deletes nothing."""
     event.status = EventStatus.CANCELLED
 
 
-def reopen_event(event: Event) -> None:
-    """``final`` → ``live``, ``cancelled`` → ``planned``; anything else is refused."""
+async def reopen_event(session: AsyncSession, event: Event) -> None:
+    """``final`` → ``live``; ``cancelled`` → ``planned``, or ``live`` if racing had
+    started; anything else is refused."""
     if event.status == EventStatus.FINAL:
         event.status = EventStatus.LIVE
     elif event.status == EventStatus.CANCELLED:
-        event.status = EventStatus.PLANNED
+        started = await racing_started(session, event.id)
+        event.status = EventStatus.LIVE if started else EventStatus.PLANNED
     else:
         raise Problem(
             409,
@@ -98,3 +106,11 @@ def reopen_event(event: Event) -> None:
             event_id=event.id,
             event_status=event.status,
         )
+
+
+def record_imported(event: Event, *, over: bool) -> None:
+    """An import found results for a ``planned`` event: it was sailed elsewhere — ``live``,
+    or ``final`` once its last day has passed. Any other state is the committee's and
+    stays as it is."""
+    if event.status == EventStatus.PLANNED:
+        event.status = EventStatus.FINAL if over else EventStatus.LIVE

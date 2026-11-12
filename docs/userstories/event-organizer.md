@@ -518,8 +518,9 @@ Acceptance criteria:
 - **Finishing freezes nothing.** The configuration was already frozen by the first race
   (VA-8), and results stay editable forever — a protest heard weeks later is the entire
   point of the race-committee screens, and it must still land on a `final` event.
-- **Cancelling** (`POST …/cancel`) is available from `planned` **and** from `live`: a day
-  can be called off before anyone leaves the dock, or abandoned halfway through. It
+- **Cancelling** (`POST …/cancel`) is available from every state: a day can be called
+  off before anyone leaves the dock, abandoned halfway through, or — a correction — called
+  off after it was declared over. It
   **deletes nothing** — pairing list and any results recorded stay exactly as they are, so
   a cancellation that turns out to be premature costs no data.
 - **A cancelled event scores nothing, and costs nobody anything.** It drops out of
@@ -527,7 +528,9 @@ Acceptance criteria:
   fire for it — being at a regatta that was called off must never be worse than staying
   home.
 - **Both are reversible** (`POST …/reopen`), because both are human judgements made in a
-  hurry: `final` → `live`, `cancelled` → `planned`. Nothing else about the event changes.
+  hurry: `final` → `live`, `cancelled` → `planned` — or `live` when racing had started
+  before it was called off (review 3.2: as `planned` a sailed act took in new clubs and
+  its results dropped out of the table). Nothing else about the event changes.
 - Every transition is **idempotent** — finishing a `final` event answers 200, the same way
   starting a `live` one already does. A second tap on a button in a rocking boat is not an
   error.

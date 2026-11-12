@@ -17,7 +17,7 @@ a ``Team`` row; only its ``status`` differs.
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import date
 
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field, model_validator
@@ -33,8 +33,7 @@ from app.models import Club, Event, Series, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
-from app.services import has_results, new_event_entry
-from app.services.audit import EntityType, audit
+from app.services import new_event_entry, registrations
 from app.services.lookup import get_or_404
 
 router = APIRouter(tags=["applications"])
@@ -373,28 +372,6 @@ async def _decide(
     team = await _with_relations(session, team_id)
     _may_decide(acting, team.event if team.event_id is not None else team.series)
 
-    if team.status == TeamStatus.ACCEPTED and new_status != TeamStatus.ACCEPTED:
-        if await has_results(session, team):
-            raise Problem(
-                409,
-                "participation-has-results",
-                "This participation cannot be revoked: race results already exist.",
-            )
-
-    previous_status = team.status
-    team.status = new_status
-    team.decision_note = note
-    team.decided_at = datetime.now(UTC)
-
-    # Who decided what and when must be auditable.
-    audit(
-        session,
-        EntityType.TEAM,
-        team.id,
-        "decide_participation",
-        acting,
-        # "from" is a Python keyword, so this payload stays a mapping.
-        **{"from": previous_status, "to": new_status, "note": note},
-    )
+    await registrations.decide(session, team, TeamStatus(new_status), note, acting)
     await session.commit()
     return await _with_relations(session, team.id)

@@ -285,3 +285,11 @@ def finish_race(session: AsyncSession, race: Race, *, actor: str) -> None:
     race.finished_at = datetime.now(UTC)
     race.signal = None
     audit(session, EntityType.RACE, race.id, "finish", actor)
+
+
+def record_imported_finish(race: Race, *, finished_at: datetime | None = None) -> None:
+    """An import (or the practice season) found results for a race still ``scheduled``:
+    it was sailed elsewhere and is ``finished``. A state the committee set stays theirs."""
+    if race.status == RaceStatus.SCHEDULED:
+        race.status = RaceStatus.FINISHED
+        race.finished_at = finished_at

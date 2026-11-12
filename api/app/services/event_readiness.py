@@ -216,6 +216,13 @@ async def configuration_frozen(session: AsyncSession, event_id: int) -> FrozenCo
     return None
 
 
+async def racing_started(session: AsyncSession, event_id: int) -> bool:
+    """**The** answer to "has racing begun at this event?" — never ``Event.status``, a
+    pairing row or a scored-states tuple (review 3.2). Every rule that depends on it asks
+    here; ``tests/architecture/test_rules.py`` holds the other spellings out."""
+    return await configuration_frozen(session, event_id) is not None
+
+
 async def require_editable_configuration(session: AsyncSession, event_id: int) -> None:
     """Refuses a change to the setup once racing has started.
 

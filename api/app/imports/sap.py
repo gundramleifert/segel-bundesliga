@@ -47,7 +47,6 @@ from app.models import (
     Boat,
     Event,
     EventStanding,
-    EventStatus,
     Flight,
     League,
     Race,
@@ -57,8 +56,9 @@ from app.models import (
     Source,
     Team,
 )
-from app.models.racing import RaceStatus, ResultCode
+from app.models.racing import ResultCode
 from app.schemas.admin import ScoringIn
+from app.services import event_state, race_state
 from app.services.standings import recompute_event
 from app.text import slugify
 
@@ -1037,14 +1037,12 @@ async def _settle_states(
         ).scalars()
     )
     for race in races.values():
-        if race.id in scored and race.status == RaceStatus.SCHEDULED:
-            race.status = RaceStatus.FINISHED
-            race.finished_at = race.started_at
-    if scored and event.status == EventStatus.PLANNED:
+        if race.id in scored:
+            race_state.record_imported_finish(race, finished_at=race.started_at)
+    if scored:
         today = datetime.now(LOCAL_TIME).date()
         last_day = event.ends_on or last_scored
-        over = last_day is not None and last_day < today
-        event.status = EventStatus.FINAL if over else EventStatus.LIVE
+        event_state.record_imported(event, over=last_day is not None and last_day < today)
 
 
 async def _compare_net_points(
