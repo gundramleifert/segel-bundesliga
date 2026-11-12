@@ -73,7 +73,8 @@ const CLUB_GROUPS = [
     sections: {
       squads: { for: [Relation.member, ...ORGANIZERS] },
       crews: { for: [Relation.member, ...ORGANIZERS] },
-      hosting: { for: ORGANIZERS },
+      // The events the club hosts are its leadership's — not the team manager's (review 4.1).
+      hosting: { for: [Relation.admin] },
     },
   },
   {
@@ -605,7 +606,7 @@ export function mayCreateIn(area: OfficeArea, office: readonly string[]): boolea
 
 /** Who creates outside the office, by summary role, and where (`/me/<kind>/new`):
  *
- * - **an event** — a series' manager its acts, a club's organizer a stand-alone event
+ * - **an event** — a series' manager its acts, a club's admin a stand-alone event
  *   their club hosts (Stories VA-6, A-6);
  * - **a post** — the editor of a series or an event, about that regatta (Story R-1,
  *   decided 2026-10-24).
@@ -615,7 +616,7 @@ export function mayCreateIn(area: OfficeArea, office: readonly string[]): boolea
  * only needs to know the door is theirs. They have no office to go back to, so their page
  * leads back to My space. */
 export const CREATE_OUTSIDE_OFFICE = {
-  events: { roles: [Role.series_manager, Role.team_manager], path: "/me/event/new" },
+  events: { roles: [Role.series_manager, Role.club_admin], path: "/me/event/new" },
   news: { roles: [Role.editor], path: "/me/news/new" },
 } as const satisfies Partial<Record<OfficeArea, { roles: readonly Role[]; path: string }>>;
 

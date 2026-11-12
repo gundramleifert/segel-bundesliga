@@ -67,6 +67,7 @@
   "tuple-object-invalid": "Das ist kein Verein, keine Serie und keine Veranstaltung.",
   "tuple-object-missing": "Den Verein, die Serie oder die Veranstaltung gibt es nicht.",
   "tuple-exists": "Diese Person hat diese Rolle dort bereits.",
+  "tuple-not-a-member": "Kassenwart eines Vereins kann nur ein Mitglied werden. Nimm die Person zuerst in den Verein auf.",
   "tuple-self-lockout": "Die eigene Verwaltungsrolle lässt sich nicht selbst entziehen.",
   "tuple-forbidden": "Nur die Verwaltung oder die Organisation des Objekts kann ändern, wer Zugriff darauf hat.",
   "login-failed": "E-Mail-Adresse oder Passwort stimmen nicht.",

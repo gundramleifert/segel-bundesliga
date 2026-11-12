@@ -550,8 +550,8 @@ class TestTuples:
 
 class TestOrganizers:
     """Story Z-2: `manager` is the organizer relation — of a club, a series or an event.
-    The manager runs the setup and names the event's people; the host club's manager is
-    the event's manager without a second tuple."""
+    The manager runs the setup and names the event's people; the host club's admin is
+    the event's manager without a second tuple — its team manager is not (review 4.1)."""
 
     async def test_an_event_manager_runs_the_setup_but_not_the_races(self, client, caplog, ids):
         headers = await _admin_headers(client, caplog)
@@ -631,9 +631,9 @@ class TestOrganizers:
         assert deleted.status_code == 204, deleted.text
 
     async def test_a_clubs_admin_names_anyone_its_manager_nobody(self, client, caplog, ids):
-        """On the club itself its admin writes tuples — for any account, member or not
-        (Story A-8: an organizer need not be a member). The manager decides who sails,
-        not who belongs, so they cannot write here at all."""
+        """On the club itself its admin writes tuples — an organizer for any account,
+        member or not (Story A-8: an organizer need not be a member). The manager decides
+        who sails, not who belongs, so they cannot write here at all."""
         headers = await _admin_headers(client, caplog)
         club = ids.club("byc")
         await make_user("byc-orga@example.org", Role.CLUB_ADMIN, club_id=club)
@@ -643,7 +643,7 @@ class TestOrganizers:
         sport = await _headers(client, caplog, "byc-sport@example.org")
         body = {
             "user": "stranger@example.org",
-            "relation": "treasurer",
+            "relation": "manager",
             "object": f"club:{club}",
         }
 
@@ -653,7 +653,7 @@ class TestOrganizers:
 
         written = await client.post("/api/auth/tuples", headers=orga, json=body)
         assert written.status_code == 201, written.text
-        assert written.json()["relation"] == "treasurer"
+        assert written.json()["relation"] == "manager"
 
         model = (await client.get("/api/auth/model", headers=headers)).json()
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}

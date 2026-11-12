@@ -1203,7 +1203,7 @@
   "journey": "J-8",
   "story": "VA-6",
   "path": "act of a series",
-  "who": "team manager",
+  "who": "club admin",
   "what": "refused with `series-not-mine` (403): a club adds no act to a series it does not organize"
  },
  "J-8.10": {
@@ -1232,7 +1232,7 @@
   "story": "WL-2",
   "path": "main",
   "who": "race officer",
-  "what": "16 races entered; the host's manager may not enter a result (403) — organizing is not racing"
+  "what": "16 races entered; the event's manager may not enter a result (403) — organizing is not racing"
  },
  "J-8.14": {
   "journey": "J-8",
@@ -1252,15 +1252,15 @@
   "journey": "J-8",
   "story": "VA-6",
   "path": "main",
-  "who": "team manager",
-  "what": "the event exists with its host club, no series, no matchday, `teams_per_club` 2, as a draft; no club entered; every club is a candidate; its creator organizes it through `manager from host_club`"
+  "who": "club admin",
+  "what": "the event exists with its host club, no series, no matchday, `teams_per_club` 2, as a draft; no club entered; every club is a candidate. The club's leadership creates it (`admin from host_club`) and names the team manager its `manager` — hosting alone makes the team manager nobody's organizer (review 4.1), so their own attempt is refused (403)"
  },
  "J-8.3": {
   "journey": "J-8",
   "story": "Z-2",
   "path": "main",
   "who": "club admin",
-  "what": "the person holds `race_officer` on the event — written by the host club's admin (`admin from host_club`); the host's manager may not write it (403)"
+  "what": "the person holds `race_officer` on the event — written by the host club's admin (`admin from host_club`); the event's own manager may not write it (403)"
  },
  "J-8.4": {
   "journey": "J-8",
@@ -1288,7 +1288,7 @@
   "story": "A-9",
   "path": "main",
   "who": "event organizer",
-  "what": "the host's manager sees the event's applications and accepts: the club is entered"
+  "what": "the event's manager sees its applications and accepts: the club is entered"
  },
  "J-8.8": {
   "journey": "J-8",

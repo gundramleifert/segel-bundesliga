@@ -23,9 +23,9 @@ sequenceDiagram
   participant P as Site
   actor V as Visitor
 
-  Note over TM,P: an act of a series instead? — branch "act of a series"
-  TM->>P: [J-8.2] creates the event their club hosts, outside a series, two teams per club
-  P-->>TM: they organize it now, as the host club's manager
+  Note over CA,P: an act of a series instead? — branch "act of a series"
+  CA->>P: [J-8.2] creates the event their club hosts, outside a series, two teams per club
+  CA->>P: names the club's team manager the event's organizer
   CA->>P: [J-8.3] names the event's race officer
   O->>P: [J-8.4] publishes the event early — it is in the calendar, in no series
   O->>P: [J-8.5] enters the invited clubs, and the host club twice
@@ -43,15 +43,15 @@ sequenceDiagram
 
 ### Branch "act of a series" — the club tries to add its event to a series
 
-Before J-8.2; refused, the team manager creates the event outside the series instead.
+Before J-8.2; refused, the club admin creates the event outside the series instead.
 
 ```mermaid
 sequenceDiagram
-  actor TM as Team manager
+  actor CA as Club admin
   participant P as Site
 
-  TM->>P: [J-8.1] creates an event their club hosts as an act of a series
-  P-->>TM: refused — series-not-mine
+  CA->>P: [J-8.1] creates an event their club hosts as an act of a series
+  P-->>CA: refused — series-not-mine
 ```
 
 ### Branch "turned down" — a second club's request is refused
@@ -71,19 +71,19 @@ sequenceDiagram
 
 | Step | Path | Story | Who | What is then true |
 |---|---|---|---|---|
-| J-8.1 | act of a series | VA-6 | team manager | refused with `series-not-mine` (403): a club adds no act to a series it does not organize |
-| J-8.2 | main | VA-6 | team manager | the event exists with its host club, no series, no matchday, `teams_per_club` 2, as a draft; no club entered; every club is a candidate; its creator organizes it through `manager from host_club` |
-| J-8.3 | main | Z-2 | club admin | the person holds `race_officer` on the event — written by the host club's admin (`admin from host_club`); the host's manager may not write it (403) |
+| J-8.1 | act of a series | VA-6 | club admin | refused with `series-not-mine` (403): a club adds no act to a series it does not organize |
+| J-8.2 | main | VA-6 | club admin | the event exists with its host club, no series, no matchday, `teams_per_club` 2, as a draft; no club entered; every club is a candidate. The club's leadership creates it (`admin from host_club`) and names the team manager its `manager` — hosting alone makes the team manager nobody's organizer (review 4.1), so their own attempt is refused (403) |
+| J-8.3 | main | Z-2 | club admin | the person holds `race_officer` on the event — written by the host club's admin (`admin from host_club`); the event's own manager may not write it (403) |
 | J-8.4 | main | VA-8 | event organizer | the event is published and in the public calendar, `series` empty — the field is not complete, and need not be |
 | J-8.5 | main | VA-13 | event organizer | nine invited clubs and the host club twice (`<short name>` and `<short name> 2`) are entered; a third host team is refused (`too-many-teams-per-club`) |
 | J-8.6 | main | V-6 | team manager | an application to the event, `requested` — not an entry: the readiness still says `pairing-team-count-mismatch` |
-| J-8.7 | main | A-9 | event organizer | the host's manager sees the event's applications and accepts: the club is entered |
+| J-8.7 | main | A-9 | event organizer | the event's manager sees its applications and accepts: the club is entered |
 | J-8.8 | turned down | V-6 | team manager | a second application, `requested` |
 | J-8.9 | turned down | A-9 | event organizer | `rejected`, and the applying club reads the reason in its own list |
 | J-8.10 | main | VA-8 | event organizer | the date is set; the readiness says `ready` |
 | J-8.11 | main | VA-7 | league office | a pairing list from the catalog with both host teams and the accepted club, not the rejected one |
 | J-8.12 | main | VA-8 | event organizer | the event is `live` |
-| J-8.13 | main | WL-2 | race officer | 16 races entered; the host's manager may not enter a result (403) — organizing is not racing |
+| J-8.13 | main | WL-2 | race officer | 16 races entered; the event's manager may not enter a result (403) — organizing is not racing |
 | J-8.14 | main | VA-10 | race officer | the event is `final` |
 | J-8.15 | main | B-2 | visitor | the event's public page has the 12 teams' results, both host teams among them, its host club, and no series |
 

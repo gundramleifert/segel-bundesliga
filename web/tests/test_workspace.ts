@@ -61,10 +61,10 @@ describe("Story Z-10: the sections each person of §5 has", () => {
     expect([...s.clubs, ...s.series, ...s.events]).toEqual([]);
   });
 
-  test("the team manager of ASVW: the club's people and racing, not its money or page", () => {
+  test("the team manager of ASVW: the club's people and racing, not its money, page or hosted events", () => {
     const sections = sectionsFor("club", [Relation.member, Relation.manager]);
     expect(sections).toEqual([
-      "overview", "people", "minors", "waivers", "squads", "crews", "hosting", "my-claims",
+      "overview", "people", "minors", "waivers", "squads", "crews", "my-claims",
     ]);
   });
 
@@ -419,7 +419,9 @@ describe("Story A-11: the league office (#32)", () => {
     expect(mayCreateIn("events", [Relation.race_officer])).toBe(true);
     expect(mayCreateIn("events", [])).toBe(false);
     expect(mayCreate("events", [], roles(Role.series_manager))).toBe(true);
-    expect(mayCreate("events", [], roles(Role.team_manager))).toBe(true);
+    expect(mayCreate("events", [], roles(Role.club_admin))).toBe(true);
+    // The team manager runs who sails; hosting does not make them an organizer (4.1).
+    expect(mayCreate("events", [], roles(Role.team_manager))).toBe(false);
     // A race officer or jury *somewhere* creates nothing.
     expect(mayCreate("events", [], roles(Role.race_officer, Role.jury, Role.event_manager))).toBe(false);
     // A series' editor writes posts, and creates nothing else.
@@ -433,7 +435,7 @@ describe("Story A-11: the league office (#32)", () => {
     expect(resolvePlace(PLACES["admin.news"], none, [], [Relation.editor])).toEqual([{ key: "/office", to: "/office/news" }]);
     // A summary role is no site relation: without `office`, no office.
     expect(resolvePlace(PLACES["admin"], roles(Role.admin), [], [])).toEqual([]);
-    expect(resolvePlace(PLACES["admin.new-event"], roles(Role.team_manager), [], [])).toEqual([
+    expect(resolvePlace(PLACES["admin.new-event"], roles(Role.club_admin), [], [])).toEqual([
       { key: "/office/events/new", to: "/office/events/new" },
     ]);
     expect(resolvePlace(PLACES["admin.new-series"], roles(Role.series_manager), [], [])).toEqual([]);

@@ -55,23 +55,34 @@ class TestAClubHostsItsOwnEvent:
         organizer_email = f"j8-organizer-{tag}@example.com"
         await make_user(organizer_email, Role.TEAM_MANAGER, club_id=host)
         organizer = auth_headers(await login_as(client, organizer_email, caplog))
+        club_admin_email = f"j8-board-{tag}@example.com"
+        await make_user(club_admin_email, Role.CLUB_ADMIN, club_id=host)
+        club_admin = auth_headers(await login_as(client, club_admin_email, caplog))
 
         # ------------------------------------- a club places no act in a series (VA-6)
-        step("J-8.1", "the host's team manager tries to add an act to a series — refused")
+        step("J-8.1", "the host club's admin tries to add an act to a series — refused")
         a_series = (await client.get("/api/series", params={"year": 2026})).json()[0]["id"]
         refused = await client.post(
             "/api/admin/events",
-            headers=organizer,
+            headers=club_admin,
             json={"title": f"Sneaky Act {tag}", "series": a_series, "host_club_id": host},
         )
         assert refused.status_code == 403, refused.text
         assert refused.json()["type"].endswith("/errors/series-not-mine")
 
         # ------------------------------------------- the event outside a series (VA-6)
-        step("J-8.2", "the host's team manager creates the event their club hosts")
+        step("J-8.2", "the host club's admin creates the event and names its organizer")
+        # The team manager alone may not: hosting does not make them its organizer (4.1).
+        assert (
+            await client.post(
+                "/api/admin/events",
+                headers=organizer,
+                json={"title": f"Kiel Club Cup {tag}", "host_club_id": host},
+            )
+        ).status_code == 403
         created = await client.post(
             "/api/admin/events",
-            headers=organizer,
+            headers=club_admin,
             json={
                 "title": f"Kiel Club Cup {tag}",
                 "host_club_id": host,
@@ -88,6 +99,12 @@ class TestAClubHostsItsOwnEvent:
         assert event["matchday"] is None
         assert event["teams_per_club"] == 2
         assert event["published"] is False
+        named = await client.post(
+            "/api/auth/tuples",
+            headers=club_admin,
+            json={"user": organizer_email, "relation": "manager", "object": f"event:{event_id}"},
+        )
+        assert named.status_code == 201, named.text
         # No series, so nobody was adopted: the field is the organizer's to name.
         entries = await client.get(f"/api/admin/events/{event_id}/clubs", headers=organizer)
         assert entries.status_code == 200, entries.text
@@ -100,13 +117,10 @@ class TestAClubHostsItsOwnEvent:
 
         # ------------------------------------------- its race officer (Z-2)
         step("J-8.3", "the host club's admin names the event's race officer")
-        club_admin_email = f"j8-board-{tag}@example.com"
-        await make_user(club_admin_email, Role.CLUB_ADMIN, club_id=host)
-        club_admin = auth_headers(await login_as(client, club_admin_email, caplog))
         officer_email = f"j8-officer-{tag}@example.com"
         await make_user(officer_email)
-        # The host club's manager organizes the event but is not its admin — the access
-        # list is the club admin's (`admin from host_club`).
+        # The event's manager organizes it but is not its admin — the access list is the
+        # club admin's (`admin from host_club`).
         assert (
             await client.post(
                 "/api/auth/tuples",
@@ -252,7 +266,7 @@ class TestAClubHostsItsOwnEvent:
         races = (await client.get(f"/api/admin/events/{event_id}/races", headers=officer)).json()
         assert len(races["races"]) == TOTAL_RACES
         first = races["races"][0]
-        # Organizing is not racing: the host's manager enters no result.
+        # Organizing is not racing: the event's manager enters no result.
         assert (
             await client.put(
                 f"/api/admin/events/{event_id}/races/{first['id']}/result",

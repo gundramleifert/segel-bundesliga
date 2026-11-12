@@ -773,10 +773,11 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
   });
 
   test("creates an event their club hosts in My space, without an office", async ({ page }) => {
-    // Story VA-6 (decided 2026-10-24): a club's organizer creates an event their club
-    // hosts outside a series. Since #32 (Story A-11) that is /me/event/new — they have no
-    // league office, and the office's address passes them on.
-    await signIn(page, await aTeamManager(page));
+    // Story VA-6 (decided 2026-10-24): a club's leadership — its admin, not the team
+    // manager (review 4.1) — creates an event their club hosts outside a series. Since #32
+    // (Story A-11) that is /me/event/new — they have no league office, and the office's
+    // address passes them on.
+    await signIn(page, "board@asvw.example.com");
     await page.goto("/office/events/new");
     await expect(page).toHaveURL(/\/me\/event\/new$/);
     await expect(page.getByTestId("admin-events-title-input")).toBeVisible();

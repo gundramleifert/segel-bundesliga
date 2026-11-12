@@ -52,7 +52,7 @@ sails), and a journey shows them as the actor of each step.
 | team manager | TM | decides who *sails*: participation, squads, crews | `manager` on the club | [club.md](club.md) | club |
 | treasurer | T | decides and pays expense claims | `treasurer` on a club or an event | [treasurer.md](treasurer.md) | treasurer |
 | series manager | SM | runs one series: its clubs, dates, events | `manager` on the series | [event-organizer.md](event-organizer.md) | event-organizer |
-| event organizer | O | runs one event: configuration, draw, check-in | `manager` on the event (or its series, or its host club) | [event-organizer.md](event-organizer.md) | event-organizer |
+| event organizer | O | runs one event: configuration, draw, check-in | `manager` on the event (or its series), or `admin` of its host club | [event-organizer.md](event-organizer.md) | event-organizer |
 | helper | H | works the day without power over it | `helper` on the event | [event-organizer.md](event-organizer.md) | event-organizer |
 | race officer | R | runs the races and enters results | `race_officer` on the event, series or site | [race-committee.md](race-committee.md) | race-committee |
 | jury | JY | decides protests | `jury` on the series or event | [race-committee.md](race-committee.md) | race-committee |

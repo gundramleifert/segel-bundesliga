@@ -96,8 +96,9 @@ const PEOPLE: Person[] = [
       {
         ref: ASVW,
         relations: ["member", "manager"],
-        // Its people and racing; the money is the treasurer's, the page the admin's.
-        sections: ["overview", "people", "minors", "waivers", "squads", "crews", "hosting", "my-claims"],
+        // Its people and racing; the money is the treasurer's, the page and the hosted
+        // events the admin's.
+        sections: ["overview", "people", "minors", "waivers", "squads", "crews", "my-claims"],
       },
     ],
   },

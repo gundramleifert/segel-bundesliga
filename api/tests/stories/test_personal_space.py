@@ -123,7 +123,14 @@ class TestOrganizersSeeDocuments:
             f"em-{uuid4().hex[:6]}@example.org",
             Grant(relation=Relation.MANAGER, event_id=w.event),
         )
-        host_manager = await login(
+        host_admin = await login(
+            client,
+            caplog,
+            f"ha-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.ADMIN, club_id=w.club),
+        )
+        # The host club's team manager organizes nothing of its events (review 4.1).
+        host_team_manager = await login(
             client,
             caplog,
             f"hm-{uuid4().hex[:6]}@example.org",
@@ -148,13 +155,13 @@ class TestOrganizersSeeDocuments:
             Grant(relation=Relation.JURY, event_id=w.event),
         )
 
-        for organizer in (event_manager, host_manager, own_club):
+        for organizer in (event_manager, host_admin, own_club):
             listed = await client.get(f"/api/people/{helper_id}/documents", headers=organizer)
             assert [d["id"] for d in listed.json()] == [doc["id"]], listed.text
             file = await client.get(f"/api/documents/{doc['id']}/file", headers=organizer)
             assert file.status_code == 200
 
-        for outsider in (fellow, jury):
+        for outsider in (fellow, jury, host_team_manager):
             listed = await client.get(f"/api/people/{helper_id}/documents", headers=outsider)
             assert listed.status_code == 403
             assert _problem_code(listed) == "documents-forbidden"

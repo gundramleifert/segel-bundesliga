@@ -276,7 +276,7 @@ async def event_create_options(
         series_stmt = series_stmt.where(
             Series.id.in_(sorted(authz.list_objects(acting, Relation.MANAGER, ObjectType.SERIES)))
         )
-        own_clubs = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
+        own_clubs = _hosting_clubs(acting)
     series = list((await session.execute(series_stmt)).scalars())
     counted = await session.execute(
         select(Team.series_id, func.count())
@@ -974,6 +974,13 @@ def _reach_of(acting: User):
     return or_(*clauses) if clauses else None
 
 
+def _hosting_clubs(acting: User) -> set[int]:
+    """The clubs someone may host an event outside a series for — the one answer the
+    wizard's choices and :func:`_can_create` share: the clubs they are ``admin`` of, the
+    club's leadership. Not its ``manager``, the team manager (review 4.1)."""
+    return authz.list_objects(acting, Relation.ADMIN, ObjectType.CLUB)
+
+
 def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -> None:
     """Who is permitted to create an event.
 
@@ -981,10 +988,12 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
     within what they organize (Stories VA-6, Z-2):
 
     - an act of a series is its series manager's — they place their acts and name the club
-      hosting each, which is how a season is planned. A host club's manager adds no act
+      hosting each, which is how a season is planned. A host club's admin adds no act
       to a series that is not theirs, or any club could extend a league's calendar;
-    - an event outside a series is its host club's — never for a foreign host, or a club
-      would record dates (and costs) for others.
+    - an event outside a series is its host club's **admin**'s — the club's leadership,
+      never for a foreign host, or a club would record dates (and costs) for others. Not
+      the club's `manager`: that is its team manager, who decides who sails, and hosting
+      an event does not make them its organizer (review 4.1).
     """
     if authz.check(acting, Relation.ADMIN, Relation.RACE_OFFICER):
         return
@@ -992,11 +1001,10 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
         if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.SERIES, series_id)):
             return
         raise Problem(403, "series-not-mine", "Only the series' organizer adds an act to it.")
-    if host_club_id is not None and authz.check(
-        acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, host_club_id)
-    ):
+    hosting = _hosting_clubs(acting)
+    if host_club_id is not None and host_club_id in hosting:
         return
-    if host_club_id is not None and authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
+    if host_club_id is not None and hosting:
         raise Problem(403, "host-club-not-mine", "You can only host events for your own club.")
     raise Problem(
         403,

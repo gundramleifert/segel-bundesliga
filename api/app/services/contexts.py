@@ -8,7 +8,7 @@ because a squad or a crew is not a tuple.
 **Part of** is therefore two sources, merged per object:
 
 * a **relation** held directly on a club, series or event (Story Z-2). Only direct tuples:
-  a host club's manager *may* act on each of its events through the model, but the club
+  a host club's admin *may* act on each of its events through the model, but the club
   is where they look, and listing every event they could reach would bury the ones they
   were actually named for. Site relations are not "mine" either — they are the league
   **office**, reported beside the contexts, not among them (Story Z-10).

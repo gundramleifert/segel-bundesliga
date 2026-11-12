@@ -706,7 +706,7 @@ widths get the phone's bar.
 sections, assembled from the very blocks the administration's panel is made of
 (`web/src/pages/admin/events/EventPanel.tsx`, their test ids kept) by
 `web/src/pages/me/event/EventSections.tsx`, for those the declaration gives them — the
-event's organizers, which by the model includes the series' and the host club's (a series
+event's organizers, which by the model includes the series' manager and the host club's admin (a series
 manager opens the event from the series and gets *Set up* as its own manager would):
 - *Set up* — **General** (title, dates, series, host, venue and size as set at creation;
   the dates, and the squad size of a stand-alone event, editable), **Clubs** (the entered

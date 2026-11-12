@@ -150,7 +150,7 @@ class TestDpaMoneyAndEvents:
     async def test_a_club_hosts_no_event_of_its_own_without_the_agreement(self, client, caplog):
         club = await _club()
         email = f"host-{uuid4().hex[:6]}@example.com"
-        await make_user(email, Role.TEAM_MANAGER, club_id=club, dpa_accepted=False)
+        await make_user(email, Role.CLUB_ADMIN, club_id=club, dpa_accepted=False)
         manager = await _headers(client, caplog, email)
         created = await client.post(
             "/api/admin/events",

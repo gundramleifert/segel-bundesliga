@@ -353,7 +353,7 @@
   "access": {
     "title": "People",
     "hint": "Who runs this event: its managers, its race committee and its jury. Managers may add and remove people here.",
-    "empty": "Nobody is named for this event yet — the league office and the host club's managers can still act.",
+    "empty": "Nobody is named for this event yet — the league office and the host club's admins can still act.",
     "emailLabel": "Email of an existing account",
     "relationLabel": "As",
     "addButton": "Add",

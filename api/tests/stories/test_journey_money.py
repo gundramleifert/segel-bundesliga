@@ -40,14 +40,15 @@ class Cast:
 
 async def _cast(client, caplog) -> Cast:
     """The start: a club hosting an event (Journeys J-1, J-4 make one), its admin, and
-    two people with accounts — the treasurer to be and a helper of the day. The club and
+    two people with accounts — the treasurer to be, a member of the club (A-8: a club
+    names its treasurer among its members), and a helper of the day. The club and
     the event are arranged in the database because neither is this journey's."""
     w = await world()
     tag = uuid4().hex[:6]
     await person(f"chair-{tag}@example.org", Grant(relation=Relation.ADMIN, club_id=w.club))
     club_admin = await _headers(client, caplog, f"chair-{tag}@example.org")
     cast = Cast(w, club_admin, f"purse-{tag}@example.org", f"rib-{tag}@example.org")
-    await person(cast.treasurer_email)
+    await person(cast.treasurer_email, Grant(relation=Relation.MEMBER, club_id=w.club))
     await person(cast.helper_email)
     return cast
 

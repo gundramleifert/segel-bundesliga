@@ -118,7 +118,7 @@ class TestCreateEvent:
     async def test_club_leadership_can_host_for_own_club(self, client, caplog):
         """The host should be able to record the date without waiting for someone."""
         club = await club_id("kyc-sh")
-        await make_user("va5@example.com", Role.TEAM_MANAGER, club_id=club)
+        await make_user("va5@example.com", Role.CLUB_ADMIN, club_id=club)
         headers = auth_headers(await login_as(client, "va5@example.com", caplog))
 
         response = await client.post(
@@ -147,7 +147,7 @@ class TestCreateEvent:
         assert response.status_code == 201, response.text
 
     async def test_cannot_host_for_foreign_club(self, client, caplog):
-        await make_user("va6@example.com", Role.TEAM_MANAGER, club_id=await club_id("kyc-sh"))
+        await make_user("va6@example.com", Role.CLUB_ADMIN, club_id=await club_id("kyc-sh"))
         headers = auth_headers(await login_as(client, "va6@example.com", caplog))
 
         response = await client.post(
@@ -256,9 +256,9 @@ class TestWhoPlacesAnEvent:
         assert alone.status_code == 200, alone.text
         assert alone.json()["matchday"] is None
 
-    async def test_a_host_clubs_manager_moves_no_event_into_a_foreign_series(self, client, caplog):
+    async def test_a_host_clubs_admin_moves_no_event_into_a_foreign_series(self, client, caplog):
         club = await club_id("kyc-sh")
-        await make_user("va6-patch@example.com", Role.TEAM_MANAGER, club_id=club)
+        await make_user("va6-patch@example.com", Role.CLUB_ADMIN, club_id=club)
         headers = auth_headers(await login_as(client, "va6-patch@example.com", caplog))
         options = (await client.get("/api/admin/events/create-options", headers=headers)).json()
         assert options["series"] == [] and options["own_hosts"] == [club]

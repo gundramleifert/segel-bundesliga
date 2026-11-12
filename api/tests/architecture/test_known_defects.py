@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.models import Event, Person, Series
-from app.models.auth import Grant, Relation
+from app.models.auth import Grant
 from tests.accounts import account
 from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as
@@ -22,73 +22,6 @@ from tests.stories.test_registration import auth_headers
 async def signed_in(client, caplog, email: str, *grants: Grant) -> dict[str, str]:
     await account(email, *grants)
     return auth_headers(await login_as(client, email, caplog))
-
-
-# ------------------------------------------------------------------- permissions
-
-
-@pytest.mark.xfail(strict=True, reason="REVIEW 4.1 — event manager inherits from host club")
-async def test_a_clubs_team_manager_does_not_organize_the_league_acts_it_hosts(client, caplog):
-    """A club's `manager` decides who sails for it. Hosting a league act makes the club pay
-    for it and lend its officials — it does not make the team manager the act's organizer,
-    who can change its clubs, cancel it and read the officials' documents."""
-    async with SessionLocal() as session:
-        act = (
-            (
-                await session.execute(
-                    select(Event).where(
-                        Event.host_club_id.is_not(None), Event.series_id.is_not(None)
-                    )
-                )
-            )
-            .scalars()
-            .first()
-        )
-    headers = await signed_in(
-        client,
-        caplog,
-        "defect-team-manager@example.com",
-        Grant(relation=Relation.MANAGER, club_id=act.host_club_id),
-    )
-
-    access = (await client.get(f"/api/events/{act.id}/access", headers=headers)).json()
-
-    assert access["manage"] is False
-
-
-@pytest.mark.xfail(strict=True, reason="REVIEW 4.3 — the tuple API skips the membership rule")
-async def test_a_clubs_admin_cannot_make_a_stranger_its_treasurer(client, caplog, season):
-    """The treasurer sees every claimant's IBAN. A club's admin appoints one among the
-    club's members (CLAUDE.md) — not any account on the site found by its address."""
-    club = next(iter(season.squads))
-    headers = await signed_in(
-        client,
-        caplog,
-        "defect-club-admin@example.com",
-        Grant(relation=Relation.ADMIN, club_id=club),
-    )
-    await account("defect-stranger@example.com")
-
-    response = await client.post(
-        "/api/auth/tuples",
-        json={
-            "user": "defect-stranger@example.com",
-            "relation": "treasurer",
-            "object": f"club:{club}",
-        },
-        headers=headers,
-    )
-    try:
-        assert response.status_code in (403, 409, 422), response.text
-    finally:
-        async with SessionLocal() as session:
-            for row in (
-                await session.execute(
-                    select(Grant).where(Grant.club_id == club, Grant.relation == Relation.TREASURER)
-                )
-            ).scalars():
-                await session.delete(row)
-            await session.commit()
 
 
 # ------------------------------------------------------------------- what is decided stays

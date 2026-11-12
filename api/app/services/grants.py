@@ -105,6 +105,7 @@ async def grant(
     column = GRANT_COLUMN.get(object_type)
     ids = {column: object_id} if column else {}
 
+    _require_member_for_treasurer(target, relation, object_type, object_id, actor)
     if authz.read(target, relation, ObjectRef(object_type, object_id)):
         raise Problem(
             409,
@@ -127,6 +128,30 @@ async def grant(
         relation=str(relation), object_type=object_type.value, object_id=object_id,
     )  # fmt: skip
     return row
+
+
+def _require_member_for_treasurer(
+    target: User,
+    relation: Relation,
+    object_type: ObjectType,
+    object_id: int | None,
+    actor: User | None,
+) -> None:
+    """A club's admin names its treasurer among its own members — never any account on
+    the site found by its address: the treasurer reads every claimant's IBAN (review 4.3).
+    Its organizers need not be members (Story A-8); the league office (and the system,
+    ``actor=None``) names anyone."""
+    if object_type is not ObjectType.CLUB or relation is not Relation.TREASURER:
+        return
+    if actor is None or actor.can(Relation.ADMIN):
+        return
+    if not authz.read(target, Relation.MEMBER, ObjectRef(ObjectType.CLUB, object_id)):
+        raise Problem(
+            409,
+            "tuple-not-a-member",
+            "A club's treasurer is named among its members.",
+            detail="Add the person to the club first.",
+        )
 
 
 async def set_member(session: AsyncSession, user_id: int, club_id: int, *, member: bool) -> None:

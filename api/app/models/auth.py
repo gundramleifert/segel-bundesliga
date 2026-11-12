@@ -193,8 +193,7 @@ type series
 type event
   relations
     define admin: [user] or admin from series or admin from host_club or admin from site
-    define manager: [user] or admin or manager from series or manager from host_club
-      or race_officer from site
+    define manager: [user] or admin or manager from series or race_officer from site
     define race_officer: [user] or admin or race_officer from series
       or race_officer from site
     define jury: [user] or admin or jury from series

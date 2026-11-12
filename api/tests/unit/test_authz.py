@@ -52,13 +52,16 @@ def test_the_sites_admin_reaches_everything_but_lists_nothing():
 
 def test_an_event_reaches_its_series_and_host_club():
     event = Event(id=5, title="Act", series_id=2, host_club_id=3)
+    host_admin = person(Grant(relation=Relation.ADMIN, club_id=3))
     host_manager = person(Grant(relation=Relation.MANAGER, club_id=3))
     series_officer = person(Grant(relation=Relation.RACE_OFFICER, series_id=2))
-    assert authz.check(host_manager, Relation.MANAGER, on=event)
+    assert authz.check(host_admin, Relation.MANAGER, on=event)
+    # The club's team manager organizes none of the events it hosts (review 4.1).
+    assert not authz.check(host_manager, Relation.MANAGER, on=event)
     assert authz.check(series_officer, Relation.RACE_OFFICER, on=event)
     assert not authz.check(series_officer, Relation.MANAGER, on=event)
     # Named only by its ref, an event brings no containers: pass the event itself.
-    assert not authz.check(host_manager, Relation.MANAGER, on=ObjectRef(ObjectType.EVENT, 5))
+    assert not authz.check(host_admin, Relation.MANAGER, on=ObjectRef(ObjectType.EVENT, 5))
 
 
 def test_a_sailors_admin_is_derived_and_cannot_be_written():

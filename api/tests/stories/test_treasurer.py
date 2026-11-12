@@ -14,6 +14,7 @@ from uuid import uuid4
 from app.db import SessionLocal
 from app.models import Club, Event, Series
 from app.models.auth import Grant, Relation, Role, User
+from tests.accounts import account
 from tests.stories.test_login_and_roles import (
     _admin_headers,
     _headers,
@@ -93,7 +94,8 @@ class TestTreasurerRelation:
             await session.commit()
             club_id = club.id
         await make_user("tr-chair@example.org", Role.CLUB_ADMIN, club_id=club_id)
-        await make_user("tr-cash@example.org")
+        # Among the club's members (A-8, review 4.3): the treasurer reads every IBAN.
+        await account("tr-cash@example.org", Grant(relation=Relation.MEMBER, club_id=club_id))
         chair = await _headers(client, caplog, "tr-chair@example.org")
 
         row = await _write(client, chair, "tr-cash@example.org", "treasurer", f"club:{club_id}")

@@ -353,7 +353,7 @@
   "access": {
     "title": "Personen",
     "hint": "Wer diese Veranstaltung durchführt: Organisation, Wettfahrtleitung und Jury. Die Organisation kann hier Personen hinzufügen und entfernen.",
-    "empty": "Für diese Veranstaltung ist noch niemand benannt — Geschäftsstelle und die Organisation des ausrichtenden Vereins können trotzdem handeln.",
+    "empty": "Für diese Veranstaltung ist noch niemand benannt — Geschäftsstelle und der Vorstand (Admins) des ausrichtenden Vereins können trotzdem handeln.",
     "emailLabel": "E-Mail eines bestehenden Kontos",
     "relationLabel": "Als",
     "addButton": "Hinzufügen",

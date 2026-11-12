@@ -376,8 +376,9 @@ These points were deliberately decided this way; bypassing them costs a lot late
   within it, people included (a sailor's is only derived: the site's); on a club the `admin` decides who is *in* it
   and the `manager` who *sails*. `or … from …` lines say what implies what: an object's
   admin is each of its relations, a series' people are its events', the host club's
-  people are its events', the site's race committee are managers of every event, and
-  an editor of the site or a series is one of each event below it. **Every permission question goes through `app/authz.py`**, named after
+  admin and treasurer are its events', the site's race committee are managers of every event, and
+  an editor of the site or a series is one of each event below it. A host club's
+  `manager` (its team manager) is **not** its events' manager (review 4.1). **Every permission question goes through `app/authz.py`**, named after
   OpenFGA's API so the interpreter behind it could become an OpenFGA server: `check`
   (`User.can` is its one-line sugar), `read` for the rare place where the tuple itself is
   the fact, `list_objects`, `ensure`, objects as `ObjectRef` (`club:3`). Nothing outside
@@ -385,7 +386,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   summary role (`User.roles`, navigation only) or a "holds directly" shortcut what the
   model answers. `require_site` guards the league office's screens, `require_on_event` a
   route about one event. An object's admin sees and writes its tuples
-  (a club's admin among the club's members). Write and delete one tuple at a time — never
+  (a club's admin names its treasurer among its members — `grants.grant`). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
   silently dropped. A club's `member` is a written tuple like the others (#52, decided
   2026-10-28), but **only the membership writes it**: `participation.activate` writes
@@ -605,9 +606,9 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Create clubs and enroll in Series | `admin` |
 | Create Series | `admin` |
 | Set a Series' participants, dates, publication | `admin`; the series' `manager` |
-| Create and maintain Events | `admin`, site `race_officer`; the `manager` of the event, its series or its host club |
+| Create and maintain Events | `admin`, site `race_officer`; the `manager` of the event or its series; the host club's `admin` — never its `manager`, the team manager (review 4.1) |
 | Pairing lists, accounts | `admin` |
-| See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
+| See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin on the club, its treasurer only among its members |
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series or the site |
 | Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club is invited and accepts, or asks and the club's admin accepts (V-15); one whose account cannot sign in yet only the site's `admin` adds |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
@@ -618,7 +619,7 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Link a parent to a person as guardian | the manager or admin of a club the person is a member of; site `admin` |
 | Confirm a waiver for a person | the person; `admin`; the manager of a club they are a member of; their linked `guardian` while they are a minor |
 | Write news and press releases, keep pictures | `editor` of the site (all); of a series or an event (that regatta's) |
-| **Create** Event | additionally the `manager` of the series (its acts, naming any host) or of the host club (outside a series only) |
+| **Create** Event | additionally the `manager` of the series (its acts, naming any host) or the `admin` of the host club (outside a series only) |
 | File an expense claim | `race_officer`/`jury`/`manager`/`helper` held directly on the event (or the first three on its series); `member` of the club |
 | Decide and pay a claim | the event's direct `manager`, `treasurer` of event or club (and their admins); never the claimant |
 | See a person's documents | the person; `manager` of an event they work at directly or of a club they are a member of |
@@ -831,7 +832,9 @@ paragraph. So every rule that can be checked is: **ruff** where an import says i
 one writer per status, one creator per `Team`, no router importing a router, **no router
 gaining a query** (a router parses, authorizes, calls a service, serializes — review 7.3),
 no stored point or standing, **every route open without sign-in listed with its reason**
-(`tests/architecture/test_access.py`), every
+(`tests/architecture/test_access.py`), **who may call a covered route on one club, and
+everyone else refused** (`tests/architecture/test_authorization.py` — a row per route,
+modules not yet covered in its `NOT_YET` ratchet), every
 `Problem` code worded in both languages, `CLAUDE.md`'s permission table against `MODEL`.
 Each rule keeps its known violations in a list with their item in
 `docs/REVIEW_2026-11.md`, and the list is a **ratchet**: a new violation fails, and so

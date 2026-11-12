@@ -31,12 +31,13 @@ describeStory("Z-10: the club's sections follow what I hold on the club", () => 
     const sections = await listedSections(page, "club");
     for (const section of [
       "people", "minors", "waivers", // People
-      "squads", "crews", "hosting", // Racing
+      "squads", "crews", // Racing
     ]) {
       expect(sections, `the manager has ${section}`).toContain(section);
     }
     // The money is the treasurer's (and the admin's), decided 2026-10-26.
-    for (const section of ["decide-claims", "payment-runs", "bank-account", "club-page"]) {
+    // Nor the events the club hosts: those are its leadership's (review 4.1).
+    for (const section of ["decide-claims", "payment-runs", "bank-account", "club-page", "hosting"]) {
       expect(sections, `the manager has no ${section}`).not.toContain(section);
     }
     await page.keyboard.press("Escape");

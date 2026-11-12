@@ -67,6 +67,7 @@
   "tuple-object-invalid": "That is not a club, series or event.",
   "tuple-object-missing": "The club, series or event does not exist.",
   "tuple-exists": "This person already holds this role there.",
+  "tuple-not-a-member": "A club's treasurer is named among its members. Add the person to the club first.",
   "tuple-self-lockout": "You cannot revoke your own admin role.",
   "tuple-forbidden": "Only administration or the object's managers may change who has access to it.",
   "login-failed": "Email address or password is not correct.",

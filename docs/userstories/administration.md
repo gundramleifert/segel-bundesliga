@@ -297,8 +297,8 @@ The model — almost every relation is scoped by a club, a series or an event:
 
 The rewrite rules (`or … from …` in the DSL) say what implies what: an object's `admin`
 is each of its other relations; a series' admin, manager, race officer or jury is that of
-every event in the series; the host club's admin, manager and treasurer are those of
-every event it hosts; the site's race committee is manager of every event — the
+every event in the series; the host club's admin and treasurer are those of every event
+it hosts — its manager, the team manager, is not (review 4.1, 2026-11-12); the site's race committee is manager of every event — the
 league's committee keeps the setup rights it always had, while a race officer appointed
 for one event only runs its races; the site's editor is editor of every series and event,
 and a series' editor of its events'. Nothing else inherits. Until 2026-10-24 the site's
@@ -318,8 +318,9 @@ Acceptance criteria:
 - **Who may see and write tuples on an object: its `admin`** — through the model, so the
   site's admin everywhere, a series' admin on its events, the host club's admin on the
   events it hosts. An event's manager sets it up but does not name its people. A club's
-  admin names only **active members** of the club (`tuple-not-a-member`), as A-8 always
-  said; the site's admin names anyone. Anyone else is refused (`tuple-forbidden`). Site
+  admin names its **treasurer** only among the club's active members
+  (`tuple-not-a-member`, review 4.3): the treasurer reads every claimant's IBAN. Its
+  organizers need not be members (A-8); the site's admin names anyone. Anyone else is refused (`tuple-forbidden`). Site
   tuples are the site admin's alone.
 - A race officer of one event enters results there and is refused next door, cannot
   change that event's setup, and the admin event list shows only the events their
@@ -408,7 +409,8 @@ Acceptance criteria:
 - **The club's admin names more organizers for their own club.** *＋ Person* in the
   club's *People* section (Story Z-10, #45) writes `admin`, `manager` or `treasurer` on
   this club for any account, by email — an organizer need not be a member, and is listed
-  there all the same. **A person may organize
+  there all the same. The **treasurer** is the exception: only a member of the club
+  (`tuple-not-a-member`, review 4.3), because they read every claimant's IBAN. **A person may organize
   multiple clubs** — a second club no longer fails because they already organize a
   different one; it fails only if they already hold *this* relation on *this* one.
 - Revoking for one club is allowed too — but **at least one organizer (admin or manager)

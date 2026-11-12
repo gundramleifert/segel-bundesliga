@@ -8,7 +8,10 @@ participants and their waivers, the draw, the day itself and the declaration tha
 is over. The stories stand in that order; the last one walks the whole way in one test.
 
 Who the organizer *is*: whoever holds `manager` on the event — directly, through its
-series, or as manager of the host club — plus the league office (Story Z-2). The
+series, or as **admin** of the host club — plus the league office (Story Z-2). Not the
+host club's `manager`: that is its team manager, who decides who sails; hosting an event
+does not make them its organizer (review 4.1, decided 2026-11-12) — the club's admin names
+them the event's `manager` when they should be. The
 organizer also names the event's race officers, jury and helpers.
 
 ## Setting the event up
@@ -98,8 +101,9 @@ so that **the date is set before details are finalized**.
 
 Acceptance criteria:
 - Access is available to **administration and the site's race committee**, and
-  to the event's **organizers**: the manager of the host club (for their own club as host)
-  and the manager of the series it belongs to (Stories VA-6, Z-2). Until 2026-10-17 this
+  to the event's **organizers**: the admin of the host club (for their own club as host —
+  until 2026-11-12 its manager, the team manager, review 4.1) and the manager of the
+  series it belongs to (Stories VA-6, Z-2). Until 2026-10-17 this
   story still said "administration, editorial, and race committee" only, long after the
   organizers had been let in (`events.py::_can_create`; found by Journey J-4). Until
   2026-10-24 editorial was among them; since then the site's `editor` writes news and

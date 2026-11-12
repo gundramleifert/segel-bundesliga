@@ -560,7 +560,7 @@ async def event_waivers(
     """
     event = await get_or_404(session, Event, event_id)
 
-    # The event's manager includes its host club's (the model's `manager from host_club`).
+    # The event's manager includes its host club's admin (`admin from host_club`).
     if not authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event):
         raise Problem(
             403,
