@@ -11,7 +11,7 @@ One season: a published series of a real division's 18 clubs, in the league
 ``practice``, a squad of ten new people
 per club, and three acts — one **final**, one **live** (two thirds sailed) and one
 **planned** — each with the catalog's pairing list, six boats and four of each squad
-lined up. Results are raw finishes, scored by `recompute_after_change` as the race
+lined up. Results are raw finishes, scored by `compute_event` as the race
 committee's would be. Built once per label: a second call answers what is there.
 """
 
@@ -46,7 +46,6 @@ from app.pairing.catalog import load_entry, shuffle_pairing
 from app.services import people, race_state
 from app.services.pairing_service import PairingDraft, publish_pairing
 from app.services.participation import activate
-from app.services.standings import recompute_after_change
 from app.text import slugify
 
 YEAR = 2026
@@ -217,7 +216,6 @@ async def _build(session: AsyncSession, level: int, label: str) -> None:
                 for position, person in enumerate(squads[registration.id][:CREW])
             )
         await _results(session, event, status, rng)
-        await recompute_after_change(session, event)
 
 
 def _role(position: int) -> CrewRole:

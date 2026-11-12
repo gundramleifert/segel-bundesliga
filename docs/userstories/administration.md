@@ -61,7 +61,7 @@ Acceptance criteria:
   `1./2. Segel-Bundesliga YYYY` of the league `dsbl`, with its clubs entered, its boats
   (sail number and the colour SAP has), 16 flights of races and every team's result.
   The matchday is the `(n)` in the name, or the order of the dates where the year's
-  names carry none. Points are then **derived** here (`recompute_event`), never copied.
+  names carry none. Points are then **derived** here (`compute_event`), never copied.
 - **The Junioren-Liga** is on another SAP host, `hnv.sapsailing.com` (`--base-url`,
   decided 2026-10-23 — `docs/findings.md` §3a): every regatta named
   `Deutsche Junioren Segel-Liga YYYY - Act n …` becomes act *n* of the series

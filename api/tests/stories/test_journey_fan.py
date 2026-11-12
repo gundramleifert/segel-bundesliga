@@ -250,7 +250,9 @@ class TestAFanFollowsAnAct:
         assert detail["event"]["races_per_flight"] == 2
         standings = detail["standings"]
         assert len(standings) == ACT_2_TEAMS
-        assert [row["rank"] for row in standings] == list(range(1, ACT_2_TEAMS + 1))
+        # Two races of five: each place sailed twice, and nothing breaks such a tie —
+        # the two winners share 1st, the next is 3rd (review 2.5).
+        assert [row["rank"] for row in standings] == [1, 1, 3, 3, 5, 5, 7, 7, 9, 9]
         assert all(set(row["points_by_flight"]) == {"1"} for row in standings)
 
         step("J-9.4", "the fan looks up the pairing list — which boat, which race")

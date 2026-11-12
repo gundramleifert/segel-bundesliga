@@ -58,7 +58,6 @@ from app.models.racing import (
     RaceStatus,
     ResultCode,
 )
-from app.models.standings import EventStanding, SeriesStanding
 from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
@@ -105,7 +104,6 @@ __all__ = [
     "EventDocument",
     "EventDocumentKind",
     "EventCrew",
-    "EventStanding",
     "EventStatus",
     "ResultsSource",
     "ExternalId",
@@ -126,7 +124,6 @@ __all__ = [
     "ClubMembership",
     "InvitationState",
     "Series",
-    "SeriesStanding",
     "Source",
     "Team",
     "TeamMembership",

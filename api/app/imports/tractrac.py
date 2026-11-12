@@ -14,7 +14,7 @@ result recorded here (the race committee wins over imports).
 A record has, per flight of the pairing list, which club sailed which boat in which race,
 and per club its place in each flight sailed: a place, a redress worth points, or a
 bare `RDG` whose points the recorder derived from the total. Points are derived here
-(`recompute_event`) and compared with TracTrac's total; a difference is a warning.
+(`compute_event`) and compared with TracTrac's total; a difference is a warning.
 """
 
 from __future__ import annotations
@@ -42,7 +42,6 @@ from app.models import (
     Boat,
     Club,
     Event,
-    EventStanding,
     Flight,
     League,
     Race,
@@ -54,7 +53,7 @@ from app.models import (
 from app.models.racing import ResultCode
 from app.schemas.admin import ScoringIn
 from app.services import event_state, race_state
-from app.services.standings import recompute_event
+from app.services.standings import compute_event
 
 SOURCE = Source.TRACTRAC
 FOLDER = Path(__file__).parent.parent / "seed_data" / "dsbl-2026"
@@ -166,7 +165,6 @@ async def _import_act(
 
     await session.flush()
     await _settle_states(session, event, races)
-    await recompute_event(session, event.id)
     await _compare(session, report, key, event, record, teams)
 
 
@@ -487,12 +485,7 @@ async def _compare(
     teams: dict[str, Team],
 ) -> None:
     """Our derived points against TracTrac's total — within 0.05, as it rounds."""
-    ours = {
-        standing.team_id: standing.net_points
-        for standing in (
-            await session.execute(select(EventStanding).where(EventStanding.event_id == event.id))
-        ).scalars()
-    }
+    ours = {score.team_id: score.net for score in await compute_event(session, event.id)}
     for row in record["scoreboard"]:
         team = teams.get(row["code"])
         if team is None:

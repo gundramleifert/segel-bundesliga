@@ -222,13 +222,12 @@ rejects — including in real login flows.
 
 These points were deliberately decided this way; bypassing them costs a lot later:
 
-- **Points are derived, not entered.** The source of truth is raw data in
-  `RaceEntry` (`code`, `finish_position`, `redress_points`). From that,
-  `app/services/standings.py::recompute_event` writes `points`/`is_discarded` fields and
-  `EventStanding` and `SeriesStanding` records. Stored for queries, sorting and export — **never
-  set by hand**. A protest decision changes one row of raw data, then recalculate; it never
-  becomes a data migration. Read endpoints recalculate fresh anyway, so forgotten recalculation
-  never shows wrong numbers.
+- **Points are computed, never stored** (decided 2026-11-12, review 2.1). The raw data in
+  `RaceEntry` (`code`, `finish_position`, `redress_points`) is all there is;
+  `app/services/standings.py::compute_event`/`compute_series` score it on every read. A
+  protest decision changes one row, and the next read says so — no recompute to forget.
+  `tests/architecture/test_rules.py` refuses a stored copy. A tie nothing breaks is shared
+  (1, 1, 3); the series breaks ties by the acts in sailing order.
 - **Series instead of League + Season.** A `Series` is a set of events scored together —
   "1st Segel-Bundesliga 2026". `Series.year` is what finds the current year and a
   league's years; the name carries the year only for display.
@@ -576,7 +575,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   the first race froze the event (VA-8), because SAP's draw must be the one sailed.
   **SAP→DSL** (Story WL-5): every 10–30 s while live, and on request for a final event
   after a protest, the site takes raw results only through `app/imports/sap.py`; points
-  are still derived here (`recompute_event`), SAP's net points only compared. The SAP
+  are still derived here (`compute_event`), SAP's net points only compared. The SAP
   **leaderboard name**, stored on the event as an `ExternalId` (VA-14), is the link
   between both; the season table stays ours. Embedding SAP's race viewer (B-20) needs SAP
   to list our domains in its frame-ancestors setting. **SAP is credited wherever its results

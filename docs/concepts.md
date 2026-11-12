@@ -219,16 +219,13 @@ The same seed yields the same draw — reproducible if disputed.
 One direction, no paths back:
 
 ```
-RaceEntry (raw data)  ->  app.scoring  ->  RaceEntry.points, EventStanding, SeriesStanding
+RaceEntry (raw data)  ->  app.scoring  ->  points, daily standings, series table (computed)
 ```
 
 **The authoritative source is the raw data** on `RaceEntry`: `code` (FINISHED, DNF, DSQ,
-RDG …), `finish_position`, `redress_points`. Points are **derived** and rewritten with
-every change — never set by hand. A protest decision changes one row of raw data; it never
-becomes a data migration.
-
-Stored anyway so queries, sorting, and export can read directly. **Read endpoints recalculate
-fresh** so a forgotten recalculation never shows wrong numbers anywhere.
+RDG …), `finish_position`, `redress_points`. Points are **computed on every read and never
+stored** (since 2026-11-12) — a stored copy is one a forgotten recompute leaves wrong. A
+protest decision changes one row of raw data; it never becomes a data migration.
 
 ### Race Scoring
 
@@ -246,9 +243,10 @@ club competes in matchday 1 but not matchday 2, the substitute score counts for 
 The reason is the same as for a race not sailed: **not competing must never be better than
 competing and finishing last.**
 
-Calculated in `api/app/services/standings.py::compute_series`. `SeriesStanding` records how
-many matchdays a team competed in and for how many they received substitute scores —
-otherwise a score could not be explained.
+Calculated in `api/app/services/standings.py::compute_series`. Each row says how
+many matchdays a team competed in and for how many it received substitute scores —
+otherwise a score could not be explained. Ties: the better result in the latest act, then
+the one before, in sailing order; a tie nothing breaks is shared.
 
 ---
 

@@ -10,7 +10,7 @@ club code), the 16 flight columns, per cell the fleet (``Race 1``–``Race 3``),
 (sail number, ``#rrggbb``) and the scored result.
 
 The points SAP shows are **not** copied: the raw result (finish position, code) is, and
-``recompute_event`` derives the points here, like after any result entry. SAP's net
+``compute_event`` derives the points here, like after any result entry. SAP's net
 points are then compared with ours, and a difference is reported — it is the check that
 the import understood the source.
 """
@@ -46,7 +46,6 @@ from app.imports.common import (
 from app.models import (
     Boat,
     Event,
-    EventStanding,
     Flight,
     League,
     Race,
@@ -59,7 +58,7 @@ from app.models import (
 from app.models.racing import ResultCode
 from app.schemas.admin import ScoringIn
 from app.services import event_state, race_state
-from app.services.standings import recompute_event
+from app.services.standings import compute_event
 from app.text import slugify
 
 SOURCE = Source.SAP_SAILING
@@ -621,7 +620,6 @@ async def _import_regatta(
         races,
         _local_day(datetime.fromtimestamp(last_scored / 1000, UTC)) if last_scored else None,
     )
-    await recompute_event(session, event.id)
     await _compare_net_points(session, report, regatta, event, competitors, teams)
 
 
@@ -1053,12 +1051,7 @@ async def _compare_net_points(
     competitors: list[dict[str, Any]],
     teams: dict[str, Team],
 ) -> None:
-    ours = {
-        standing.team_id: standing.net_points
-        for standing in (
-            await session.execute(select(EventStanding).where(EventStanding.event_id == event.id))
-        ).scalars()
-    }
+    ours = {score.team_id: score.net for score in await compute_event(session, event.id)}
     for competitor in competitors:
         team = teams.get(competitor["id"])
         theirs = competitor.get("netPoints")

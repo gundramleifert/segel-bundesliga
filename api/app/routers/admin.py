@@ -39,11 +39,11 @@ from app.schemas.admin import (
     TeamPenaltyOut,
 )
 from app.schemas.public import BoatOut, ClubOut, StartSequence, TeamOut
+from app.scoring import TeamScore
 from app.services import (
     CATALOG_REASON,
     event_entries,
     race_state,
-    recompute_after_change,
     require_editable_configuration,
     require_ready,
 )
@@ -56,6 +56,7 @@ from app.services.pairing_service import (
 )
 from app.services.results import SubmittedResult, record_results
 from app.services.sap_scoring import refuse_if_scored_on_sap
+from app.services.standings import compute_event
 from app.tracking.service import active_course
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -242,6 +243,7 @@ async def get_admin_races(
     )
     races: dict[int, AdminRaceOut] = {}
     race_rows: dict[int, Race] = {}
+    scored = await _Scored.of(session, event.id)
     for race, entry, flight, boat_number in (await session.execute(stmt)).all():
         row = races.get(race.id)
         if row is None:
@@ -251,7 +253,7 @@ async def get_admin_races(
         team = teams.get(entry.team_id)
         if team is None:
             continue
-        row.entries.append(_entry_out(entry, boat_number, team))
+        row.entries.append(_entry_out(entry, boat_number, team, scored))
 
     return AdminRacesOut(
         event_id=event.id,
@@ -278,15 +280,34 @@ def _race_out(race: Race, flight: Flight) -> AdminRaceOut:
     )
 
 
-def _entry_out(entry: RaceEntry, boat_number: int, team: TeamOut) -> RaceEntryOut:
+class _Scored:
+    """An event's points per (team, race), computed once for a listing — never stored."""
+
+    def __init__(self, scores: list[TeamScore]) -> None:
+        self.points = {
+            (score.team_id, race_id): points
+            for score in scores
+            for race_id, points in score.points_by_race.items()
+        }
+        self.discarded = {
+            (score.team_id, race_id) for score in scores for race_id in score.discarded_races
+        }
+
+    @classmethod
+    async def of(cls, session: AsyncSession, event_id: int) -> _Scored:
+        return cls(await compute_event(session, event_id))
+
+
+def _entry_out(entry: RaceEntry, boat_number: int, team: TeamOut, scored: _Scored) -> RaceEntryOut:
+    key = (entry.team_id, entry.race_id)
     return RaceEntryOut(
         boat_number=boat_number,
         team=team,
         code=entry.code,
         finish_position=entry.finish_position,
         redress_points=entry.redress_points,
-        points=entry.points,
-        is_discarded=entry.is_discarded,
+        points=scored.points.get(key),
+        is_discarded=key in scored.discarded,
     )
 
 
@@ -302,12 +323,13 @@ async def _admin_race(session: AsyncSession, event: Event, race_id: int) -> Admi
         .order_by(Boat.number)
     )
     out: AdminRaceOut | None = None
+    scored = await _Scored.of(session, event.id)
     for race, entry, flight, boat_number in (await session.execute(stmt)).all():
         if out is None:
             out = _race_out(race, flight)
         team = teams.get(entry.team_id)
         if team is not None:
-            out.entries.append(_entry_out(entry, boat_number, team))
+            out.entries.append(_entry_out(entry, boat_number, team, scored))
     assert out is not None, f"race {race_id} has no entries"
     return out
 
@@ -558,7 +580,6 @@ async def put_team_penalty(
     team.penalty_points = points
     team.penalty_note = note if points is not None else None
 
-    await recompute_after_change(session, event)
     await session.commit()
     hub.publish(event_topic(event.id))
     return TeamPenaltyOut(team_id=team.id, points=team.penalty_points, note=team.penalty_note)

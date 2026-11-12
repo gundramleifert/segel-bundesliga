@@ -17,6 +17,7 @@ from datetime import date, timedelta
 from typing import NamedTuple
 
 from sqlalchemy import delete, select
+from sqlalchemy.orm import selectinload
 
 from app.db import SessionLocal
 from app.imports.m2s import import_recorded_league
@@ -28,7 +29,6 @@ from app.models import (
     CrewRole,
     Event,
     EventCrew,
-    EventStanding,
     EventStatus,
     ExternalId,
     Flight,
@@ -39,7 +39,6 @@ from app.models import (
     Race,
     RaceEntry,
     Series,
-    SeriesStanding,
     Team,
     TeamMembership,
     Venue,
@@ -54,7 +53,7 @@ from app.services import people
 from app.services.event_readiness import event_readiness
 from app.services.pairing_service import PairingDraft, publish_pairing
 from app.services.participation import activate
-from app.services.standings import recompute_series
+from app.services.standings import compute_series
 from app.text import slugify
 
 YEAR = 2026
@@ -485,11 +484,6 @@ async def seed() -> None:
         if report.errors or report.conflicts or report.warnings or report.unassigned:
             raise SystemExit(f"The Manage2Sail import did not come in cleanly:\n{report.render()}")
 
-        # Points and standings are derived — build them once after creation.
-        for series in series_list:
-            await recompute_series(session, series.id)
-        await session.commit()
-
         # The 1. Liga 2027 is the 2026 tables' outcome, so its clubs are known.
         await _first_division_next_year(session)
         await _juniors_and_cup_next_year(session)
@@ -529,19 +523,19 @@ GO_UP = 4
 
 
 async def _ranked_clubs(session, slug: str) -> list[Club]:
-    """A series' clubs in the order of its final table."""
-    return list(
-        (
+    """A series' clubs in the order of its final table — computed, like every table."""
+    series = (await session.execute(select(Series).where(Series.slug == slug))).scalar_one()
+    rows = await compute_series(session, series.id)
+    teams = {row.team_id for row in rows}
+    clubs = {
+        team.id: team.club
+        for team in (
             await session.execute(
-                select(Club)
-                .join(Team, Team.club_id == Club.id)
-                .join(SeriesStanding, SeriesStanding.team_id == Team.id)
-                .join(Series, Series.id == SeriesStanding.series_id)
-                .where(Series.slug == slug)
-                .order_by(SeriesStanding.rank)
+                select(Team).options(selectinload(Team.club)).where(Team.id.in_(teams))
             )
         ).scalars()
-    )
+    }
+    return [clubs[row.team_id] for row in sorted(rows, key=lambda row: row.rank)]
 
 
 class Weekend2027(NamedTuple):
@@ -737,8 +731,6 @@ async def _wipe(session) -> None:
         Flight,
         Boat,
         EventCrew,
-        EventStanding,
-        SeriesStanding,
         TeamMembership,
         Team,
         Event,

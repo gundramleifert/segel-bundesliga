@@ -190,10 +190,10 @@ class RaceEntry(Base, TimestampMixin):
     in the same row. Deliberately no separate ``Result`` table: one join fewer, and the
     one-to-one relationship would be enforced anyway.
 
-    Authoritative are the raw fields ``code``, ``finish_position`` and
-    ``redress_points``. The points next to them are derived and rewritten on every
-    change — never set by hand. That way a protest decision stays a data change and never
-    becomes a data migration.
+    The raw fields ``code``, ``finish_position`` and ``redress_points`` are all there is:
+    points are computed from them on every read (``app/services/standings.py``), never
+    stored — a stored copy is one a forgotten recompute leaves wrong (review 2.1). A
+    protest decision stays a data change and never becomes a data migration.
     """
 
     __tablename__ = "race_entry"
@@ -213,13 +213,6 @@ class RaceEntry(Base, TimestampMixin):
     finish_position: Mapped[int | None] = mapped_column(default=None)
     # Only set for RDG: the score awarded by the jury.
     redress_points: Mapped[float | None] = mapped_column(default=None)
-
-    # The scored points. Derived: recalculated from the raw data above on every result
-    # change (app/services/standings.py). Stored so queries, exports and rankings can
-    # read it directly — never to be set by hand. A protest decision changes `code` or
-    # `finish_position`, after which it's recalculated.
-    points: Mapped[float | None] = mapped_column(default=None)
-    is_discarded: Mapped[bool] = mapped_column(default=False)
 
     race: Mapped[Race] = relationship(back_populates="entries")
     team: Mapped[Team] = relationship(back_populates="race_entries")

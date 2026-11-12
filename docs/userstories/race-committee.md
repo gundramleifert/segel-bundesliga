@@ -368,7 +368,7 @@ Acceptance criteria:
   series: a team's penalty in Berlin is no penalty in Kiel.
 - **Added once, never discarded:** the team's total and net for the matchday each grow by
   exactly that amount, whatever discards apply to its races. It is raw data like a
-  finish position — the points stay derived (`recompute_event`), and the series table
+  finish position — the points stay derived (`compute_event`), and the series table
   follows from the matchday's.
 - A reason can be noted with it. Setting it again replaces it; removing it is setting it
   to nothing. Every change is written to `AuditLog`.
@@ -398,7 +398,7 @@ Acceptance criteria:
 - **While the event is live, the site asks SAP every 10–30 s** for the leaderboard and
   takes what changed: finish position, code (DNF, OCS, …), redress, and the team's
   carried points (WL-4) — **raw data only**. The points are derived here as for every
-  event (`recompute_event`), and SAP's net points are compared with ours; a difference is
+  event (`compute_event`), and SAP's net points are compared with ours; a difference is
   reported to the event's race officers and the league office, never silently taken.
 - **Every open page follows** through the live stream (B-5), published after the commit.
 - **SAP is the source for this event**: entering or changing a result here is refused

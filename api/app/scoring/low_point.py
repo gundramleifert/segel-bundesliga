@@ -178,10 +178,21 @@ def score_event(
             )
         )
 
-    scores.sort(key=lambda s: _tiebreak_key(s, results_by_team[s.team_id]))
-    for rank, score in enumerate(scores, start=1):
+    keys = {s.team_id: _tiebreak_key(s, results_by_team[s.team_id]) for s in scores}
+    scores.sort(key=lambda s: keys[s.team_id])
+    for score, rank in zip(scores, shared_ranks([keys[s.team_id] for s in scores]), strict=True):
         score.rank = rank
     return scores
+
+
+def shared_ranks(keys: list) -> list[int]:
+    """Ranks for keys already sorted: equal keys share a rank, the next one skips —
+    1, 2, 2, 4. A tie nothing breaks is a tie; which team is listed first is not a
+    placement (review 2.5)."""
+    ranks: list[int] = []
+    for index, key in enumerate(keys):
+        ranks.append(ranks[-1] if index and key == keys[index - 1] else index + 1)
+    return ranks
 
 
 def _discard_count(races_sailed: int, config: ScoringConfig) -> int:

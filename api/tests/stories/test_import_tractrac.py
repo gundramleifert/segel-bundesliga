@@ -15,10 +15,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.imports.tractrac import FOLDER, import_tractrac
-from app.models import Base, Club, Event, EventStanding, League, RaceEntry, Series, Team
+from app.models import Base, Club, Event, League, RaceEntry, Series, Team
 from app.models.racing import ResultCode
 from app.seed import CLUBS
-from app.services.standings import recompute_series
+from app.services.standings import compute_series
+from tests.standings import table
 
 RECORDS = sorted(FOLDER.glob("*-liga-act-*.json"))
 
@@ -90,16 +91,18 @@ class TestTracTracImport:
                 event = await _event(session, record["division"], record["act"])
                 assert event.team_count == 18 and event.boat_count == 6
                 assert event.flight_count == 16
-                standings = {
-                    club: (rank, net)
-                    for club, rank, net in (
+                clubs = dict(
+                    (
                         await session.execute(
-                            select(Club.short_name, EventStanding.rank, EventStanding.net_points)
-                            .join(Team, Team.id == EventStanding.team_id)
+                            select(Team.id, Club.short_name)
                             .join(Club, Club.id == Team.club_id)
-                            .where(EventStanding.event_id == event.id)
+                            .where(Team.event_id == event.id)
                         )
                     ).all()
+                )
+                standings = {
+                    clubs[score.team_id]: (score.rank, score.net)
+                    for score in await table(session, event.id)
                 }
                 assert len(standings) == 18, path.name
                 for row in record["scoreboard"]:
@@ -121,7 +124,7 @@ class TestTracTracImport:
                         select(Series).where(Series.slug == f"dsbl-{division}-2026")
                     )
                 ).scalar_one()
-                rows = await recompute_series(session, series.id)
+                rows = await compute_series(session, series.id)
                 names = {
                     team_id: code
                     for team_id, code in (

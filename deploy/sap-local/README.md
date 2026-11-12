@@ -95,8 +95,10 @@ cd api && uv run python -m app.imports sap-send demo-2-2026-act-3 \
 Creates the event, a flight per race column (`F1`…) with its races as fleets
 (`Race 1`…), the teams under their club codes, and our pairing list race by race. Sending
 again keeps the teams and replaces the draw; an event whose first race was sailed is
-refused. The six boats come first because SAP's REST API makes a boat only together with
-a team — on SAP's server they are made once in its admin console. The account is
+refused. An act of a series lands in the season's leaderboard group (named as the series,
+made by the first send). The six boats come first: the league's boats sail every event,
+so they are made once per server — here by `boats.sh` (`POST /v1/boats`), on SAP's
+server in its admin console. The account is
 `SBL_SAP_USER` / `SBL_SAP_PASSWORD` (here `admin`/`admin`, the default).
 
 Enter results for it in the admin console, then read them back with the import below

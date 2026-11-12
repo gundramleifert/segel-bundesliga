@@ -4,38 +4,23 @@
 #
 #   deploy/sap-local/boats.sh
 #
-# A league sails six boats that every team takes in turn, but SAP's REST API creates a boat
-# only together with a team (`competitors/createandadd`), named after it. So the boats are
-# made once, outside the send: written into SAP's MongoDB here, the same document its
-# admin console stores, and the server restarted to read them. `boats.json` holds their
-# ids by our boat colour (`BOAT_COLORS`); the send (Story VA-15) takes that mapping.
+# A league sails six boats that every team takes in turn, so they are made once, outside
+# the send, through `POST /v1/boats` with the ids in `boats.json` (by our boat colour,
+# `BOAT_COLORS`); the send (Story VA-15) takes that mapping. A boat already there is kept.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
-compose=(docker compose -f "$here/compose.yaml")
+api="${SBL_SAP_DOUBLE:-http://127.0.0.1:8888}/sailingserver/api"
+auth=(-u "${SAP_USER:-admin}:${SAP_PASSWORD:-admin}")
 
-docs=$(python3 - "$here/boats.json" <<'PY'
-import json, sys
-boats = json.load(open(sys.argv[1]))
-print(json.dumps([
-    {"idtype": "java.util.UUID", "id": b["id"], "name": colour, "sailId": b["sailId"],
-     "color": b["color"],
-     "boatClass": {"name": "J/70", "typicallyStartsUpwind": True, "hullLengthInMeters": 6.93}}
-    for colour, b in boats.items()
-]))
+python3 - "$here/boats.json" <<'PY' | while read -r id query; do
+import json, sys, urllib.parse
+for colour, b in json.load(open(sys.argv[1])).items():
+    print(b["id"], urllib.parse.urlencode({"boatId": b["id"], "name": colour, "sailid": b["sailId"],
+                                           "displayColor": b["color"], "boatclass": "J/70"}))
 PY
-)
-"${compose[@]}" exec -T mongo mongosh --quiet test --eval "
-for (const b of $docs) db.BOATS.replaceOne({id: b.id}, b, {upsert: true})" >/dev/null
-"${compose[@]}" restart sailing-analytics >/dev/null 2>&1
-
-first=$(python3 -c "import json,sys; print(next(iter(json.load(open(sys.argv[1])).values()))['id'])" "$here/boats.json")
-for _ in $(seq 1 30); do
-  if curl -sf "http://127.0.0.1:8888/sailingserver/api/v1/boats/$first" -u admin:admin >/dev/null; then
-    echo "six boats on SAP Sailing — ids in deploy/sap-local/boats.json"
-    exit 0
+  if ! curl -sf -o /dev/null "${auth[@]}" "$api/v1/boats/$id"; then
+    curl -sf -o /dev/null "${auth[@]}" -X POST "$api/v1/boats?$query"
   fi
-  sleep 4
 done
-echo "boats.sh: SAP Sailing did not show the boats within two minutes" >&2
-exit 1
+echo "six boats on SAP Sailing — ids in deploy/sap-local/boats.json"

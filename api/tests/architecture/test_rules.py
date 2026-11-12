@@ -173,6 +173,26 @@ def test_a_service_never_imports_a_router():
     _ratchet("only routers and main import routers", found, {})
 
 
+# ------------------------------------------------------------------- derived, never stored
+
+
+def test_no_point_or_standing_is_stored():
+    """Points, ranks and tables are computed from ``RaceEntry``'s raw results on every
+    read (review 2.1): a stored copy is one that a forgotten recompute — an import, a
+    cancellation, a scoring change — leaves wrong. No table holds a standing, and no
+    column a point."""
+    from app.models import Base
+
+    found = set()
+    for table in Base.metadata.tables.values():
+        if "standing" in table.name:
+            found.add(f"table {table.name}")
+        for column in table.columns:
+            if column.name in {"points", "net_points", "total_points", "is_discarded", "rank"}:
+                found.add(f"{table.name}.{column.name}")
+    _ratchet("points and standings are computed, never stored", found, {})
+
+
 # ------------------------------------------------------------------- the API's words
 
 LOCALES = ROOT / "web" / "src" / "i18n" / "locales"

@@ -6964,7 +6964,8 @@ export const getSetParticipantsUrl = (eventId: number,) => {
  * for it. A club enters as many teams as its id is listed, no more than the event's
  * ``teams_per_club`` (Story VA-13); a team taken away is the highest-numbered. And once
  * racing has started the field is frozen altogether (Story VA-8) — the pairing list being
- * sailed was drawn for exactly these clubs.
+ * sailed was drawn for exactly these clubs. Before that, any change clears the draw,
+ * and a listed club's pending request is accepted (``services/registrations.py``).
  * @summary Set event participants
  */
 export const setParticipants = async (eventId: number,

@@ -11,7 +11,10 @@ back from the leaderboard this creates, by the name stored on the event.
 How SAP's REST API takes a league matchday (tried against `deploy/sap-local/`):
 
 - ``events/createEvent`` makes the event, its regatta and leaderboard, with boats that
-  change per race (``canBoatsOfCompetitorsChangePerRace``).
+  change per race (``canBoatsOfCompetitorsChangePerRace``). An act of a series refers to
+  the season's leaderboard group — named as the series, with an overall leaderboard, as
+  SAP keeps the league — made by the first send (``leaderboardgroups``), and every send
+  adds the act's leaderboard to it; an event in no series gets a group of its own.
 - A flight is a race column (``F1``…), its races are fleets (``Race 1``…) in SAP's
   colours for them, blue, yellow, green (``RACE_COLORS``). Fleets are set
   only when a series is *created* — ``updateOrCreateSeries`` ignores them on an existing
@@ -61,6 +64,7 @@ type BoatIds = dict[str, str]
 @dataclass
 class SendReport:
     leaderboard: str = ""
+    group: str = ""
     teams_created: int = 0
     teams_kept: int = 0
     races: int = 0
@@ -69,6 +73,7 @@ class SendReport:
     def render(self) -> str:
         lines = [
             f"leaderboard: {self.leaderboard}",
+            f"leaderboard group: {self.group or 'its own'}",
             f"teams: {self.teams_created} created, {self.teams_kept} already there",
             f"races with their draw: {self.races}",
         ]
@@ -111,13 +116,37 @@ class SapWriter:
         response = await self._http.get(f"{self._base}/v1/regattas/{quote(name, safe='')}")
         return None if response.status_code == 404 else response.raise_for_status().json()
 
-    async def create_event(self, event: Event, name: str) -> str | None:
-        """Creates the event, its regatta and leaderboard; answers SAP's id of the event."""
+    async def season_group(self, name: str) -> str:
+        """SAP's id of the season's leaderboard group, made with its overall leaderboard
+        if it is not there yet."""
+        path = f"v1/leaderboardgroups/{quote(name, safe='')}"
+        found = await self._http.get(f"{self._base}/{path}")
+        if found.status_code == 404:
+            made = await self._http.post(
+                f"{self._base}/v1/leaderboardgroups",
+                params={"name": name, "overallLeaderboardScoringScheme": "LOW_POINT"},
+            )
+            if made.is_success:
+                return made.json()["id"]
+            found = await self._http.get(f"{self._base}/{path}")  # another send made it
+        if found.is_error:
+            raise SapRefused(f"GET {path}: {found.status_code} {found.text[:200]}")
+        return found.json()["id"]
+
+    async def add_to_group(self, group: str, name: str) -> None:
+        """Puts the leaderboard in the group; one already there stays as it is."""
+        await self._call(
+            "POST", f"v1/leaderboardgroups/{group}/leaderboards", params={"leaderboardName": name}
+        )
+
+    async def create_event(self, event: Event, name: str, group: str | None) -> str | None:
+        """Creates the event, its regatta and leaderboard — in the season's group when
+        ``group`` names one, else with a group of its own; answers SAP's id of the event."""
         form: dict[str, Any] = {
             "eventName": name,
             "venuename": event.venue.city if event.venue else name,
             "createregatta": "true",
-            "createleaderboardgroup": "true",
+            "createleaderboardgroup": "false" if group else "true",
             "boatclassname": BOAT_CLASS,
             "numberofraces": "0",
             "canBoatsOfCompetitorsChangePerRace": "true",
@@ -129,6 +158,8 @@ class SapWriter:
             form["startdate"] = f"{event.starts_on.isoformat()}T08:00:00Z"
         if event.ends_on:
             form["enddate"] = f"{event.ends_on.isoformat()}T18:00:00Z"
+        if group:
+            form["leaderboardgroupids"] = group
         created = await self._call("POST", "v1/events/createEvent", data=form)
         return created.json().get("eventid") if created.content else None
 
@@ -268,8 +299,12 @@ async def send_event(
         raise SendRefused("sap-boat-missing", f"no SAP boat for {', '.join(missing)}")
     name = report.leaderboard = leaderboard_name(event)
     try:
+        group = await writer.season_group(event.series.name) if event.series else None
         if await writer.regatta(name) is None:
-            event.sap_event_id = await writer.create_event(event, name)
+            event.sap_event_id = await writer.create_event(event, name, group)
+        if group:
+            await writer.add_to_group(group, name)
+            report.group = event.series.name
         races_per_flight = max((len(f.races) for f in event.flights), default=0)
         await writer.flights(name, len(event.flights), races_per_flight)
 

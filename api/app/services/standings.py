@@ -1,12 +1,13 @@
-"""Computing and storing the standings.
+"""Computing the standings — on every read, never stored.
 
 The flow runs in exactly one direction:
 
-    RaceEntry (raw data) -> app.scoring -> RaceEntry.points, EventStanding, SeriesStanding
+    RaceEntry (raw data) -> app.scoring -> points, daily standings, series table
 
-The stored points and tables are **derived**. They're rewritten after every change to the
-raw data and can be fully rebuilt at any time. Nothing outside this module may write them
-— otherwise it would no longer be clear which number is authoritative.
+Nothing here is written back (decided 2026-11-12, review 2.1): the stored copies this
+module once kept were read by almost nobody and left stale by every write that forgot to
+refresh them — an import, a cancellation, a scoring change. 48 races for 18 teams score in
+microseconds; a number that is computed cannot be out of date.
 
 A protest decision therefore changes ``code`` or ``finish_position`` on a single row;
 everything else follows from that.
@@ -17,16 +18,15 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.competition import Event, EventStatus, Series
 from app.models.org import Team, TeamStatus
 from app.models.racing import Flight, Race, RaceEntry
-from app.models.standings import EventStanding, SeriesStanding
 from app.scoring import RaceResult, ScoringConfig, TeamScore, score_event
+from app.scoring.low_point import shared_ranks
 
 # Only what is being raced, or has been raced, counts for the series.
 SCORED_STATES = (EventStatus.LIVE, EventStatus.FINAL)
@@ -112,53 +112,6 @@ def points_by_flight(score: TeamScore, flights: Mapping[int, int]) -> dict[int, 
     for race_id, points in score.points_by_race.items():
         sums[flights[race_id]] += points
     return dict(sums)
-
-
-async def recompute_event(session: AsyncSession, event_id: int) -> list[TeamScore]:
-    """Computes the daily standings and writes points and table forward.
-
-    Call after every result change. Doesn't commit itself — the caller decides when the
-    change takes effect.
-    """
-    scores = await compute_event(session, event_id)
-    now = datetime.now(UTC)
-
-    entries = (
-        await session.execute(
-            select(RaceEntry)
-            .join(Race, RaceEntry.race_id == Race.id)
-            .join(Flight, Race.flight_id == Flight.id)
-            .where(Flight.event_id == event_id)
-        )
-    ).scalars()
-
-    points_by_team_race = {
-        (score.team_id, race_id): points
-        for score in scores
-        for race_id, points in score.points_by_race.items()
-    }
-    discarded = {(score.team_id, race_id) for score in scores for race_id in score.discarded_races}
-
-    for entry in entries:
-        key = (entry.team_id, entry.race_id)
-        entry.points = points_by_team_race.get(key)
-        entry.is_discarded = key in discarded
-
-    await session.execute(delete(EventStanding).where(EventStanding.event_id == event_id))
-    session.add_all(
-        EventStanding(
-            event_id=event_id,
-            team_id=score.team_id,
-            rank=score.rank,
-            total_points=score.total,
-            net_points=score.net,
-            races_scored=len(score.points_by_race),
-            computed_at=now,
-        )
-        for score in scores
-    )
-    await session.flush()
-    return scores
 
 
 @dataclass
@@ -290,70 +243,19 @@ async def compute_series(
         row.points = float(sum(row.event_ranks.values()))
 
     rows = [row for row in rows_by_team.values() if row.event_ranks]
-    # Ties: the better result in the most recent act decides.
-    rows.sort(key=lambda row: (row.points, _latest_rank(row)))
-    for position, row in enumerate(rows, start=1):
-        row.rank = position
+    return rank_series(rows, [event.id for event in scored_events])
+
+
+def rank_series(rows: list[SeriesRow], sailed: list[int]) -> list[SeriesRow]:
+    """Sorts and ranks a series table. ``sailed`` is the acts' ids in sailing order
+    (matchday, then date). Ties: the better result in the most recent act decides, then
+    the one before — never the act's id (review 2.5); what nothing breaks is shared."""
+    latest_first = list(reversed(sailed))
+
+    def key(row: SeriesRow) -> tuple:
+        return (row.points, tuple(row.event_ranks.get(event_id, 999) for event_id in latest_first))
+
+    rows.sort(key=key)
+    for row, rank in zip(rows, shared_ranks([key(row) for row in rows]), strict=True):
+        row.rank = rank
     return rows
-
-
-async def recompute_series(
-    session: AsyncSession,
-    series_id: int,
-    recomputed: Mapping[int, list[TeamScore]] | None = None,
-) -> list[SeriesRow]:
-    """Rebuilds the series table and writes it forward.
-
-    Every scored act is recomputed first — except those in ``recomputed``, whose daily
-    standings the caller has just written.
-    """
-    events = (
-        await session.execute(select(Event.id, Event.status).where(Event.series_id == series_id))
-    ).all()
-    event_scores: dict[int, list[TeamScore]] = {}
-    for event_id, status in events:
-        if status in SCORED_STATES:
-            scores = (recomputed or {}).get(event_id)
-            if scores is None:
-                scores = await recompute_event(session, event_id)
-            event_scores[event_id] = scores
-
-    rows = await compute_series(session, series_id, event_scores)
-
-    now = datetime.now(UTC)
-    await session.execute(delete(SeriesStanding).where(SeriesStanding.series_id == series_id))
-    session.add_all(
-        SeriesStanding(
-            series_id=series_id,
-            team_id=row.team_id,
-            rank=row.rank,
-            points=row.points,
-            events_sailed=row.events_sailed,
-            events_missed=len(row.missed_events),
-            computed_at=now,
-        )
-        for row in rows
-    )
-    await session.flush()
-    return rows
-
-
-async def recompute_after_change(session: AsyncSession, event: Event) -> None:
-    """What every change to an event's raw data is followed by: its daily standings, then
-    its series' table — each act scored once. Doesn't commit."""
-    scores = await recompute_event(session, event.id)
-    if event.series_id is not None:
-        await recompute_series(session, event.series_id, {event.id: scores})
-
-
-def _latest_rank(row: SeriesRow) -> int:
-    if not row.event_ranks:
-        return 999
-    return row.event_ranks[max(row.event_ranks)]
-
-
-# The public API's read paths recompute on every request: 48 races for 18 teams is a
-# matter of microseconds, so a forgotten recompute can never lead to wrong numbers on the
-# website. The stored tables exist for sorting, filtering and export.
-event_standings = compute_event
-series_standings = compute_series

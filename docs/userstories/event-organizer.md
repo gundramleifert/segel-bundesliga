@@ -282,10 +282,17 @@ Acceptance criteria:
 - **What fails is named** — SAP unreachable, refused permission on SAP's server, a call
   SAP rejected, with the step it failed at — and the site keeps nothing half-sent as
   "sent"; the next send starts over.
-- **The six boats are SAP's already**: a league's boats sail every event, and SAP's REST
-  API makes a boat only with a team — so they are made once per server (SAP's admin
-  console; locally `deploy/sap-local/boats.sh`) and the send takes our colour → SAP's
-  boat id. A team and a boat sent are linked (`ExternalId`; a boat by leaderboard and
+- **An act of a series goes into the season's leaderboard group on SAP**, as SAP keeps
+  the league: one group per series, named as the series (`2. Segel-Bundesliga 2027`),
+  with an overall leaderboard, holding every act's leaderboard, and each act's event
+  refers to it. The first send of the season creates the group, every send adds its
+  leaderboard (adding one already there changes nothing). An event in no series gets a
+  group of its own. Built on `POST /api/v1/leaderboardgroups` and
+  `POST /api/v1/leaderboardgroups/{name}/leaderboards` (SAP PR #6325, merged 2026-11-04).
+- **The six boats are SAP's already**: a league's boats sail every event, so they are
+  made once per server (SAP's admin console; locally `deploy/sap-local/boats.sh`, through
+  `POST /api/v1/boats`) and the send takes our colour → SAP's boat id. A team and a boat
+  sent are linked (`ExternalId`; a boat by leaderboard and
   SAP id together, as SAP's boats sail every act), which is how WL-5 puts each result on
   the team and boat of our draw — a club's second team is no club code (`KYC 2`).
 - Shown on SAP's site only while the event is published here.
@@ -296,9 +303,8 @@ Acceptance criteria:
 What is built: `POST /api/events/{id}/sap/send` (whoever may edit the event), on
 `app/imports/sap_send.py` — also a command, `python -m app.imports sap-send <event>
 --boats boats.json`. The server's SAP account and boats are settings (`SBL_SAP_USER`,
-`SBL_SAP_PASSWORD` — a secret —, `SBL_SAP_BOATS`). The button is *Set up › Scoring* on the event's screen (VA-14). Still open: the season's
-leaderboard group on SAP (one per season, as SAP keeps the league — the REST call for it is
-proposed in SAP's PR #6325), and SAP's real account for us.
+`SBL_SAP_PASSWORD` — a secret —, `SBL_SAP_BOATS`). The button is *Set up › Scoring* on the event's screen (VA-14). Still open: SAP's
+real account for us.
 
 Tests: `api/tests/stories/test_sap_send.py::TestSendTheEventToSap`,
 `api/tests/stories/test_sap_send.py::TestBothDirections`,

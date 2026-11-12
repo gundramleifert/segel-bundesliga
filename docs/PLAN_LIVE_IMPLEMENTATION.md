@@ -17,7 +17,7 @@ says why the order is what it is.
 
 | Piece | State |
 |---|---|
-| Result entry | ✅ `PUT /api/admin/events/{id}/races/{race_id}/result` → `recompute_event` (`app/routers/admin.py`) |
+| Result entry | ✅ `PUT /api/admin/events/{id}/races/{race_id}/result` → `compute_event` (`app/routers/admin.py`) |
 | Daily standings | ✅ `GET /api/events/{id}` recomputes on every read |
 | Season standings incl. the running day | ✅ `SCORED_STATES` already contains `LIVE` |
 | Pairing list with per-race status | ✅ `PairingRow.status` |

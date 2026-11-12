@@ -18,6 +18,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import AuditLog, Boat, Event, Flight, Race, RaceEntry, RaceStatus, ResultCode
 from app.models.auth import Role
+from tests.standings import points, table
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
@@ -114,10 +115,12 @@ class TestEnteringResults:
 
         entries = await _entries(race_id)
         assert {entry.code for entry in entries} == {ResultCode.FINISHED}
-        assert all(entry.points is not None for entry in entries)
+        async with SessionLocal() as session:
+            derived = await points(session, event_id)
+        assert all((entry.team_id, race_id) in derived for entry in entries)
         winner = next(entry for entry in entries if entry.finish_position == 1)
         # Low-point scoring: first place scores 1 point.
-        assert winner.points == 1.0
+        assert derived[(winner.team_id, race_id)] == 1.0
 
         # Undoing a tap with a null code: the boat had a place; now it has none.
         cleared = await client.put(
@@ -132,7 +135,8 @@ class TestEnteringResults:
         assert after[boats[2]].finish_position is None
         # Points go with it — a boat with no result scores nothing, rather than keeping
         # the points its old place earned.
-        assert after[boats[2]].points is None
+        async with SessionLocal() as session:
+            assert (after[boats[2]].team_id, race_id) not in await points(session, event_id)
         # And the boats that were not mentioned keep what they had.
         assert after[boats[0]].finish_position == 1
 
@@ -210,7 +214,7 @@ class TestEnteringResults:
             boat_number = (
                 await session.execute(select(Boat.number).where(Boat.id == entry.boat_id))
             ).scalar_one()
-            original_points = entry.points
+            original_points = (await points(session, event_id))[(entry.team_id, race_id)]
 
         headers = await _race_officer(client, caplog, "wl-ro4@example.com")
 
@@ -226,8 +230,9 @@ class TestEnteringResults:
             corrected = await session.get(RaceEntry, entry.id)
             assert corrected.code == ResultCode.RDG
             assert corrected.finish_position is None
-            assert corrected.points == 2.5
-            assert corrected.points != original_points
+            now = (await points(session, event_id))[(corrected.team_id, race_id)]
+            assert now == 2.5
+            assert now != original_points
 
     async def test_a_stale_submission_still_wins_but_the_discarded_state_is_logged(
         self, client, caplog
@@ -350,21 +355,12 @@ class TestMatchdayPenalty:
 
     async def _team(self, slug: str) -> tuple[int, int, float]:
         """(event id, a team entered there, that team's current net points)."""
-        from app.models import EventStanding
-
         async with SessionLocal() as session:
             event_id = (
                 await session.execute(select(Event.id).where(Event.slug == slug))
             ).scalar_one()
-            standing = (
-                await session.execute(
-                    select(EventStanding)
-                    .where(EventStanding.event_id == event_id)
-                    .order_by(EventStanding.rank)
-                    .limit(1)
-                )
-            ).scalar_one()
-            return event_id, standing.team_id, standing.net_points
+            first = (await table(session, event_id))[0]
+            return event_id, first.team_id, first.net
 
     async def test_a_penalty_is_added_once_and_shown_in_the_table(self, client, caplog):
         """Story WL-4: the team's net grows by exactly the penalty, the row says why, and

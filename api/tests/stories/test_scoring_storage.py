@@ -1,78 +1,37 @@
-"""Points are stored — and recomputed after a correction.
+"""Points are computed from the raw results, on every read — never stored (review 2.1).
 
-The stored points are derived. The test that matters: when race officials enter a protest
-decision, points and standings must move without anyone touching them by hand.
+The test that matters: when race officials enter a protest decision, points and standings
+move without anyone touching them by hand, and without anyone remembering to recompute —
+there is nothing stored that could stay behind.
 """
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import (
-    EventStanding,
-    Flight,
-    Race,
-    RaceEntry,
-    ResultCode,
-)
+from app.models import Flight, Race, RaceEntry, ResultCode
 from app.models.auth import Role
-from app.services import recompute_event
+from app.scoring.low_point import shared_ranks
+from app.services.standings import compute_event
 
 
-class TestStoredPoints:
-    async def test_every_scored_result_has_stored_points(self, season):
-        event_id = season.final
+class TestComputedPoints:
+    async def test_the_event_table_covers_every_team(self, season):
         async with SessionLocal() as session:
-            unscoredcount = (
-                await session.execute(
-                    select(func.count())
-                    .select_from(RaceEntry)
-                    .join(Race, RaceEntry.race_id == Race.id)
-                    .join(Flight, Race.flight_id == Flight.id)
-                    .where(
-                        Flight.event_id == event_id,
-                        RaceEntry.code.is_not(None),
-                        RaceEntry.points.is_(None),
-                    )
-                )
-            ).scalar_one()
-        assert unscoredcount == 0
+            scores = await compute_event(session, season.final)
 
-    async def test_unraced_entry_has_no_points(self, season):
-        planned = season.planned
-        async with SessionLocal() as session:
-            with_points = (
-                await session.execute(
-                    select(func.count())
-                    .select_from(RaceEntry)
-                    .join(Race, RaceEntry.race_id == Race.id)
-                    .join(Flight, Race.flight_id == Flight.id)
-                    .where(Flight.event_id == planned, RaceEntry.points.is_not(None))
-                )
-            ).scalar_one()
-        assert with_points == 0
-
-    async def test_stored_event_standing_covers_all_teams(self, season):
-        event_id = season.final
-        async with SessionLocal() as session:
-            rows = (
-                (
-                    await session.execute(
-                        select(EventStanding)
-                        .where(EventStanding.event_id == event_id)
-                        .order_by(EventStanding.rank)
-                    )
-                )
-                .scalars()
-                .all()
-            )
-
-        assert len(rows) == 18
-        assert [row.rank for row in rows] == list(range(1, 19))
+        assert len(scores) == 18
         # Low-point: lower is better.
-        assert [row.net_points for row in rows] == sorted(row.net_points for row in rows)
+        assert [score.net for score in scores] == sorted(score.net for score in scores)
+
+    async def test_an_unraced_entry_has_no_points(self, season):
+        async with SessionLocal() as session:
+            scores = await compute_event(session, season.planned)
+
+        assert all(not score.points_by_race for score in scores)
 
     async def test_protest_decision_pulls_points_along(self, season):
-        """The actual reason for separating raw data and points."""
+        """The actual reason for separating raw data and points: one row changes, and
+        the next read says so — with no recompute call to forget."""
         event_id = season.final
 
         async with SessionLocal() as session:
@@ -89,39 +48,51 @@ class TestStoredPoints:
                     .limit(1)
                 )
             ).scalar_one()
-            entry_id, team_id = entry.id, entry.team_id
-            before = entry.points
-            assert before == 1.0
+            entry_id, team_id, race_id = entry.id, entry.team_id, entry.race_id
+
+            def points(scores) -> float:
+                return next(s for s in scores if s.team_id == team_id).points_by_race[race_id]
+
+            assert points(await compute_event(session, event_id)) == 1.0
 
             # The jury disqualifies the winner of this race.
             entry.code = ResultCode.DSQ
             entry.finish_position = None
-            await recompute_event(session, event_id)
             await session.commit()
 
         async with SessionLocal() as session:
-            after = (
-                await session.execute(select(RaceEntry).where(RaceEntry.id == entry_id))
-            ).scalar_one()
             # Six boats in the race: DSQ counts participant count + 1.
-            assert after.points == 7.0
-
-            standing = (
-                await session.execute(
-                    select(EventStanding).where(
-                        EventStanding.event_id == event_id,
-                        EventStanding.team_id == team_id,
-                    )
-                )
-            ).scalar_one()
-            # From 1 point to 7 — the event standing must have worsened by 6.
-            assert standing.net_points > 0
+            assert points(await compute_event(session, event_id)) == 7.0
 
             # The season is shared by the run: the protest is withdrawn again.
+            after = await session.get(RaceEntry, entry_id)
             after.code = ResultCode.FINISHED
             after.finish_position = 1
-            await recompute_event(session, event_id)
             await session.commit()
+
+
+class TestTies:
+    """Review 2.5: a tie nothing breaks is shared; the series breaks ties by the acts in
+    their sailing order."""
+
+    def test_equal_keys_share_a_rank_and_the_next_one_skips(self):
+        assert shared_ranks([1, 2, 2, 3]) == [1, 2, 2, 4]
+        assert shared_ranks([(5.0, (1,)), (5.0, (1,))]) == [1, 1]
+        assert shared_ranks([]) == []
+
+    def test_the_series_tie_break_reads_the_latest_act_by_its_order_not_its_id(self):
+        """Act 2 was created first, so its id (10) is lower than act 1's (20). Two clubs
+        tie on points; the better in act 2 — the one sailed last — is ahead. Read by the
+        highest id, act 1 would have decided."""
+        from app.services.standings import SeriesRow, rank_series
+
+        a = SeriesRow(team_id=1, points=3.0, event_ranks={20: 1, 10: 2})
+        b = SeriesRow(team_id=2, points=3.0, event_ranks={20: 2, 10: 1})
+        c = SeriesRow(team_id=3, points=3.0, event_ranks={20: 2, 10: 1})
+
+        ranked = rank_series([a, b, c], sailed=[20, 10])
+
+        assert [(row.team_id, row.rank) for row in ranked] == [(2, 1), (3, 1), (1, 3)]
 
 
 class TestSeriesStanding:

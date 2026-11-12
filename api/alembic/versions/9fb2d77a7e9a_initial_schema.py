@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: ad7710c39b69
+Revision ID: 9fb2d77a7e9a
 Revises:
-Create Date: 2026-11-11 23:38:11.963689
+Create Date: 2026-11-12 21:17:51.204893
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "ad7710c39b69"
+revision: str = "9fb2d77a7e9a"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -1260,41 +1260,6 @@ def upgrade() -> None:
     op.create_index(op.f("ix_event_crew_person_id"), "event_crew", ["person_id"], unique=False)
     op.create_index(op.f("ix_event_crew_team_id"), "event_crew", ["team_id"], unique=False)
     op.create_table(
-        "event_standing",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("event_id", sa.Integer(), nullable=False),
-        sa.Column("team_id", sa.Integer(), nullable=False),
-        sa.Column("rank", sa.Integer(), nullable=False),
-        sa.Column("total_points", sa.Float(), nullable=False),
-        sa.Column("net_points", sa.Float(), nullable=False),
-        sa.Column("races_scored", sa.Integer(), nullable=False),
-        sa.Column("computed_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.ForeignKeyConstraint(
-            ["event_id"], ["event.id"], name=op.f("fk_event_standing_event_id_event")
-        ),
-        sa.ForeignKeyConstraint(
-            ["team_id"], ["team.id"], name=op.f("fk_event_standing_team_id_team")
-        ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_event_standing")),
-        sa.UniqueConstraint("event_id", "team_id", name=op.f("uq_event_standing_event_id")),
-    )
-    op.create_index(
-        op.f("ix_event_standing_event_id"), "event_standing", ["event_id"], unique=False
-    )
-    op.create_index(op.f("ix_event_standing_team_id"), "event_standing", ["team_id"], unique=False)
-    op.create_table(
         "expense_item",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("claim_id", sa.Integer(), nullable=False),
@@ -1503,43 +1468,6 @@ def upgrade() -> None:
     op.create_index(op.f("ix_race_flight_id"), "race", ["flight_id"], unique=False)
     op.create_index(op.f("ix_race_sequence"), "race", ["sequence"], unique=False)
     op.create_table(
-        "series_standing",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("series_id", sa.Integer(), nullable=False),
-        sa.Column("team_id", sa.Integer(), nullable=False),
-        sa.Column("rank", sa.Integer(), nullable=False),
-        sa.Column("points", sa.Float(), nullable=False),
-        sa.Column("events_sailed", sa.Integer(), nullable=False),
-        sa.Column("events_missed", sa.Integer(), nullable=False),
-        sa.Column("computed_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.ForeignKeyConstraint(
-            ["series_id"], ["series.id"], name=op.f("fk_series_standing_series_id_series")
-        ),
-        sa.ForeignKeyConstraint(
-            ["team_id"], ["team.id"], name=op.f("fk_series_standing_team_id_team")
-        ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_series_standing")),
-        sa.UniqueConstraint("series_id", "team_id", name=op.f("uq_series_standing_series_id")),
-    )
-    op.create_index(
-        op.f("ix_series_standing_series_id"), "series_standing", ["series_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_series_standing_team_id"), "series_standing", ["team_id"], unique=False
-    )
-    op.create_table(
         "team_membership",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("team_id", sa.Integer(), nullable=False),
@@ -1679,8 +1607,6 @@ def upgrade() -> None:
         sa.Column("code", sa.String(length=16), nullable=True),
         sa.Column("finish_position", sa.Integer(), nullable=True),
         sa.Column("redress_points", sa.Float(), nullable=True),
-        sa.Column("points", sa.Float(), nullable=True),
-        sa.Column("is_discarded", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -1725,9 +1651,6 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_team_membership_team_id"), table_name="team_membership")
     op.drop_index(op.f("ix_team_membership_person_id"), table_name="team_membership")
     op.drop_table("team_membership")
-    op.drop_index(op.f("ix_series_standing_team_id"), table_name="series_standing")
-    op.drop_index(op.f("ix_series_standing_series_id"), table_name="series_standing")
-    op.drop_table("series_standing")
     op.drop_index(op.f("ix_race_sequence"), table_name="race")
     op.drop_index(op.f("ix_race_flight_id"), table_name="race")
     op.drop_table("race")
@@ -1749,9 +1672,6 @@ def downgrade() -> None:
     op.drop_table("mark")
     op.drop_index(op.f("ix_expense_item_claim_id"), table_name="expense_item")
     op.drop_table("expense_item")
-    op.drop_index(op.f("ix_event_standing_team_id"), table_name="event_standing")
-    op.drop_index(op.f("ix_event_standing_event_id"), table_name="event_standing")
-    op.drop_table("event_standing")
     op.drop_index(op.f("ix_event_crew_team_id"), table_name="event_crew")
     op.drop_index(op.f("ix_event_crew_person_id"), table_name="event_crew")
     op.drop_index(op.f("ix_event_crew_event_id"), table_name="event_crew")

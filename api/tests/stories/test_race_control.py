@@ -270,7 +270,7 @@ class TestRecallAndAbandon:
         assert body["started_at"] is None
         assert all(entry["code"] is None for entry in body["entries"])
         cleared = await entries_of(race_id)
-        assert all(entry.code is None and entry.points is None for entry in cleared)
+        assert all(entry.code is None for entry in cleared)
         assert await audit_actions(race_id) == ["start", "recall"]
 
         # A recalled first race leaves the event frozen: the start's audit row outlives it.

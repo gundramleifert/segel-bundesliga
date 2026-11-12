@@ -31,7 +31,6 @@ from app.models import (
     Club,
     Event,
     EventDocumentKind,
-    EventStanding,
     EventStatus,
     ExternalId,
     Flight,
@@ -43,6 +42,7 @@ from app.models import (
     Team,
 )
 from app.services.standings import compute_series
+from tests.standings import table
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 BERLIN = "1. Segel-Bundesliga 2023 - Berlin (1)"
@@ -219,15 +219,15 @@ class TestSapImport:
             # 14 of the 16 flights were sailed; the last two were not.
             assert results == 18 * 14
 
+            first = (await table(session, event.id))[0]
             winner = (
                 await session.execute(
-                    select(Club.short_name, EventStanding.net_points)
-                    .join(Team, Team.id == EventStanding.team_id)
-                    .join(Club, Club.id == Team.club_id)
-                    .where(EventStanding.event_id == event.id, EventStanding.rank == 1)
+                    select(Club.short_name)
+                    .join(Team, Team.club_id == Club.id)
+                    .where(Team.id == first.team_id)
                 )
-            ).one()
-            assert tuple(winner) == ("MSC", 32.0)
+            ).scalar_one()
+            assert (winner, first.net) == ("MSC", 32.0)
 
             # A club with no crest takes SAP's.
             msc = (await session.execute(select(Club).where(Club.short_name == "MSC"))).scalar_one()

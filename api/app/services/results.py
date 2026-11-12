@@ -26,7 +26,6 @@ from app.models.racing import Boat, Race, RaceEntry, ResultCode
 from app.problems import Problem
 from app.services import race_state
 from app.services.audit import EntityType, audit
-from app.services.standings import recompute_after_change
 
 # Codes for which the underlying finish order (``finish_position``) is real and thus
 # participates in the "no two boats in the same place" check — RDG and the
@@ -217,5 +216,4 @@ async def record_results(
         # reached through the result rather than a button of its own.
         race_state.finish_race(session, race, actor=actor)
 
-    await recompute_after_change(session, event)
     return RecordedResults(overwrote_existing=overwrote_existing)

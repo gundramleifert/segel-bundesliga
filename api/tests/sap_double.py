@@ -105,22 +105,31 @@ class LocalSap:
             for competitor, boat in (line.split() for line in out.splitlines() if line.strip())
         )
 
-    def delete(self) -> None:
-        """Deletes the event at SAP with its regatta, leaderboard and group — as someone
-        at SAP might, or `deploy/sap-local/clean.sh` does."""
+    def event(self) -> dict[str, Any]:
+        """SAP's event of this act — the one of the same name."""
         # A draft act is a non-public event at SAP, which the list leaves out unless asked.
         response = self._http.get(f"{API}/v1/events", params={"showNonPublic": "true"})
-        events = response.raise_for_status().json()
-        for event in events:
-            if event["name"] == self.leaderboard:
-                self._http.delete(
-                    f"{API}/v1/events/{event['id']}",
-                    params={
-                        "withLeaderboardGroups": "true",
-                        "withLeaderboards": "true",
-                        "withRegattas": "true",
-                    },
-                ).raise_for_status()
+        return next(e for e in response.raise_for_status().json() if e["name"] == self.leaderboard)
+
+    def group(self, name: str) -> dict[str, Any]:
+        """A leaderboard group, by name — the season's, which holds every act."""
+        response = self._http.get(f"{API}/v1/leaderboardgroups/{quote(name, safe='')}")
+        return response.raise_for_status().json()
+
+    def delete(self) -> None:
+        """Deletes the event at SAP with its regatta and leaderboard — as someone at SAP
+        might. Not with its leaderboard groups: an act's group is the season's, shared
+        with every other act, and SAP would delete every leaderboard in it."""
+        try:
+            event = self.event()
+        except StopIteration:
+            event = None
+        if event:
+            self._http.delete(f"{API}/v1/events/{event['id']}").raise_for_status()
+        # The regatta goes with its leaderboard, which leaves the season's group with it.
+        response = self._http.delete(f"{API}/v1/regattas/{quote(self.leaderboard, safe='')}")
+        if response.status_code != 404:
+            response.raise_for_status()
 
     def discard(self, thresholds: list[int]) -> None:
         """Gives SAP's ``Flights`` series discards — from ``thresholds[i]`` races on, one

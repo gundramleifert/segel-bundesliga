@@ -41,6 +41,7 @@ from app.models import (
 )
 from tests import sap_double
 from tests.sap_double import LocalSap
+from tests.standings import points
 
 pytestmark = pytest.mark.skipif(
     not sap_double.available(), reason="no local SAP Sailing (deploy/sap-local/README.md)"
@@ -62,6 +63,11 @@ DRAW = [
 ]
 
 
+#: The series every test's act belongs to — SAP's season group of that name is shared by
+#: all of them, and stays: only each test's own event, regatta and leaderboard go.
+SEASON = "2. Segel-Bundesliga 2027"
+
+
 @pytest.fixture
 def city() -> str:
     return f"Warnemünde {uuid4().hex[:6]}"
@@ -70,7 +76,7 @@ def city() -> str:
 @pytest.fixture
 def name(city) -> str:
     """The leaderboard the send names at SAP (`sap_send.leaderboard_name`)."""
-    return f"2. Segel-Bundesliga 2027 - {city} (4)"
+    return f"{SEASON} - {city} (4)"
 
 
 @pytest.fixture(autouse=True)
@@ -96,7 +102,7 @@ async def db(empty_database, city):
         }
         series = Series(
             slug="dsbl-2-2027",
-            name="2. Segel-Bundesliga 2027",
+            name=SEASON,
             short_name="2. Liga 2027",
             year=2027,
             level=2,
@@ -207,6 +213,20 @@ class TestSendTheEventToSap:
             "NRV 1": BOATS["BLACK"],
             "KYC 2": BOATS["GREEN"],
         }
+
+    async def test_the_act_is_in_the_seasons_leaderboard_group(self, db, sap, name):
+        """Story VA-15: an act of a series goes into the season's leaderboard group, as SAP
+        keeps the league — the group named as the series, with an overall leaderboard,
+        and the act's event referring to it. Sending again adds nothing twice."""
+        await _send(db)
+        report = await _send(db)
+
+        assert report.errors == [] and report.group == SEASON
+        group = sap.group(SEASON)
+        assert group["hasOverallLeaderboard"] is True
+        held = [b["name"] if isinstance(b, dict) else b for b in group["leaderboards"]]
+        assert held.count(name) == 1
+        assert [g["name"] for g in sap.event()["leaderboardGroups"]] == [SEASON]
 
     async def test_sending_again_replaces_the_draw_and_keeps_the_teams(self, db, sap, name):
         """Story VA-15: a second send — after a new draw — makes no second event and no
@@ -324,7 +344,8 @@ class TestBothDirections:
                         Race.sequence,
                         RaceEntry.finish_position,
                         Boat.color,
-                        RaceEntry.points,
+                        RaceEntry.team_id,
+                        RaceEntry.race_id,
                     )
                     .join(RaceEntry, RaceEntry.team_id == Team.id)
                     .join(Race, Race.id == RaceEntry.race_id)
@@ -333,6 +354,9 @@ class TestBothDirections:
                     .order_by(Race.sequence, RaceEntry.finish_position)
                 )
             ).all()
+            event_id = (await session.execute(select(Event.id))).scalar_one()
+            derived = await points(session, event_id)
+        rows = [(*r[:4], derived[(r[4], r[5])]) for r in rows]
         # On the boat our draw gave each team, with the points derived here.
         assert [tuple(r) for r in rows] == [
             ("ASVW 1", 1, 1, "BLACK", 1.0),
@@ -354,13 +378,6 @@ class TestBothDirections:
 
         assert sum("net points here" in w for w in report.warnings) == 2
         async with db() as session:
-            points = (
-                (
-                    await session.execute(
-                        select(RaceEntry.points).where(RaceEntry.finish_position.is_not(None))
-                    )
-                )
-                .scalars()
-                .all()
-            )
-        assert sorted(points) == [1.0, 2.0]
+            event_id = (await session.execute(select(Event.id))).scalar_one()
+            derived = sorted((await points(session, event_id)).values())
+        assert derived == [1.0, 2.0]

@@ -44,7 +44,6 @@ from app.models.racing import PreparatoryFlag, RaceSignal
 from app.problems import Problem
 from app.services.audit import EntityType, audit
 from app.services.event_readiness import RACE_STARTED_ACTION
-from app.services.standings import recompute_after_change
 
 
 def require_live(event: Event) -> None:
@@ -125,8 +124,6 @@ async def _clear_entries(session: AsyncSession, race: Race) -> int:
         entry.code = None
         entry.finish_position = None
         entry.redress_points = None
-        entry.points = None
-        entry.is_discarded = False
     return len(entries)
 
 
@@ -184,7 +181,6 @@ async def recall_race(session: AsyncSession, event: Event, race: Race, *, actor:
     race.signal = None
     race.version += 1
     audit(session, EntityType.RACE, race.id, "recall", actor, cleared_entries=cleared)
-    await recompute_after_change(session, event)
     return race
 
 
@@ -207,7 +203,6 @@ async def abandon_race(
     audit(
         session, EntityType.RACE, race.id, "abandon", actor, resail=resail, cleared_entries=cleared
     )
-    await recompute_after_change(session, event)
     return race
 
 
