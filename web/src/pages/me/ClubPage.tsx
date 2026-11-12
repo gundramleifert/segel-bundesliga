@@ -45,7 +45,6 @@ export function ClubPage() {
           ? [
               {
                 key: "squads",
-                needs: ["squad_below_min"],
                 render: () => (
                   <Stack>
                     <ClubTeams entry={entry} />
@@ -55,7 +54,6 @@ export function ClubPage() {
               },
               {
                 key: "crews",
-                needs: ["crew_missing"],
                 render: () => <ClubEvents entry={entry} />,
               },
             ]
@@ -64,7 +62,6 @@ export function ClubPage() {
           {
             // One list where *Members* and *Sailors* were two (#45).
             key: "people",
-            needs: ["person_without_birth_date", "membership_requested", "invitation_expired", "dpa_missing"],
             render: () => (
               <Stack>
                 {mayAdmin && <ClubDpa clubId={c.id} />}
@@ -80,12 +77,10 @@ export function ClubPage() {
           {
             // Whose parent may accept a young sailor's waiver (Story V-13).
             key: "minors",
-            needs: ["minor_without_guardian"],
             render: () => <GuardiansPanel clubId={c.id} />,
           },
           {
             key: "waivers",
-            needs: ["crew_waiver_missing"],
             render: () => <ClubWaivers clubId={c.id} />,
           },
           ...racing,
@@ -95,17 +90,14 @@ export function ClubPage() {
           },
           {
             key: "my-claims",
-            needs: ["claim_rejected"],
             render: () => <ClaimsTab target={{ kind: "club", id: c.id }} />,
           },
           {
             key: "decide-claims",
-            needs: ["claims"],
             render: () => <ClubDecideClaims clubId={c.id} />,
           },
           {
             key: "payment-runs",
-            needs: ["payment_run_open"],
             render: () => <ClubPaymentRuns clubId={c.id} />,
           },
           {

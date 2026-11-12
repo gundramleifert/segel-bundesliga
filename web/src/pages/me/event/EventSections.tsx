@@ -96,7 +96,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "clubs",
-      needs: ["registrations_open"],
       render: () => (
         <Panel title={t("eventSections.clubs")} testId="me-event-clubs">
           <WithEvent id={id} testId="me-event-clubs">
@@ -132,7 +131,6 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "publication",
-      needs: ["event_unpublished"],
       render: () => (
         <Panel title={t("eventSections.publication")} testId="me-event-publication">
           <WithEvent id={id} testId="me-event-publication">
@@ -165,7 +163,6 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
   return [
     {
       key: "check-in",
-      needs: ["checkin_waivers_missing"],
       render: () => (
         <Panel title={t("eventSections.checkIn")} testId="me-event-check-in">
           <WaiverChecklist eventId={id} />
@@ -201,7 +198,6 @@ export function raceDaySections(t: T, c: MyContext): WorkspaceSection[] {
     },
     {
       key: "results",
-      needs: ["results_missing"],
       render: () => (
         <Panel title={t("eventSections.results")} testId="me-event-results">
           <WithEvent id={id} testId="me-event-results">

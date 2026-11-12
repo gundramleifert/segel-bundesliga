@@ -61,14 +61,12 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
     // Story V-15: my memberships, invitations and requests, and asking a club.
     {
       key: "clubs",
-      needs: ["membership_invited"],
       render: () => <MyClubs />,
     },
-    { key: "documents", needs: ["documents_expired"], render: () => <DocumentsTab /> },
+    { key: "documents", render: () => <DocumentsTab /> },
     { key: "bank", render: () => <BankTab /> },
     {
       key: "waivers",
-      needs: ["waiver", "ward_waiver"],
       // Mine (S-1), then my children's (S-8) — a parent with no sailor record of their
       // own sees only the second, until *My children* is a section of its own (#32).
       render: () => (
@@ -78,7 +76,7 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
         </div>
       ),
     },
-    { key: "claims", needs: ["claim_rejected"], render: () => <ClaimsTab /> },
+    { key: "claims", render: () => <ClaimsTab /> },
     {
       key: "news",
       render: () => <PostsAdmin base="/me" testId="me-news" />,
@@ -88,7 +86,7 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
       render: () => <MediaAdmin withKeys={false} />,
     },
     // Stories JU-2, JU-4: a judge's licences and requests.
-    { key: "jury", needs: ["jury_invited"], render: () => <MyJury /> },
+    { key: "jury", render: () => <MyJury /> },
   ];
   return (
     <WorkspaceFrame

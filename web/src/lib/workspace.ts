@@ -1,4 +1,5 @@
 import { ContextRelation, Relation, Role, type MyContext, type Todo } from "../api/types";
+import type { Section as SectionKey } from "../api/generated/model/section";
 
 /** Story Z-10: the signed-in workspace — its contexts, their groups and sections, and who
  *  has each (`docs/PLAN_NAVIGATION.md` §2–§3, issue #30).
@@ -31,7 +32,12 @@ export type Holding = ContextRelation | typeof Relation.guardian;
 export type SectionRule = { readonly for?: readonly Holding[] };
 
 /** A group of sections; `null` is the ungrouped head of the list — the *Overview*. */
-export type GroupDecl = { readonly key: string | null; readonly sections: Readonly<Record<string, SectionRule>> };
+export type GroupDecl = {
+  readonly key: string | null;
+  /** Keyed by the API's `Section` (review 7.2): a key the backend does not know — the
+   *  one a to-do links to — does not compile. */
+  readonly sections: Readonly<Partial<Record<SectionKey, SectionRule>>>;
+};
 
 /** The organizers of a club, a series or an event: its `admin` and its `manager` (for an
  *  event the model adds the series', the host club's and the site's race committee —

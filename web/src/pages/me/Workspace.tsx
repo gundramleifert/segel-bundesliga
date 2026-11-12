@@ -5,6 +5,8 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { useListAllClubs, useListAllEvents, useListAllSeries, useListPeople } from "../../api/generated/sbl";
 import { Relation, type Need } from "../../api/types";
+import type { NeedCode } from "../../api/generated/model/needCode";
+import type { Section } from "../../api/generated/model/section";
 import { setPageCrumbs, type Crumb } from "../../components/breadcrumb";
 import { INPUT_CLASS } from "../../lib/admin";
 import { useDisclosure } from "../../lib/useDisclosure";
@@ -48,12 +50,13 @@ import { fullName } from "../../lib/format";
  *  remembered visit read the one label, so they cannot name a section two ways (#38). A
  *  `notice` is no section — its value is its name: it stands above every section, and
  *  only while one of its `needs` is there (an unsigned waiver, S-1). */
-export type WorkspaceSection = {
-  key: string;
-  needs?: string[];
-  notice?: string;
-  render: () => ReactNode;
-};
+/** A panel of a context page — or a **notice** above every panel, shown while one of its
+ *  `needs` waits. Keys and needs are the API's enums (review 7.2): a typo, or a key the
+ *  backend renamed, does not compile; and only a notice reads `needs` — on a panel it
+ *  was dead weight that looked like a rule, so a panel cannot carry one. */
+export type WorkspaceSection =
+  | { key: Section; notice?: never; needs?: never; render: () => ReactNode }
+  | { key: string; notice: string; needs: readonly NeedCode[]; render: () => ReactNode };
 
 const WIDE = "(min-width: 1100px)";
 

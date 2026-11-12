@@ -44,12 +44,10 @@ export function SeriesPage() {
           { key: "standings", render: () => <SeriesStandings context={c} /> },
           {
             key: "registrations",
-            needs: ["registrations_open"],
             render: () => <SeriesRegistrations seriesId={c.id} />,
           },
           {
             key: "dates",
-            needs: ["event_unpublished"],
             render: () => <SeriesDates seriesId={c.id} />,
           },
           { key: "scoring", render: () => <SeriesScoring seriesId={c.id} /> },

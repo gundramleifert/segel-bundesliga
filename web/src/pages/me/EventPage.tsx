@@ -38,12 +38,10 @@ export function EventPage() {
         {
           // Those who work the event file claims on it (Story F-2); sailing is not work.
           key: "my-claims",
-          needs: ["claim_rejected"],
           render: () => <ClaimsTab target={{ kind: "event", id: c.id }} />,
         },
         {
           key: "decide-claims",
-          needs: ["claims"],
           render: () => <EventClaimsTab eventId={c.id} />,
         },
         { key: "news", render: () => <RegattaNews kind="event" id={c.id} /> },
