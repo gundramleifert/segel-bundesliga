@@ -135,6 +135,9 @@ class ClaimOut(BaseModel):
     # What the asking person may do with it — the screen shows buttons from these.
     may_edit: bool
     may_decide: bool
+    # A payment made outside a run — marked paid, or a GiroCode handed out — that the
+    # decider may take back (Story F-4).
+    may_unpay: bool
     # In the pending list: what the decider is to do — ``decide`` or ``pay``.
     action: Literal["decide", "pay"] | None
 
@@ -147,6 +150,10 @@ class ApproveBody(BaseModel):
 
 class NoteBody(BaseModel):
     note: str = Field(min_length=1, max_length=1000)
+
+
+class UnpayBody(BaseModel):
+    reason: str = Field(min_length=1, max_length=200, description="Why it was not paid.")
 
 
 class PayBody(BaseModel):
@@ -203,6 +210,10 @@ def _out(claim: ExpenseClaim, acting: User) -> ClaimOut:
         ],
         may_edit=own and claim.status in expenses.EDITABLE,
         may_decide=not own and expenses.may_decide(acting, claim),
+        may_unpay=not own
+        and claim.payment is not None
+        and claim.payment.run_id is None
+        and expenses.may_decide(acting, claim),
         action=expenses.action(claim) if not own and expenses.may_decide(acting, claim) else None,
     )
 
@@ -587,9 +598,23 @@ async def pay_claim(
     acting: User = Depends(current_user),
 ) -> ClaimOut:
     claim = await _decidable(session, claim_id, acting)
-    expenses.pay(
+    await payments.pay(
         session, acting, claim, paid_on=body.paid_on, reference=body.reference, method=body.method
     )
+    return await _saved(session, claim_id, acting)
+
+
+@router.post("/api/claims/{claim_id}/unpay", response_model=ClaimOut, summary="Take back a payment")
+async def unpay_claim(
+    claim_id: int,
+    body: UnpayBody,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> ClaimOut:
+    """A "Mark as paid" in error, or a GiroCode nobody transferred (Story F-4): the
+    payment is kept as failed, and the claim is open again."""
+    claim = await _decidable(session, claim_id, acting)
+    await payments.unpay(session, acting, claim, body.reason.strip())
     return await _saved(session, claim_id, acting)
 
 
@@ -604,12 +629,15 @@ async def get_claim_girocode(
     acting: User = Depends(current_user),
 ) -> Response:
     """Scanned with a banking app's photo transfer, it fills in payee, IBAN, amount and
-    line; the app's own TAN pays (Story F-8). "Mark as paid" records it afterwards."""
+    line; the app's own TAN pays (Story F-8). Handing it out issues the transfer, so the
+    claim leaves the next SEPA run; "Mark as paid" confirms it."""
     claim = await expenses.load(session, claim_id)
     if claim.claimant_user_id != acting.id:
         expenses.require_decider(acting, claim)
+    svg = await payments.girocode_svg(session, acting, claim)
+    await session.commit()
     return Response(
-        payments.girocode_svg(acting, claim),
+        svg,
         media_type="image/svg+xml",
         headers={"Cache-Control": "private, no-store"},
     )

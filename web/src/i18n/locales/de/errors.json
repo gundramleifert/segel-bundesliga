@@ -87,6 +87,8 @@
   "claim-not-submitted": "Entschieden wird nur über eine eingereichte Abrechnung.",
   "claim-not-approved": "Gezahlt wird nur eine genehmigte Abrechnung.",
   "claim-already-paid": "Auf diese Abrechnung ist nichts mehr zu zahlen.",
+  "claim-not-paid": "Diese Abrechnung hat keine Zahlung, die zurückgenommen werden könnte.",
+  "payment-in-run": "Diese Zahlung ging mit einem SEPA-Lauf hinaus — dort als zurückgekommen markieren.",
   "expense-range-backwards": "Ein Zeitraum endet nach seinem Beginn.",
   "expense-item-unknown": "Diese Position gehört nicht zu dieser Abrechnung.",
   "expense-distance-required": "Für eine Autofahrt bitte die Kilometer angeben.",

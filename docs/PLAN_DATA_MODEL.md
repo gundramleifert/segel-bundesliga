@@ -208,6 +208,13 @@ withdrawn     │
 | `rejected` | treasurer, with a note | final |
 | `withdrawn` | claimant, from `draft`/`submitted`/`returned` | final |
 
+> **Changed 2026-11-11** (review 1.1, 1.4, 1.6): partial payments, `PaymentAllocation`,
+> `partially_paid` and the payment states `draft`/`cancelled` are gone. A claim is paid
+> whole; `PaymentClaim(payment_id, claim_id, active)` links it, with one *active* link
+> per claim enforced by a partial unique index; amounts are frozen at approval and issue,
+> a run's SEPA file when it is made. `app/models/finance.py` is the truth; the tables
+> below are the original plan.
+
 **"Paid" is not a claim status. It is computed from the payments** (derived, never
 stored, like points). The names follow Odoo's `payment_state`:
 

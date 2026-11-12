@@ -9,14 +9,18 @@ Three rules shape the model:
 
 * **Approval and payment are two state machines, not one.** A claim stops at the
   decision (``ClaimStatus``); a ``Payment`` is its own record with its own lifecycle
-  (``PaymentStatus``), linked to claims through ``PaymentAllocation`` — one transfer can
-  settle several claims, one claim can be paid in parts. A transfer that bounces days
-  after approval must not reopen the approval. Odoo, ERPNext, SAP Concur and Stripe all
-  split it the same way.
-* **Totals and "paid" are derived, never stored** — the same rule as points. What is
-  claimed and approved are sums over the items; whether a claim is paid follows from the
-  *settled* payments allocated to it. A failed payment is never edited: it stops
-  counting, and the claim is unpaid again by itself.
+  (``PaymentStatus``), linked to claims through ``PaymentClaim`` — one transfer can
+  settle several claims of one payee. A claim is paid **whole**, never in parts (decided
+  2026-11-11): a transfer that bounces days after approval must not reopen the approval.
+* **One claim, one live payment — the database says so.** A partial unique index on
+  ``payment_claim(claim_id) WHERE active`` refuses a second payment while one is issued
+  or settled, whichever screen, run or double click asks; a failed payment's link turns
+  inactive and the claim is open again.
+* **Decided money is frozen.** What was approved is stored at approval
+  (``ExpenseClaim.approved_total_cents``), what a payment transfers at its issue
+  (``Payment.amount_cents``), and the SEPA file a run exported is kept byte for byte
+  (``PaymentRun.sepa_xml``). Whether a claim is *paid* is still derived — from its live
+  payment's status.
 * **Money is integer cents, in EUR.** Never a float. A currency column waits for the
   first claim that is not in euros.
 """
@@ -32,8 +36,11 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
+    LargeBinary,
     String,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -77,17 +84,15 @@ class ExpenseKind(StrEnum):
 class PaymentStatus(StrEnum):
     """Where one transfer stands — names after Odoo's ``account.payment`` and SEPA.
 
-    ``draft`` → ``issued`` (transferred, or the SEPA file exported) → ``settled``
-    (on the bank statement). ``failed`` is a rejection or a return, also after
-    settlement; ``cancelled`` drops a payment that was never issued. A failed payment is
-    kept as it is, and a new one is made.
+    ``issued`` (in a SEPA file, or a GiroCode handed to a banking app) → ``settled`` (on
+    the bank statement, or marked paid). ``failed`` is a rejection, a return, or a "paid"
+    taken back — also after settlement. A failed payment is kept as it is, and a new one
+    is made.
     """
 
-    DRAFT = "draft"
     ISSUED = "issued"
     SETTLED = "settled"
     FAILED = "failed"
-    CANCELLED = "cancelled"
 
 
 class PaymentMethod(StrEnum):
@@ -97,12 +102,11 @@ class PaymentMethod(StrEnum):
 
 
 class PaymentState(StrEnum):
-    """Whether an approved claim is paid — **computed** from its allocations, never
+    """Whether an approved claim is paid — **computed** from its live payment, never
     stored (names after Odoo's ``payment_state``)."""
 
     UNPAID = "unpaid"
     IN_PAYMENT = "in_payment"
-    PARTIALLY_PAID = "partially_paid"
     PAID = "paid"
 
 
@@ -152,6 +156,8 @@ class ExpenseClaim(Base, TimestampMixin):
     decided_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("app_user.id"), default=None)
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     decision_note: Mapped[str | None] = mapped_column(String(1000), default=None)
+    # What the approval owes, frozen at it: the items' sum then. Empty before.
+    approved_total_cents: Mapped[int | None] = mapped_column(default=None)
 
     event: Mapped[Event | None] = relationship(lazy="selectin")
     club: Mapped[Club | None] = relationship(foreign_keys=[club_id], lazy="selectin")
@@ -167,9 +173,7 @@ class ExpenseClaim(Base, TimestampMixin):
     documents: Mapped[list[ExpenseDocument]] = relationship(
         back_populates="claim", cascade="all, delete-orphan", lazy="selectin"
     )
-    allocations: Mapped[list[PaymentAllocation]] = relationship(
-        back_populates="claim", lazy="selectin"
-    )
+    links: Mapped[list[PaymentClaim]] = relationship(back_populates="claim", lazy="selectin")
 
     @property
     def claimed_cents(self) -> int:
@@ -177,42 +181,51 @@ class ExpenseClaim(Base, TimestampMixin):
 
     @property
     def approved_cents(self) -> int:
-        """What is owed once approved — the claim as it stands: the decider approves or
-        rejects, and changes no amount (Story F-3)."""
-        return self.claimed_cents if self.status == ClaimStatus.APPROVED else 0
+        """What is owed once approved — frozen at the approval (Story F-3: the decider
+        approves or rejects, and changes no amount)."""
+        if self.status != ClaimStatus.APPROVED:
+            return 0
+        return self.approved_total_cents if self.approved_total_cents is not None else 0
+
+    @property
+    def payment(self) -> Payment | None:
+        """The one live payment — issued or settled — or none."""
+        return next((link.payment for link in self.links if link.active), None)
+
+    @property
+    def unconfirmed_payment(self) -> Payment | None:
+        """The live payment when it is a GiroCode's transfer (no run) not yet marked
+        paid: the decider confirms it, or takes it back."""
+        payment = self.payment
+        if (
+            payment is not None
+            and payment.status == PaymentStatus.ISSUED
+            and payment.run_id is None
+        ):
+            return payment
+        return None
 
     @property
     def paid_cents(self) -> int:
-        return sum(
-            a.amount_cents for a in self.allocations if a.payment.status == PaymentStatus.SETTLED
-        )
+        payment = self.payment
+        return self.approved_cents if payment and payment.status == PaymentStatus.SETTLED else 0
 
     @property
     def open_cents(self) -> int:
-        """What is still to be paid: approved, less what an issued or settled payment
-        already covers. A failed or cancelled payment covers nothing."""
-        if self.status != ClaimStatus.APPROVED:
-            return 0
-        committed = sum(
-            a.amount_cents
-            for a in self.allocations
-            if a.payment.status in (PaymentStatus.ISSUED, PaymentStatus.SETTLED)
-        )
-        return max(self.approved_cents - committed, 0)
+        """What is still to be paid: the approved total while no payment is live."""
+        return self.approved_cents if self.payment is None else 0
 
     @property
     def payment_state(self) -> PaymentState | None:
         """``None`` until approved: nothing is owed on a claim that is not."""
         if self.status != ClaimStatus.APPROVED:
             return None
-        paid = self.paid_cents
-        if paid >= self.approved_cents:
+        payment = self.payment
+        if payment is None:
+            return PaymentState.UNPAID
+        if payment.status == PaymentStatus.SETTLED:
             return PaymentState.PAID
-        if paid > 0:
-            return PaymentState.PARTIALLY_PAID
-        if any(a.payment.status == PaymentStatus.ISSUED for a in self.allocations):
-            return PaymentState.IN_PAYMENT
-        return PaymentState.UNPAID
+        return PaymentState.IN_PAYMENT
 
 
 class ExpenseItem(Base, TimestampMixin):
@@ -318,6 +331,8 @@ class PaymentRun(Base, TimestampMixin):
     debtor_name: Mapped[str] = mapped_column(String(160))
     debtor_iban: Mapped[str] = mapped_column(String(34))
     debtor_bic: Mapped[str | None] = mapped_column(String(11), default=None)
+    # The file as exported, kept: downloading it again gives what the bank got.
+    sepa_xml: Mapped[bytes | None] = mapped_column(LargeBinary, default=None)
 
     payments: Mapped[list[Payment]] = relationship(
         back_populates="run", lazy="selectin", order_by="Payment.id"
@@ -329,23 +344,18 @@ class PaymentRun(Base, TimestampMixin):
 
     @property
     def total_cents(self) -> int:
-        return sum(
-            p.amount_cents
-            for p in self.payments
-            if p.status in (PaymentStatus.ISSUED, PaymentStatus.SETTLED)
-        )
+        return sum(p.amount_cents for p in self.payments if p.status != PaymentStatus.FAILED)
 
 
 class Payment(Base, TimestampMixin):
-    """One transfer from a club to one payee.
+    """One transfer from a club to one payee, over one or more of their claims.
 
-    Its amount is the sum of its allocations — derived, like a claim's total. It settles
-    claims of **one payee for one paying club**; the service checks both when
-    allocating, and refuses an allocation that would pay a claim beyond its approved
-    total.
+    Its amount is frozen at issue — the claims' approved totals then. The service checks
+    that every claim is the payee's and the paying club's.
     """
 
     __tablename__ = "payment"
+    __table_args__ = (CheckConstraint("amount_cents > 0", name="amount_positive"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     payer_club_id: Mapped[int] = mapped_column(ForeignKey("club.id"), index=True)
@@ -354,7 +364,8 @@ class Payment(Base, TimestampMixin):
     )
     payee_name: Mapped[str] = mapped_column(String(160), default="")
     iban: Mapped[str | None] = mapped_column(String(34), default=None)
-    status: Mapped[str] = mapped_column(String(16), default=PaymentStatus.DRAFT, index=True)
+    amount_cents: Mapped[int] = mapped_column()
+    status: Mapped[str] = mapped_column(String(16), index=True)
     method: Mapped[str] = mapped_column(String(16), default=PaymentMethod.TRANSFER)
     # The remittance line on the statement; SEPA allows 140 characters.
     reference: Mapped[str | None] = mapped_column(String(140), default=None)
@@ -365,34 +376,41 @@ class Payment(Base, TimestampMixin):
     # A SEPA reason code (``AC04`` closed account) or a sentence.
     failure_reason: Mapped[str | None] = mapped_column(String(200), default=None)
 
-    # The SEPA file it went out in; empty for a payment marked paid by hand.
+    # The SEPA file it went out in; empty for a GiroCode or a payment marked paid by hand.
     run_id: Mapped[int | None] = mapped_column(
         ForeignKey("payment_run.id"), index=True, default=None
     )
 
-    allocations: Mapped[list[PaymentAllocation]] = relationship(
+    links: Mapped[list[PaymentClaim]] = relationship(
         back_populates="payment", cascade="all, delete-orphan", lazy="selectin"
     )
     run: Mapped[PaymentRun | None] = relationship(back_populates="payments")
 
     @property
-    def amount_cents(self) -> int:
-        return sum(a.amount_cents for a in self.allocations)
+    def claim_ids(self) -> list[int]:
+        return [link.claim_id for link in self.links]
 
 
-class PaymentAllocation(Base, TimestampMixin):
-    """How much of one payment goes to one claim."""
+class PaymentClaim(Base, TimestampMixin):
+    """A claim one payment settles. ``active`` while the payment is issued or settled;
+    a failed payment's links turn inactive, and the claim is open again. At most one
+    active link per claim — the database refuses a second payment of it."""
 
-    __tablename__ = "payment_allocation"
+    __tablename__ = "payment_claim"
     __table_args__ = (
         UniqueConstraint("payment_id", "claim_id"),
-        CheckConstraint("amount_cents > 0", name="amount_positive"),
+        Index(
+            "uq_payment_claim_one_live_payment",
+            "claim_id",
+            unique=True,
+            postgresql_where=text("active"),
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     payment_id: Mapped[int] = mapped_column(ForeignKey("payment.id"), index=True)
     claim_id: Mapped[int] = mapped_column(ForeignKey("expense_claim.id"), index=True)
-    amount_cents: Mapped[int] = mapped_column()
+    active: Mapped[bool] = mapped_column(default=True)
 
-    payment: Mapped[Payment] = relationship(back_populates="allocations", lazy="selectin")
-    claim: Mapped[ExpenseClaim] = relationship(back_populates="allocations")
+    payment: Mapped[Payment] = relationship(back_populates="links", lazy="selectin")
+    claim: Mapped[ExpenseClaim] = relationship(back_populates="links")

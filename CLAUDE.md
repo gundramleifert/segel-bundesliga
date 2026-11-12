@@ -509,7 +509,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
   payment per payee and one SEPA file (pain.001.001.09, `sepaxml`, XSD-validated) the
   treasurer uploads to the club's online banking; "booked" settles the run, a return fails
   one payment and its claims open again. The run keeps its message id, so the bank
-  refuses the same file twice. Formats come from libraries — `sepaxml`, `schwifty` (IBAN,
+  refuses the same file twice. **Decided money is frozen, and a claim is paid once**
+  (decided 2026-11-11, `app/models/finance.py`): the approved total is stored at
+  approval, a payment's amount at its issue, the SEPA file when the run is made; a claim
+  is paid whole, and a partial unique index allows one live payment per claim — showing
+  its GiroCode issues one, "Not paid" takes a hand payment back. Formats come from libraries — `sepaxml`, `schwifty` (IBAN,
   BIC), `openpyxl` (the spreadsheets), `segno` (the GiroCode for one claim, Story F-8) —
   never written by hand.
 - **News and press releases are posts editorial writes on the site** (Story R-1,

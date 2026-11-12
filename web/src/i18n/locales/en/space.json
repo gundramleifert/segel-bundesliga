@@ -123,7 +123,6 @@
   "paymentStates": {
     "unpaid": "Unpaid",
     "in_payment": "In payment",
-    "partially_paid": "Partly paid",
     "paid": "Paid"
   },
   "pending": {
@@ -147,7 +146,10 @@
     "payByHandHint": "Paid one transfer by hand in your own banking? Record it here. For several claims, a SEPA file under Payment runs is quicker.",
     "girocodeShow": "Show GiroCode",
     "girocodeAlt": "GiroCode for this claim",
-    "girocodeHint": "Scan it with your banking app's photo transfer: payee, IBAN, amount and reference are filled in, and your TAN pays. Then press “Mark as paid”."
+    "girocodeHint": "Scan it with your banking app's photo transfer: payee, IBAN, amount and reference are filled in, and your TAN pays. Showing it puts the claim in payment, so no SEPA run pays it again; then press “Mark as paid”.",
+    "unpay": "Not paid",
+    "unpayReasonLabel": "Why not",
+    "unpayHint": "Takes the payment back: it is kept as failed, and the claim is open again — for a code nobody transferred, or a “paid” pressed by mistake."
   },
   "personDocuments": {
     "button": "Documents",

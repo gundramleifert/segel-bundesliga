@@ -7,7 +7,7 @@
  */
 
 /**
- * Whether an approved claim is paid — **computed** from its allocations, never
+ * Whether an approved claim is paid — **computed** from its live payment, never
  * stored (names after Odoo's ``payment_state``).
  */
 export type PaymentState = typeof PaymentState[keyof typeof PaymentState];
@@ -16,6 +16,5 @@ export type PaymentState = typeof PaymentState[keyof typeof PaymentState];
 export const PaymentState = {
   unpaid: 'unpaid',
   in_payment: 'in_payment',
-  partially_paid: 'partially_paid',
   paid: 'paid',
 } as const;

@@ -426,7 +426,9 @@ class TestTodos:
             )
             session.add(run)
             await session.flush()
-            payment = Payment(payer_club_id=club, status=PaymentStatus.ISSUED, run_id=run.id)
+            payment = Payment(
+                payer_club_id=club, status=PaymentStatus.ISSUED, run_id=run.id, amount_cents=100
+            )
             session.add(payment)
             await session.commit()
             payment_id = payment.id

@@ -336,6 +336,123 @@ class TestGiroCode:
         assert _problem_code(in_run) == "claim-not-payable"
 
 
+class TestPaidOnce:
+    """Story F-4/F-8, review 1.1/1.3: a claim is paid once, whichever way — and a wrong
+    "paid" can be taken back."""
+
+    async def test_a_girocode_handed_out_keeps_the_claim_out_of_the_next_run(self, client, caplog):
+        """The treasurer scans the code, pays in the banking app, forgets "Mark as paid" —
+        and the SEPA file at the end of the month must not pay it again."""
+        w, treasurer, _, claims = await setup(client, caplog)
+        ben = claims[2]
+        assert (
+            await client.get(f"/api/claims/{ben['id']}/girocode", headers=treasurer)
+        ).status_code == 200
+        state = (await client.get(f"/api/claims/{ben['id']}", headers=treasurer)).json()
+        assert state["payment_state"] == "in_payment" and state["action"] == "pay"
+
+        run = await client.post(f"/api/clubs/{w.club}/payment-runs", headers=treasurer, json={})
+        assert sorted(c for p in run.json()["payments"] for c in p["claim_ids"]) == sorted(
+            [claims[0]["id"], claims[1]["id"]]
+        )
+        chosen = await client.post(
+            f"/api/clubs/{w.club}/payment-runs",
+            headers=treasurer,
+            json={"claim_ids": [ben["id"]]},
+        )
+        assert _problem_code(chosen) == "claim-not-payable"
+
+        # Asked again, the same code — not a second transfer.
+        again = await client.get(f"/api/claims/{ben['id']}/girocode", headers=treasurer)
+        assert again.status_code == 200
+        paid = await client.post(f"/api/claims/{ben['id']}/pay", headers=treasurer, json={})
+        assert paid.json()["payment_state"] == "paid" and paid.json()["paid_cents"] == 1250
+
+    async def test_a_girocode_nobody_paid_is_taken_back(self, client, caplog):
+        w, treasurer, _, claims = await setup(client, caplog)
+        ben = claims[2]
+        await client.get(f"/api/claims/{ben['id']}/girocode", headers=treasurer)
+
+        back = await client.post(
+            f"/api/claims/{ben['id']}/unpay", headers=treasurer, json={"reason": "not sent"}
+        )
+        assert back.status_code == 200, back.text
+        assert back.json()["payment_state"] == "unpaid" and back.json()["action"] == "pay"
+
+    async def test_a_wrong_mark_as_paid_is_undone_and_audited(self, client, caplog):
+        from sqlalchemy import select
+
+        from app.db import SessionLocal
+        from app.models import AuditLog
+
+        w, treasurer, _, claims = await setup(client, caplog)
+        claim = claims[0]
+        paid = await client.post(f"/api/claims/{claim['id']}/pay", headers=treasurer, json={})
+        assert paid.json()["may_unpay"] is True
+
+        back = await client.post(
+            f"/api/claims/{claim['id']}/unpay", headers=treasurer, json={"reason": "wrong claim"}
+        )
+        assert back.json()["payment_state"] == "unpaid" and back.json()["may_unpay"] is False
+        again = await client.post(
+            f"/api/claims/{claim['id']}/unpay", headers=treasurer, json={"reason": "twice"}
+        )
+        assert _problem_code(again) == "claim-not-paid"
+        async with SessionLocal() as session:
+            actions = (
+                (
+                    await session.execute(
+                        select(AuditLog.action).where(AuditLog.entity_id == claim["id"])
+                    )
+                )
+                .scalars()
+                .all()
+            )
+        assert "unpaid" in actions
+
+        # Open again, so the next run pays it.
+        run = await client.post(
+            f"/api/clubs/{w.club}/payment-runs",
+            headers=treasurer,
+            json={"claim_ids": [claim["id"]]},
+        )
+        assert run.status_code == 201, run.text
+
+    async def test_a_runs_payment_comes_back_through_the_run(self, client, caplog):
+        w, treasurer, _, claims = await setup(client, caplog)
+        await client.post(f"/api/clubs/{w.club}/payment-runs", headers=treasurer, json={})
+
+        back = await client.post(
+            f"/api/claims/{claims[0]['id']}/unpay", headers=treasurer, json={"reason": "x"}
+        )
+        assert _problem_code(back) == "payment-in-run"
+
+
+class TestFrozenMoney:
+    """Review 1.4: what the bank got is what a download gives, whatever happened since."""
+
+    async def test_the_sepa_file_is_the_one_exported(self, client, caplog):
+        w, treasurer, _, _ = await setup(client, caplog)
+        run = (
+            await client.post(f"/api/clubs/{w.club}/payment-runs", headers=treasurer, json={})
+        ).json()
+        url = f"/api/payment-runs/{run['id']}/sepa"
+        first = (await client.get(url, headers=treasurer)).content
+
+        await client.post(
+            f"/api/payments/{run['payments'][0]['id']}/fail",
+            headers=treasurer,
+            json={"reason": "AC04"},
+        )
+        await client.put(
+            f"/api/clubs/{w.club}/bank-account",
+            headers=treasurer,
+            json={"holder": "Renamed Club", "iban": SECOND_IBAN},
+        )
+
+        assert (await client.get(url, headers=treasurer)).content == first
+
+
 def _svg(qr) -> bytes:
     from io import BytesIO
 

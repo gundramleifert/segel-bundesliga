@@ -224,6 +224,7 @@ import type {
   TrackerOut,
   TupleOut,
   TupleWrite,
+  UnpayBody,
   Updated,
   UserCreate,
   UserOut,
@@ -16651,6 +16652,97 @@ export const usePayClaim = <TError = ErrorType<ProblemDetails>,
       return useMutation(getPayClaimMutationOptions(options), queryClient);
     }
 
+export const getUnpayClaimUrl = (claimId: number,) => {
+
+
+
+
+  return `/api/claims/${claimId}/unpay`
+}
+
+/**
+ * A "Mark as paid" in error, or a GiroCode nobody transferred (Story F-4): the
+ * payment is kept as failed, and the claim is open again.
+ * @summary Take back a payment
+ */
+export const unpayClaim = async (claimId: number,
+    unpayBody: UnpayBody, options?: RequestInit): Promise<ClaimOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<ClaimOut>(getUnpayClaimUrl(claimId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(unpayBody)
+  }
+);}
+
+
+
+
+
+export const getUnpayClaimMutationKey = () => ['unpayClaim'] as const;
+
+export const getUnpayClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpayClaim>>, TError,UnpayClaimMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof unpayClaim>>, TError,UnpayClaimMutationVariables, TContext> => {
+
+const mutationKey = getUnpayClaimMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unpayClaim>>, UnpayClaimMutationVariables> = (props) => {
+          const {claimId,data} = props ?? {};
+
+          return  unpayClaim(claimId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnpayClaimMutationResult = NonNullable<Awaited<ReturnType<typeof unpayClaim>>>
+    export type UnpayClaimMutationBody = BodyType<UnpayBody>
+    export type UnpayClaimMutationError = ErrorType<ProblemDetails>
+    export type UnpayClaimMutationVariables = {claimId: number;data: BodyType<UnpayBody>}
+
+    /**
+ * @summary Take back a payment
+ */
+export const useUnpayClaim = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpayClaim>>, TError,UnpayClaimMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unpayClaim>>,
+        TError,
+        UnpayClaimMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnpayClaimMutationOptions(options), queryClient);
+    }
+
 export const getGetClaimGirocodeUrl = (claimId: number,) => {
 
 
@@ -16661,7 +16753,8 @@ export const getGetClaimGirocodeUrl = (claimId: number,) => {
 
 /**
  * Scanned with a banking app's photo transfer, it fills in payee, IBAN, amount and
- * line; the app's own TAN pays (Story F-8). "Mark as paid" records it afterwards.
+ * line; the app's own TAN pays (Story F-8). Handing it out issues the transfer, so the
+ * claim leaves the next SEPA run; "Mark as paid" confirms it.
  * @summary The claim as a GiroCode (EPC QR) for a banking app
  */
 export const getClaimGirocode = async (claimId: number, options?: RequestInit): Promise<void> => {

@@ -23,6 +23,7 @@ from schwifty import IBAN
 from schwifty.exceptions import SchwiftyException
 from sepaxml import SepaTransfer
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
@@ -31,7 +32,7 @@ from app.models import (
     ClubBankAccount,
     ExpenseClaim,
     Payment,
-    PaymentAllocation,
+    PaymentClaim,
     PaymentMethod,
     PaymentRun,
     PaymentStatus,
@@ -39,7 +40,7 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.services.audit import EntityType, audit
-from app.services.expenses import may_pay_for, own_claim
+from app.services.expenses import may_pay_for, own_claim, require_decider
 
 #: The format German banks take since the SEPA 2025 changes (DK data format 3.7+).
 SEPA_SCHEMA = "pain.001.001.09"
@@ -183,6 +184,7 @@ async def create_run(
             payee_user_id=payee_id,
             payee_name=claims[0].payee_name or claims[0].claimant_name,
             iban=iban,
+            amount_cents=sum(claim.approved_cents for claim in claims),
             status=PaymentStatus.ISSUED,
             method=PaymentMethod.SEPA_FILE,
             reference=remittance(claims),
@@ -190,12 +192,12 @@ async def create_run(
             issued_on=day,
         )
         for claim in claims:
-            payment.allocations.append(
-                PaymentAllocation(claim=claim, amount_cents=claim.open_cents)
-            )
+            payment.links.append(PaymentClaim(claim=claim))
             audit(session, EntityType.EXPENSE_CLAIM, claim.id, "issued", user)
         run.payments.append(payment)
-    await session.flush()
+    await flush_payment(session)
+    # The file is made once and kept: what the bank got is what a download gives later.
+    run.sepa_xml = await sepa_file(run)
     audit(session, EntityType.PAYMENT_RUN, run.id, "created", user, claims=len(chosen))
     return run
 
@@ -265,32 +267,179 @@ def _export_sepa(config: dict, message_id: str, transfers: list[dict]) -> bytes:
 # ---------------------------------------------------------------------- one claim by phone
 
 
-def girocode_svg(user: User, claim: ExpenseClaim) -> bytes:
+async def girocode_svg(session: AsyncSession, user: User, claim: ExpenseClaim) -> bytes:
     """One claim as a GiroCode — the EPC QR code a banking app turns into a filled-in
     transfer (Story F-8), drawn by ``segno``. The bank data are the claim's copy of the
     claimant's account; amount and line are the claim's, the same line a run writes.
-    Only while something is open: a code for a claim already in a run would pay it twice.
-    """
+
+    Handing it out **issues** the transfer (decided 2026-11-11): the claim leaves the
+    next run, so a code scanned and paid while nobody marked it paid is not paid a second
+    time by the SEPA file. "Mark as paid" confirms it, "Not paid" takes it back. Asked
+    again, the same code comes back."""
     if claim.claimant_user_id == user.id:
         raise own_claim()
-    if claim.open_cents <= 0 or claim.iban is None:
-        raise Problem(
-            422,
-            "claim-not-payable",
-            "Only an approved claim with something left open is paid.",
-            claim_id=claim.id,
+    payment = claim.unconfirmed_payment
+    if payment is None:
+        if claim.open_cents <= 0 or claim.iban is None:
+            raise Problem(
+                422,
+                "claim-not-payable",
+                "Only an approved claim with something left open is paid.",
+                claim_id=claim.id,
+            )
+        payment = issue(
+            claim,
+            user,
+            status=PaymentStatus.ISSUED,
+            method=PaymentMethod.TRANSFER,
+            reference=remittance([claim]),
+            on=date.today(),
         )
+        session.add(payment)
+        await flush_payment(session)
+        audit(session, EntityType.EXPENSE_CLAIM, claim.id, "issued", user, method="girocode")
+    assert payment.iban is not None
     qr = segno.helpers.make_epc_qr(
-        name=claim.payee_name or claim.claimant_name,
-        iban=claim.iban,
-        amount=Decimal(claim.open_cents) / 100,
-        text=remittance([claim]),
-        bic=_bic(claim.iban),
+        name=payment.payee_name,
+        iban=payment.iban,
+        amount=Decimal(payment.amount_cents) / 100,
+        text=payment.reference or "",
+        bic=_bic(payment.iban),
         encoding=1,  # UTF-8: a payee called Jürgen stays Jürgen
     )
     out = io.BytesIO()
     qr.save(out, kind="svg", scale=4, border=2)
     return out.getvalue()
+
+
+# ---------------------------------------------------------------------- one claim by hand
+
+
+async def pay(
+    session: AsyncSession,
+    user: User,
+    claim: ExpenseClaim,
+    *,
+    paid_on: date | None,
+    reference: str | None,
+    method: PaymentMethod,
+) -> Payment:
+    """ "Mark as paid" (Story F-4): the transfer the decider made in their own banking. A
+    GiroCode handed out for it is that transfer, now settled; otherwise one settled
+    payment over the approved total."""
+    require_decider(user, claim)
+    if claim.status != ClaimStatus.APPROVED:
+        raise Problem(409, "claim-not-approved", "Only an approved claim is paid.")
+    day = paid_on or date.today()
+    pending = claim.unconfirmed_payment
+    if pending is not None:
+        pending.status = PaymentStatus.SETTLED
+        pending.settled_on = day
+        if reference:
+            pending.reference = reference
+        audit(
+            session,
+            EntityType.EXPENSE_CLAIM,
+            claim.id,
+            "paid",
+            user,
+            amount_cents=pending.amount_cents,
+        )
+        return pending
+    payment = issue(
+        claim,
+        user,
+        status=PaymentStatus.SETTLED,
+        method=method,
+        reference=reference or claim.title[:140],
+        on=day,
+    )
+    payment.settled_on = day
+    session.add(payment)
+    await flush_payment(session)
+    audit(
+        session, EntityType.EXPENSE_CLAIM, claim.id, "paid", user, amount_cents=payment.amount_cents
+    )
+    return payment
+
+
+def issue(
+    claim: ExpenseClaim,
+    user: User,
+    *,
+    status: PaymentStatus,
+    method: PaymentMethod,
+    reference: str,
+    on: date,
+) -> Payment:
+    """A payment over one claim's approved total — refused when one is already live."""
+    if claim.open_cents <= 0:
+        raise Problem(409, "claim-already-paid", "Nothing is left to pay on this claim.")
+    assert claim.payer_club_id is not None
+    payment = Payment(
+        payer_club_id=claim.payer_club_id,
+        payee_user_id=claim.claimant_user_id,
+        payee_name=claim.payee_name or claim.claimant_name,
+        iban=claim.iban,
+        amount_cents=claim.approved_cents,
+        status=status,
+        method=method,
+        reference=reference,
+        issued_by_user_id=user.id,
+        issued_on=on,
+    )
+    payment.links.append(PaymentClaim(claim=claim))
+    return payment
+
+
+async def flush_payment(session: AsyncSession) -> None:
+    """Writes a new payment now, so a second live payment of the same claim — two
+    screens, a double click, a run made meanwhile — is the database's refusal, answered
+    as one."""
+    try:
+        await session.flush()
+    except IntegrityError as error:
+        await session.rollback()
+        raise Problem(409, "claim-already-paid", "Nothing is left to pay on this claim.") from error
+
+
+async def unpay(session: AsyncSession, user: User, claim: ExpenseClaim, reason: str) -> Payment:
+    """Takes back a payment made outside a run — a "Mark as paid" in error, a GiroCode
+    nobody transferred (Story F-4). The payment is kept as ``failed``, audited, and the
+    claim is open again. A run's payment comes back through the run (`fail`)."""
+    require_decider(user, claim)
+    payment = claim.payment
+    if payment is None:
+        raise Problem(409, "claim-not-paid", "The claim has no payment to take back.")
+    if payment.run_id is not None:
+        raise Problem(
+            409,
+            "payment-in-run",
+            "A payment in a SEPA run comes back through the run.",
+            run_id=payment.run_id,
+        )
+    await fail(session, user, payment, reason)
+    audit(session, EntityType.EXPENSE_CLAIM, claim.id, "unpaid", user, reason=reason)
+    return payment
+
+
+async def fail(session: AsyncSession, user: User, payment: Payment, reason: str) -> None:
+    """The one way a payment ends that is not settlement: the bank refused or returned
+    it, or it was never made. Kept as it is; its claims are open again."""
+    if payment.status not in (PaymentStatus.ISSUED, PaymentStatus.SETTLED):
+        raise Problem(
+            409,
+            "payment-not-failable",
+            "Only an issued or booked payment can come back.",
+            detail=f"The payment is {payment.status}.",
+        )
+    payment.status = PaymentStatus.FAILED
+    payment.failure_reason = reason
+    # Loaded here: reached through a claim, the payment's own links are not.
+    await session.refresh(payment, attribute_names=["links"])
+    for link in payment.links:
+        link.active = False
+    audit(session, EntityType.PAYMENT, payment.id, "failed", user, reason=reason)
 
 
 # ---------------------------------------------------------------------- the bank's answer
@@ -307,20 +456,11 @@ def settle_run(session: AsyncSession, user: User, run: PaymentRun, on: date | No
     audit(session, EntityType.PAYMENT_RUN, run.id, "settled", user)
 
 
-def fail_payment(session: AsyncSession, user: User, payment: Payment, reason: str) -> None:
+async def fail_payment(session: AsyncSession, user: User, payment: Payment, reason: str) -> None:
     """A transfer the bank refused or returned — also after it was booked. Kept as it
     is; its claims are open again and go into the next run (Story F-4)."""
     require_pay_for(user, payment.payer_club_id)
-    if payment.status not in (PaymentStatus.ISSUED, PaymentStatus.SETTLED):
-        raise Problem(
-            409,
-            "payment-not-failable",
-            "Only an issued or booked payment can come back.",
-            detail=f"The payment is {payment.status}.",
-        )
-    payment.status = PaymentStatus.FAILED
-    payment.failure_reason = reason
-    audit(session, EntityType.PAYMENT, payment.id, "failed", user, reason=reason)
+    await fail(session, user, payment, reason)
 
 
 # ---------------------------------------------------------------------- spreadsheets
@@ -339,17 +479,17 @@ BOOK_COLUMNS = [
 
 async def run_workbook(session: AsyncSession, run: PaymentRun) -> bytes:
     """The run, one row per claim — for the books, or a bank that takes no XML."""
-    # Loaded here, not through ``allocation.claim``: that relationship is lazy, and a lazy
+    # Loaded here, not through ``link.claim``: that relationship is lazy, and a lazy
     # load in async code fails outright (MissingGreenlet) instead of querying.
-    claims = await claims_of(session, {a.claim_id for p in run.payments for a in p.allocations})
+    claims = await claims_of(session, {c for p in run.payments for c in p.claim_ids})
     rows = []
     for payment in run.payments:
-        for allocation in payment.allocations:
-            claim = claims[allocation.claim_id]
+        for claim_id in payment.claim_ids:
+            claim = claims[claim_id]
             rows.append([
                 f"P-{payment.id}", f"C-{claim.id}", claim.title, _target(claim),
                 claim.claimant_name, payment.payee_name, payment.iban, _bic(payment.iban),
-                allocation.amount_cents / 100, payment.reference, run.execution_date,
+                claim.approved_cents / 100, payment.reference, run.execution_date,
                 payment.status,
             ])  # fmt: skip
     return await asyncio.to_thread(

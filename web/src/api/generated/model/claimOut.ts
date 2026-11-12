@@ -36,5 +36,6 @@ export interface ClaimOut {
   documents: ClaimDocumentOut[];
   may_edit: boolean;
   may_decide: boolean;
+  may_unpay: boolean;
   action: ClaimOutAction;
 }

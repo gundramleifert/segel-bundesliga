@@ -9,18 +9,16 @@
 /**
  * Where one transfer stands — names after Odoo's ``account.payment`` and SEPA.
  *
- * ``draft`` → ``issued`` (transferred, or the SEPA file exported) → ``settled``
- * (on the bank statement). ``failed`` is a rejection or a return, also after
- * settlement; ``cancelled`` drops a payment that was never issued. A failed payment is
- * kept as it is, and a new one is made.
+ * ``issued`` (in a SEPA file, or a GiroCode handed to a banking app) → ``settled`` (on
+ * the bank statement, or marked paid). ``failed`` is a rejection, a return, or a "paid"
+ * taken back — also after settlement. A failed payment is kept as it is, and a new one
+ * is made.
  */
 export type PaymentStatus = typeof PaymentStatus[keyof typeof PaymentStatus];
 
 
 export const PaymentStatus = {
-  draft: 'draft',
   issued: 'issued',
   settled: 'settled',
   failed: 'failed',
-  cancelled: 'cancelled',
 } as const;

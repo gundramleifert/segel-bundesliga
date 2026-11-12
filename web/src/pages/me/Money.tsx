@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -15,6 +15,7 @@ import {
   useListOpenPaymentRuns,
   useListPendingClaims,
   usePayClaim,
+  useUnpayClaim,
   useRejectClaim,
   useSaveClubBankAccount,
   useSettlePaymentRun,
@@ -22,7 +23,7 @@ import {
 import type { RunOut } from "../../api/generated/model/runOut";
 import type { RunPaymentOut } from "../../api/generated/model/runPaymentOut";
 import { ApiError } from "../../api/http";
-import { PaymentStatus, type Claim } from "../../api/types";
+import { PaymentState, PaymentStatus, type Claim } from "../../api/types";
 import { useAsync, useInvalidate } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../../components/ClaimParts";
@@ -637,7 +638,7 @@ function Pay({ claim }: { claim: Claim }) {
     <div className="flex flex-col gap-3 rounded-lg bg-surface-secondary p-3" data-testid={`${id}-pay`}>
       <p className="text-xs text-muted">{t("pending.payByHandHint")}</p>
       <p className="text-sm font-medium tabular-nums">{formatMoney(claim.approved_cents - claim.paid_cents)}</p>
-      <GiroCode claimId={claim.id} />
+      <GiroCode claimId={claim.id} issued={claim.payment_state === PaymentState.in_payment} />
       <div className="flex flex-wrap gap-3">
         <div className="min-w-40 flex-1">
           <Field label={t("pending.paidOnLabel")} hint={t("pending.paidOnHint")} testId={`${id}-paid-on-field`}>
@@ -677,17 +678,63 @@ function Pay({ claim }: { claim: Claim }) {
         </Button>
       </div>
       <Message error={pay.error ? errorText(pay.error) : null} testId={`${id}-pay-message`} />
+      {claim.may_unpay && <Unpay claim={claim} />}
+    </div>
+  );
+}
+
+/** Takes back a payment made outside a run (Story F-4): a GiroCode nobody transferred,
+ *  or a "Mark as paid" pressed by mistake. Kept as failed; the claim is open again. */
+function Unpay({ claim }: { claim: Claim }) {
+  const { t } = useTranslation("space");
+  const id = `reimbursements-claim-${claim.id}`;
+  const unpay = useUnpayClaim(useRefresh());
+  const [reason, setReason] = useState("");
+
+  return (
+    <div className="flex flex-col gap-2" data-testid={`${id}-unpay`}>
+      <p className="text-xs text-muted">{t("pending.unpayHint")}</p>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-40 flex-1">
+          <Field label={t("pending.unpayReasonLabel")} testId={`${id}-unpay-reason-field`}>
+            <input
+              className={INPUT_CLASS}
+              value={reason}
+              maxLength={200}
+              onChange={(e) => setReason(e.target.value)}
+              data-testid={`${id}-unpay-reason`}
+            />
+          </Field>
+        </div>
+        <Button
+          variant="secondary"
+          isDisabled={unpay.isPending || !reason.trim()}
+          onPress={() => unpay.mutate({ claimId: claim.id, data: { reason: reason.trim() } })}
+          data-testid={`${id}-unpay-button`}
+        >
+          {t("pending.unpay")}
+        </Button>
+      </div>
+      <Message error={unpay.error ? errorText(unpay.error) : null} testId={`${id}-unpay-message`} />
     </div>
   );
 }
 
 /** The claim as a GiroCode (Story F-8): scanned with a banking app's photo transfer, it
  *  fills in payee, IBAN, amount and line — the app's own TAN pays, and "Mark as paid"
- *  records it. Fetched with the token, as a plain `<img src>` would not send it. */
-function GiroCode({ claimId }: { claimId: number }) {
+ *  records it. Showing it issues the transfer, so the claim leaves the next SEPA run;
+ *  once issued it is shown straight away. Fetched with the token, as a plain
+ *  `<img src>` would not send it. */
+function GiroCode({ claimId, issued }: { claimId: number; issued: boolean }) {
   const { t } = useTranslation("space");
   const id = `reimbursements-claim-${claimId}-girocode`;
-  const [shown, setShown] = useState(false);
+  const [shown, setShown] = useState(issued);
+  // Read when the code arrives, not a reason to fetch it again.
+  const afterIssue = useRef<() => void>(() => {});
+  const refresh = useMoneyRefresh();
+  useEffect(() => {
+    afterIssue.current = issued ? () => {} : refresh;
+  });
   const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
 
@@ -700,6 +747,8 @@ function GiroCode({ claimId }: { claimId: number }) {
         objectUrl = made;
         if (live) setUrl(made);
         else URL.revokeObjectURL(made);
+        // Handing it out issued the transfer: the claim is in payment now.
+        afterIssue.current();
       })
       .catch((caught: unknown) => live && setError(caught));
     return () => {

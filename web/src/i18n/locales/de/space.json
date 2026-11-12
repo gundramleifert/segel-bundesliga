@@ -123,7 +123,6 @@
   "paymentStates": {
     "unpaid": "Offen",
     "in_payment": "In Zahlung",
-    "partially_paid": "Teilweise gezahlt",
     "paid": "Gezahlt"
   },
   "pending": {
@@ -147,7 +146,10 @@
     "payByHandHint": "Eine Überweisung selbst im Online-Banking gemacht? Hier eintragen. Für mehrere Abrechnungen geht eine SEPA-Datei unter Zahlläufe schneller.",
     "girocodeShow": "GiroCode anzeigen",
     "girocodeAlt": "GiroCode für diese Abrechnung",
-    "girocodeHint": "Mit der Fotoüberweisung der Banking-App scannen: Empfänger, IBAN, Betrag und Verwendungszweck sind ausgefüllt, die TAN zahlt. Danach „Als gezahlt markieren“ drücken."
+    "girocodeHint": "Mit der Fotoüberweisung der Banking-App scannen: Empfänger, IBAN, Betrag und Verwendungszweck sind ausgefüllt, die TAN zahlt. Mit dem Anzeigen ist der Antrag in Zahlung, kein SEPA-Lauf zahlt ihn noch einmal; danach „Als gezahlt markieren“ drücken.",
+    "unpay": "Nicht gezahlt",
+    "unpayReasonLabel": "Warum nicht",
+    "unpayHint": "Nimmt die Zahlung zurück: Sie bleibt als gescheitert erhalten, und der Antrag ist wieder offen — für einen Code, den niemand überwiesen hat, oder ein versehentliches „gezahlt“."
   },
   "personDocuments": {
     "button": "Dokumente",

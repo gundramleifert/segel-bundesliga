@@ -88,7 +88,7 @@ async def _run_out(session: AsyncSession, run: PaymentRun) -> RunOut:
                 reference=p.reference,
                 status=PaymentStatus(p.status),
                 failure_reason=p.failure_reason,
-                claim_ids=[a.claim_id for a in p.allocations],
+                claim_ids=p.claim_ids,
             )
             for p in run.payments
         ],
@@ -195,8 +195,9 @@ async def download_payment_run_sepa(
     acting: User = Depends(current_user),
 ) -> Response:
     run = await _run(session, run_id, acting)
+    assert run.sepa_xml is not None  # written with the run
     return Response(
-        await payments.sepa_file(run),
+        run.sepa_xml,
         media_type="application/xml",
         headers={
             "Content-Disposition": f'attachment; filename="sepa-{run.message_id}.xml"',
@@ -246,7 +247,7 @@ async def fail_payment(
     payment = await session.get(Payment, payment_id)
     if payment is None or payment.run_id is None:
         raise Problem(404, "payment-not-found", "No such payment in a run.")
-    payments.fail_payment(session, acting, payment, body.reason.strip())
+    await payments.fail_payment(session, acting, payment, body.reason.strip())
     await session.commit()
     return await _run_out(session, await payments.load_run(session, payment.run_id))
 

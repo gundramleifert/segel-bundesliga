@@ -87,6 +87,8 @@
   "claim-not-submitted": "Only a submitted claim can be decided.",
   "claim-not-approved": "Only an approved claim can be paid.",
   "claim-already-paid": "Nothing is left to pay on this claim.",
+  "claim-not-paid": "This claim has no payment to take back.",
+  "payment-in-run": "This payment went out in a SEPA run — mark it returned there.",
   "expense-range-backwards": "A range of dates ends after it begins.",
   "expense-item-unknown": "That item is not on this claim.",
   "expense-distance-required": "A car journey needs its distance in kilometres.",

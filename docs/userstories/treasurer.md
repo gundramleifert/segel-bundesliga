@@ -140,27 +140,38 @@ As the **manager or treasurer** I want to **mark approved claims as paid and exp
 so that **the club's bookkeeping gets one list with payee, IBAN, amount and reference**.
 
 Acceptance criteria:
-- A payment is its own record (`draft` → `issued` → `settled`, or `failed` / `cancelled`),
-  not a status of the claim: a transfer that bounces after approval must not reopen the
-  approval (`docs/PLAN_DATA_MODEL.md` §2.5).
-- One payment settles any number of claims of one payee for one paying club; a claim can
-  be paid in parts (`PaymentAllocation`), never beyond its approved total.
-- Whether a claim is paid (`unpaid`, `in_payment`, `partially_paid`, `paid`) is computed
-  from the settled allocations, never stored. A failed payment is kept as it is and stops
-  counting; a new payment is made.
+- A payment is its own record (`issued` → `settled`, or `failed`), not a status of the
+  claim: a transfer that bounces after approval must not reopen the approval
+  (`docs/PLAN_DATA_MODEL.md` §2.5).
+- One payment settles any number of claims of one payee for one paying club. **A claim is
+  paid whole, never in parts** (decided 2026-11-11: partial payments were never used).
+- **A claim has at most one live payment, and the database says so** (review 1.1): a
+  partial unique index on `payment_claim(claim_id) WHERE active` refuses a second one
+  whichever screen, run or double click asks (`claim-already-paid`).
+- **Decided money is frozen** (review 1.4): the approved total is stored at approval, a
+  payment's amount at its issue, a run's SEPA file when it is made.
+- Whether a claim is paid (`unpaid`, `in_payment`, `paid`) is computed from its live
+  payment, never stored. A failed payment is kept as it is and stops counting; a new
+  payment is made.
 - Whoever issues a payment is recorded, and is never the payee.
 - **"Mark as paid"** is the short way for the transfer the decider has just made in their
-  own online banking: one settled payment over what is still open on that claim, to the
-  IBAN copied onto it, with the date and an optional reference.
+  own online banking: one settled payment over the approved total, to the IBAN copied
+  onto it, with the date and an optional reference — or, after a GiroCode (F-8), that
+  code's transfer confirmed.
+- **"Not paid" takes a payment made outside a run back** (review 1.3): a "Mark as paid"
+  pressed by mistake, a GiroCode nobody transferred. The payment is kept as `failed` with
+  the reason, audited, and the claim is open again. A run's payment comes back through
+  the run (`payment-in-run`, Story F-7).
 
-Done: the data model, the computed payment state, "mark as paid", and payments over
-several claims with `issued` → `settled` / `failed` through the SEPA export (Story F-7).
-Open: a payment cancelled before it was issued, partial payments by hand.
+Done: all of it. Open: taking back a hand payment from anywhere but the pending list —
+a claim already marked paid leaves that list.
 
 Tests: `api/tests/stories/test_expenses.py::TestPaymentState`,
-`api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once`,
+`api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_has_one_live_payment_at_most`,
 `api/tests/stories/test_reimbursements.py::TestPayingAClaim`,
-`api/tests/stories/test_payment_runs.py::TestSettlingARun`
+`api/tests/stories/test_payment_runs.py::TestSettlingARun`,
+`api/tests/stories/test_payment_runs.py::TestPaidOnce`,
+`api/tests/stories/test_payment_runs.py::TestFrozenMoney`
 
 ### F-5 ● Upload documents to a claim, readable only by the claimant and whoever decides it
 As a **claimant** I want to **attach receipts, invoices and tickets to my claim**, so that
@@ -271,6 +282,10 @@ Acceptance criteria:
 - Only for whoever may pay the claim (Story F-3), never the claimant
   (`claim-own-decision`), and only while something is open (`claim-not-payable`) — a
   code for a claim already in a SEPA run would pay it twice.
-- After paying, "Mark as paid" (Story F-4) records it; the code changes nothing by itself.
+- **Showing the code issues the transfer** (decided 2026-11-11, review 1.1): the claim is
+  `in_payment` and leaves the next SEPA run, so a code scanned and paid while nobody
+  pressed "Mark as paid" is never paid a second time by the file. Asked again, the same
+  code comes back. "Mark as paid" (Story F-4) confirms it; "Not paid" takes it back.
 
-Tests: `api/tests/stories/test_payment_runs.py::TestGiroCode`
+Tests: `api/tests/stories/test_payment_runs.py::TestGiroCode`,
+`api/tests/stories/test_payment_runs.py::TestPaidOnce`

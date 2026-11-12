@@ -327,6 +327,7 @@ export * from './tupleOut';
 export * from './tupleWrite';
 export * from './unavailableEvent';
 export * from './unclaimableReason';
+export * from './unpayBody';
 export * from './updated';
 export * from './userCreate';
 export * from './userOut';

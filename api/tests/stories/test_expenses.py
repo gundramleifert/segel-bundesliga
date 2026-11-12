@@ -1,8 +1,8 @@
 """Expense claims and payments (Stories F-2, F-4, F-5) — the data model.
 
 A claim belongs to one event and stops at the decision; a **payment** is its own record
-with its own lifecycle, linked to claims through allocations, and "paid" is computed from
-the settled ones — never stored (``docs/PLAN_DATA_MODEL.md`` §2.5). The endpoints come
+with its own lifecycle, linked to the claims it pays, and "paid" is computed from the one
+live payment — never stored (``docs/PLAN_DATA_MODEL.md`` §2.5). The endpoints come
 later; what is tested here is what the model itself guarantees: the totals, the payment
 state, and the rules the database enforces so no route can break them.
 
@@ -24,7 +24,7 @@ from app.models import (
     ExpenseItem,
     ExpenseKind,
     Payment,
-    PaymentAllocation,
+    PaymentClaim,
     PaymentState,
     PaymentStatus,
 )
@@ -37,12 +37,15 @@ def _item(amount: int, *, kind=ExpenseKind.OTHER) -> ExpenseItem:
 
 
 def _claim(*items: ExpenseItem, status=ClaimStatus.APPROVED) -> ExpenseClaim:
-    return ExpenseClaim(title="Act 3", status=status, items=list(items), allocations=[])
+    claim = ExpenseClaim(title="Act 3", status=status, items=list(items), links=[])
+    if status == ClaimStatus.APPROVED:
+        claim.approved_total_cents = claim.claimed_cents
+    return claim
 
 
-def _pay(claim: ExpenseClaim, amount: int, status: PaymentStatus) -> None:
-    payment = Payment(status=status)
-    claim.allocations.append(PaymentAllocation(payment=payment, amount_cents=amount))
+def _pay(claim: ExpenseClaim, status: PaymentStatus) -> None:
+    payment = Payment(status=status, amount_cents=claim.approved_cents)
+    claim.links.append(PaymentClaim(payment=payment, active=status != PaymentStatus.FAILED))
 
 
 class TestClaimTotals:
@@ -55,36 +58,45 @@ class TestClaimTotals:
         assert claim.approved_cents == 17300
         assert _claim(_item(4500), status=ClaimStatus.SUBMITTED).approved_cents == 0
 
+    def test_what_was_approved_stays_what_is_owed(self):
+        """Decided money is frozen: an item changed after the approval — by a bug, a
+        script, a migration — changes what was claimed, never what is owed."""
+        claim = _claim(_item(4500))
+        claim.items.append(_item(99900))
+
+        assert claim.claimed_cents == 104400
+        assert claim.approved_cents == 4500
+
 
 class TestPaymentState:
-    """Story F-4: whether a claim is paid follows from the settled payments allocated
-    to it. A failed or cancelled payment simply stops counting."""
+    """Story F-4: whether a claim is paid follows from its one live payment. A claim is
+    paid whole, never in parts; a failed payment simply stops counting."""
 
-    def test_settled_in_full_is_paid(self):
+    def test_settled_is_paid(self):
         claim = _claim(_item(10000))
-        _pay(claim, 6000, PaymentStatus.SETTLED)
-        _pay(claim, 4000, PaymentStatus.SETTLED)
+        _pay(claim, PaymentStatus.SETTLED)
 
         assert claim.paid_cents == 10000
+        assert claim.open_cents == 0
         assert claim.payment_state is PaymentState.PAID
 
-    def test_settled_in_part_is_partially_paid(self):
+    def test_issued_is_in_payment_and_nothing_is_open(self):
         claim = _claim(_item(10000))
-        _pay(claim, 6000, PaymentStatus.SETTLED)
+        _pay(claim, PaymentStatus.ISSUED)
 
-        assert claim.payment_state is PaymentState.PARTIALLY_PAID
+        assert claim.payment_state is PaymentState.IN_PAYMENT
+        assert claim.open_cents == 0 and claim.paid_cents == 0
 
     def test_a_failed_transfer_falls_back_to_unpaid_by_itself(self):
         """An approved claim without payments is unpaid. Never edit, reverse: the failed
         payment stays as it was, and the claim is unpaid again because the computation no
-        longer counts it. (An issued payment putting it in payment is checked through the
-        API, by the payment-run story.)"""
+        longer counts it."""
         claim = _claim(_item(10000))
         assert claim.payment_state is PaymentState.UNPAID
-        _pay(claim, 10000, PaymentStatus.FAILED)
-        _pay(claim, 10000, PaymentStatus.CANCELLED)
+        _pay(claim, PaymentStatus.FAILED)
 
         assert claim.paid_cents == 0
+        assert claim.open_cents == 10000
         assert claim.payment_state is PaymentState.UNPAID
 
     @pytest.mark.parametrize(
@@ -162,21 +174,43 @@ class TestTheDatabaseKeepsTheBooksStraight:
             )
         )
 
-    async def test_a_claim_is_allocated_to_a_payment_once(self, ids):
+    async def test_a_claim_has_one_live_payment_at_most(self, ids):
+        """Review 1.1: two screens, a double click, a run made while a GiroCode was out —
+        whatever asks, the database refuses a second live payment of one claim. A failed
+        one's link is inactive and leaves room for the next."""
         claim_id = await _stored_claim(ids, _item(10000))
+
+        async def payment() -> int:
+            async with SessionLocal() as session:
+                row = Payment(
+                    payer_club_id=ids.club("asvw"),
+                    payee_name="Wanda",
+                    amount_cents=10000,
+                    status=PaymentStatus.ISSUED,
+                )
+                session.add(row)
+                await session.commit()
+                return row.id
+
+        first, second, third = await payment(), await payment(), await payment()
         async with SessionLocal() as session:
-            payment = Payment(payer_club_id=ids.club("asvw"), payee_name="Wanda")
-            session.add(payment)
-            await session.commit()
-            payment_id = payment.id
-        async with SessionLocal() as session:
-            session.add(PaymentAllocation(payment_id=payment_id, claim_id=claim_id, amount_cents=1))
+            session.add(PaymentClaim(payment_id=first, claim_id=claim_id))
             await session.commit()
 
-        await _refused(PaymentAllocation(payment_id=payment_id, claim_id=claim_id, amount_cents=1))
+        await _refused(PaymentClaim(payment_id=first, claim_id=claim_id, active=False))
+        await _refused(PaymentClaim(payment_id=second, claim_id=claim_id))
+        async with SessionLocal() as session:
+            session.add(PaymentClaim(payment_id=second, claim_id=claim_id, active=False))
+            await session.commit()
+        await _refused(PaymentClaim(payment_id=third, claim_id=claim_id))
+
+    async def test_a_payment_moves_money(self, ids):
         await _refused(
-            PaymentAllocation(
-                payment_id=payment_id, claim_id=await _stored_claim(ids), amount_cents=0
+            Payment(
+                payer_club_id=ids.club("asvw"),
+                payee_name="Wanda",
+                amount_cents=0,
+                status=PaymentStatus.ISSUED,
             )
         )
 

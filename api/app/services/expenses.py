@@ -33,10 +33,6 @@ from app.models import (
     ExpenseClaim,
     ExpenseItem,
     ExpenseKind,
-    Payment,
-    PaymentAllocation,
-    PaymentMethod,
-    PaymentStatus,
 )
 from app.models.auth import SCHEMA, ObjectType, Relation, User
 from app.problems import Problem
@@ -348,9 +344,10 @@ def action(claim: ExpenseClaim) -> str | None:
     """What the decider is to do with it: ``decide``, ``pay``, or nothing."""
     if claim.status == ClaimStatus.SUBMITTED:
         return "decide"
-    if claim.open_cents > 0:
-        # Approved, and not covered by a payment already issued — one in an exported
-        # SEPA run is waiting for the bank, not for the decider (Story F-7).
+    if claim.open_cents > 0 or claim.unconfirmed_payment is not None:
+        # Approved and not yet paid — or its GiroCode handed out and the transfer not yet
+        # confirmed. One in an exported SEPA run waits for the bank, not for the decider
+        # (Story F-7).
         return "pay"
     return None
 
@@ -617,6 +614,8 @@ async def approve(
     _require_submitted(claim)
     _require_receipts(claim, policy_for(await paying_club(session, claim)))
     _decide(session, user, claim, ClaimStatus.APPROVED, note)
+    # Decided money is frozen: what is owed is the sum approved, whatever happens later.
+    claim.approved_total_cents = claim.claimed_cents
 
 
 def reject(session: AsyncSession, user: User, claim: ExpenseClaim, note: str) -> None:
@@ -638,43 +637,6 @@ def _decide(
     claim.decided_at = datetime.now(UTC)
     claim.decision_note = note
     _audit(session, claim, status.value, user, note=note)
-
-
-def pay(
-    session: AsyncSession,
-    user: User,
-    claim: ExpenseClaim,
-    *,
-    paid_on: date | None,
-    reference: str | None,
-    method: PaymentMethod,
-) -> Payment:
-    """ "Mark as paid" (Story F-4): one settled payment over what is still open — for the
-    transfer the decider has just made in their own banking."""
-    require_decider(user, claim)
-    if claim.status != ClaimStatus.APPROVED:
-        raise Problem(409, "claim-not-approved", "Only an approved claim is paid.")
-    open_cents = claim.open_cents
-    if open_cents <= 0:
-        raise Problem(409, "claim-already-paid", "Nothing is left to pay on this claim.")
-    assert claim.payer_club_id is not None
-    day = paid_on or date.today()
-    payment = Payment(
-        payer_club_id=claim.payer_club_id,
-        payee_user_id=claim.claimant_user_id,
-        payee_name=claim.payee_name or claim.claimant_name,
-        iban=claim.iban,
-        status=PaymentStatus.SETTLED,
-        method=method,
-        reference=reference or claim.title[:140],
-        issued_by_user_id=user.id,
-        issued_on=day,
-        settled_on=day,
-    )
-    payment.allocations.append(PaymentAllocation(claim=claim, amount_cents=open_cents))
-    session.add(payment)
-    _audit(session, claim, "paid", user, amount_cents=open_cents)
-    return payment
 
 
 def _audit(

@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 38168fc9f5d0
+Revision ID: ad7710c39b69
 Revises:
-Create Date: 2026-11-11 21:49:02.246378
+Create Date: 2026-11-11 23:38:11.963689
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "38168fc9f5d0"
+revision: str = "ad7710c39b69"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -400,6 +400,7 @@ def upgrade() -> None:
         sa.Column("debtor_name", sa.String(length=160), nullable=False),
         sa.Column("debtor_iban", sa.String(length=34), nullable=False),
         sa.Column("debtor_bic", sa.String(length=11), nullable=True),
+        sa.Column("sepa_xml", sa.LargeBinary(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -641,6 +642,7 @@ def upgrade() -> None:
         sa.Column("payee_user_id", sa.Integer(), nullable=True),
         sa.Column("payee_name", sa.String(length=160), nullable=False),
         sa.Column("iban", sa.String(length=34), nullable=True),
+        sa.Column("amount_cents", sa.Integer(), nullable=False),
         sa.Column("status", sa.String(length=16), nullable=False),
         sa.Column("method", sa.String(length=16), nullable=False),
         sa.Column("reference", sa.String(length=140), nullable=True),
@@ -661,6 +663,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
+        sa.CheckConstraint("amount_cents > 0", name=op.f("ck_payment_amount_positive")),
         sa.ForeignKeyConstraint(
             ["issued_by_user_id"],
             ["app_user.id"],
@@ -886,6 +889,7 @@ def upgrade() -> None:
         sa.Column("decided_by_user_id", sa.Integer(), nullable=True),
         sa.Column("decided_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("decision_note", sa.String(length=1000), nullable=True),
+        sa.Column("approved_total_cents", sa.Integer(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -1424,11 +1428,11 @@ def upgrade() -> None:
     op.create_index(op.f("ix_media_item_series_id"), "media_item", ["series_id"], unique=False)
     op.create_index(op.f("ix_media_item_sha256"), "media_item", ["sha256"], unique=True)
     op.create_table(
-        "payment_allocation",
+        "payment_claim",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("payment_id", sa.Integer(), nullable=False),
         sa.Column("claim_id", sa.Integer(), nullable=False),
-        sa.Column("amount_cents", sa.Integer(), nullable=False),
+        sa.Column("active", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -1441,25 +1445,25 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.CheckConstraint("amount_cents > 0", name=op.f("ck_payment_allocation_amount_positive")),
         sa.ForeignKeyConstraint(
-            ["claim_id"],
-            ["expense_claim.id"],
-            name=op.f("fk_payment_allocation_claim_id_expense_claim"),
+            ["claim_id"], ["expense_claim.id"], name=op.f("fk_payment_claim_claim_id_expense_claim")
         ),
         sa.ForeignKeyConstraint(
-            ["payment_id"], ["payment.id"], name=op.f("fk_payment_allocation_payment_id_payment")
+            ["payment_id"], ["payment.id"], name=op.f("fk_payment_claim_payment_id_payment")
         ),
-        sa.PrimaryKeyConstraint("id", name=op.f("pk_payment_allocation")),
-        sa.UniqueConstraint(
-            "payment_id", "claim_id", name=op.f("uq_payment_allocation_payment_id")
-        ),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_payment_claim")),
+        sa.UniqueConstraint("payment_id", "claim_id", name=op.f("uq_payment_claim_payment_id")),
+    )
+    op.create_index(op.f("ix_payment_claim_claim_id"), "payment_claim", ["claim_id"], unique=False)
+    op.create_index(
+        op.f("ix_payment_claim_payment_id"), "payment_claim", ["payment_id"], unique=False
     )
     op.create_index(
-        op.f("ix_payment_allocation_claim_id"), "payment_allocation", ["claim_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_payment_allocation_payment_id"), "payment_allocation", ["payment_id"], unique=False
+        "uq_payment_claim_one_live_payment",
+        "payment_claim",
+        ["claim_id"],
+        unique=True,
+        postgresql_where=sa.text("active"),
     )
     op.create_table(
         "race",
@@ -1727,9 +1731,14 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_race_sequence"), table_name="race")
     op.drop_index(op.f("ix_race_flight_id"), table_name="race")
     op.drop_table("race")
-    op.drop_index(op.f("ix_payment_allocation_payment_id"), table_name="payment_allocation")
-    op.drop_index(op.f("ix_payment_allocation_claim_id"), table_name="payment_allocation")
-    op.drop_table("payment_allocation")
+    op.drop_index(
+        "uq_payment_claim_one_live_payment",
+        table_name="payment_claim",
+        postgresql_where=sa.text("active"),
+    )
+    op.drop_index(op.f("ix_payment_claim_payment_id"), table_name="payment_claim")
+    op.drop_index(op.f("ix_payment_claim_claim_id"), table_name="payment_claim")
+    op.drop_table("payment_claim")
     op.drop_index(op.f("ix_media_item_sha256"), table_name="media_item")
     op.drop_index(op.f("ix_media_item_series_id"), table_name="media_item")
     op.drop_index(op.f("ix_media_item_name"), table_name="media_item")
