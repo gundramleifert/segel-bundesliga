@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
-from app.auth import current_user
+from app.auth import current_user, optional_user
 from app.authz import ObjectRef
 from app.db import get_session
 from app.models import Event, EventCrew, Person, Team, TeamStatus
@@ -55,10 +55,25 @@ class CrewOut(BaseModel):
 
 @router.get("/{event_id}/crew/{team_id}", response_model=CrewOut, summary="View lineup")
 async def get_crew(
-    event_id: int, team_id: int, session: AsyncSession = Depends(get_session)
+    event_id: int,
+    team_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User | None = Depends(optional_user),
 ) -> CrewOut:
+    """A published event's lineup is public, as on the act's page (Story B-12). A draft's
+    is for whoever may set it and the club's own members — it answered everyone once,
+    found by the route inventory (`tests/architecture/test_access.py`)."""
     event = await get_or_404(session, Event, event_id)
-    return await _crew_out(session, event, (await _participation(session, event, team_id)).id)
+    team = await _participation(session, event, team_id)
+    if not event.published and not (
+        acting is not None
+        and (
+            _may_set(acting, team, event)
+            or authz.check(acting, Relation.MEMBER, on=ObjectRef(ObjectType.CLUB, team.club_id))
+        )
+    ):
+        raise Problem(404, "event-not-found", "No such event.")
+    return await _crew_out(session, event, team.id)
 
 
 @router.put("/{event_id}/crew", response_model=CrewOut, summary="Set lineup")
@@ -119,12 +134,16 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
     return found
 
 
-def _check_permissions(acting: User, team: Team, event: Event) -> None:
+def _may_set(acting: User, team: Team, event: Event) -> bool:
     # The event's organizer and race committee — held on the event, its series, its host
     # club or the site (Story Z-2) — may line up a crew; one for a different event may not.
-    if authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event):
-        return
-    if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
+    return authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event) or authz.check(
+        acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)
+    )
+
+
+def _check_permissions(acting: User, team: Team, event: Event) -> None:
+    if _may_set(acting, team, event):
         return
     if authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
         raise Problem(403, "lineup-not-own-team", "You can only line up your own team.")

@@ -830,7 +830,8 @@ paragraph. So every rule that can be checked is: **ruff** where an import says i
 `authz.py`/`grants.py`), and **`api/tests/architecture/test_rules.py`** for the rest —
 one writer per status, one creator per `Team`, no router importing a router, **no router
 gaining a query** (a router parses, authorizes, calls a service, serializes — review 7.3),
-no stored point or standing, every
+no stored point or standing, **every route open without sign-in listed with its reason**
+(`tests/architecture/test_access.py`), every
 `Problem` code worded in both languages, `CLAUDE.md`'s permission table against `MODEL`.
 Each rule keeps its known violations in a list with their item in
 `docs/REVIEW_2026-11.md`, and the list is a **ratchet**: a new violation fails, and so
