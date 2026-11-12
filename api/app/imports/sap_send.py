@@ -297,7 +297,15 @@ async def send_event(
     missing = [b.color or str(b.number) for b in event.boats if b.color not in boats]
     if missing:
         raise SendRefused("sap-boat-missing", f"no SAP boat for {', '.join(missing)}")
-    name = report.leaderboard = leaderboard_name(event)
+    # The name is chosen once, at the first send, and kept as the event's link to SAP —
+    # computed again from a venue set or a series renamed since, it would make a second
+    # regatta at SAP and leave the results in the first (review 6.1).
+    name = await link_key(session, Event, SOURCE, event.id)
+    if name is None:
+        name = leaderboard_name(event)
+        await link(session, event, SOURCE, name)
+        await session.commit()
+    report.leaderboard = name
     try:
         group = await writer.season_group(event.series.name) if event.series else None
         if await writer.regatta(name) is None:
@@ -346,7 +354,5 @@ async def send_event(
     event.sap_leaderboard = name
     event.sap_server = writer.site
     event.results_source = ResultsSource.SAP
-    if await link_key(session, Event, SOURCE, event.id) is None:
-        await link(session, event, SOURCE, name)
     await session.commit()
     return report

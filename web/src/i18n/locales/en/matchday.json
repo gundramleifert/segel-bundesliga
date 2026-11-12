@@ -85,5 +85,7 @@
   "penaltyNoteLabel": "Reason for {club}'s penalty",
   "penaltyNotePlaceholder": "Reason (optional)",
   "penaltySave": "Save",
-  "penaltyInvalid": "Between 0 and 100 points"
+  "penaltyInvalid": "Between 0 and 100 points",
+  "sapStale": "Results from SAP Sailing may be behind: last updated at {time}.",
+  "sapStaleNever": "Results from SAP Sailing may be behind: SAP Sailing has not answered yet."
 }

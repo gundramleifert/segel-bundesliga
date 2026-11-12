@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from base64 import b64encode
+from datetime import UTC, datetime
 from urllib.parse import quote
 
 import httpx
@@ -24,8 +25,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.config import settings
-from app.imports.common import USER_AGENT, Report
-from app.imports.sap import SapClient, import_sap
+from app.imports.common import USER_AGENT, Report, finish_run, start_run
+from app.imports.sap import SOURCE, SapClient
+from app.imports.sap_results import apply_results, changed
 from app.live import event_topic, hub
 from app.models import Event, EventStatus, ResultsSource
 from app.problems import Problem
@@ -37,24 +39,66 @@ def sap_http() -> httpx.AsyncClient:
     """The client every call to SAP goes through — the site's account where one is set.
     `app/routers/sap.py::sap_client` hands it out, so a test can put a simulated SAP there."""
     auth = (settings.sap_user, settings.sap_password or "") if settings.sap_user else None
+    # Short: a poll round every few seconds must not wait a minute on one regatta.
     return httpx.AsyncClient(
-        headers={"User-Agent": USER_AGENT}, timeout=60, follow_redirects=True, auth=auth
+        headers={"User-Agent": USER_AGENT}, timeout=10, follow_redirects=True, auth=auth
     )
 
 
 async def fetch_results(
     sessions: async_sessionmaker[AsyncSession], http: httpx.AsyncClient, event: Event
 ) -> Report:
-    """Takes the event's results from its SAP leaderboard, then tells every open page."""
+    """Takes the event's results from its SAP leaderboard — onto our draw, creating
+    nothing (``apply_results``, review 6.2) — and tells the open pages only when something
+    changed (6.3). Every attempt is recorded on the event: when SAP last answered, and
+    what went wrong if it did not, so a stale page says so. An unreachable SAP raises
+    ``httpx.HTTPError`` after recording it."""
     assert event.sap_leaderboard is not None
-    report = await import_sap(
-        sessions,
-        SapClient(http, settings.sap_base_url),
-        names=[event.sap_leaderboard],
-        log=lambda _: None,
-    )
-    hub.publish(event_topic(event.id))
+    report = Report()
+    try:
+        leaderboard = await SapClient(http, settings.sap_base_url).leaderboard(
+            event.sap_leaderboard
+        )
+    except httpx.HTTPError as error:
+        await _record_sync(sessions, event.id, error=f"{type(error).__name__}: {error}"[:300])
+        raise
+    async with sessions() as session:
+        fresh = await session.get(Event, event.id)
+        assert fresh is not None
+        await apply_results(session, fresh, leaderboard, report)
+        if changed(report):
+            # A changed result is a run worth keeping: a protest decided at SAP shows here.
+            finish_run(await start_run(session, SOURCE, event.sap_leaderboard), report)
+        fresh.sap_synced_at = datetime.now(UTC)
+        fresh.sap_sync_error = None
+        await session.commit()
+    if changed(report):
+        hub.publish(event_topic(event.id))
     return report
+
+
+async def _record_sync(
+    sessions: async_sessionmaker[AsyncSession], event_id: int, *, error: str
+) -> None:
+    async with sessions() as session:
+        event = await session.get(Event, event_id)
+        if event is not None:
+            event.sap_sync_error = error
+            await session.commit()
+
+
+def sap_stale(event: Event, now: datetime | None = None) -> bool:
+    """Whether a live event scored on SAP shows results older than three poll rounds —
+    or SAP failed last time: the page then says the results may be behind."""
+    if event.results_source != ResultsSource.SAP or event.status != EventStatus.LIVE:
+        return False
+    if event.sap_sync_error:
+        return True
+    if event.sap_synced_at is None or settings.sap_poll_seconds <= 0:
+        # Not polled yet, or polling is off: no round was missed.
+        return False
+    now = now or datetime.now(UTC)
+    return (now - event.sap_synced_at).total_seconds() > 3 * settings.sap_poll_seconds
 
 
 def sap_configured() -> bool:
@@ -126,17 +170,27 @@ async def live_events(session: AsyncSession) -> list[Event]:
 
 
 async def poll_once(sessions: async_sessionmaker[AsyncSession], http: httpx.AsyncClient) -> None:
+    """Every live event on SAP at once — one slow regatta never holds up the others."""
     async with sessions() as session:
         events = await live_events(session)
-    for event in events:
-        try:
-            report = await fetch_results(sessions, http, event)
-        except httpx.HTTPError as error:
-            # SAP unreachable: the last results stay, and the next round tries again.
-            logger.warning("SAP results for %s: %s", event.slug, error)
-            continue
-        if report.errors or report.conflicts:
-            logger.warning("SAP results for %s:\n%s", event.slug, report.render())
+    await asyncio.gather(*(_poll_event(sessions, http, event) for event in events))
+
+
+async def _poll_event(
+    sessions: async_sessionmaker[AsyncSession], http: httpx.AsyncClient, event: Event
+) -> None:
+    try:
+        report = await fetch_results(sessions, http, event)
+    except httpx.HTTPError as error:
+        # SAP unreachable: the last results stay, the event says since when, and the
+        # next round tries again.
+        logger.warning("SAP results for %s: %s", event.slug, error)
+        return
+    except Exception:
+        logger.exception("SAP results for %s", event.slug)
+        return
+    if report.errors or report.conflicts or report.unassigned:
+        logger.warning("SAP results for %s:\n%s", event.slug, report.render())
 
 
 async def poll(sessions: async_sessionmaker[AsyncSession]) -> None:

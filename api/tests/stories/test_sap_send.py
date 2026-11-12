@@ -381,3 +381,114 @@ class TestBothDirections:
             event_id = (await session.execute(select(Event.id))).scalar_one()
             derived = sorted((await points(session, event_id)).values())
         assert derived == [1.0, 2.0]
+
+
+async def _poll(db, monkeypatch):
+    """One round of the live poll for the event (`sap_scoring.fetch_results`)."""
+    from app.config import settings
+    from app.services import sap_scoring
+
+    monkeypatch.setattr(settings, "sap_base_url", sap_double.API)
+    async with httpx.AsyncClient(auth=sap_double.AUTH, timeout=60) as http, db() as session:
+        event = (await session.execute(select(Event))).scalar_one()
+        return await sap_scoring.fetch_results(db, http, event)
+
+
+async def _counts(db) -> dict[str, int]:
+    from sqlalchemy import func
+
+    async with db() as session:
+        return {
+            model.__name__: (await session.execute(select(func.count(model.id)))).scalar_one()
+            for model in (Club, Team, Event, Series, Race, Boat)
+        }
+
+
+class TestTheLivePoll:
+    """Review 6.1–6.3: the name SAP knows the act by is fixed once sent; the poll writes
+    results onto our draw and makes nothing; a failing SAP is visible."""
+
+    async def test_the_leaderboard_name_is_kept_after_the_venue_changes(self, db, sap, name):
+        """Review 6.1: a venue set after the first send renamed the next one — a second
+        regatta at SAP, and race day's results in the first."""
+        await _send(db)
+        moved = f"Rostock {uuid4().hex[:6]}"
+        async with db() as session:
+            venue = (await session.execute(select(Venue))).scalar_one()
+            venue.city = moved
+            await session.commit()
+
+        report = await _send(db)
+
+        assert report.errors == [] and report.leaderboard == name
+        stray = [b for b in sap_double.leaderboards() if moved in b]
+        for board in stray:  # what the defect made, gone again whatever the outcome
+            LocalSap(board).delete()
+        assert stray == []
+
+    async def test_the_poll_takes_results_and_makes_nothing(self, db, sap, name, monkeypatch):
+        """Review 6.2: the poll ran the whole historical importer, which makes clubs, teams
+        and events for what it does not know. A competitor the send did not link — here,
+        a link lost — is reported, and nothing is created for it."""
+        await _send(db)
+        by_code = sap.competitors()
+        sap.enter("F1", "Race 1", [(by_code["ASVW"], 1, "NONE"), (by_code["NRV"], 2, "NONE")])
+        async with db() as session:
+            nrv = (await session.execute(select(Team).where(Team.name == "NRV 1"))).scalar_one()
+            await session.execute(
+                ExternalId.__table__.delete().where(
+                    ExternalId.source == SOURCE,
+                    ExternalId.entity_type == Team.__tablename__,
+                    ExternalId.entity_id == nrv.id,
+                )
+            )
+            await session.commit()
+        before = await _counts(db)
+
+        report = await _poll(db, monkeypatch)
+
+        assert await _counts(db) == before
+        assert any("NRV" in line for line in report.unassigned), report.render()
+        async with db() as session:
+            event_id = (await session.execute(select(Event.id))).scalar_one()
+            derived = await points(session, event_id)
+        assert sorted(derived.values()) == [1.0]
+
+    async def test_a_failing_sap_is_recorded_and_a_quiet_one_tells_nobody(
+        self, db, sap, monkeypatch
+    ):
+        """Review 6.3: SAP down was a log line; every round told every page to refetch."""
+        from app.config import settings
+        from app.services import sap_scoring
+
+        await _send(db)
+        async with db() as session:
+            event = (await session.execute(select(Event))).scalar_one()
+            event.status = EventStatus.LIVE
+            await session.commit()
+        told: list[str] = []
+        monkeypatch.setattr(sap_scoring.hub, "publish", lambda topic: told.append(topic))
+
+        # Down: nothing answers on the discard port.
+        monkeypatch.setattr(settings, "sap_base_url", "http://127.0.0.1:9")
+        async with httpx.AsyncClient(timeout=2) as http, db() as session:
+            event = (await session.execute(select(Event))).scalar_one()
+            with pytest.raises(httpx.HTTPError):
+                await sap_scoring.fetch_results(db, http, event)
+        async with db() as session:
+            event = (await session.execute(select(Event))).scalar_one()
+            assert event.sap_sync_error and sap_scoring.sap_stale(event)
+
+        # Up again, with a result: recorded, cleared, and the pages told once.
+        by_code = sap.competitors()
+        sap.enter("F1", "Race 1", [(by_code["ASVW"], 1, "NONE"), (by_code["NRV"], 2, "NONE")])
+        await _poll(db, monkeypatch)
+        async with db() as session:
+            event = (await session.execute(select(Event))).scalar_one()
+            assert event.sap_sync_error is None and event.sap_synced_at is not None
+            assert not sap_scoring.sap_stale(event)
+        assert len(told) == 1
+
+        # Nothing new at SAP: nobody is told.
+        await _poll(db, monkeypatch)
+        assert len(told) == 1

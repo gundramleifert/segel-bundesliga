@@ -424,6 +424,7 @@ Manager app, and the site's race-control screen and result entry are not offered
 Still open: "results as of" on the pages.
 
 Tests: `api/tests/stories/test_sap_send.py::TestBothDirections`,
+`api/tests/stories/test_sap_send.py::TestTheLivePoll`,
 `api/tests/stories/test_journey_sap_scored.py::TestAMatchdayScoredOnSap`,
 `api/tests/stories/test_scoring_backend.py::TestTheEventChoosesItsScoring`,
 `e2e/sap-scoring.spec.ts`

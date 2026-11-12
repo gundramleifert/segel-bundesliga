@@ -224,6 +224,10 @@ class Event(Base, TimestampMixin):
 
     # SAP Sailing access is a value per regatta, not a global secret.
     sap_leaderboard: Mapped[str | None] = mapped_column(String(200), default=None)
+    # The last time this event's results were read from SAP, and what went wrong the last
+    # time it failed (cleared by the next success) — so a stale page says so (review 6.3).
+    sap_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    sap_sync_error: Mapped[str | None] = mapped_column(String(300), default=None)
     # The SAP server that leaderboard lives on — its site, ``https://hnv.sapsailing.com``:
     # an imported act's is the host it came from, a sent one's our configured server. The
     # credit under the act links its results there (Story B-21).

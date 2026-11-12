@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 9fb2d77a7e9a
+Revision ID: 652459d9d2e8
 Revises:
-Create Date: 2026-11-12 21:17:51.204893
+Create Date: 2026-11-12 21:44:52.049614
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "9fb2d77a7e9a"
+revision: str = "652459d9d2e8"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -606,6 +606,8 @@ def upgrade() -> None:
         sa.Column("live_url", sa.String(length=300), nullable=True),
         sa.Column("print_settings", sa.JSON(), nullable=True),
         sa.Column("sap_leaderboard", sa.String(length=200), nullable=True),
+        sa.Column("sap_synced_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("sap_sync_error", sa.String(length=300), nullable=True),
         sa.Column("sap_server", sa.String(length=200), nullable=True),
         sa.Column("sap_event_id", sa.String(length=64), nullable=True),
         sa.Column("results_source", sa.String(length=8), server_default="site", nullable=False),

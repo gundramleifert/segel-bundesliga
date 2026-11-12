@@ -574,10 +574,15 @@ These points were deliberately decided this way; bypassing them costs a lot late
   with colours and **our pairing list** race by race through SAP's REST API — refused once
   the first race froze the event (VA-8), because SAP's draw must be the one sailed.
   **SAP→DSL** (Story WL-5): every 10–30 s while live, and on request for a final event
-  after a protest, the site takes raw results only through `app/imports/sap.py`; points
-  are still derived here (`compute_event`), SAP's net points only compared. The SAP
-  **leaderboard name**, stored on the event as an `ExternalId` (VA-14), is the link
-  between both; the season table stays ours. Embedding SAP's race viewer (B-20) needs SAP
+  after a protest, the site takes raw results only through
+  `app/imports/sap_results.py::apply_results` — onto the teams and races of our draw,
+  **creating nothing**; an unknown competitor is reported (decided 2026-11-12, review
+  6.2). Points are still derived here (`compute_event`), SAP's net points only compared.
+  The pages are told only when a result changed, and each event records when SAP last
+  answered and its last error, shown as "may be behind" (6.3). The SAP **leaderboard
+  name is chosen once, at the first send**, and kept as the event's `ExternalId` — never
+  computed again from a venue or series renamed since (6.1). The season table stays ours;
+  `app/imports/sap.py` is the historical importer only. Embedding SAP's race viewer (B-20) needs SAP
   to list our domains in its frame-ancestors setting. **SAP is credited wherever its results
   show** (Story B-21, SAP's condition for using a server it hosts, 2026-11-03): under every
   act and table with a result from SAP, and in the footer — one component,

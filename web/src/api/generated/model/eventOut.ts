@@ -40,4 +40,6 @@ export interface EventOut {
   sap_viewer_url?: string | null;
   results_from_sap?: boolean;
   sap_leaderboard_url?: string | null;
+  sap_stale?: boolean;
+  sap_synced_at?: string | null;
 }

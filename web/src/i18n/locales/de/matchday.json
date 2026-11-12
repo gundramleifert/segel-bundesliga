@@ -85,5 +85,7 @@
   "penaltyNoteLabel": "Begründung der Strafe für {club}",
   "penaltyNotePlaceholder": "Begründung (optional)",
   "penaltySave": "Speichern",
-  "penaltyInvalid": "Zwischen 0 und 100 Punkten"
+  "penaltyInvalid": "Zwischen 0 und 100 Punkten",
+  "sapStale": "Die Ergebnisse von SAP Sailing sind evtl. nicht aktuell: zuletzt aktualisiert um {time}.",
+  "sapStaleNever": "Die Ergebnisse von SAP Sailing sind evtl. nicht aktuell: SAP Sailing hat noch nicht geantwortet."
 }

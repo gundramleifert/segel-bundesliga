@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Tip } from "../../../components/Tip";
 import { EventStatus, type EventSummary, type StandingRow } from "../../../api/types";
 import { Empty, TableFrame } from "../../../components/Blocks";
-import { formatPoints, teamLabel } from "../../../lib/format";
+import { formatPoints, noticeTime, teamLabel } from "../../../lib/format";
 import { SapAttribution } from "../../../components/SapAttribution";
 
 /** A team's points in one flight, or `null` when it has no result in that flight yet. The
@@ -73,6 +73,13 @@ export function DailyStandings({
   // this table is shown, the credit comes with it.
   return (
     <>
+      {event.sap_stale && (
+        <p className="rounded-md bg-warning-soft p-2 text-sm text-warning-soft-foreground" data-testid="matchday-sap-stale">
+          {event.sap_synced_at
+            ? t("sapStale", { time: noticeTime(event.sap_synced_at) })
+            : t("sapStaleNever")}
+        </p>
+      )}
       <EventStandingsTable standings={standings} event={event} flights={flights} t={t} />
       <SapAttribution
         when={!!event.results_from_sap}

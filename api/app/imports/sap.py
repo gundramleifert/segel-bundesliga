@@ -495,7 +495,7 @@ async def _import_regatta(
         | {
             cell["fleet"]
             for competitor in competitors
-            for cell in _cells(competitor).values()
+            for cell in cells(competitor).values()
             if cell.get("fleet")
         }
     )
@@ -503,7 +503,7 @@ async def _import_regatta(
     boats_seen = {
         cell["boat"]["id"]: cell["boat"]
         for competitor in competitors
-        for cell in _cells(competitor).values()
+        for cell in cells(competitor).values()
         if cell.get("boat") and cell["boat"].get("id")
     }
     starts = _start_times(leaderboard)
@@ -608,9 +608,11 @@ async def _import_regatta(
         team = teams.get(competitor["id"])
         if team is None:
             continue
-        for column, cell in _cells(competitor).items():
-            _result(session, report, regatta, races, boats, entries, team, column, cell, sap_scores)
-        _penalty(report, regatta, team, competitor.get("carriedPoints"), sap_scores)
+        for column, cell in cells(competitor).items():
+            apply_cell(
+                session, report, regatta.name, races, boats, entries, team, column, cell, sap_scores
+            )
+        apply_penalty(report, regatta.name, team, competitor.get("carriedPoints"), sap_scores)
 
     await session.flush()
     last_scored = leaderboard.get("lastScoringUpdate")
@@ -623,7 +625,7 @@ async def _import_regatta(
     await _compare_net_points(session, report, regatta, event, competitors, teams)
 
 
-def _cells(competitor: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def cells(competitor: dict[str, Any]) -> dict[str, dict[str, Any]]:
     # An empty leaderboard calls the same object `raceScores` (docs/findings.md §3).
     return competitor.get("columns") or competitor.get("raceScores") or {}
 
@@ -885,10 +887,10 @@ class EntryKey(NamedTuple):
     team_id: int
 
 
-def _result(
+def apply_cell(
     session: AsyncSession,
     report: Report,
-    regatta: RegattaName,
+    label: str,
     races: dict[tuple[str, str], Race],
     boats: dict[str, Boat],
     entries: dict[EntryKey, RaceEntry],
@@ -903,7 +905,7 @@ def _result(
     source and a protest decided there has to arrive here."""
     if cell.get("totalPoints") is None:
         return  # not sailed (yet)
-    where = f"{regatta.name} {column}/{cell.get('fleet')} {team.name}"
+    where = f"{label} {column}/{cell.get('fleet')} {team.name}"
     race = races.get((column, cell.get("fleet") or ""))
     key = EntryKey(race.id, team.id) if race is not None else None
     entry = entries.get(key) if key is not None else None
@@ -956,9 +958,7 @@ def _result(
     )
 
 
-def _penalty(
-    report: Report, regatta: RegattaName, team: Team, carried: Any, sap_scores: bool
-) -> None:
+def apply_penalty(report: Report, label: str, team: Team, carried: Any, sap_scores: bool) -> None:
     """SAP's ``carriedPoints`` — points a team carries into the matchday — as the team's
     matchday penalty (Story WL-4). One set here wins, like a result does — unless the
     event is scored on SAP (Story WL-5)."""
@@ -973,8 +973,7 @@ def _penalty(
         report.tally("created", "penalties")
         return
     report.conflicts.append(
-        f"{regatta.name} {team.name}: penalty {team.penalty_points:g} here, "
-        f"{points:g} carried at SAP"
+        f"{label} {team.name}: penalty {team.penalty_points:g} here, {points:g} carried at SAP"
     )
 
 

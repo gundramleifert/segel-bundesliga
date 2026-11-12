@@ -103,6 +103,7 @@ from app.services.sap_scoring import (
     results_from_sap,
     sap_configured,
     sap_leaderboard_url,
+    sap_stale,
     sap_viewer_url,
 )
 from app.services.standings import points_by_flight, race_flights
@@ -1364,4 +1365,6 @@ def _event_out(event: Event) -> EventOut:
         sap_viewer_url=sap_viewer_url(event),
         results_from_sap=results_from_sap(event),
         sap_leaderboard_url=sap_leaderboard_url(event),
+        sap_stale=sap_stale(event),
+        sap_synced_at=event.sap_synced_at,
     )

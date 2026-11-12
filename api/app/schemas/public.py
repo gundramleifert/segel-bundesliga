@@ -352,6 +352,10 @@ class EventOut(BaseModel):
     results_from_sap: bool = False
     # Its results on SAP's own site, where the credit under the act leads (B-21).
     sap_leaderboard_url: str | None = None
+    # A live event scored on SAP whose results may be behind: SAP failed at the last poll,
+    # or has not answered for three rounds (review 6.3). The page says so.
+    sap_stale: bool = False
+    sap_synced_at: datetime | None = None
 
 
 class EventStandingRow(BaseModel):
