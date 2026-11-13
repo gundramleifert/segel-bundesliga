@@ -85,8 +85,16 @@ def finish_event(event: Event) -> None:
 
 
 def cancel_event(event: Event) -> None:
-    """→ ``cancelled``, from any state — a ``final`` one included: calling off a day
-    declared over is a correction, not a contradiction. Deletes nothing."""
+    """→ ``cancelled`` from ``planned`` or ``live``. Deletes nothing. A ``final`` event is
+    refused (decided 2026-11-13, review 3.3): it was sailed and scored, and calling it off
+    would take its points out of the series without a word — reopen it first."""
+    if event.status == EventStatus.FINAL:
+        raise Problem(
+            409,
+            "event-final",
+            "This event is over and scored; reopen it before cancelling it.",
+            event_id=event.id,
+        )
     event.status = EventStatus.CANCELLED
 
 

@@ -100,7 +100,8 @@ check is the rule** — change the code, not the list.
   `event_readiness.racing_started`; status changes only through `event_state.py`
   (`test_rules.py`); changing who sails before the start clears the draw
   (`tests/stories/test_the_field.py`).
-- Closing is a declaration (`finish`, `cancel` from any state, `reopen`); nothing freezes.
+- Closing is a declaration (`finish`; `cancel` from `planned`/`live`, never a `final` event;
+  `reopen`); nothing freezes (`tests/stories/test_event_closing.py`).
 - Races one at a time, transitions in `race_state.py`; recall/abandon clear entries.
 - Pairing lists come from the Java tool's catalog (`app/pairing/schedules/`), never
   computed here; boats and their colours belong to the Event; the PDF is drawn in Python

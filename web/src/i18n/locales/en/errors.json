@@ -253,5 +253,6 @@
   "jury-already-approved": "You are on this event's jury. Ask the jury organizer to take you off.",
   "jury-request-not-found": "There is no such jury request.",
   "jury-filter-invalid": "This jury filter is not valid.",
-  "tuple-is-membership": "Membership of a club is managed on the club's People page, not as a relation."
+  "tuple-is-membership": "Membership of a club is managed on the club's People page, not as a relation.",
+  "event-final": "This event is over and scored. Reopen it before cancelling it."
 }

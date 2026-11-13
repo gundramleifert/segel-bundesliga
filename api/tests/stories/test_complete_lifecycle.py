@@ -349,11 +349,12 @@ class TestTheAdminEventList:
         assert (await client.get("/api/admin/events")).status_code == 401
 
     async def test_a_club_account_sees_only_what_its_club_hosts(self, client, caplog):
-        """A club's manager may create an event their own club hosts (Story VA-6), which
+        """A club's admin may create an event their own club hosts (Story VA-6), which
         is deliberately *not* permission to read everyone else's planning: the list is
-        narrowed to the events their tuples reach (Story Z-2), so a fresh club's manager
-        sees only events their club hosts — and nothing of the league's."""
-        await make_user("clubmanager-list@example.com", Role.TEAM_MANAGER)
+        narrowed to the events their tuples reach (Story Z-2), so a fresh club's admin
+        sees only events their club hosts — and nothing of the league's. Its team manager
+        reaches none of them (review 4.1): the list is not theirs at all."""
+        await make_user("clubmanager-list@example.com", Role.CLUB_ADMIN)
         headers = auth_headers(await login_as(client, "clubmanager-list@example.com", caplog))
         me = (await client.get("/api/auth/me", headers=headers)).json()
         (mine,) = [t["object_id"] for t in me["tuples"]]
@@ -363,3 +364,6 @@ class TestTheAdminEventList:
             event["host_club"] is not None and event["host_club"]["id"] == mine
             for event in listed.json()["items"]
         )
+        await make_user("clubteams-list@example.com", Role.TEAM_MANAGER)
+        team_manager = auth_headers(await login_as(client, "clubteams-list@example.com", caplog))
+        assert (await client.get("/api/admin/events", headers=team_manager)).status_code == 403

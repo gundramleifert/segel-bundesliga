@@ -119,7 +119,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Closing an event is a declaration, never a consequence** (Story VA-10). `finish`
   (`live` → `final`) is the race committee saying racing is over; it deliberately does
   **not** require a complete race list, because a day that loses its last flights to dying
-  wind is still over. `cancel` works from every state, deletes nothing, and
+  wind is still over. `cancel` works from `planned` and `live` — never on a `final` event (decided 2026-11-13,
+  review 3.3: reopen it first) — deletes nothing, and
   takes the event out of `SCORED_STATES` — so a called-off day costs nobody the
   "participants + 1" that missing an event would. Both undo via `reopen` (`final` → `live`,
   `cancelled` → `planned`, or `live` once racing had started). **"Has racing started?"

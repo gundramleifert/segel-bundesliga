@@ -951,7 +951,8 @@ def _reach_of(acting: User):
     """The WHERE clause for the events a person's tuples reach, or None if none does: the
     event itself, every event of a series they hold something on, every event a club they
     hold something on hosts. Manager, race committee and jury alike — each has a screen
-    here; and editorial, whose posts and pictures name the regatta they are about."""
+    here; and editorial, whose posts and pictures name the regatta they are about. A club
+    reaches the events it hosts through its admin only."""
     relations = (
         Relation.ADMIN,
         Relation.MANAGER,
@@ -961,7 +962,9 @@ def _reach_of(acting: User):
     )
     events = authz.list_objects(acting, relations, ObjectType.EVENT)
     series = authz.list_objects(acting, relations, ObjectType.SERIES)
-    clubs = authz.list_objects(acting, relations, ObjectType.CLUB)
+    # Through a club only as its admin: hosting makes the club's leadership the events'
+    # organizers, never its team manager (review 4.1).
+    clubs = authz.list_objects(acting, Relation.ADMIN, ObjectType.CLUB)
     clauses = [
         column.in_(ids)
         for column, ids in (

@@ -528,9 +528,10 @@ Acceptance criteria:
 - **Finishing freezes nothing.** The configuration was already frozen by the first race
   (VA-8), and results stay editable forever — a protest heard weeks later is the entire
   point of the race-committee screens, and it must still land on a `final` event.
-- **Cancelling** (`POST …/cancel`) is available from every state: a day can be called
-  off before anyone leaves the dock, abandoned halfway through, or — a correction — called
-  off after it was declared over. It
+- **Cancelling** (`POST …/cancel`) is available while the event is `planned` or `live`: a
+  day can be called off before anyone leaves the dock, or abandoned halfway through. A
+  `final` event is refused (`event-final`, decided 2026-11-13, review 3.3) — it was sailed
+  and scored; reopen it first if it really must be called off. It
   **deletes nothing** — pairing list and any results recorded stay exactly as they are, so
   a cancellation that turns out to be premature costs no data.
 - **A cancelled event scores nothing, and costs nobody anything.** It drops out of

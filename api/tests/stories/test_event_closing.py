@@ -135,6 +135,27 @@ class TestCancellingAnEvent:
         assert pairing.status_code == 200, pairing.text
         assert pairing.json()["races"], "the pairing list survived the cancellation"
 
+    async def test_a_final_event_is_not_cancelled(self, client, caplog):
+        """A day declared over was sailed and scored; calling it off afterwards would take
+        its points out of the series without a word (decided 2026-11-13, review 3.3). To
+        undo the result, reopen it first — a deliberate second step."""
+        headers = await admin(client, caplog, "vx-final@example.com")
+        event_id = await live_event(client, headers, "Finished Cup", "2027-07-31")
+        race_id, boats = await first_race(event_id)
+        await enter_result(client, headers, event_id, race_id, boats)
+        finished = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
+        assert finished.status_code == 200, finished.text
+
+        refused = await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
+        assert refused.status_code == 409, refused.text
+        assert refused.json()["type"].endswith("/event-final")
+        assert await status_of(event_id) == EventStatus.FINAL
+
+        reopened = await client.post(f"/api/admin/events/{event_id}/reopen", headers=headers)
+        assert reopened.status_code == 200, reopened.text
+        cancelled = await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
+        assert cancelled.status_code == 200, cancelled.text
+
     async def test_a_cancelled_event_costs_nobody_points(self, client, caplog):
         """It leaves the scored set entirely.
 

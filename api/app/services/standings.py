@@ -146,10 +146,10 @@ async def compute_series(
     race: not entering must never be better than entering and finishing last. A club can
     take part in Act 1 and not in Act 2 — the series still stands.
 
-    ASSUMPTION, still to be confirmed from the league regulations: the series table sums
-    the acts' placements. Should a points table (place -> points) apply instead, that
-    mapping belongs in ``Series.scoring`` and would be substituted here instead of
-    ``rank`` — the model already supports it.
+    The series table sums the acts' placements — the league regulation's rule (confirmed
+    by the association 2026-11-13, review 2.3). Should a points table (place -> points)
+    ever apply instead, that mapping belongs in ``Series.scoring`` and would be
+    substituted here instead of ``rank``.
     """
     events = (
         (

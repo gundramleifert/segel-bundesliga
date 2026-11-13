@@ -253,5 +253,6 @@
   "jury-already-approved": "Du bist in der Jury dieser Veranstaltung. Bitte den Jury-Obmann, dich auszutragen.",
   "jury-request-not-found": "Diese Jury-Anfrage gibt es nicht.",
   "jury-filter-invalid": "Dieser Jury-Filter ist ungültig.",
-  "tuple-is-membership": "Die Mitgliedschaft in einem Verein wird auf der Seite „Personen“ des Vereins verwaltet, nicht als Beziehung."
+  "tuple-is-membership": "Die Mitgliedschaft in einem Verein wird auf der Seite „Personen“ des Vereins verwaltet, nicht als Beziehung.",
+  "event-final": "Diese Veranstaltung ist abgeschlossen und gewertet. Öffne sie wieder, bevor du sie absagst."
 }
