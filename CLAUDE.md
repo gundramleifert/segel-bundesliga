@@ -125,8 +125,9 @@ check is the rule** — change the code, not the list.
   TID251). Never gate on a summary role (`User.roles`). An event's tools follow
   `GET /api/events/{id}/access`.
 - **Who may call what is tested**: every open route has its reason
-  (`tests/architecture/test_access.py`); covered routes have a who-may row and everyone
-  else is refused (`tests/architecture/test_authorization.py`).
+  (`tests/architecture/test_access.py`); **every signed-in route has a who-may row**, and
+  everyone outside it is refused (`tests/architecture/test_authorization.py`) — a new
+  route writes down who it serves.
 - A host club's `manager` (its team manager) organizes **none** of its events; its admin
   does (review 4.1). A club's treasurer is one of its members (review 4.3).
 - A member and a sailor are one `Person`, with an account always, and **one address — the
@@ -213,8 +214,8 @@ an issue is done when they accept it on staging). Details: `docs/workflow.md`.
   per `Team`, no router importing a router, **no router gaining a query**, no stored point
   or standing, every `Problem` code worded in both languages, this file's permission table
   against `MODEL`; **every route open without sign-in listed with its reason**
-  (`test_access.py`); **who may call a covered route on one club, and everyone else
-  refused** (`test_authorization.py`). Each keeps its known violations in a list tied to
+  (`test_access.py`); **every signed-in route's who-may row, everyone else refused**
+  (`test_authorization.py`). Each keeps its known violations in a list tied to
   `docs/REVIEW_2026-11.md`, and the list is a **ratchet**: a new violation fails, so does
   a fixed one still listed. **Never add to a list to get green; fix the code.** A known
   defect is a `xfail(strict=True)` test (`test_known_defects.py`). A new rule comes with

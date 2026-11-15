@@ -211,8 +211,11 @@ minor and a signature. Therefore:
 - **Stored** under `uploads/waivers/` with a random file name that only the confirmation
   row knows (`guardian_signature_ref = "upload:<uuid>.<ext>"`), served by exactly one
   endpoint, `GET /api/waiver/confirmations/{id}/scan`, which checks access on every
-  request — the sailor themselves, `admin` (until 2026-10-24 also `editor`), the leadership of the sailor's club,
-  and the organizer of the event (the host's `team_manager`, `race_officer`). Never a static
+  request — the sailor themselves and their linked guardian, `admin` (until 2026-10-24
+  also `editor`), the organizers of the sailor's club, and the organizers and race
+  committee of the event it counts for — for a series-wide one, of each act whose check-in
+  list names the sailor (2026-11-13; until then a series scan opened from an act's list
+  was refused). Never a static
   path, never public, never guessable.
 - **Every retrieval is logged** as an `AuditLog` row (`waiver_scan` / `viewed`, with the
   actor), as is every upload and replacement.

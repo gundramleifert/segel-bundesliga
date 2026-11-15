@@ -17,6 +17,7 @@ from sqlalchemy import delete, select
 from app.db import SessionLocal
 from app.models import (
     Club,
+    Event,
     Person,
     Series,
     Team,
@@ -739,6 +740,76 @@ class TestScans:
 
         anonymous = await client.get(url)
         assert anonymous.status_code == 401
+
+
+class TestASeriesScanFromTheCheckIn:
+    """Story VA-5: the check-in list of a series' act counts the series-wide confirmations
+    and links their scans — so the act's organizer and race committee open them; an
+    organizer of another series' act does not. (Found by the who-may table: the check
+    looked at the event of the confirmation only, and a series one has none.)"""
+
+    async def test_the_acts_organizer_opens_a_series_scan_of_a_sailor_in_their_field(
+        self, client, caplog, ids
+    ):
+        person_id, email = await _squad_person("junioren-2026", offset=45)
+        series_id = ids.series("junioren-2026")
+        club = await _club_of(person_id)
+        async with SessionLocal() as session:
+            act = (
+                await session.execute(
+                    select(Team.event_id)
+                    .join(Event, Event.id == Team.event_id)
+                    .where(
+                        Event.series_id == series_id,
+                        Team.club_id == club,
+                        Team.status == TeamStatus.ACCEPTED,
+                    )
+                    .limit(1)
+                )
+            ).scalar_one()
+            elsewhere = (
+                await session.execute(
+                    select(Event.id).where(Event.series_id != series_id).limit(1)
+                )
+            ).scalar_one()
+        me = await _account_for(client, caplog, email)
+        uploaded = await client.post(
+            f"/api/series/{series_id}/waiver/scan",
+            headers=me,
+            data={"person_id": str(person_id), "guardian_name": "R. Ver"},
+            files={"file": ("signed.png", _png(), "image/png")},
+        )
+        assert uploaded.status_code == 201, uploaded.text
+        scan = f"/api/waiver/confirmations/{uploaded.json()['id']}/scan"
+        try:
+            organizer = await login(
+                client,
+                caplog,
+                f"act-orga-{_tag()}@example.com",
+                Grant(relation=Relation.MANAGER, event_id=act),
+            )
+            listed = _row(
+                await client.get(f"/api/admin/events/{act}/waivers", headers=organizer),
+                person_id,
+            )
+            assert listed["scan_available"] is True
+            assert (await client.get(scan, headers=organizer)).status_code == 200
+
+            stranger = await login(
+                client,
+                caplog,
+                f"other-orga-{_tag()}@example.com",
+                Grant(relation=Relation.MANAGER, event_id=elsewhere),
+            )
+            assert (await client.get(scan, headers=stranger)).status_code == 403
+        finally:
+            async with SessionLocal() as session:
+                await session.execute(
+                    delete(WaiverConfirmation).where(
+                        WaiverConfirmation.id == uploaded.json()["id"]
+                    )
+                )
+                await session.commit()
 
 
 class TestClubOverview:

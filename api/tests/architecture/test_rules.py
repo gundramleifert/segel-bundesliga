@@ -185,7 +185,7 @@ KNOWN_ROUTER_QUERIES = {
     "app/routers/public.py": 39,
     "app/routers/series.py": 7,
     "app/routers/tracking.py": 1,
-    "app/routers/waivers.py": 11,
+    "app/routers/waivers.py": 8,
 }
 
 _STATEMENTS = {"select", "insert", "update", "delete"}

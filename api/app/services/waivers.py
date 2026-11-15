@@ -22,6 +22,7 @@ from sqlalchemy.orm import selectinload
 from app import authz
 from app.authz import ObjectRef
 from app.models import (
+    Club,
     Event,
     Person,
     Series,
@@ -600,3 +601,61 @@ async def confirm(
     session.add(confirmation)
     cleared = method == WaiverMethod.ONLINE or confirmation.is_guardian_signed
     return Confirmed(confirmation, required.version, cleared)
+
+
+# ---------------------------------------------------------------- The check-in list
+
+
+async def squad_people(
+    session: AsyncSession, event: Event
+) -> list[tuple[int, str, str, str | None]]:
+    """(person_id, first, last, club short name) for everyone in this event's squads.
+
+    For a series event, the squad hangs off each club's series registration; for a
+    standalone event, off the event entry itself (same rule as the lineup).
+    """
+    entries = (
+        (
+            await session.execute(
+                select(Team.club_id).where(
+                    Team.event_id == event.id, Team.status == TeamStatus.ACCEPTED
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if not entries:
+        return []
+
+    squad_teams = select(Team.id).where(Team.club_id.in_(entries))
+    if event.series_id is not None:
+        squad_teams = squad_teams.where(Team.series_id == event.series_id, Team.event_id.is_(None))
+    else:
+        squad_teams = squad_teams.where(Team.event_id == event.id)
+
+    rows = (
+        await session.execute(
+            select(Person.id, Person.first_name, Person.last_name, Club.short_name)
+            .join(TeamMembership, TeamMembership.person_id == Person.id)
+            .join(Team, TeamMembership.team_id == Team.id)
+            .join(Club, Team.club_id == Club.id)
+            .where(Team.id.in_(squad_teams))
+            .distinct()
+        )
+    ).all()
+    return [(sid, first, last, club) for sid, first, last, club in rows]
+
+
+async def runs_an_act_for(
+    session: AsyncSession, acting: User, series_id: int, person_id: int
+) -> bool:
+    """A series-wide confirmation counts at each of the series' acts (VA-5): so whoever runs
+    an act whose check-in list names this person opens its scan there — and only there."""
+    acts = (await session.execute(select(Event).where(Event.series_id == series_id))).scalars()
+    for act in acts:
+        if authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=act) and any(
+            person == person_id for person, *_ in await squad_people(session, act)
+        ):
+            return True
+    return False

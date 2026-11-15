@@ -500,9 +500,11 @@ async def get_waiver_scan(
     acting: User = Depends(current_user),
 ) -> Response:
     """The most sensitive file on the site (Story S-1): a minor's data and a signature.
-    Served to the sailor themselves, to `admin`, `editor` and `race_officer`, to the
-    leadership of the sailor's club, and to the host club of the event it was signed
-    for — and every look is written to the audit log."""
+    Served to the sailor and their linked guardian, to the site's `admin` and
+    `race_officer`, to the organizers of the sailor's club, and to the organizers and race
+    committee of the event it counts for — the event it was signed for, or an act of the
+    series whose check-in list names the sailor (VA-5) — and every look is written to the
+    audit log (`tests/architecture/test_authorization.py` holds who)."""
     row = (
         await session.execute(
             select(WaiverConfirmation).where(WaiverConfirmation.id == confirmation_id)
@@ -569,7 +571,7 @@ async def event_waivers(
         )
 
     required = await current_waiver_text(session)
-    people = await _squad_people(session, event)
+    people = await waivers.squad_people(session, event)
     status_by_id = await event_waiver_status(
         session, event, [pid for pid, _, _, _ in people], required
     )
@@ -850,9 +852,14 @@ async def _may_view_scan(
             acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event
         ):
             return True
+    if row.series_id is not None and await waivers.runs_an_act_for(
+        session, acting, row.series_id, person.id
+    ):
+        return True
     if person.user_id == acting.id:
         return True
-    return authz.check(acting, Relation.MANAGER, on=person)
+    # The club's organizers; and a linked guardian, who may sign and upload it (S-8).
+    return authz.check(acting, Relation.MANAGER, Relation.GUARDIAN, on=person)
 
 
 def _out(
@@ -911,44 +918,3 @@ async def _team_people(session: AsyncSession, team_ids: list[int]) -> dict[int, 
     for team_id, person in rows:
         out.setdefault(team_id, []).append(person)
     return out
-
-
-async def _squad_people(
-    session: AsyncSession, event: Event
-) -> list[tuple[int, str, str, str | None]]:
-    """(person_id, first, last, club short name) for everyone in this event's squads.
-
-    For a series event, the squad hangs off each club's series registration; for a
-    standalone event, off the event entry itself (same rule as the lineup).
-    """
-    entries = (
-        (
-            await session.execute(
-                select(Team.club_id).where(
-                    Team.event_id == event.id, Team.status == TeamStatus.ACCEPTED
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    if not entries:
-        return []
-
-    squad_teams = select(Team.id).where(Team.club_id.in_(entries))
-    if event.series_id is not None:
-        squad_teams = squad_teams.where(Team.series_id == event.series_id, Team.event_id.is_(None))
-    else:
-        squad_teams = squad_teams.where(Team.event_id == event.id)
-
-    rows = (
-        await session.execute(
-            select(Person.id, Person.first_name, Person.last_name, Club.short_name)
-            .join(TeamMembership, TeamMembership.person_id == Person.id)
-            .join(Team, TeamMembership.team_id == Team.id)
-            .join(Club, Team.club_id == Club.id)
-            .where(Team.id.in_(squad_teams))
-            .distinct()
-        )
-    ).all()
-    return [(sid, first, last, club) for sid, first, last, club in rows]

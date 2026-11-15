@@ -432,9 +432,11 @@ Acceptance criteria:
   check-in list.
 - Every confirmation is logged: who, when. **Built** — the confirmation row records it.
 
-Access: the event's host-club leadership, plus `admin`, `race_officer` (until 2026-10-24
-also `editor`, who neither confirms waivers nor sees their scans since). No fifth
-role was added — the on-site organizer is a `race_officer` or the host `team_manager`.
+Access: the event's organizers (its `manager`, its series' manager, the host club's
+admin) and race committee, plus the site's `admin` (until 2026-10-24 also `editor`, who
+neither confirms waivers nor sees their scans since). No fifth role was added — the
+on-site organizer is a `race_officer` or the event's `manager`; the host's team manager
+is neither since review 4.1 (2026-11-12).
 
 Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list),
 `api/tests/stories/test_guardians.py::TestTheCrewWaiverIsSaid` (lined up, and said),

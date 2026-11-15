@@ -590,8 +590,9 @@ async def write_tuple(
 ) -> TupleOut:
     """Story Z-2. The rules — the schema, the object must exist, no duplicate — live in
     `app/services/grants.py`, shared with the club screen. The site's admin writes any
-    tuple; an object's admin writes tuples on that object, so an organizer names the
-    race officers and the jury of their own event without administration."""
+    tuple; an object's admin writes tuples on that object — a series' admin or the host
+    club's admin names the race officers and the jury of an event without administration.
+    An event's own `manager` sets it up and names nobody."""
     object_type, object_id = _object(request.object)
     obj = await grants.resolve(session, object_type, object_id)
     _may_administer(acting, object_type, obj)
