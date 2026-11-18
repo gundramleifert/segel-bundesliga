@@ -79,7 +79,7 @@ POSTS: list[dict] = [
             "egel-Club Konstanz</td></tr><tr><td>ACT 2</td><td>09.–11.07.2027</td><td>Berlin "
             "/ Wannsee</td><td>Potsdamer Yacht-Club</td></tr><tr><td>ACT 3</td><td>13.–15.08."
             "2027</td><td>Borgwedel / Schlei</td><td>Schulsportverein Louisenlund</td></tr><t"
-            "r><td>ACT 4</td><td>10.–12.09.2027</td><td>Warnemünde / Ostsee</td><td>Akademisc"
+            "r><td>ACT 4</td><td>24.–26.09.2027</td><td>Warnemünde / Ostsee</td><td>Akademisc"
             "her Segelverein Warnemünde</td></tr></tbody></table><h2>Gemeinsamer Pokal: DSL-P"
             "okal und DJSL-Pokal</h2><p><strong>Termin:</strong> 22.–24.10.2027<br><strong>Or"
             "t / Revier:</strong> Hamburg / Außenalster<br><strong>Ausrichter:</strong> Nordd"

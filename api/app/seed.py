@@ -555,7 +555,8 @@ WEEKENDS_2027: list[Weekend2027] = [
     Weekend2027("junioren-2027", 1, "konstanz", date(2027, 5, 7), "KYC (BA)"),
     Weekend2027("junioren-2027", 2, "berlin-wannsee", date(2027, 7, 9), "PYC"),
     Weekend2027("junioren-2027", 3, "borgwedel", date(2027, 8, 13), "SSVL"),
-    Weekend2027("junioren-2027", 4, "warnemuende", date(2027, 9, 10), "ASVW"),
+    # Moved from 10–12 September (the user, 2026-11-18).
+    Weekend2027("junioren-2027", 4, "warnemuende", date(2027, 9, 24), "ASVW"),
     Weekend2027("dsl-pokal-2027", 1, "hamburg-alster", date(2027, 10, 22), "NRV"),
 ]
 
