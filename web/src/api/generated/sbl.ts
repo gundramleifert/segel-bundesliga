@@ -47,6 +47,7 @@ import type {
   BodyUploadMyPhoto,
   BodyUploadSeriesWaiverScan,
   CatalogEntryOut,
+  CheckInOut,
   ClaimCreate,
   ClaimOut,
   ClaimTargets,
@@ -4394,8 +4395,9 @@ export const getWriteTupleUrl = () => {
 /**
  * Story Z-2. The rules — the schema, the object must exist, no duplicate — live in
  * `app/services/grants.py`, shared with the club screen. The site's admin writes any
- * tuple; an object's admin writes tuples on that object, so an organizer names the
- * race officers and the jury of their own event without administration.
+ * tuple; an object's admin writes tuples on that object — a series' admin or the host
+ * club's admin names the race officers and the jury of an event without administration.
+ * An event's own `manager` sets it up and names nobody.
  * @summary Write one tuple (FGA write)
  */
 export const writeTuple = async (tupleWrite: TupleWrite, options?: RequestInit): Promise<TupleOut> => {
@@ -7861,6 +7863,9 @@ export const getGetCrewUrl = (eventId: number,
 }
 
 /**
+ * A published event's lineup is public, as on the act's page (Story B-12). A draft's
+ * is for whoever may set it and the club's own members — it answered everyone once,
+ * found by the route inventory (`tests/architecture/test_access.py`).
  * @summary View lineup
  */
 export const getCrew = async (eventId: number,
@@ -8058,6 +8063,162 @@ export const useSetCrew = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getSetCrewMutationOptions(options), queryClient);
+    }
+
+export const getCheckInTeamUrl = (eventId: number,
+    teamId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/teams/${teamId}/check-in`
+}
+
+/**
+ * Stories VA-2, VA-5: by whoever may set the team's lineup — the club itself, the
+ * event's organizers, its race committee. Refused while no crew is named
+ * (``crew-missing``) or anyone in it has not cleared the waiver (``crew-waiver-missing``,
+ * with their ``person_ids``).
+ * @summary Check a team in
+ */
+export const checkInTeam = async (eventId: number,
+    teamId: number, options?: RequestInit): Promise<CheckInOut> => {
+
+  return http<CheckInOut>(getCheckInTeamUrl(eventId,teamId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCheckInTeamMutationKey = () => ['checkInTeam'] as const;
+
+export const getCheckInTeamMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkInTeam>>, TError,CheckInTeamMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof checkInTeam>>, TError,CheckInTeamMutationVariables, TContext> => {
+
+const mutationKey = getCheckInTeamMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkInTeam>>, CheckInTeamMutationVariables> = (props) => {
+          const {eventId,teamId} = props ?? {};
+
+          return  checkInTeam(eventId,teamId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckInTeamMutationResult = NonNullable<Awaited<ReturnType<typeof checkInTeam>>>
+
+    export type CheckInTeamMutationError = ErrorType<ProblemDetails>
+    export type CheckInTeamMutationVariables = {eventId: number;teamId: number}
+
+    /**
+ * @summary Check a team in
+ */
+export const useCheckInTeam = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkInTeam>>, TError,CheckInTeamMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof checkInTeam>>,
+        TError,
+        CheckInTeamMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCheckInTeamMutationOptions(options), queryClient);
+    }
+
+export const getUndoCheckInTeamUrl = (eventId: number,
+    teamId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/teams/${teamId}/check-in`
+}
+
+/**
+ * @summary Take a team's check-in back
+ */
+export const undoCheckInTeam = async (eventId: number,
+    teamId: number, options?: RequestInit): Promise<CheckInOut> => {
+
+  return http<CheckInOut>(getUndoCheckInTeamUrl(eventId,teamId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUndoCheckInTeamMutationKey = () => ['undoCheckInTeam'] as const;
+
+export const getUndoCheckInTeamMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoCheckInTeam>>, TError,UndoCheckInTeamMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof undoCheckInTeam>>, TError,UndoCheckInTeamMutationVariables, TContext> => {
+
+const mutationKey = getUndoCheckInTeamMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof undoCheckInTeam>>, UndoCheckInTeamMutationVariables> = (props) => {
+          const {eventId,teamId} = props ?? {};
+
+          return  undoCheckInTeam(eventId,teamId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UndoCheckInTeamMutationResult = NonNullable<Awaited<ReturnType<typeof undoCheckInTeam>>>
+
+    export type UndoCheckInTeamMutationError = ErrorType<ProblemDetails>
+    export type UndoCheckInTeamMutationVariables = {eventId: number;teamId: number}
+
+    /**
+ * @summary Take a team's check-in back
+ */
+export const useUndoCheckInTeam = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoCheckInTeam>>, TError,UndoCheckInTeamMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof undoCheckInTeam>>,
+        TError,
+        UndoCheckInTeamMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUndoCheckInTeamMutationOptions(options), queryClient);
     }
 
 export const getPublishAnnouncementUrl = (eventId: number,) => {
@@ -12427,9 +12588,11 @@ export const getGetWaiverScanUrl = (confirmationId: number,) => {
 
 /**
  * The most sensitive file on the site (Story S-1): a minor's data and a signature.
- * Served to the sailor themselves, to `admin`, `editor` and `race_officer`, to the
- * leadership of the sailor's club, and to the host club of the event it was signed
- * for — and every look is written to the audit log.
+ * Served to the sailor and their linked guardian, to the site's `admin` and
+ * `race_officer`, to the organizers of the sailor's club, and to the organizers and race
+ * committee of the event it counts for — the event it was signed for, or an act of the
+ * series whose check-in list names the sailor (VA-5) — and every look is written to the
+ * audit log (`tests/architecture/test_authorization.py` holds who).
  * @summary The uploaded scan of a signed form
  */
 export const getWaiverScan = async (confirmationId: number, options?: RequestInit): Promise<unknown> => {

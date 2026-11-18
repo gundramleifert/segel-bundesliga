@@ -77,7 +77,10 @@
     "save": "Save lineup",
     "saving": "Saving…",
     "saved": "Lineup saved.",
-    "unsaved": "Not saved yet."
+    "unsaved": "Not saved yet.",
+    "checkIn": "Check the team in",
+    "checkInUndo": "Take the check-in back",
+    "checkedIn": "Checked in with this crew."
   },
   "guardians": {
     "title": "Guardians",

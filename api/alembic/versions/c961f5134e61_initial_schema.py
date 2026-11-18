@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: d8ecf0164d43
+Revision ID: c961f5134e61
 Revises:
-Create Date: 2026-11-12 22:12:38.960181
+Create Date: 2026-11-15 16:59:19.065583
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "d8ecf0164d43"
+revision: str = "c961f5134e61"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -1112,6 +1112,7 @@ def upgrade() -> None:
         sa.Column("decided_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("penalty_points", sa.Float(), nullable=True),
         sa.Column("penalty_note", sa.String(length=300), nullable=True),
+        sa.Column("checked_in_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

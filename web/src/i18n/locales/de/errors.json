@@ -254,5 +254,7 @@
   "jury-request-not-found": "Diese Jury-Anfrage gibt es nicht.",
   "jury-filter-invalid": "Dieser Jury-Filter ist ungültig.",
   "tuple-is-membership": "Die Mitgliedschaft in einem Verein wird auf der Seite „Personen“ des Vereins verwaltet, nicht als Beziehung.",
-  "event-final": "Diese Veranstaltung ist abgeschlossen und gewertet. Öffne sie wieder, bevor du sie absagst."
+  "event-final": "Diese Veranstaltung ist abgeschlossen und gewertet. Öffne sie wieder, bevor du sie absagst.",
+  "crew-missing": "Benenne die Crew, bevor du das Team eincheckst.",
+  "crew-waiver-missing": "Alle in der Crew müssen die Haftungsverzichtserklärung abgegeben haben, bevor das Team einchecken kann."
 }

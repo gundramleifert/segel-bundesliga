@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PersonWaiverRow } from './personWaiverRow';
+import type { TeamCheckInRow } from './teamCheckInRow';
 
 export interface EventWaiverList {
   event_id: number;
@@ -13,4 +14,5 @@ export interface EventWaiverList {
   cleared: number;
   outstanding: number;
   people: PersonWaiverRow[];
+  teams: TeamCheckInRow[];
 }

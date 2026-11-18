@@ -77,7 +77,10 @@
     "save": "Aufstellung speichern",
     "saving": "Wird gespeichert…",
     "saved": "Aufstellung gespeichert.",
-    "unsaved": "Noch nicht gespeichert."
+    "unsaved": "Noch nicht gespeichert.",
+    "checkIn": "Team einchecken",
+    "checkInUndo": "Check-in zurücknehmen",
+    "checkedIn": "Mit dieser Crew eingecheckt."
   },
   "guardians": {
     "title": "Erziehungsberechtigte",

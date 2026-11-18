@@ -50,6 +50,8 @@ async def set_lineup(
         await _from_squad(session, squad.id, set(desired))
         await _not_elsewhere_lined_up(session, event_id, team.id, set(desired))
 
+    # Checked in means *this* crew was cleared (VA-2): a changed one checks in again.
+    team.checked_in_at = None
     await session.execute(
         delete(EventCrew).where(EventCrew.event_id == event_id, EventCrew.team_id == team.id)
     )

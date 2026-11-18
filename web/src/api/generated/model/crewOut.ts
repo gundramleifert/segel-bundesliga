@@ -12,4 +12,6 @@ export interface CrewOut {
   team_id: number;
   crew_size: number;
   members?: MemberOut[];
+  /** When this crew checked in (VA-2); a changed crew undoes it */
+  checked_in_at?: string | null;
 }

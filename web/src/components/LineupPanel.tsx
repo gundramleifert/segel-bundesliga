@@ -1,7 +1,14 @@
 import { Button } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 
-import { getGetCrewQueryKey, useGetCrew, useGetSquad, useSetCrew } from "../api/generated/sbl";
+import {
+  getGetCrewQueryKey,
+  useCheckInTeam,
+  useGetCrew,
+  useGetSquad,
+  useSetCrew,
+  useUndoCheckInTeam,
+} from "../api/generated/sbl";
 import { CrewRole, type Member } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
@@ -56,6 +63,15 @@ export function LineupPanel({
         invalidate(getGetCrewQueryKey(eventId, teamId), `/api/events/${eventId}/`, "/api/clubs", "/api/me/contexts"),
     },
   });
+
+  // Check-in (VA-2): the saved crew, once everyone in it cleared the waiver — the
+  // server refuses otherwise and says why; a saved change to the crew undoes it.
+  const afterCheckIn = {
+    onSuccess: () =>
+      invalidate(getGetCrewQueryKey(eventId, teamId), `/api/admin/events/${eventId}/waivers`),
+  };
+  const checkIn = useCheckInTeam({ mutation: afterCheckIn });
+  const undoCheckIn = useUndoCheckInTeam({ mutation: afterCheckIn });
 
   // The draft: what the right pane shows until Save. Back to the saved crew whenever that
   // changes — the same rule as the squad panel.
@@ -170,6 +186,37 @@ export function LineupPanel({
             testId={`${testIdPrefix}-message`}
             error={setCrew.isError ? errorText(setCrew.error) : null}
             success={setCrew.isSuccess && !dirty ? t("lineup.saved") : null}
+          />
+          <div className="flex flex-wrap items-center gap-3 border-t border-separator pt-3">
+            {crew.data?.checked_in_at ? (
+              <>
+                <span className="text-sm text-success-soft-foreground" data-testid={`${testIdPrefix}-checked-in`}>
+                  {t("lineup.checkedIn")}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  isDisabled={undoCheckIn.isPending}
+                  onPress={() => undoCheckIn.mutate({ eventId, teamId })}
+                  data-testid={`${testIdPrefix}-check-in-undo`}
+                >
+                  {t("lineup.checkInUndo")}
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                isDisabled={checkIn.isPending || dirty || saved.length === 0}
+                onPress={() => checkIn.mutate({ eventId, teamId })}
+                data-testid={`${testIdPrefix}-check-in`}
+              >
+                {t("lineup.checkIn")}
+              </Button>
+            )}
+          </div>
+          <Message
+            testId={`${testIdPrefix}-check-in-message`}
+            error={checkIn.isError ? errorText(checkIn.error) : undoCheckIn.isError ? errorText(undoCheckIn.error) : null}
           />
         </>
       )}

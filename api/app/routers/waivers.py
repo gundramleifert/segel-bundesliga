@@ -44,7 +44,14 @@ from app.models import (
 )
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
-from app.services import current_waiver_text, event_waiver_status, is_minor, uploads, waivers
+from app.services import (
+    check_in,
+    current_waiver_text,
+    event_waiver_status,
+    is_minor,
+    uploads,
+    waivers,
+)
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_person
 from app.services.lookup import get_or_404
@@ -147,12 +154,24 @@ class PersonWaiverRow(BaseModel):
     scan_available: bool = False
 
 
+class TeamCheckInRow(BaseModel):
+    """An entered team on the check-in list (VA-2): checked in or not, and who in its
+    named crew holds it up."""
+
+    team_id: int
+    name: str
+    checked_in_at: datetime | None
+    crew: int = Field(description="How many are named in the crew")
+    not_cleared: list[int] = Field(description="Person ids in the crew not cleared")
+
+
 class EventWaiverList(BaseModel):
     event_id: int
     required_version: int | None
     cleared: int
     outstanding: int
     people: list[PersonWaiverRow]
+    teams: list[TeamCheckInRow]
 
 
 class ClubCompetitionWaivers(BaseModel):
@@ -580,6 +599,7 @@ async def event_waivers(
     return EventWaiverList(
         event_id=event.id,
         required_version=required.version if required else None,
+        teams=[TeamCheckInRow(**vars(row)) for row in await check_in.teams(session, event)],
         **_tally(rows),
     )
 

@@ -323,6 +323,13 @@ POLICY: dict[str, Row] = {
     "PUT /api/admin/events/{event_id}/crew": Row(
         EVENT_ORGS | RACE_COMMITTEE | {ENTRANT}, json={"team_id": "{event_team_id}", "members": []}
     ),
+    # Check-in, gated by the waiver: whoever may set the crew (VA-2, VA-5).
+    "POST /api/admin/events/{event_id}/teams/{team_id}/check-in": Row(
+        EVENT_ORGS | RACE_COMMITTEE | {ENTRANT}, ids=(("team_id", "event_team_id"),)
+    ),
+    "DELETE /api/admin/events/{event_id}/teams/{team_id}/check-in": Row(
+        EVENT_ORGS | RACE_COMMITTEE | {ENTRANT}, ids=(("team_id", "event_team_id"),)
+    ),
     # SAP: the organizer sends, the race committee fetches (VA-15, WL-5).
     "POST /api/events/{event_id}/sap/send": Row(EVENT_ORGS),
     "POST /api/events/{event_id}/sap/results": Row(EVENT_ORGS | RACE_COMMITTEE),

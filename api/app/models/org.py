@@ -242,6 +242,10 @@ class Team(Base, TimestampMixin):
     # committee or the jury, and the points stay derived from it.
     penalty_points: Mapped[float | None] = mapped_column(default=None)
     penalty_note: Mapped[str | None] = mapped_column(String(300), default=None)
+    # When the entry checked in (Stories VA-2, VA-5) — only once its whole named crew had
+    # cleared the waiver, and undone by any change to that crew
+    # (`app/services/check_in.py` writes it, `lineup.set_lineup` clears it).
+    checked_in_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     club: Mapped[Club] = relationship(back_populates="teams")
     series: Mapped[Series | None] = relationship(back_populates="teams")

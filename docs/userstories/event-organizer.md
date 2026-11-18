@@ -385,11 +385,23 @@ Open question: Scope and access of the M2S export — to be asked at the league 
 
 Tests: none yet
 
-### VA-2 ○ Self check-in with liability waiver
+### VA-2 ◐ Self check-in with liability waiver
 As an **event organizer** I want **teams to check themselves in at the event and confirm
 the liability waiver**, so that I **have little work on event day**.
 
 Acceptance criteria:
+- **Built (2026-11-13): checking a team in, gated by the waiver** (owner's decision on
+  review 5.7: "make the waiver gate check-in"). `POST
+  /api/admin/events/{event_id}/teams/{team_id}/check-in` checks one entered team in — by
+  the team's club (its manager or admin, so a team checks itself in), the event's
+  organizers or its race committee, the people who may set its lineup. It is
+  **refused while anyone in the named crew is not cleared** (`crew-waiver-missing`,
+  409, naming them) and while no crew is named (`crew-missing`). `DELETE` on the same
+  path takes it back. **A changed lineup undoes the check-in**: checked in means *this*
+  crew was cleared. The check-in list shows every entered team, checked in or not,
+  and how many of its crew are not cleared.
+- *Not built yet:* the link/QR opening a set number of days before the event, and
+  confirming the waiver inside the check-in flow — it is confirmed beforehand (S-1, S-3).
 - **Check-in happens in advance, not on event day.** The link/QR opens a set number of days
   before the event (reuse the deadline pattern from V-2) and closes at event start. On event
   day the organizer only reads the status list — nothing legal is signed on the dock.
@@ -410,7 +422,7 @@ written up in `docs/findings.md` section 6. Before building, the league and its 
 confirm whether an authenticated online confirmation is accepted for adults; if not, everyone
 takes the scan-upload path from S-1.
 
-Tests: none yet
+Tests: `api/tests/stories/test_check_in.py`
 
 ### VA-5 ● Confirm liability waivers
 As a **race organizer** I want to **only check off submitted liability waivers**,
@@ -422,6 +434,9 @@ Acceptance criteria:
   `GET /api/admin/events/{event_id}/waivers` (see [S-3](sailor.md#s-3--confirm-a-waiver-version-for-a-series-or-event)),
   shown on the event's admin panel with a link to a minor's uploaded scan (S-1) — and
   as the event's *Race day › Check-in* section in My space (Z-10, #32).
+- **Who is not cleared can still be lined up — but the team cannot check in** (decided
+  2026-11-13, review 5.7, VA-2): the lineup stays open for planning, and the gate is
+  check-in, where the crew is final.
 - **Who is not cleared can still be lined up — but the waiver has to be filled.**
   Decided 2026-10-17, replacing "who is not cleared cannot be registered for a matchday":
   a crew is named weeks ahead and changed on the pontoon, and a lock would make the club

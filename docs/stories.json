@@ -1721,7 +1721,7 @@
  },
  "VA-2": {
   "title": "Self check-in with liability waiver",
-  "status": "○",
+  "status": "◐",
   "role": "Event Organizer",
   "phase": "Participants and their waivers",
   "file": "docs/userstories/event-organizer.md",

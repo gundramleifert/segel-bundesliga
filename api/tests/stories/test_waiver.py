@@ -768,9 +768,7 @@ class TestASeriesScanFromTheCheckIn:
                 )
             ).scalar_one()
             elsewhere = (
-                await session.execute(
-                    select(Event.id).where(Event.series_id != series_id).limit(1)
-                )
+                await session.execute(select(Event.id).where(Event.series_id != series_id).limit(1))
             ).scalar_one()
         me = await _account_for(client, caplog, email)
         uploaded = await client.post(
@@ -805,9 +803,7 @@ class TestASeriesScanFromTheCheckIn:
         finally:
             async with SessionLocal() as session:
                 await session.execute(
-                    delete(WaiverConfirmation).where(
-                        WaiverConfirmation.id == uploaded.json()["id"]
-                    )
+                    delete(WaiverConfirmation).where(WaiverConfirmation.id == uploaded.json()["id"])
                 )
                 await session.commit()
 

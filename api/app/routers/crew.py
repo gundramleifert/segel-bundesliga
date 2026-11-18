@@ -7,6 +7,8 @@ refusals to responses.
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -21,7 +23,7 @@ from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
 from app.problems import Problem
 from app.schemas.public import MemberOut
-from app.services import dpa, event_entry
+from app.services import check_in, dpa, event_entry
 from app.services.lineup import LineupMember, set_lineup
 from app.services.lookup import get_or_404
 
@@ -51,6 +53,9 @@ class CrewOut(BaseModel):
     # The typical size for this matchday — a guide for the UI, not a hard limit.
     crew_size: int
     members: list[MemberOut] = Field(default_factory=list)
+    checked_in_at: datetime | None = Field(
+        default=None, description="When this crew checked in (VA-2); a changed crew undoes it"
+    )
 
 
 @router.get("/{event_id}/crew/{team_id}", response_model=CrewOut, summary="View lineup")
@@ -73,7 +78,7 @@ async def get_crew(
         )
     ):
         raise Problem(404, "event-not-found", "No such event.")
-    return await _crew_out(session, event, team.id)
+    return await _crew_out(session, event, team)
 
 
 @router.put("/{event_id}/crew", response_model=CrewOut, summary="Set lineup")
@@ -111,7 +116,54 @@ async def set_crew(
     )
 
     await session.commit()
-    return await _crew_out(session, event, team.id)
+    return await _crew_out(session, event, team)
+
+
+class CheckInOut(BaseModel):
+    team_id: int
+    checked_in_at: datetime | None
+
+
+@router.post(
+    "/{event_id}/teams/{team_id}/check-in",
+    response_model=CheckInOut,
+    summary="Check a team in",
+)
+async def check_in_team(
+    event_id: int,
+    team_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> CheckInOut:
+    """Stories VA-2, VA-5: by whoever may set the team's lineup — the club itself, the
+    event's organizers, its race committee. Refused while no crew is named
+    (``crew-missing``) or anyone in it has not cleared the waiver (``crew-waiver-missing``,
+    with their ``person_ids``)."""
+    event = await get_or_404(session, Event, event_id)
+    team = await _participation(session, event, team_id)
+    _check_permissions(acting, team, event)
+    await check_in.check_in(session, event, team, acting)
+    await session.commit()
+    return CheckInOut(team_id=team.id, checked_in_at=team.checked_in_at)
+
+
+@router.delete(
+    "/{event_id}/teams/{team_id}/check-in",
+    response_model=CheckInOut,
+    summary="Take a team's check-in back",
+)
+async def undo_check_in_team(
+    event_id: int,
+    team_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> CheckInOut:
+    event = await get_or_404(session, Event, event_id)
+    team = await _participation(session, event, team_id)
+    _check_permissions(acting, team, event)
+    check_in.undo(session, team, acting)
+    await session.commit()
+    return CheckInOut(team_id=team.id, checked_in_at=None)
 
 
 # ------------------------------------------------------------------ Helpers
@@ -154,7 +206,8 @@ def _check_permissions(acting: User, team: Team, event: Event) -> None:
     )
 
 
-async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOut:
+async def _crew_out(session: AsyncSession, event: Event, team: Team) -> CrewOut:
+    team_id = team.id
     rows = (
         await session.execute(
             select(EventCrew, Person)
@@ -171,4 +224,5 @@ async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOu
         team_id=team_id,
         crew_size=event.crew_size,
         members=members,
+        checked_in_at=team.checked_in_at,
     )
