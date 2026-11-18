@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 import { describeStory, expect, test } from "./fixtures";
 
 import { chooseLanguage, expectNoSidewaysScroll, openUserMenu } from "./layout";
-import { bearer, picturesFor, signIn } from "./session";
+import { bearer, signIn } from "./session";
 
 /** E2E cut along the user stories — see docs/userstories/.
  *
@@ -25,12 +25,9 @@ const PLANNED_ACT = "/practice/2026/act-3"; // practice-1-2026-act-3, season.pla
 const LIVE_ACT_RESULTS = "/practice/2026/act-2/results"; // practice-1-2026-act-2, season.live
 const STANDINGS = "/1-liga/standings";
 
-// The pictures behind a page are the library's (Story R-3), and the seed has only Sven
-// Jürgensen's — on a stack only when its seed cache holds them; the specs about those
-// pictures put some there, on every stack.
-test.beforeAll(async ({ request }) => {
-  await picturesFor(request, "dsbl-1-2026");
-});
+// The pictures behind a page are the library's (Story R-3): Sven Jürgensen's, which every
+// stack's seed brings from the versioned cache (`api/app/seed_data/pictures/`) — four of
+// them the 1. Liga's. Never the board's portraits: they are no regatta's pictures.
 const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
 
 /** Every public page, with the testid that means "this page has its data".
@@ -496,7 +493,7 @@ describeStory("B-13: one row of navigation names the leagues", () => {
 });
 
 /** The practice league's news and pictures are whatever other specs left: answer its
- *  lists with the 1. Liga's (which has both — `picturesFor` above, the real reports), or
+ *  lists with the 1. Liga's (which has both — the seeded pictures and the real reports), or
  *  with nothing. */
 async function practiceLists(page: Page, filled: boolean): Promise<void> {
   await page.route(/\/api\/(posts|media)\?/, async (route) => {

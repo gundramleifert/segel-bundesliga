@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 
 import type { APIRequestContext, Page } from "@playwright/test";
 
@@ -118,30 +117,4 @@ export async function newSquad(
   });
   expect(squad.ok(), await squad.text()).toBeTruthy();
   return { series: series.id, clubId, people };
-}
-
-// ----------------------------------------------------------------- A picture in the library
-
-/** Puts the site's own photos (`web/public/media/`) into a series' library, as an editor
- *  would — for a spec about the pictures behind a page, which needs more than one to see
- *  two pages pick different ones. The seed brings no picture that is not Sven Jürgensen's
- *  (docs/PLAN_SEEDING.md), so a stack may have none. Repeatable: the library answers a
- *  picture it already holds with that entry. */
-export async function picturesFor(request: APIRequestContext, seriesSlug: string): Promise<void> {
-  const series = (await (await request.get("/api/series")).json()) as { id: number; slug: string }[];
-  const target = series.find((s) => s.slug === seriesSlug);
-  expect(target, `a published series ${seriesSlug}`).toBeTruthy();
-  const headers = await bearer(request, "redaktion@sbl.example.com");
-  for (const name of ["DSF3979.jpg", "DSF4018-2.jpg", "DSF4037.jpg"]) {
-    const buffer = await readFile(new URL(`../web/public/media/${name}`, import.meta.url));
-    const response = await request.post("/api/admin/media", {
-      headers,
-      multipart: {
-        file: { name, mimeType: "image/jpeg", buffer },
-        alt: "A test picture",
-        series_id: String(target!.id),
-      },
-    });
-    expect(response.ok(), await response.text()).toBeTruthy();
-  }
 }
