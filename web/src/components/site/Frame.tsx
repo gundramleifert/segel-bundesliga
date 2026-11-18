@@ -285,7 +285,8 @@ type DepthProps = {
   kicker?: string;
   photo?: Photo;
   children: ReactNode;
-  /** The sub-menu, instead of the league's pages — a matchday's tabs. */
+  /** The sub-menu, instead of the league's pages — a matchday's tabs; `false` for none,
+   *  as the association's article has (Story R-1). */
   subnav?: ReactNode;
 };
 

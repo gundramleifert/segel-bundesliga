@@ -43,16 +43,19 @@ Acceptance criteria:
   text.
 - **A post is tagged with what it is about** (decided 2026-11-18 — a report on a
   matchday of the 1. and 2. Liga belonged to one of them or, untagged, to every league,
-  the Junioren's included): the **association** ("Verein") and any number of leagues, as
-  tags. A league's news page, its chapter page and its press centre show **only the posts
+  the Junioren's included): the **association** — the chip *All leagues*, in German *Ligen*, never *Verein*, which
+  is a club — and any number of leagues, as tags. A league's news page, its chapter page and its press centre show **only the posts
   tagged with it**; the association's home shows every post. A release tagged with no
   league is in no press centre, since only leagues have one. The editor's list shows each
   post's tags and filters by one.
-- **A post opens where it belongs** (decided 2026-11-18): from a league's page in that
-  league; from the home page in its first tag, in the order *association*, then the
-  leagues' own (1. Liga, 2. Liga, Junioren, Pokal). The association's posts have an
-  address of their own, `/news/<slug>`, under the association's frame — never a league's.
-  A post with no tag at all opens there too.
+- **A post is read where it was found, and shows its tags** (decided 2026-11-18): from a
+  league's page it opens in that league; from the home page in its first tag — tagged *All
+  leagues*, under the association at an address of its own (`/news/<slug>`), never
+  borrowing a league's frame and with no sub-menu under the top row, as the home page has
+  none; tagged with leagues only, in the first of them, with its sub-menu. Every card and
+  article shows the post's tags as chips, *All leagues* first, then the leagues in their
+  order (1. Liga, 2. Liga, Junioren, Pokal); on the article each leads to that league's
+  news.
 - **Saving never requires publishing** — the same rule as an event (Story VA-8). A post
   starts as a draft; the public site does not show it and its address answers 404. Publishing
   locks nothing, and withdrawing it makes it a draft again. *Publish* is the page's one
@@ -279,7 +282,8 @@ Acceptance criteria:
 - **Until the library has a league's pictures**, the page shows the site's own selection
   as before, so a new league's page is never empty. The videos stay the site's own
   selection (a video library was built and taken out again on 2026-10-20 — not wanted
-  for now).
+  for now), and the selection is empty since 2026-11-18: the videos were taken off the
+  site, and with none no video section is shown (Story B-14).
 
 Endpoints: `GET /api/media?league=`
 

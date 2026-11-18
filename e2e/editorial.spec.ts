@@ -287,30 +287,58 @@ describeStory("R-1: editorial writes news and press releases", () => {
   });
 });
 
-describeStory("R-1: a post opens where it belongs", () => {
-  test("from the home page, a post tagged with the association and a league opens under the association", async ({ page }, testInfo) => {
+describeStory("R-1: a post is read where it was found, and shows its tags", () => {
+  test("from the home page a post opens in its first tag, All leagues before the leagues; from a league's page in the league", async ({ page }, testInfo) => {
     const headers = await bearer(page.request, EDITOR);
-    const league = (await (await page.request.get("/api/leagues/1-liga")).json()) as { league: { id: number } };
+    const id = async (slug: string) =>
+      ((await (await page.request.get(`/api/leagues/${slug}`)).json()) as { league: { id: number } }).league.id;
     const made = await page.request.post("/api/admin/posts", {
       headers,
       // Dated ahead of every other post, so it is the home page's first tile.
-      data: { title: `Assembly ${testInfo.project.name} ${Date.now()}`, body: "<p>The members meet in March.</p>", association: true, league_ids: [league.league.id], published_on: "2099-01-01", published: true },
+      data: {
+        title: `Both leagues ${testInfo.project.name} ${Date.now()}`,
+        body: "<p>A matchday of the 1. and 2. Liga.</p>",
+        association: true,
+        league_ids: [await id("2-liga"), await id("1-liga")],
+        published_on: "2099-01-01",
+        published: true,
+      },
     });
     expect(made.ok(), await made.text()).toBeTruthy();
-    const { slug } = (await made.json()) as { slug: string };
+    const post = (await made.json()) as { id: number; slug: string };
+    const { slug } = post;
+    try {
+      await page.goto("/");
+      const card = page.getByTestId(`site-news-${slug}`);
+      // Its tags, All leagues first, then the leagues in their order.
+      await expect(card.getByTestId("site-tags").getByRole("listitem")).toHaveText(["All leagues", "1. Liga", "2. Liga"]);
+      await card.click();
+      await expect(page).toHaveURL(new RegExp(`/news/${slug}$`));
+      await expect(page.getByTestId("site-article")).toBeVisible();
+      // The association's frame: the top row alone, no sub-menu — as on the home page.
+      await expect(page.getByTestId("site-top-bar")).toBeVisible();
+      await expect(page.getByTestId("site-league-pages")).toHaveCount(0);
+      // On the article each tag leads to that league's news.
+      await page.getByTestId("site-article").getByTestId("site-tag-2-liga").getByRole("link").click();
+      await expect(page).toHaveURL(/\/2-liga\/news$/);
 
-    await page.goto("/");
-    await page.getByTestId(`site-news-${slug}`).click();
-    await expect(page).toHaveURL(new RegExp(`/news/${slug}$`));
-    await expect(page.getByTestId("site-article")).toBeVisible();
-    // The association's frame: its name under the top row, not a league's.
-    await expect(page.getByTestId("site-sub-crumbs")).toHaveText("Deutsche Segel-Liga");
+      // From the league's page it stays in the league, with its sub-menu.
+      await page.goto("/1-liga/news");
+      await page.getByTestId(`site-news-${slug}`).click();
+      await expect(page).toHaveURL(new RegExp(`/1-liga/news/${slug}$`));
+      await expect(page.getByTestId("site-sub-crumbs")).toHaveText("1. Liga");
 
-    // From the league's own page it stays in the league.
-    await page.goto("/1-liga/news");
-    await page.getByTestId(`site-news-${slug}`).click();
-    await expect(page).toHaveURL(new RegExp(`/1-liga/news/${slug}$`));
-    await expect(page.getByTestId("site-sub-crumbs")).toHaveText("1. Liga");
+      // Tagged with leagues only, it opens from the home page in the first of them.
+      const retagged = await page.request.patch(`/api/admin/posts/${post.id}`, { headers, data: { association: false } });
+      expect(retagged.ok(), await retagged.text()).toBeTruthy();
+      await page.goto("/");
+      await page.getByTestId(`site-news-${slug}`).click();
+      await expect(page).toHaveURL(new RegExp(`/1-liga/news/${slug}$`));
+      await expect(page.getByTestId("site-sub-crumbs")).toHaveText("1. Liga");
+    } finally {
+      // Dated 2099, it would head the home page of anyone looking at this stack.
+      await page.request.delete(`/api/admin/posts/${post.id}`, { headers });
+    }
   });
 });
 

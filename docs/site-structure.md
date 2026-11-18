@@ -66,7 +66,7 @@ flowchart TD
   ch1 -->|"full standings"| p2["/1-liga/standings"]
   ch2 -->|"results of the act"| p1["/1-liga/2026/act-6/results"]
   ch3 -->|"all news"| p5["/1-liga/news"]
-  ch4 -->|"photos & videos"| p6["/1-liga/media"]
+  ch4 -->|"pictures"| p6["/1-liga/media"]
   ch5 -->|"how it works · clubs · press"| p8["/1-liga/about"]
   ch5 --> p4["/1-liga/clubs"] & p7["/1-liga/press"]
   ch6 -->|"a year"| p9["/1-liga/2025/standings"]
@@ -100,7 +100,7 @@ here), *About* (history, board, member clubs → `/about`).
 | `/:league/notice-board` | the **season's** documents: rules, notice of race, boats, entry | each group of documents |
 | `/:league/clubs` | the clubs of each division | — |
 | `/:league/news`, `/:league/news/:slug` | articles | — |
-| `/:league/media` | videos and photo galleries | — |
+| `/:league/media` | photo galleries (and videos, when there are any — none since 2026-11-18) | — |
 | `/:league/press` | press releases, press kit, print photos, accreditation, contact | a release → its text and download |
 | `/:league/about` | what the league is, what is at stake, the boat | — |
 | `/about` | the association: history, board, member clubs | — |
@@ -118,7 +118,7 @@ on *Results* once racing is done, and on *Notice board* before that.
 | **Pairing list** | who sails which boat in which race | — |
 | **Crews** | who sails for each club | a club → its crew |
 | **Live** | the live map while racing, a replay afterwards | — |
-| **Media** | the matchday's video and photos | — |
+| **Media** | the matchday's photos (and video, when there is one) | — |
 
 The matchday is also where its own notice board, media and press release belong: option
 C's idea, kept inside E.
@@ -157,8 +157,12 @@ Each is to be decided on the real device, not argued in the abstract:
 
 | Variant | Options |
 |---|---|
-| Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays) |
+| Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays — offered only while the site has a video, none since 2026-11-18) |
 | Glass | card darkness, card blur, picture shade, text strength — sliders, with a reset |
+
+**Decided 2026-11-18:** the videos were taken off the site. With none, no video section
+is shown, the *video* picture setting is not offered, and a chapter with nothing to show
+(no news; no videos and no pictures) is left out of the chapter page, its dot with it.
 
 **Decided 2026-10-18:** the layout with a sub-menu (like my space: the rows on the
 picture, a sticky sub-menu of pills with crumbs, one fixed picture, the content in glass
@@ -180,7 +184,7 @@ snapping into place and the depth frames A band, B sheet, C split were removed.
   downloads them into `api/.seed-cache/` (git-ignored).
 - **The league's other website is not pointed to** (decided 2026-10-23): no link, no
   credit line, no "rewritten from". Its news were rewritten in our own words; its YouTube
-  videos are embedded.
+  videos were embedded, and taken off the site on 2026-11-18.
 
 ## Open before the real build
 

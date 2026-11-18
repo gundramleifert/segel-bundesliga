@@ -78,12 +78,12 @@
     "galleryTitle": "Photos: {regatta}",
     "galleryMore": "All {count} photos on the media page",
     "related": "More news",
-    "older": "Show older news"
+    "older": "Show older news",
+    "allLeagues": "All leagues"
   },
   "media": {
-    "more": "Photos & videos",
-    "preview": "{count, plural, one {One video and the galleries of every event.} other {# videos and the galleries of every event.}}",
-    "page": "Photos & videos",
+    "more": "All pictures",
+    "page": "Media",
     "videos": "Videos",
     "photos": "Photos",
     "none": "Nothing here yet.",

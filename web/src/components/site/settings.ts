@@ -1,5 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 
+import { VIDEOS } from "../../content";
+
 /** One value for the whole site, shared by every component that reads it, remembered in
  *  this browser — for what the DEV switch tries out (`docs/site-structure.md`, Story B-13).
  *  A convenience: storage may fail, and then the value holds until reload. `read` turns
@@ -33,9 +35,11 @@ function setting<T>(key: string, read: (saved: string | null) => T, write: (valu
   return [use, set] as const;
 }
 
-/** What a big picture shows: the photo, a cross-fading or a sliding slideshow, a muted video. */
+/** What a big picture shows: the photo, a cross-fading or a sliding slideshow, a muted video.
+ *  "video" only while the site has a video — without one it is not offered, and a choice
+ *  of it remembered from before falls back to the photo (decided 2026-11-18). */
 export type MediaMode = "photo" | "fade" | "slide" | "video";
-export const MEDIA_MODES = ["photo", "fade", "slide", "video"] as const;
+export const MEDIA_MODES: readonly MediaMode[] = VIDEOS.length ? ["photo", "fade", "slide", "video"] : ["photo", "fade", "slide"];
 export const [useMediaMode, setMediaMode] = setting<MediaMode>(
   "site.media",
   (saved) => MEDIA_MODES.find((mode) => mode === saved) ?? "photo",

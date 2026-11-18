@@ -385,11 +385,11 @@
       "news": "News",
       "press": "Press release"
     },
-    "association": "Association",
+    "association": "All leagues",
     "exampleBadge": "Example",
     "kindLabel": "Kind",
     "leagueLabel": "Tags",
-    "leagueHint": "Tag what the post is about: it appears on those leagues' pages, and always on the home page. From the home page it opens in its first tag — the association before the leagues.",
+    "leagueHint": "Tag what the post is about: All leagues, or single leagues. It appears on those leagues' pages and always on the home page, and from there opens in its first tag — All leagues before the single ones.",
     "dateLabel": "Date shown",
     "titleLabel": "Title",
     "titlePlaceholder": "What happened?",

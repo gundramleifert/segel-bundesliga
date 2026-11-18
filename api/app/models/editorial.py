@@ -77,7 +77,7 @@ class Post(Base, TimestampMixin):
     photo_url: Mapped[str | None] = mapped_column(String(500), default=None)
     photo_credit: Mapped[str | None] = mapped_column(String(160), default=None)
     published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
-    # The association's tag ("Verein"), beside or instead of leagues (Story R-1).
+    # The association's tag — *All leagues*, "Ligen" — beside or instead of leagues (R-1).
     association: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Written to fill the page, not real news: the page says so (Story B-14).
     example: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")

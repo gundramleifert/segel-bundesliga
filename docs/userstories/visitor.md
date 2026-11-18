@@ -434,7 +434,8 @@ Acceptance criteria:
   (not tested in the browser suite, whose build leaves the dev tools out — the setting it
   writes is), bottom left, wherever the role switcher is built in (`DEV_TOOLS`): the
   picture as photo, fade, slide or video, and the glass over it. The choice is remembered
-  in this browser. (Until 2026-10-18 it also switched a classic layout, chapters snapping
+  in this browser. *Video* is offered only while the site has a video; with none (since
+  2026-11-18) it is not, and a remembered *video* shows the photo. (Until 2026-10-18 it also switched a classic layout, chapters snapping
   into place, and three depth frames A–C; the layout below was chosen and the rest went.)
 - **The layout with a sub-menu** (2026-10-18): the public site is built like my space. The
   top row is solid everywhere, and under it a **sub-menu row sticks** — where you are on
@@ -456,7 +457,7 @@ Acceptance criteria:
   pieces every page is built from — frosted glass on the picture for teasers, lists and
   facts, and also for what is read closely (a full table, an article, a matchday's
   results, pairing list and crews). The media page's videos and photos are the chapter's
-  video cards. **The DEV switch tunes the glass** live — card darkness and blur, how far
+  video cards; with no videos, there is no Videos section — not an empty one. **The DEV switch tunes the glass** live — card darkness and blur, how far
   the picture is darkened, the strength of secondary text — with a reset to the defaults.
   **No small text lies on a picture bare**: introductions, notes, the season's list, the
   running act, club names and links are cards or glass pills, and the glass really blurs
@@ -560,7 +561,13 @@ Acceptance criteria:
 - **The chapters are filled** (2026-10-18): *Standings* also lists the year's matchdays with their
   state, each leading to its page; *Results* how many races are sailed; *News* the newest
   three as cards with picture and teaser and three more headlines; *Media* the videos as
-  stills; *About* the league's facts. On the association's home: figures, the service for
+  stills and a row of the league's pictures; *About* the league's facts.
+- **The videos were taken off, and an empty chapter is left out** (decided 2026-11-18):
+  the site has no videos now (`VIDEOS` in `web/src/content/index.ts` is empty; one
+  listed there brings the sections back). Where there are no videos, the video section is
+  gone, not shown empty. A chapter with nothing to show — *News* with no articles,
+  *Media* with neither videos nor pictures — is not on the page, and its dot is not
+  either. The league's sub-menu keeps *Media*: its page says when there is nothing yet. On the association's home: figures, the service for
   clubs as six tiles, the history.
 - **Every article has its own page** (`/:league/news/:slug`): the lead, the byline, the
   text, a quote where there is one, and the league's next three articles. An invented

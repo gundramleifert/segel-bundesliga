@@ -155,9 +155,9 @@ export type ArticleSummary = {
   slug: string;
   title: string;
   date: string;
-  /** The slugs of the leagues it is tagged with, in their order (Story R-1). */
-  leagues: string[];
-  /** Tagged with the association ("Verein"). */
+  /** The leagues it is tagged with, in their order (Story R-1). */
+  leagues: { slug: string; name: string }[];
+  /** Tagged with the association — the chip *All leagues*. */
   association: boolean;
   teaser: string;
   /** None when the post has none (decided 2026-10-23: no picture stands in). */
@@ -193,7 +193,7 @@ function toSummary(post: PostSummary): ArticleSummary {
     slug: post.slug,
     title: post.title,
     date: post.published_on,
-    leagues: (post.leagues ?? []).map((l) => l.slug),
+    leagues: (post.leagues ?? []).map((l) => ({ slug: l.slug, name: l.short_name })),
     association: post.association ?? false,
     teaser: post.teaser ?? "",
     photo: postPhoto(post),
@@ -201,11 +201,11 @@ function toSummary(post: PostSummary): ArticleSummary {
   };
 }
 
-/** Where a post opens outside a league's pages (Story R-1): its first tag — the
- *  association before the leagues, which come in their own order — as a league's slug,
- *  or null for the association's frame. A post with no tag is the association's too. */
-export function homeOf(post: { association: boolean; leagues: string[] }): string | null {
-  return post.association ? null : (post.leagues[0] ?? null);
+/** Where a post opens from the home page (Story R-1): under the association when it is
+ *  tagged *All leagues* (or has no tag at all), else in its first league — the leagues
+ *  come in their own order. Null is the association's frame. */
+export function homeOf(post: { association: boolean; leagues: { slug: string }[] }): string | null {
+  return post.association ? null : (post.leagues[0]?.slug ?? null);
 }
 
 /** A post as its own page shows it — also what editorial's preview renders. */
@@ -260,6 +260,10 @@ function usePages<P extends PageOf, R>(
   };
 }
 
+/** Whether a list has answered, and with nothing — not while it loads, not when it failed:
+ *  what leaves an empty chapter out (decided 2026-11-18). */
+export const answeredEmpty = (list: Paged<unknown>) => !list.loading && !list.error && list.data?.length === 0;
+
 /** How many posts a list reads at a time. */
 export const NEWS_PAGE = 12;
 
@@ -301,12 +305,10 @@ export const PRESS_CONTACT = "presse@deutsche-segelliga.de";
 export type Video = { id: string; title: string; start: number };
 
 // The league's YouTube videos; played muted as a background loop in the
-// "video" setting, and with sound and controls on the media pages.
-export const VIDEOS: Video[] = [
-  { id: "gMxZptdnbxo", title: "1. Spieltag — Hamburg 2022", start: 30 },
-  { id: "Vv0Fjvd1Q-0", title: "3. Spieltag — Travemünde 2022", start: 20 },
-  { id: "IcKib7M-uB0", title: "3. Spieltag — Travemünde 2022, final day", start: 40 },
-];
+// "video" setting, and with sound and controls on the media pages. None since
+// 2026-11-18 (taken off the site): with none, every video section, the media chapter's
+// tiles and the "video" setting are gone, and come back when one is listed here.
+export const VIDEOS: Video[] = [];
 
 export function useVideos(_league: string) {
   return ready(VIDEOS);

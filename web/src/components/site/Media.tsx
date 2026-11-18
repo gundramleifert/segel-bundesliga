@@ -62,7 +62,7 @@ export function Picture({ photo, slides = [] }: { photo: Photo; slides?: Photo[]
   // No slide marks: on a chapter they read as a second set of dots beside the chapter dots.
   if (mode === "fade") return <Slideshow key="fade" photo={photo} others={slides} className={box} kind="fade" />;
   if (mode === "slide") return <Slideshow key="push" photo={photo} others={slides} className={box} kind="push" />;
-  if (mode === "video") return <YouTubeBackground photo={photo} className={box} />;
+  if (mode === "video" && VIDEOS.length) return <YouTubeBackground photo={photo} className={box} />;
   return <Img photo={photo} className={box} />;
 }
 

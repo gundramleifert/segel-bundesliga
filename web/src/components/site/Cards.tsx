@@ -1,4 +1,5 @@
 import { Children, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 // The building blocks of the official pages: one card, one card with a picture, one panel
@@ -84,6 +85,7 @@ export function MediaCard({
   title,
   text,
   play = false,
+  chips,
   aspect = "aspect-[16/9]",
   testId,
 }: {
@@ -94,6 +96,8 @@ export function MediaCard({
   kicker?: string;
   title?: string;
   text?: string;
+  /** Under the kicker — a post's tags (`TagChips`). */
+  chips?: ReactNode;
   /** Marks the picture as a video's still. */
   play?: boolean;
   aspect?: string;
@@ -126,6 +130,7 @@ export function MediaCard({
       {(kicker || title || text) && (
         <div className="p-4">
           {kicker && <p className={`text-xs uppercase tracking-widest ${tone.faint}`}>{kicker}</p>}
+          {chips}
           {title && <p className={`mt-1 font-semibold leading-snug ${tone.text}`}>{title}</p>}
           {text && <p className={`mt-1 line-clamp-2 text-sm ${tone.muted}`}>{text}</p>}
         </div>
@@ -234,5 +239,38 @@ export function PillSwitch<T extends string>({
         </button>
       ))}
     </div>
+  );
+}
+
+/** A post's tags as chips (Story R-1): *All leagues* first, then its leagues in their
+ *  order. With `link`, each leads to that league's news — never inside a card, which is a
+ *  link itself. Nothing when the post has no tag. */
+export function TagChips({
+  association,
+  leagues,
+  link,
+}: {
+  association: boolean;
+  leagues: { slug: string; name: string }[];
+  link?: (slug: string | null) => string;
+}) {
+  const { t } = useTranslation("site");
+  const tags = [...(association ? [{ slug: null, name: t("news.allLeagues") }] : []), ...leagues];
+  if (!tags.length) return null;
+  const chip = "rounded-full bg-surface-tertiary px-2 py-0.5 text-xs text-muted";
+  return (
+    <ul className="mt-2 flex flex-wrap gap-1" data-testid="site-tags">
+      {tags.map((tag) => (
+        <li key={tag.slug ?? ""} data-testid={`site-tag-${tag.slug ?? "all"}`}>
+          {link ? (
+            <Link to={link(tag.slug)} className={`${chip} hover:text-foreground`}>
+              {tag.name}
+            </Link>
+          ) : (
+            <span className={chip}>{tag.name}</span>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }

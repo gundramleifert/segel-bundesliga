@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import type { Post } from "../../api/types";
 import { RichText } from "../../components/RichText";
-import { PAGE_TITLE, Panel, tone } from "../../components/site/Cards";
+import { PAGE_TITLE, Panel, TagChips, tone } from "../../components/site/Cards";
 import { Link } from "react-router-dom";
 
 import { Gallery } from "../../components/site/Gallery";
@@ -43,6 +43,10 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
       {/* Text to read closely, as wide as the page's column. */}
       <Panel className="mb-12 sm:p-10">
         <article data-testid="site-article">
+          {/* Its tags, each leading to that league's news — All leagues to the home page. */}
+          <div className="-mt-2 mb-4">
+            <TagChips association={article.association} leagues={article.leagues} link={(slug) => (slug ? href.news(slug) : href.home())} />
+          </div>
           <p className="text-xl font-medium leading-relaxed text-foreground" data-testid="site-article-lead">{article.teaser}</p>
           {article.author && (
             <p className="mt-3 text-sm text-muted" data-testid="site-article-byline">

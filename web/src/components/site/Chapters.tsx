@@ -15,6 +15,7 @@ export type ChapterSpec = {
   label: string;
   title: string;
   more?: { to: string; label: string };
+  /** `null`: the chapter has nothing to show, and is left out — dot and all. */
   body: ReactNode;
 };
 
@@ -25,8 +26,11 @@ export type ChapterSpec = {
  *  A chapter is as tall as its content: chapters that each filled the screen and clicked
  *  into place left half a screen of picture between two (removed 2026-10-18). The
  *  overview has no sub-menu: the chapters are its contents, and each leads to its page,
- *  where the sub-menu is. */
-export function ChapterScroller({ chapters, photo, league }: { chapters: ChapterSpec[]; photo?: Photo; league?: League | null }) {
+ *  where the sub-menu is. A chapter whose body is `null` has nothing to show and is left
+ *  out, its dot with it (decided 2026-11-18). */
+export function ChapterScroller({ chapters: all, photo, league }: { chapters: ChapterSpec[]; photo?: Photo; league?: League | null }) {
+  // An empty chapter is not shown (decided 2026-11-18): no heading over nothing.
+  const chapters = all.filter((c) => c.body !== null && c.body !== undefined && c.body !== false);
   const current = useActiveChapter(chapters[0].id, chapters.map((c) => c.id).join());
   // The document behind has nothing to scroll, so Space, Page Down and the arrows have to
   // reach this box: it takes the focus when the page opens (without moving).

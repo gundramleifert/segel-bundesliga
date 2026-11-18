@@ -7,7 +7,7 @@ import type { LeagueSeason, Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { StandingsTable } from "../../components/StandingsTable";
-import { Card, CardRow, Columns, MediaCard, Panel, TextCard, tone } from "../../components/site/Cards";
+import { Card, CardRow, Columns, MediaCard, Panel, TagChips, TextCard, tone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand, PageLoading } from "../../components/site/Frame";
 import { ErrorMessage, Loading } from "../../components/Blocks";
 import { YouTubePlayer } from "../../components/site/Media";
@@ -320,6 +320,7 @@ function NewsCards({ items, link }: { items: ArticleSummary[]; link: (n: Article
         <li key={n.slug}>
           <MediaCard
             to={link(n)}
+            chips={<TagChips association={n.association} leagues={n.leagues} />}
             image={n.photo}
             kicker={formatDate(n.date)}
             title={n.title}
@@ -352,14 +353,21 @@ function Article({ league }: { league: LeagueSeason["league"] | null }) {
   const more = (useNews(league?.slug).data ?? []).filter((n) => n.slug !== slug).slice(0, 3);
   // Back to the league's news, or to the home page, which has the association's.
   const back = league ? href.news(league.slug) : href.home();
-  // A related article opens where this one does, or — on the home's list — in its own tag.
+  // A related article opens in this league — or, under the association, in its first tag.
   const link = (n: ArticleSummary) => href.article(league ? league.slug : homeOf(n), n.slug);
   // An unknown or withdrawn article leads back; a failure says so.
   if (notFound) return <Navigate to={back} replace />;
   if (loading) return <PageLoading><Loading testId="site-article-loading" /></PageLoading>;
   if (error || !post || !article) return <PageLoading><ErrorMessage text={error ?? ""} testId="site-article-error" /></PageLoading>;
   return (
-    <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
+    // Under the association no sub-menu: the home page has none either (Story R-1).
+    <DepthPage
+      league={league}
+      title={article.title}
+      kicker={`${t("pages.news")} · ${formatDate(article.date)}`}
+      photo={article.photo}
+      subnav={league ? undefined : false}
+    >
       <ArticleView post={post} />
       <p className="-mt-6 mb-12 text-center">
         <Link to={back} className={`font-medium ${tone.link}`} data-testid="site-article-back">
@@ -396,19 +404,18 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
   const gallery = useGallery(league, limit ? limit + 1 : undefined);
   return (
     <>
-      <Block title={t("media.videos")}>
-        <Async state={videos} testId="site-videos" empty={t("media.none")}>
-          {(items) => (
-            <CardRow>
-              {items.slice(0, limit).map((v) => (
-                <li key={v.id}>
-                  <YouTubePlayer id={v.id} title={v.title} />
-                </li>
-              ))}
-            </CardRow>
-          )}
-        </Async>
-      </Block>
+      {/* No videos, no section — not an empty one (decided 2026-11-18). */}
+      {!!videos.data?.length && (
+        <Block title={t("media.videos")} testId="site-videos">
+          <CardRow>
+            {videos.data.slice(0, limit).map((v) => (
+              <li key={v.id}>
+                <YouTubePlayer id={v.id} title={v.title} />
+              </li>
+            ))}
+          </CardRow>
+        </Block>
+      )}
       <Block title={t("media.photos")} testId="site-media-photos">
         <Async state={gallery} testId="site-gallery" empty={t("media.none")}>
           {(photos) => (

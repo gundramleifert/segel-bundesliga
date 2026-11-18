@@ -4,9 +4,12 @@ import { Link } from "react-router-dom";
 
 import { useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
 import type { Series } from "../../api/types";
-import { Card, CardRow, Columns, MediaCard, TextCard, tone } from "../../components/site/Cards";
+import { Card, CardRow, Columns, MediaCard, TagChips, TextCard, tone } from "../../components/site/Cards";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
+import { Gallery } from "../../components/site/Gallery";
 import {
+  answeredEmpty,
+  useGallery,
   useLeagueAbout,
   useLocalized,
   useNews,
@@ -30,8 +33,12 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const actTitle = useActTitle();
   const actName = useActName();
   const about = useLeagueAbout(league.slug).data;
-  const news = useNews(league.slug).data ?? [];
+  const newsList = useNews(league.slug);
+  const news = newsList.data ?? [];
   const videos = useVideos(league.slug).data ?? [];
+  // The media chapter's preview: a row of the league's pictures.
+  const gallery = useGallery(league.slug, 4);
+  const photos = gallery.data ?? [];
   const clubs = season.clubs ?? [];
   const live = acts.find((a) => a.state === "live") ?? null;
   const earlier = season.years.filter((y) => y !== year);
@@ -46,7 +53,8 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   ) : (
     fives[0]
   );
-  // Each chapter is titled with its name — the word on its dot (Story B-14).
+  // Each chapter is titled with its name — the word on its dot (Story B-14). A chapter with
+  // nothing to show has no body (`null`) and is left out, dot and all (decided 2026-11-18).
   const chapters: ChapterSpec[] = [
     // Only while a matchday is live, and then it opens the page — on a race day that is
     // what a fan comes for (Story B-14). Between matchdays the season's page has the calendar.
@@ -102,19 +110,26 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       label: t("chapters.news"),
       title: t("chapters.news"),
       more: { to: href.news(l), label: t("news.more") },
-      body: <NewsTiles items={news.slice(0, 3)} rest={news.slice(3, 6)} link={(n) => href.article(l, n.slug)} />,
+      body: answeredEmpty(newsList) ? null : (
+        <NewsTiles items={news.slice(0, 3)} rest={news.slice(3, 6)} link={(n) => href.article(l, n.slug)} />
+      ),
     },
     {
       id: "media",
       label: t("chapters.media"),
       title: t("chapters.media"),
       more: { to: href.media(l), label: t("media.more") },
-      body: (
-        <>
-          <TextCard>{t("media.preview", { count: videos.length })}</TextCard>
-          <VideoTiles league={l} videos={videos} />
-        </>
-      ),
+      body:
+        !videos.length && answeredEmpty(gallery) ? null : (
+          <>
+            {videos.length > 0 && <VideoTiles league={l} videos={videos} />}
+            {photos.length > 0 && (
+              <div data-testid="site-media-preview">
+                <Gallery photos={photos} grouped={false} />
+              </div>
+            )}
+          </>
+        ),
     },
     {
       id: "about",
@@ -242,7 +257,15 @@ export function NewsTiles({ items, rest = [], link }: { items: ArticleSummary[];
       <CardRow>
         {items.map((n) => (
           <li key={n.slug}>
-            <MediaCard to={link(n)} image={n.photo} kicker={formatDate(n.date)} title={n.title} text={n.teaser} testId={`site-news-${n.slug}`} />
+            <MediaCard
+              to={link(n)}
+              image={n.photo}
+              kicker={formatDate(n.date)}
+              chips={<TagChips association={n.association} leagues={n.leagues} />}
+              title={n.title}
+              text={n.teaser}
+              testId={`site-news-${n.slug}`}
+            />
           </li>
         ))}
       </CardRow>

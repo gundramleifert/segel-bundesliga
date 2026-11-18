@@ -22,7 +22,7 @@ import { Field, Message } from "../../../components/Form";
 import { MediaContextSelect } from "../../../components/MediaContextSelect";
 import { MediaPicker } from "../../../components/MediaPicker";
 import { Select } from "../../../components/Select";
-import { MEMBER_LEAGUES, homeOf } from "../../../content";
+import { MEMBER_LEAGUES } from "../../../content";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
 import { repeatsTitle } from "../../../lib/postTitle";
@@ -212,8 +212,8 @@ function PostForm({ post }: { post?: PostAdmin }) {
   };
 
   const news = draft.kind === PostKind.news;
-  // Where the public site opens it: its first tag, the association before the leagues.
-  const publicHome = post ? homeOf({ association: post.association ?? false, leagues: (post.leagues ?? []).map((l) => l.slug) }) : null;
+  // Where the public site shows it: under its first league, or under the association.
+  const publicHome = post?.association ? null : (post?.leagues?.[0]?.slug ?? null);
   const tagged = (id: number) => draft.league_ids.includes(id);
   const toggleLeague = (id: number) =>
     set("league_ids", tagged(id) ? draft.league_ids.filter((l) => l !== id) : [...draft.league_ids, id]);

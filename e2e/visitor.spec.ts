@@ -1,3 +1,5 @@
+import type { Page } from "@playwright/test";
+
 import { describeStory, expect, test } from "./fixtures";
 
 import { chooseLanguage, expectNoSidewaysScroll, openUserMenu } from "./layout";
@@ -493,8 +495,22 @@ describeStory("B-13: one row of navigation names the leagues", () => {
 
 });
 
+/** The practice league's news and pictures are whatever other specs left: answer its
+ *  lists with the 1. Liga's (which has both — `picturesFor` above, the real reports), or
+ *  with nothing. */
+async function practiceLists(page: Page, filled: boolean): Promise<void> {
+  await page.route(/\/api\/(posts|media)\?/, async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("league") !== "practice") return route.continue();
+    if (!filled) return route.fulfill({ json: { items: [], total: 0, limit: 12, offset: 0 } });
+    url.searchParams.set("league", "1-liga");
+    return route.fulfill({ response: await route.fetch({ url: url.toString() }) });
+  });
+}
+
 describeStory("B-14: a league's page in chapters", () => {
   test("the chapters lead to their own pages, Results first and titled so while a matchday is live", async ({ page, season }) => {
+    await practiceLists(page, true);
     await page.goto("/practice");
     // Act 2 is being sailed, so Results is there and opens the page; the seed has no
     // earlier year, so no Archive.
@@ -615,13 +631,19 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.locator('[data-dot="about"]')).toHaveAttribute("aria-current", "true");
   });
 
-  test("the chapters are filled: the season's matchdays, news with pictures, videos, facts", async ({ page, season }) => {
+  test("the chapters are filled: the season's matchdays, news with pictures, photos, facts", async ({ page, season }) => {
     await page.goto("/1-liga");
     // Every act of the year — at least the seed's three; the lifecycle spec adds its own.
     await expect.poll(() => page.getByTestId("site-season-strip").getByRole("listitem").count()).toBeGreaterThanOrEqual(3);
     await expect(page.getByTestId("site-news-tiles").getByRole("link").first()).toBeVisible();
-    await expect(page.getByTestId("site-video-tiles").getByRole("listitem")).toHaveCount(3);
+    // The media chapter previews the pictures; the videos were taken off (2026-11-18).
+    await expect(page.getByTestId("site-media-preview").getByRole("listitem").first()).toBeVisible();
+    await expect(page.getByTestId("site-video-tiles")).toHaveCount(0);
     await expect(page.getByTestId("site-about-facts").getByRole("listitem").first()).toBeVisible();
+    // The media page keeps its photos, with no Videos section over nothing.
+    await page.goto("/1-liga/media");
+    await expect(page.getByTestId("site-media-photos")).toBeVisible();
+    await expect(page.getByTestId("site-videos")).toHaveCount(0);
     // Only while an act is live — the real 2026 is over; the practice act 2 is live.
     await page.goto("/practice");
     await expect(page.getByTestId("site-live-progress")).toHaveCount(1);
@@ -656,7 +678,8 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-article-byline")).toBeVisible();
     // Invented news about real clubs says it is an example.
     await expect(page.getByTestId("site-example-note")).toBeVisible();
-    await expect(page.getByTestId("site-article-related").getByRole("listitem")).toHaveCount(3);
+    // Three cards — each with its tags as a list of its own, so cards, not list items.
+    await expect(page.getByTestId("site-article-related").locator('[data-testid^="site-news-"]')).toHaveCount(3);
   });
 
   test("the season's board is Manage2Sail's notice of race, a matchday's board is real", async ({ page, season }) => {
@@ -677,6 +700,22 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     await page.goto("/dsl-pokal/standings");
     await expect(page.getByTestId("site-depth-page")).toBeVisible();
+  });
+
+  test("a chapter with nothing to show is left out, its dot with it", async ({ page, season }) => {
+    // No news, no pictures and — since 2026-11-18 — no videos: no News, no Media chapter.
+    await practiceLists(page, false);
+    await page.goto("/practice");
+    const chapters = page.getByTestId("site-chapters").locator("section[data-chapter]");
+    await expect(page.getByTestId(`site-top-five-${season.label}`)).toBeVisible();
+    await expect.poll(() => chapters.evaluateAll((els) => els.map((el) => el.getAttribute("data-chapter")))).toEqual([
+      "results",
+      "standings",
+      "about",
+    ]);
+    await expect(page.getByTestId("site-chapter-dots").getByRole("link")).toHaveCount(3);
+    await expect(page.locator('[data-dot="media"]')).toHaveCount(0);
+    await expect(page.locator('[data-dot="news"]')).toHaveCount(0);
   });
 
   test("a path that names no league goes home", async ({ page }) => {
