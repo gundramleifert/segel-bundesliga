@@ -159,9 +159,13 @@ $C run --rm --no-deps --user "$(id -u):$(id -g)" -v ~/backup/$day/uploads:/copy 
   api python -m app.storage_copy export /copy
 ```
 
-The secrets need no backup — they are in git, encrypted — but the **server's private key**
-does, or nobody can decrypt `prod.sops.env` after the machine is gone except the other
-recipients. Keep the backups off the machine (another server, a NAS, an S3 bucket of
+The secrets need no backup — they are in git, encrypted — and neither does the **server's
+private key**: it is replaceable. A new server makes its own key; put its public half in
+`.sops.yaml` in place of the old one and re-key from a laptop that is a recipient
+(`sops updatekeys -y deploy/compose/prod.sops.env`), so the dead machine's key is out of
+the game too. What does need a backup is **your own private key** (`~/.ssh/id_ed25519`,
+in a password manager): without a person's recipient key nobody can re-key. Keep the
+backups off the machine (another server, a NAS, an S3 bucket of
 another provider); a nightly cron line around the two commands is enough.
 
 **Restoring** — the API stopped, so nothing holds the tables open:
