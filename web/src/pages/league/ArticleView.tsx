@@ -43,7 +43,7 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
       {/* Text to read closely, as wide as the page's column. */}
       <Panel className="mb-12 sm:p-10">
         <article data-testid="site-article">
-          {/* Its tags, each leading to that league's news — All leagues to the home page. */}
+          {/* Its tags, each leading to that league's news — Verein to the home page. */}
           <div className="-mt-2 mb-4">
             <TagChips association={article.association} leagues={article.leagues} link={(slug) => (slug ? href.news(slug) : href.home())} />
           </div>

@@ -157,7 +157,7 @@ export type ArticleSummary = {
   date: string;
   /** The leagues it is tagged with, in their order (Story R-1). */
   leagues: { slug: string; name: string }[];
-  /** Tagged with the association — the chip *All leagues*. */
+  /** Tagged with the association — the chip *Verein*. */
   association: boolean;
   teaser: string;
   /** None when the post has none (decided 2026-10-23: no picture stands in). */
@@ -201,9 +201,8 @@ function toSummary(post: PostSummary): ArticleSummary {
   };
 }
 
-/** Where a post opens from the home page (Story R-1): under the association when it is
- *  tagged *All leagues* (or has no tag at all), else in its first league — the leagues
- *  come in their own order. Null is the association's frame. */
+/** Where a post opens from the home page (Story R-1): tagged *Verein* (or not at all),
+ *  under the association (null); else under its first league, in the leagues' order. */
 export function homeOf(post: { association: boolean; leagues: { slug: string }[] }): string | null {
   return post.association ? null : (post.leagues[0]?.slug ?? null);
 }

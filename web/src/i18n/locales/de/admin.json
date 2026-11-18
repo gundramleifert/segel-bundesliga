@@ -385,11 +385,11 @@
       "news": "News",
       "press": "Pressemitteilung"
     },
-    "association": "Ligen",
+    "association": "Verein",
     "exampleBadge": "Beispiel",
     "kindLabel": "Art",
     "leagueLabel": "Tags",
-    "leagueHint": "Markiere, worum es geht: Ligen (alle) oder einzelne Ligen. Der Beitrag erscheint auf den Seiten dieser Ligen und immer auf der Startseite und öffnet von dort im ersten Tag – Ligen vor den einzelnen.",
+    "leagueHint": "Markiere, worum es geht: Verein und beliebige Ligen. Der Beitrag erscheint auf den Seiten dieser Ligen und immer auf der Startseite; von dort öffnet er unter dem Verein, wenn er so markiert ist, sonst unter seiner ersten Liga.",
     "dateLabel": "Angezeigtes Datum",
     "titleLabel": "Titel",
     "titlePlaceholder": "Was ist passiert?",

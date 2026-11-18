@@ -242,9 +242,9 @@ export function PillSwitch<T extends string>({
   );
 }
 
-/** A post's tags as chips (Story R-1): *All leagues* first, then its leagues in their
- *  order. With `link`, each leads to that league's news — never inside a card, which is a
- *  link itself. Nothing when the post has no tag. */
+/** A post's tags as chips (Story R-1): *Verein* first, then its leagues in their order.
+ *  With `link`, each leads to that league's news (*Verein* to the home page) — never
+ *  inside a card, which is a link itself. Nothing when the post has no tag. */
 export function TagChips({
   association,
   leagues,
@@ -255,7 +255,7 @@ export function TagChips({
   link?: (slug: string | null) => string;
 }) {
   const { t } = useTranslation("site");
-  const tags = [...(association ? [{ slug: null, name: t("news.allLeagues") }] : []), ...leagues];
+  const tags = [...(association ? [{ slug: null, name: t("news.association") }] : []), ...leagues];
   if (!tags.length) return null;
   const chip = "rounded-full bg-surface-tertiary px-2 py-0.5 text-xs text-muted";
   return (

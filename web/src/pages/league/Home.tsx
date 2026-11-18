@@ -21,7 +21,7 @@ export function AssociationHome() {
   const leagues = useLeagues();
   const association = useAssociation().data;
   const news = useNews().data ?? [];
-  // From the association's home a post opens in its first tag (Story R-1).
+  // From the association's home a post opens in its first tag, Verein first (Story R-1).
   const articleHref = (n: ArticleSummary) => href.article(homeOf(n), n.slug);
   const seasons = useQueries({ queries: leagues.map((l) => getGetLeagueSeasonQueryOptions(l.slug)) });
 

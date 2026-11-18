@@ -288,7 +288,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
 });
 
 describeStory("R-1: a post is read where it was found, and shows its tags", () => {
-  test("from the home page a post opens in its first tag, All leagues before the leagues; from a league's page in the league", async ({ page }, testInfo) => {
+  test("from the home page a post opens in its first tag, Verein first; from a league's page in the league", async ({ page }, testInfo) => {
     const headers = await bearer(page.request, EDITOR);
     const id = async (slug: string) =>
       ((await (await page.request.get(`/api/leagues/${slug}`)).json()) as { league: { id: number } }).league.id;
@@ -310,8 +310,8 @@ describeStory("R-1: a post is read where it was found, and shows its tags", () =
     try {
       await page.goto("/");
       const card = page.getByTestId(`site-news-${slug}`);
-      // Its tags, All leagues first, then the leagues in their order.
-      await expect(card.getByTestId("site-tags").getByRole("listitem")).toHaveText(["All leagues", "1. Liga", "2. Liga"]);
+      // Its tags, Verein first, then the leagues in their order.
+      await expect(card.getByTestId("site-tags").getByRole("listitem")).toHaveText(["Association", "1. Liga", "2. Liga"]);
       await card.click();
       await expect(page).toHaveURL(new RegExp(`/news/${slug}$`));
       await expect(page.getByTestId("site-article")).toBeVisible();
@@ -328,7 +328,7 @@ describeStory("R-1: a post is read where it was found, and shows its tags", () =
       await expect(page).toHaveURL(new RegExp(`/1-liga/news/${slug}$`));
       await expect(page.getByTestId("site-sub-crumbs")).toHaveText("1. Liga");
 
-      // Tagged with leagues only, it opens from the home page in the first of them.
+      // Tagged with leagues only, it opens from the home page under the first of them.
       const retagged = await page.request.patch(`/api/admin/posts/${post.id}`, { headers, data: { association: false } });
       expect(retagged.ok(), await retagged.text()).toBeTruthy();
       await page.goto("/");

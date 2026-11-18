@@ -46,8 +46,7 @@ class Post(Base, TimestampMixin):
 
     **Tagged with what it is about**: the association (``association``) and any number of
     ``leagues``. A league's pages show the posts tagged with it, the association's home
-    every post; from there a post opens in its first tag, the association before the
-    leagues.
+    every post, each opening there under the association.
 
     ``published`` works like an event's (Story VA-8): a draft is invisible on the public
     site, and publishing locks nothing. ``slug`` is made once from the title and kept
@@ -77,7 +76,7 @@ class Post(Base, TimestampMixin):
     photo_url: Mapped[str | None] = mapped_column(String(500), default=None)
     photo_credit: Mapped[str | None] = mapped_column(String(160), default=None)
     published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
-    # The association's tag — *All leagues*, "Ligen" — beside or instead of leagues (R-1).
+    # The association's tag ("Verein"), beside or instead of leagues (Story R-1).
     association: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Written to fill the page, not real news: the page says so (Story B-14).
     example: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
