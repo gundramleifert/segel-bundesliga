@@ -22,6 +22,7 @@ export interface PostUpdate {
   title?: string;
   published_on?: string;
   league_ids?: number[];
+  association?: boolean;
   teaser?: string | null;
   /** @maxLength 50000 */
   body?: string;

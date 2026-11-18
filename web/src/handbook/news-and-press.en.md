@@ -37,7 +37,7 @@ batch.
 ### Write and publish {#news-and-press-write}
 
 1. On [*News*](place:admin.news), *New post*. Choose the *Kind* ① — *News* or *Press
-   release* — and the *Leagues* — tag each league the post is about; it appears on those leagues' pages. Without a tag it is the association's own, on the home page only.
+   release* — and the *Tags* — *Association* and each league the post is about; it appears on those leagues' pages and always on the home page, and from there opens in its first tag, the association before the leagues.
 2. Enter *Title*, *Lead* and *Text*. For the *Picture*: *From the library*, *Upload a
    picture*, or drop one onto it, and its *Credit*.
 3. Under *Regatta* ②, choose the event: its public photos are shown at the end of the post.

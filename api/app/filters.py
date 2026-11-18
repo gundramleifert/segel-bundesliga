@@ -314,7 +314,7 @@ class PostFilter(ListFilter):
     kind: PostKind | None = None
     league: str | None = Field(
         default=None,
-        description=f"A league's slug, or ``{ASSOCIATION}`` for the association's own posts.",
+        description=f"A league's slug, or ``{ASSOCIATION}`` for the association's tag.",
     )
     published: bool | None = Field(default=None, description="Only published, or only drafts")
     event_id: int | None = Field(default=None, description="Only posts about this event")
@@ -331,7 +331,7 @@ class PostFilter(ListFilter):
 
     def where_league(self, league: str):
         if league == ASSOCIATION:
-            return ~Post.leagues.any()
+            return Post.association.is_(True)
         return Post.leagues.any(League.slug == league)
 
     def where_series_id(self, series_id: int):

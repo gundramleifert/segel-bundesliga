@@ -1,7 +1,7 @@
 """Story R-1: editorial writes news and press releases on the site.
 
-A post is a draft until editorial publishes it, is tagged with the leagues it is about —
-none: the association's own — and keeps its address when its title is corrected.
+A post is a draft until editorial publishes it, is tagged with what it is about — the
+association and any leagues — and keeps its address when its title is corrected.
 """
 
 import io
@@ -54,7 +54,7 @@ class TestReadPosts:
         assert news, "the seed carries the pages' articles"
         assert all("2-liga" in tags(post) for post in news)
         everything = (await client.get("/api/posts", params={"limit": 100})).json()["items"]
-        assert any(not post["leagues"] for post in everything), "the association's own"
+        assert any(post["association"] and not post["leagues"] for post in everything)
         assert {p["slug"] for p in news} < {p["slug"] for p in everything}
         dates = [post["published_on"] for post in news]
         assert dates == sorted(dates, reverse=True)
@@ -80,6 +80,7 @@ class TestReadPosts:
 
         assert article["title"] == seeded["title"]
         assert tags(article) == ["1-liga", "2-liga"], "a matchday of both leagues"
+        assert article["association"] is False
         assert article["body"].count("<p>") == seeded["body"].count("\n\n") + 1
         assert article["example"] is False
         draft = await client.get("/api/posts/asvw-takes-the-lead")
@@ -194,23 +195,52 @@ class TestWritePosts:
         drafts = await client.get("/api/admin/posts", headers=headers, params={"q": "entries open"})
         assert [p["id"] for p in drafts.json()["items"]] == [post["id"]]
 
-    async def test_a_post_without_a_league_is_the_associations_on_the_home_page_only(
-        self, client, caplog
-    ):
-        """R-1: no league tag — the association's own ("Verein"), on the home page only."""
+    async def test_the_associations_post_is_on_the_home_page_only(self, client, caplog):
+        """R-1: tagged with the association alone — on the home page, on no league's."""
         headers = await editor(client, caplog)
         post = (
             await client.post(
                 "/api/admin/posts",
                 headers=headers,
-                json={"title": "General assembly in March", "published": True},
+                json={"title": "General assembly in March", "association": True, "published": True},
             )
         ).json()
 
-        assert post["leagues"] == [] and post["league_ids"] == []
+        assert post["association"] is True and post["leagues"] == []
         assert post["slug"] in await listed(client, limit=100)
         for league in ("1-liga", "dsl-pokal"):
             assert post["slug"] not in await listed(client, league=league)
+
+    async def test_the_association_is_a_tag_beside_leagues(self, client, caplog):
+        """R-1: the association and a league at once — on the league's page and the home
+        page; the editor's list finds it under either tag."""
+        headers = await editor(client, caplog)
+        first = await league_id(client, "1-liga")
+        post = (
+            await client.post(
+                "/api/admin/posts",
+                headers=headers,
+                json={
+                    "title": "Calendar 2027 for every league",
+                    "association": True,
+                    "league_ids": [first],
+                    "published": True,
+                },
+            )
+        ).json()
+
+        assert post["association"] is True and tags(post) == ["1-liga"]
+        assert post["slug"] in await listed(client, league="1-liga")
+        for tag in ("association", "1-liga"):
+            found = await client.get(
+                "/api/admin/posts", headers=headers, params={"league": tag, "q": "Calendar 2027"}
+            )
+            assert [p["id"] for p in found.json()["items"]] == [post["id"]]
+
+        dropped = await client.patch(
+            f"/api/admin/posts/{post['id']}", headers=headers, json={"association": False}
+        )
+        assert dropped.json()["association"] is False
 
     async def test_a_post_is_on_the_page_of_every_league_it_is_tagged_with(self, client, caplog):
         """R-1: any number of league tags; retagging moves the post between the pages."""
@@ -603,7 +633,7 @@ class TestPicturesAndReading:
             )
         ).json()["items"]
         assert association
-        assert all(p["leagues"] == [] and not p["published"] for p in association)
+        assert all(p["association"] and not p["published"] for p in association)
         first = (
             await client.get("/api/admin/posts", headers=headers, params={"league": "1-liga"})
         ).json()["items"]

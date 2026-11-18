@@ -30,6 +30,7 @@ import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
 import { ActPage, EventPage, LiveRedirect, ResultsRedirect } from "./pages/league/Act";
 import {
   ArticlePage,
+  AssociationArticlePage,
   ClubsPage,
   LeagueAboutPage,
   MediaPage,
@@ -83,6 +84,8 @@ export default function App() {
         <Route key={`dsbl/${sub}`} path={sub ? `dsbl/${sub}` : "dsbl"} element={<PrefixRedirect from="dsbl" to="1-liga" />} />
       ))}
       <Route path="about" element={<AssociationAboutPage />} />
+      {/* Story R-1: the association's article, under the association's frame. */}
+      <Route path="news/:slug" element={<AssociationArticlePage />} />
       {LEAGUE_ROUTES.map(([sub, page]) => (
         <Route key={`:league/${sub}`} path={sub ? `:league/${sub}` : ":league"} element={page} />
       ))}

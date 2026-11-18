@@ -22,7 +22,7 @@ import { Field, Message } from "../../../components/Form";
 import { MediaContextSelect } from "../../../components/MediaContextSelect";
 import { MediaPicker } from "../../../components/MediaPicker";
 import { Select } from "../../../components/Select";
-import { MEMBER_LEAGUES } from "../../../content";
+import { MEMBER_LEAGUES, homeOf } from "../../../content";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
 import { repeatsTitle } from "../../../lib/postTitle";
@@ -78,6 +78,7 @@ function draftOf(post?: PostAdmin, about?: { event_id: number | null; series_id:
     title: post?.title ?? "",
     published_on: post?.published_on ?? todayIso(),
     league_ids: post?.league_ids ?? [],
+    association: post?.association ?? false,
     teaser: post?.teaser ?? "",
     body: post?.body ?? "",
     author: post?.author ?? "",
@@ -211,9 +212,8 @@ function PostForm({ post }: { post?: PostAdmin }) {
   };
 
   const news = draft.kind === PostKind.news;
-  // Shown under its first league; the association's own under the first member league
-  // (`content`, `Home.tsx`).
-  const publicLeague = post?.leagues?.[0]?.slug ?? MEMBER_LEAGUES[0];
+  // Where the public site opens it: its first tag, the association before the leagues.
+  const publicHome = post ? homeOf({ association: post.association ?? false, leagues: (post.leagues ?? []).map((l) => l.slug) }) : null;
   const tagged = (id: number) => draft.league_ids.includes(id);
   const toggleLeague = (id: number) =>
     set("league_ids", tagged(id) ? draft.league_ids.filter((l) => l !== id) : [...draft.league_ids, id]);
@@ -274,34 +274,25 @@ function PostForm({ post }: { post?: PostAdmin }) {
         </Field>
       </div>
 
-      {/* Story R-1: tagged with any number of leagues; none is the association's own. */}
+      {/* Story R-1: tagged with the association and any number of leagues. */}
       <fieldset className="flex flex-col gap-1.5" data-testid="admin-post-leagues">
         <legend className="mb-1.5 text-sm font-medium">{t("posts.leagueLabel")}</legend>
         <div className="flex flex-wrap gap-2">
+          <TagChip
+            label={t("posts.association")}
+            on={draft.association}
+            onToggle={() => set("association", !draft.association)}
+            testId="admin-post-association"
+          />
           {(leagues.data ?? []).map((league) => (
-            <label
+            <TagChip
               key={league.id}
-              data-testid={`admin-post-league-${league.slug}`}
-              className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
-                tagged(league.id)
-                  ? "border-accent bg-accent text-accent-foreground"
-                  : "border-border bg-surface text-foreground hover:bg-accent-soft"
-              }`}
-            >
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={tagged(league.id)}
-                onChange={() => toggleLeague(league.id)}
-              />
-              {league.short_name}
-            </label>
+              label={league.short_name}
+              on={tagged(league.id)}
+              onToggle={() => toggleLeague(league.id)}
+              testId={`admin-post-league-${league.slug}`}
+            />
           ))}
-          {draft.league_ids.length === 0 && (
-            <span className="rounded-full border border-dashed border-border px-3 py-1 text-sm text-muted" data-testid="admin-post-association">
-              {t("posts.association")}
-            </span>
-          )}
         </div>
         <span className="text-xs text-muted">{t("posts.leagueHint")}</span>
       </fieldset>
@@ -413,7 +404,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
         </Button>
         {post?.published && (
           <Link
-            to={post.kind === PostKind.news ? href.article(publicLeague, post.slug) : href.press(publicLeague)}
+            to={post.kind === PostKind.news ? href.article(publicHome, post.slug) : href.press(post.leagues?.[0]?.slug ?? MEMBER_LEAGUES[0])}
             className="text-sm font-medium text-link hover:underline"
             data-testid="admin-post-view-link"
           >
@@ -580,5 +571,20 @@ function DeleteButton({ postId }: { postId: number }) {
       onConfirm={() => remove.mutate({ postId })}
       testId="admin-post-delete"
     />
+  );
+}
+
+/** One tag of a post — a chip that is a checkbox (Story R-1). */
+function TagChip({ label, on, onToggle, testId }: { label: string; on: boolean; onToggle: () => void; testId: string }) {
+  return (
+    <label
+      data-testid={testId}
+      className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
+        on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-surface text-foreground hover:bg-accent-soft"
+      }`}
+    >
+      <input type="checkbox" className="sr-only" checked={on} onChange={onToggle} />
+      {label}
+    </label>
   );
 }

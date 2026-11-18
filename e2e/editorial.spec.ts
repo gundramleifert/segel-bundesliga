@@ -287,6 +287,33 @@ describeStory("R-1: editorial writes news and press releases", () => {
   });
 });
 
+describeStory("R-1: a post opens where it belongs", () => {
+  test("from the home page, a post tagged with the association and a league opens under the association", async ({ page }, testInfo) => {
+    const headers = await bearer(page.request, EDITOR);
+    const league = (await (await page.request.get("/api/leagues/1-liga")).json()) as { league: { id: number } };
+    const made = await page.request.post("/api/admin/posts", {
+      headers,
+      // Dated ahead of every other post, so it is the home page's first tile.
+      data: { title: `Assembly ${testInfo.project.name} ${Date.now()}`, body: "<p>The members meet in March.</p>", association: true, league_ids: [league.league.id], published_on: "2099-01-01", published: true },
+    });
+    expect(made.ok(), await made.text()).toBeTruthy();
+    const { slug } = (await made.json()) as { slug: string };
+
+    await page.goto("/");
+    await page.getByTestId(`site-news-${slug}`).click();
+    await expect(page).toHaveURL(new RegExp(`/news/${slug}$`));
+    await expect(page.getByTestId("site-article")).toBeVisible();
+    // The association's frame: its name under the top row, not a league's.
+    await expect(page.getByTestId("site-sub-crumbs")).toHaveText("Deutsche Segel-Liga");
+
+    // From the league's own page it stays in the league.
+    await page.goto("/1-liga/news");
+    await page.getByTestId(`site-news-${slug}`).click();
+    await expect(page).toHaveURL(new RegExp(`/1-liga/news/${slug}$`));
+    await expect(page.getByTestId("site-sub-crumbs")).toHaveText("1. Liga");
+  });
+});
+
 describeStory("R-1/Z-2: a series' editor writes about that series and organizes nothing", () => {
   test("Paula Presse has no office, writes in My space, and her post lands in the series' league", async ({ page }, testInfo) => {
     // The seed's editor of the 2. Liga 2026 (`app/seed_users.py`). Holding nothing on the

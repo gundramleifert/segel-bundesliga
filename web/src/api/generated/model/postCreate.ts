@@ -16,8 +16,10 @@ export interface PostCreate {
   title: string;
   /** The date shown; today if absent. */
   published_on?: string | null;
-  /** The leagues it is tagged with; none: the association's own. */
+  /** The leagues it is tagged with. */
   league_ids?: number[];
+  /** Tagged with the association. */
+  association?: boolean;
   teaser?: string | null;
   /** @maxLength 50000 */
   body?: string;

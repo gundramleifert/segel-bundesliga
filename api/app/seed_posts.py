@@ -26,6 +26,7 @@ POSTS: list[dict] = [
         "title": "Die neue Website: Prototyp auf der Jahreshauptversammlung",
         "published_on": "2026-11-07",
         "leagues": [],
+        "association": True,
         "teaser": "Morgen stellen wir auf der Jahreshauptversammlung der Deutschen Segel-Liga "
         "den Prototyp der neuen Website vor – und freuen uns auf eure Verbesserungsvorschläge.",
         "body": "Morgen, am 8. November 2026, stellen wir auf der Jahreshauptversammlung der "
@@ -51,6 +52,7 @@ POSTS: list[dict] = [
         "title": "Termine 2027: Segel-Bundesliga, Junioren-Liga und Pokal",
         "published_on": "2026-10-13",
         "leagues": ["1-liga", "2-liga", "junioren-liga", "dsl-pokal"],
+        "association": True,
         "teaser": "Die Termine für die Saison 2027 stehen fest: alle Spieltage der 1. und 2. "
         "Segel-Bundesliga, die ACTs der Deutschen Junioren Segel-Liga und der gemeinsame Pokal.",
         "body_html": (
@@ -97,6 +99,7 @@ POSTS: list[dict] = [
         "title": "Neuer Vorstand gewählt – es geht los!",
         "published_on": "2026-01-27",
         "leagues": [],
+        "association": True,
         "teaser": "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 "
         "von 36 Vereinen getroffen.",
         "body": "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 von "
@@ -324,6 +327,7 @@ POSTS: list[dict] = [
         "title": "Live tracking: every boat on the map, from every phone",
         "published_on": "2026-07-28",
         "leagues": [],
+        "association": True,
         "teaser": "From this season the tracker is the sailor's own phone.",
         "body": "No more boxes to charge and hand out on the pontoon: from this season a phone on "
         "board is the tracker. The race committee's phone marks the start and finish lines.\n"
@@ -382,6 +386,7 @@ POSTS: list[dict] = [
         "title": "Broadcast and media: every matchday live",
         "published_on": "2026-05-15",
         "leagues": [],
+        "association": True,
         "teaser": "A studio on the pontoon, cameras on the water, the live map on screen.",
         "body": "Every matchday of the 1. Liga is broadcast live: a studio on the pontoon, cameras "
         "on RIBs, commentary and the live map with the boats' positions.\n"
@@ -416,6 +421,7 @@ POSTS: list[dict] = [
         "title": "Run your own regatta here",
         "published_on": "2026-04-10",
         "leagues": [],
+        "association": True,
         "teaser": "Pairing lists, results, tracking and waivers — the association's service for "
         "every club.",
         "body": "Everything the league uses on a matchday is available to every club that "

@@ -41,14 +41,18 @@ Acceptance criteria:
   release. An article has a title, a lead (the teaser on its card), the text, an optional
   quote with who said it, a byline and a picture; a release has a title, a date and its
   text.
-- **A post is tagged with the leagues it is about** (decided 2026-11-18 — a report on a
+- **A post is tagged with what it is about** (decided 2026-11-18 — a report on a
   matchday of the 1. and 2. Liga belonged to one of them or, untagged, to every league,
-  the Junioren's included): any number of leagues, chosen as tags. A league's news page,
-  its chapter page and its press centre show **only the posts tagged with it**; the
-  association's home shows every post. A post with no league tag is the **association's
-  own** ("Verein") — on the home page only; a release without one is in no press
-  centre, since only leagues have one. The editor's list shows each post's tags and
-  filters by one, or by the association's.
+  the Junioren's included): the **association** ("Verein") and any number of leagues, as
+  tags. A league's news page, its chapter page and its press centre show **only the posts
+  tagged with it**; the association's home shows every post. A release tagged with no
+  league is in no press centre, since only leagues have one. The editor's list shows each
+  post's tags and filters by one.
+- **A post opens where it belongs** (decided 2026-11-18): from a league's page in that
+  league; from the home page in its first tag, in the order *association*, then the
+  leagues' own (1. Liga, 2. Liga, Junioren, Pokal). The association's posts have an
+  address of their own, `/news/<slug>`, under the association's frame — never a league's.
+  A post with no tag at all opens there too.
 - **Saving never requires publishing** — the same rule as an event (Story VA-8). A post
   starts as a draft; the public site does not show it and its address answers 404. Publishing
   locks nothing, and withdrawing it makes it a draft again. *Publish* is the page's one

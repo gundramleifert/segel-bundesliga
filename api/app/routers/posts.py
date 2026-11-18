@@ -64,9 +64,10 @@ class PostSummary(BaseModel):
     published_on: date
     leagues: list[PostLeague] = Field(
         default_factory=list,
-        description="The leagues it is tagged with, in their order; none: the association's own.",
+        description="The leagues it is tagged with, in their order.",
     )
     league_ids: list[int] = Field(default_factory=list, description="The same, by id.")
+    association: bool = Field(default=False, description="Tagged with the association.")
     teaser: str | None = None
     photo_url: str | None = None
     photo_srcset: str | None = Field(
@@ -142,8 +143,9 @@ class PostCreate(PostFields):
     published_on: date | None = Field(default=None, description="The date shown; today if absent.")
     league_ids: list[int] = Field(
         default_factory=list,
-        description="The leagues it is tagged with; none: the association's own.",
+        description="The leagues it is tagged with.",
     )
+    association: bool = Field(default=False, description="Tagged with the association.")
     teaser: Lead = None
     body: Body = ""
     author: Name = None
@@ -166,6 +168,7 @@ class PostUpdate(PostFields):
     title: Title = None  # type: ignore[assignment]
     published_on: date = None  # type: ignore[assignment]
     league_ids: list[int] = None  # type: ignore[assignment]
+    association: bool = None  # type: ignore[assignment]
     teaser: Lead = None
     body: Body = None  # type: ignore[assignment]
     author: Name = None
@@ -311,6 +314,7 @@ async def update_post(
         await editorial.ensure_about(session, user, changes["event_id"], changes["series_id"])
     if not editorial.site_editor(user):
         # A regatta's editor writes in its league, wherever the post says it is about.
+        changes["association"] = False
         changes["league_ids"] = _only(
             await editorial.league_of(
                 session,
@@ -344,11 +348,13 @@ async def delete_post(
 
 async def _check_about(session: AsyncSession, user: User, body: PostCreate) -> None:
     """The regatta exists, and this person writes about that regatta. A regatta's editor
-    writes in its league: ``league_ids`` is set from it, not chosen."""
+    writes in its league: ``league_ids`` is set from it, not chosen, and never the
+    association."""
     await media.check_context(session, body.event_id, body.series_id)
     await editorial.ensure_about(session, user, body.event_id, body.series_id)
     if not editorial.site_editor(user):
         body.league_ids = _only(await editorial.league_of(session, body.event_id, body.series_id))
+        body.association = False
 
 
 async def _own_post(session: AsyncSession, user: User, post_id: int) -> Post:

@@ -242,7 +242,7 @@ export function NewsTiles({ items, rest = [], link }: { items: ArticleSummary[];
       <CardRow>
         {items.map((n) => (
           <li key={n.slug}>
-            <MediaCard to={link(n)} image={n.photo} kicker={formatDate(n.date)} title={n.title} text={n.teaser} />
+            <MediaCard to={link(n)} image={n.photo} kicker={formatDate(n.date)} title={n.title} text={n.teaser} testId={`site-news-${n.slug}`} />
           </li>
         ))}
       </CardRow>

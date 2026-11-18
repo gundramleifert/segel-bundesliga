@@ -11,7 +11,8 @@ export const href = {
   noticeBoard: (league: string) => `/${league}/notice-board`,
   clubs: (league: string) => `/${league}/clubs`,
   news: (league: string) => `/${league}/news`,
-  article: (league: string, slug: string) => `/${league}/news/${slug}`,
+  /** A league's article — or, with no league, the association's (Story R-1). */
+  article: (league: string | null, slug: string) => (league ? `/${league}/news/${slug}` : `/news/${slug}`),
   media: (league: string) => `/${league}/media`,
   press: (league: string) => `/${league}/press`,
   live: (league: string) => `/${league}/live`,

@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 0fe2da232016
+Revision ID: 7133017ca682
 Revises:
-Create Date: 2026-11-18 22:14:28.400129
+Create Date: 2026-11-18 22:35:56.937932
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0fe2da232016"
+revision: str = "7133017ca682"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -1064,6 +1064,7 @@ def upgrade() -> None:
         sa.Column("photo_url", sa.String(length=500), nullable=True),
         sa.Column("photo_credit", sa.String(length=160), nullable=True),
         sa.Column("published", sa.Boolean(), server_default="0", nullable=False),
+        sa.Column("association", sa.Boolean(), server_default="0", nullable=False),
         sa.Column("example", sa.Boolean(), server_default="0", nullable=False),
         sa.Column("event_id", sa.Integer(), nullable=True),
         sa.Column("series_id", sa.Integer(), nullable=True),

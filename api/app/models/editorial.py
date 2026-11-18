@@ -44,9 +44,10 @@ post_league = Table(
 class Post(Base, TimestampMixin):
     """A news article or a press release, written by editorial — Story R-1.
 
-    **Tagged with the leagues it is about** (``leagues``), any number: a league's pages
-    show the posts tagged with it, the association's home every post. A post with no tag
-    is the association's own, on the home page only.
+    **Tagged with what it is about**: the association (``association``) and any number of
+    ``leagues``. A league's pages show the posts tagged with it, the association's home
+    every post; from there a post opens in its first tag, the association before the
+    leagues.
 
     ``published`` works like an event's (Story VA-8): a draft is invisible on the public
     site, and publishing locks nothing. ``slug`` is made once from the title and kept
@@ -76,6 +77,8 @@ class Post(Base, TimestampMixin):
     photo_url: Mapped[str | None] = mapped_column(String(500), default=None)
     photo_credit: Mapped[str | None] = mapped_column(String(160), default=None)
     published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # The association's tag ("Verein"), beside or instead of leagues (Story R-1).
+    association: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Written to fill the page, not real news: the page says so (Story B-14).
     example: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 

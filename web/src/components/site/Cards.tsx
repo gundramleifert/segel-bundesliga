@@ -27,7 +27,9 @@ export const SHADE_DOWN =
   "linear-gradient(to bottom, rgb(var(--veil) / calc(var(--veil-amount) + 0.1)), rgb(var(--veil) / calc(var(--veil-amount) - 0.1)) 40%, rgb(var(--veil) / calc(var(--veil-amount) + 0.3)))";
 
 /** A page's title — a chapter page's first chapter, a page deeper's heading. */
-export const PAGE_TITLE = "text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl";
+// A long German word ("Jahreshauptversammlung") is wider than a phone at this size: it
+// breaks rather than widening the page.
+export const PAGE_TITLE = "text-4xl font-semibold leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl";
 
 /** The type and lines for anything on the glass that is not one of the cards below. */
 export const tone = {

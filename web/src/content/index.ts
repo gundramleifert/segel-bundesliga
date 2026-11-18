@@ -155,9 +155,10 @@ export type ArticleSummary = {
   slug: string;
   title: string;
   date: string;
-  /** The slugs of the leagues it is tagged with; none for the association's own news
-   *  (Story R-1: on the home page only). */
+  /** The slugs of the leagues it is tagged with, in their order (Story R-1). */
   leagues: string[];
+  /** Tagged with the association ("Verein"). */
+  association: boolean;
   teaser: string;
   /** None when the post has none (decided 2026-10-23: no picture stands in). */
   photo?: Photo;
@@ -193,10 +194,18 @@ function toSummary(post: PostSummary): ArticleSummary {
     title: post.title,
     date: post.published_on,
     leagues: (post.leagues ?? []).map((l) => l.slug),
+    association: post.association ?? false,
     teaser: post.teaser ?? "",
     photo: postPhoto(post),
     example: post.example,
   };
+}
+
+/** Where a post opens outside a league's pages (Story R-1): its first tag — the
+ *  association before the leagues, which come in their own order — as a league's slug,
+ *  or null for the association's frame. A post with no tag is the association's too. */
+export function homeOf(post: { association: boolean; leagues: string[] }): string | null {
+  return post.association ? null : (post.leagues[0] ?? null);
 }
 
 /** A post as its own page shows it — also what editorial's preview renders. */

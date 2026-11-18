@@ -152,7 +152,7 @@ function PostTable({ page, params, base }: { page: PostPage; params: ListParams;
             const tags = row.original.leagues ?? [];
             return (
               <span className="flex flex-wrap gap-1 text-xs">
-                {(tags.length ? tags.map((l) => l.short_name) : [t("posts.association")]).map((name) => (
+                {[...(row.original.association ? [t("posts.association")] : []), ...tags.map((l) => l.short_name)].map((name) => (
                   <span key={name} className="rounded-full bg-surface-tertiary px-2 py-0.5 text-muted">
                     {name}
                   </span>

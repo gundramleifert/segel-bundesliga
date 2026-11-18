@@ -15,6 +15,7 @@ import { Gallery } from "../../components/site/Gallery";
 import {
   PRESS_CONTACT,
   articleOf,
+  homeOf,
   tableMarks,
   useArticle,
   useGallery,
@@ -284,7 +285,7 @@ function NewsGrid({ league }: { league: string }) {
     <Async state={news} testId="site-news">
       {(items) => (
         <>
-          <NewsCards league={league} items={items} />
+          <NewsCards items={items} link={(n) => href.article(league, n.slug)} />
           <MoreButton list={news} label={t("news.older")} testId="site-news-more-button" />
         </>
       )}
@@ -311,13 +312,14 @@ function MoreButton<T>({ list, label, testId }: { list: Paged<T>; label: string;
 }
 
 /** Articles as cards: picture, date, title, teaser — each leading to its own page. */
-function NewsCards({ league, items }: { league: string; items: ArticleSummary[] }) {
+/** News cards, each opening where `link` says — a league's page keeps its league. */
+function NewsCards({ items, link }: { items: ArticleSummary[]; link: (n: ArticleSummary) => string }) {
   return (
     <CardRow>
       {items.map((n) => (
         <li key={n.slug}>
           <MediaCard
-            to={href.article(league, n.slug)}
+            to={link(n)}
             image={n.photo}
             kicker={formatDate(n.date)}
             title={n.title}
@@ -330,41 +332,46 @@ function NewsCards({ league, items }: { league: string; items: ArticleSummary[] 
   );
 }
 
-/** `/:league/news/:slug` — one article: the lead, the text, a quote, who wrote it, and
- *  the league's next articles. */
+/** `/:league/news/:slug` — one article in a league: the lead, the text, a quote, who
+ *  wrote it, and the league's next articles. */
 export function ArticlePage() {
+  return <LeagueGate>{({ league }) => <Article league={league} />}</LeagueGate>;
+}
+
+/** `/news/:slug` — the association's article, under the association's frame (Story R-1):
+ *  a post tagged with the association never borrows a league's. */
+export function AssociationArticlePage() {
+  return <Article league={null} />;
+}
+
+function Article({ league }: { league: LeagueSeason["league"] | null }) {
   const { t } = useTranslation("site");
-  const { slug, league: leagueSlug = "" } = useParams();
+  const { slug } = useParams();
   const { data: post, loading, error, notFound } = useArticle(slug);
   const article = post ? articleOf(post) : null;
-  const more = (useNews(leagueSlug).data ?? []).filter((n) => n.slug !== slug).slice(0, 3);
+  const more = (useNews(league?.slug).data ?? []).filter((n) => n.slug !== slug).slice(0, 3);
+  // Back to the league's news, or to the home page, which has the association's.
+  const back = league ? href.news(league.slug) : href.home();
+  // A related article opens where this one does, or — on the home's list — in its own tag.
+  const link = (n: ArticleSummary) => href.article(league ? league.slug : homeOf(n), n.slug);
+  // An unknown or withdrawn article leads back; a failure says so.
+  if (notFound) return <Navigate to={back} replace />;
+  if (loading) return <PageLoading><Loading testId="site-article-loading" /></PageLoading>;
+  if (error || !post || !article) return <PageLoading><ErrorMessage text={error ?? ""} testId="site-article-error" /></PageLoading>;
   return (
-    <LeagueGate>
-      {({ league }) =>
-        // An unknown or withdrawn article leads back to the league's news; a failure says so.
-        notFound ? (
-          <Navigate to={href.news(league.slug)} replace />
-        ) : loading ? (
-          <PageLoading><Loading testId="site-article-loading" /></PageLoading>
-        ) : error || !post || !article ? (
-          <PageLoading><ErrorMessage text={error ?? ""} testId="site-article-error" /></PageLoading>
-        ) : (
-          <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
-            <ArticleView post={post} />
-            <p className="-mt-6 mb-12 text-center">
-              <Link to={href.news(league.slug)} className={`font-medium ${tone.link}`} data-testid="site-article-back">
-                ← {t("news.more")}
-              </Link>
-            </p>
-            {more.length > 0 && (
-              <Block title={t("news.related")} more={{ to: href.news(league.slug), label: t("news.more") }} testId="site-article-related">
-                <NewsCards league={league.slug} items={more} />
-              </Block>
-            )}
-          </DepthPage>
-        )
-      }
-    </LeagueGate>
+    <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
+      <ArticleView post={post} />
+      <p className="-mt-6 mb-12 text-center">
+        <Link to={back} className={`font-medium ${tone.link}`} data-testid="site-article-back">
+          ← {t("news.more")}
+        </Link>
+      </p>
+      {more.length > 0 && (
+        <Block title={t("news.related")} more={{ to: back, label: t("news.more") }} testId="site-article-related">
+          <NewsCards items={more} link={link} />
+        </Block>
+      )}
+    </DepthPage>
   );
 }
 

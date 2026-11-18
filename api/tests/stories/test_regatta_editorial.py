@@ -56,10 +56,13 @@ class TestEditorialOfOneRegatta:
         editor = await _editor_of(client, caplog, office, f"series:{ids.series(SERIES)}")
 
         cup = (await client.get("/api/leagues/dsl-pokal")).json()["league"]["id"]
-        written = await _post(client, editor, event_id=ids.event(ACT), league_ids=[cup])
+        written = await _post(
+            client, editor, event_id=ids.event(ACT), league_ids=[cup], association=True
+        )
         assert written.status_code == 201, written.text
         one_liga = (await client.get("/api/leagues/1-liga")).json()["league"]["id"]
         assert written.json()["league_ids"] == [one_liga], "its regatta's, not the one named"
+        assert written.json()["association"] is False, "a regatta's editor writes in its league"
 
         assert (await _post(client, editor, series_id=ids.series(SERIES))).status_code == 201
         other = await _post(client, editor, series_id=ids.series(ELSEWHERE))

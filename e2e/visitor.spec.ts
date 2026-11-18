@@ -38,6 +38,7 @@ const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
 const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/", "site-home-now"],
   ["/1-liga/news/wannsee-nrv-und-asvw-gewinnen-den-fuenften-spieltag", "site-article"], // a real report, always published
+  ["/news/prototyp-der-neuen-website", "site-article"], // the association's, under its frame
   ["/1-liga", "site-chapter-standings"],
   ["/2-liga", "site-chapter-standings"],
   [STANDINGS, "site-standings-dsbl-1-2026"],

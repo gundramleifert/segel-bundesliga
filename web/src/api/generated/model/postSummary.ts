@@ -18,10 +18,12 @@ export interface PostSummary {
   slug: string;
   title: string;
   published_on: string;
-  /** The leagues it is tagged with, in their order; none: the association's own. */
+  /** The leagues it is tagged with, in their order. */
   leagues?: PostLeague[];
   /** The same, by id. */
   league_ids?: number[];
+  /** Tagged with the association. */
+  association?: boolean;
   teaser?: string | null;
   photo_url?: string | null;
   /** The picture's sizes, when it is the library's. */
