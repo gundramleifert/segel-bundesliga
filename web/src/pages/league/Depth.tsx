@@ -333,8 +333,8 @@ function NewsCards({ items, link }: { items: ArticleSummary[]; link: (n: Article
   );
 }
 
-/** `/:league/news/:slug` — one article in a league: the lead, the text, a quote, who
- *  wrote it, and the league's next articles. */
+/** `/:league/news/:slug` — one article in a league: the lead, the text, who wrote
+ *  it, and the league's next articles. */
 export function ArticlePage() {
   return <LeagueGate>{({ league }) => <Article league={league} />}</LeagueGate>;
 }

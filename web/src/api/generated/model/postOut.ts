@@ -33,8 +33,6 @@ export interface PostOut {
   /** HTML from the editor, cleaned to its few elements on write. */
   body: string;
   author?: string | null;
-  quote?: string | null;
-  quote_by?: string | null;
   event_id?: number | null;
   series_id?: number | null;
   /** The event's title or series' name. */

@@ -397,8 +397,6 @@
     "teaserHint": "One or two sentences, shown on the card and above the text.",
     "bodyLabel": "Text",
     "optional": "optional",
-    "quoteLabel": "Quote",
-    "quoteByLabel": "Said by",
     "authorLabel": "Byline",
     "photoLabel": "Picture",
     "photoNone": "none yet — the post goes without one",

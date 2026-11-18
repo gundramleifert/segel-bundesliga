@@ -86,8 +86,6 @@ class PostOut(PostSummary):
 
     body: str = Field(description="HTML from the editor, cleaned to its few elements on write.")
     author: str | None = None
-    quote: str | None = None
-    quote_by: str | None = None
     event_id: int | None = None
     series_id: int | None = None
     regatta: str | None = Field(default=None, description="The event's title or series' name.")
@@ -124,7 +122,7 @@ class PostFields(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    @field_validator("teaser", "author", "quote", "quote_by", "photo_credit", check_fields=False)
+    @field_validator("teaser", "author", "photo_credit", check_fields=False)
     @classmethod
     def _none_if_empty(cls, value: str | None) -> str | None:
         """An emptied optional field means "none"."""
@@ -149,8 +147,6 @@ class PostCreate(PostFields):
     teaser: Lead = None
     body: Body = ""
     author: Name = None
-    quote: Lead = None
-    quote_by: Name = None
     photo_url: PhotoUrl = None
     photo_credit: Credit = None
     event_id: int | None = Field(default=None, description="The event it is about.")
@@ -172,8 +168,6 @@ class PostUpdate(PostFields):
     teaser: Lead = None
     body: Body = None  # type: ignore[assignment]
     author: Name = None
-    quote: Lead = None
-    quote_by: Name = None
     photo_url: PhotoUrl = None
     photo_credit: Credit = None
     event_id: int | None = Field(default=None, description="Sent: it is about this event.")

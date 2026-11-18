@@ -570,7 +570,7 @@ Acceptance criteria:
   either. The league's sub-menu keeps *Media*: its page says when there is nothing yet. On the association's home: figures, the service for
   clubs as six tiles, the history.
 - **Every article has its own page** (`/:league/news/:slug`): the lead, the byline, the
-  text, a quote where there is one, and the league's next three articles. An invented
+  text, and the league's next three articles. An invented
   article says it is an example — it names real clubs.
 
 Tests: `api/tests/stories/test_league_pages.py::TestLeagueSeason`,

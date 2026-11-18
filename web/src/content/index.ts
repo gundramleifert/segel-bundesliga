@@ -171,7 +171,6 @@ export type Article = ArticleSummary & {
   /** HTML from the editor, cleaned by the server on every write — shown as it is. */
   body: string;
   author?: string;
-  quote?: { text: string; by: string };
 };
 
 /** A post's own picture — none when it has none: the card and the article then go without
@@ -213,7 +212,6 @@ export function articleOf(post: Post): Article {
     ...toSummary(post),
     body: post.body,
     author: post.author ?? undefined,
-    quote: post.quote ? { text: post.quote, by: post.quote_by ?? "" } : undefined,
   };
 }
 

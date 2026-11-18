@@ -27,8 +27,6 @@ export interface PostUpdate {
   /** @maxLength 50000 */
   body?: string;
   author?: string | null;
-  quote?: string | null;
-  quote_by?: string | null;
   photo_url?: string | null;
   photo_credit?: string | null;
   /** Sent: it is about this event. */

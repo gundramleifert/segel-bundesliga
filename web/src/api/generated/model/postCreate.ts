@@ -24,8 +24,6 @@ export interface PostCreate {
   /** @maxLength 50000 */
   body?: string;
   author?: string | null;
-  quote?: string | null;
-  quote_by?: string | null;
   photo_url?: string | null;
   photo_credit?: string | null;
   /** The event it is about. */

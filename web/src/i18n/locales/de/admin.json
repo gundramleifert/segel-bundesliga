@@ -397,8 +397,6 @@
     "teaserHint": "Ein oder zwei Sätze, auf der Karte und über dem Text.",
     "bodyLabel": "Text",
     "optional": "optional",
-    "quoteLabel": "Zitat",
-    "quoteByLabel": "Gesagt von",
     "authorLabel": "Autor",
     "photoLabel": "Bild",
     "photoNone": "noch keins — der Beitrag erscheint ohne Bild",

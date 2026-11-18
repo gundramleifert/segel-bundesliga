@@ -54,12 +54,6 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
             </p>
           )}
           <RichText html={article.body} className="mt-8 text-lg leading-relaxed text-foreground" testId="site-article-body" />
-          {article.quote && (
-            <blockquote className="my-10 border-l-4 border-accent pl-6">
-              <p className="text-2xl font-semibold leading-snug tracking-tight text-foreground">“{article.quote.text}”</p>
-              <footer className="mt-2 text-sm text-muted">— {article.quote.by}</footer>
-            </blockquote>
-          )}
         </article>
       </Panel>
       {/* The regatta's photos, by themselves (Story R-1): the post names an event or a

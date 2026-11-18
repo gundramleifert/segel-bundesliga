@@ -37,7 +37,7 @@ const RichTextEditor = lazy(() => import("../../../components/RichTextEditor"));
 
 /** The form's state: the request's fields, with every text a string — an empty one is
  *  sent as it is and the server reads it as "none". */
-type TextFields = "teaser" | "author" | "quote" | "quote_by" | "photo_credit" | "published_on";
+type TextFields = "teaser" | "author" | "photo_credit" | "published_on";
 type Draft = Required<Omit<PostCreate, TextFields>> & Record<TextFields, string>;
 
 /** Where a change to a post shows: editorial's list and page, and the public site. */
@@ -82,8 +82,6 @@ function draftOf(post?: PostAdmin, about?: { event_id: number | null; series_id:
     teaser: post?.teaser ?? "",
     body: post?.body ?? "",
     author: post?.author ?? "",
-    quote: post?.quote ?? "",
-    quote_by: post?.quote_by ?? "",
     photo_url: post?.photo_url ?? null,
     photo_credit: post?.photo_credit ?? "",
     event_id: post ? (post.event_id ?? null) : (about?.event_id ?? null),
@@ -359,14 +357,6 @@ function PostForm({ post }: { post?: PostAdmin }) {
               set("photo_credit", credit);
             }}
           />
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-[2fr_1fr]">
-            <Field label={t("posts.quoteLabel")} hint={t("posts.optional")}>
-              <input className={INPUT_CLASS} value={draft.quote} onChange={(e) => set("quote", e.target.value)} data-testid="admin-post-quote-input" />
-            </Field>
-            <Field label={t("posts.quoteByLabel")}>
-              <input className={INPUT_CLASS} value={draft.quote_by} onChange={(e) => set("quote_by", e.target.value)} data-testid="admin-post-quote-by-input" />
-            </Field>
-          </div>
           <Field label={t("posts.authorLabel")} hint={t("posts.optional")}>
             <input className={INPUT_CLASS} value={draft.author} onChange={(e) => set("author", e.target.value)} data-testid="admin-post-author-input" />
           </Field>

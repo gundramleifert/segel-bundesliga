@@ -69,8 +69,6 @@ class Post(Base, TimestampMixin):
     # HTML from the editor, cleaned on write (`app/services/rich_text.py`, Story R-1).
     body: Mapped[str] = mapped_column(Text, default="")
     author: Mapped[str | None] = mapped_column(String(120), default=None)
-    quote: Mapped[str | None] = mapped_column(String(500), default=None)
-    quote_by: Mapped[str | None] = mapped_column(String(120), default=None)
     # A picture from the library (`/api/media/<name>.jpg`, Story R-2) or one of the site's
     # own — linked, never copied (docs/site-structure.md § Content sources).
     photo_url: Mapped[str | None] = mapped_column(String(500), default=None)

@@ -252,9 +252,6 @@ POSTS: list[dict] = [
         "photo_url": None,
         "photo_credit": None,
         "example": True,
-        "quote": "We kept it simple: good starts, the right side, no fouls. Everything else "
-        "followed.",
-        "quote_by": "the winning helm",
     },
     {
         "kind": "news",
@@ -298,8 +295,6 @@ POSTS: list[dict] = [
         "photo_url": None,
         "photo_credit": None,
         "example": True,
-        "quote": "We trained for exactly this: one race, everything on it.",
-        "quote_by": "the champions' helm",
     },
     {
         "kind": "news",

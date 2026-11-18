@@ -38,8 +38,8 @@ Acceptance criteria:
   whoever wrote it, and none about another (`app/services/editorial.py`). The site's
   editor keeps the league office's *News* and *Media*, over everything.
 - **One kind of post, two kinds of page.** A post is a **news** article or a **press**
-  release. An article has a title, a lead (the teaser on its card), the text, an optional
-  quote with who said it, a byline and a picture; a release has a title, a date and its
+  release. An article has a title, a lead (the teaser on its card), the text, a byline and a
+  picture; a release has a title, a date and its
   text.
 - **A post is tagged with what it is about** (decided 2026-11-18 — a report on a
   matchday of the 1. and 2. Liga belonged to one of them or, untagged, to every league,
