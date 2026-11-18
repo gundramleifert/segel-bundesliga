@@ -123,7 +123,7 @@ class TestReadPosts:
 
 
 class TestSeededPosts:
-    async def test_a_real_site_gets_the_examples_only_as_drafts(self):
+    async def test_a_real_site_gets_the_examples_only_as_drafts(self, client):
         """R-1: the seed's examples are invented, so a real site shows none of them — they
         are drafts until `publish_demo` publishes them for staging and the tests
         (docs/PLAN_SEEDING.md); the real articles and releases are published."""
