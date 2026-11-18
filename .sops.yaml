@@ -10,8 +10,18 @@
 # scripts/check-sops.py (part of scripts/check.sh) fails while a file and its rule differ.
 keys:
   - &gundram "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGnDv5O4Zj5mzkGFtwbqN4GGmvNgdcTIq5ewYbouiMZ Gundram Leifert"
+  - &gundram_wsl "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2L1PJoB/knf83tPwg2N6rsRI3T7sNLXwXnAQXDBvlf Gundram Leifert (WSL)"
+  # The production server segelliga-1 (Hetzner, docs/deploy-server.md): user sbl's own key.
+  - &server "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII5Se5PEZzX8ob5SZARrTL81oPYIbyNz9wW7Ri98c7qP sbl-server"
 
 creation_rules:
+  # Production on segelliga-1; readable by the server and by us, by nobody else.
+  - path_regex: deploy/compose/prod\.sops\.env$
+    age:
+      - *gundram
+      - *gundram_wsl
+      - *server
+  # Stays last: the first matching rule wins.
   # The Compose stack's secrets, one dotenv file per installation, encrypted in full.
   - path_regex: deploy/compose/[^/]*\.sops\.env$
     age:
