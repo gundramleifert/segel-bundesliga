@@ -15,7 +15,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -42,6 +42,15 @@ router = APIRouter(prefix="/api/posts", tags=["posts"])
 admin_router = APIRouter(prefix="/api/admin/posts", tags=["admin"])
 
 
+class PostLeague(BaseModel):
+    """A league a post is tagged with."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    slug: str
+    short_name: str
+
+
 class PostSummary(BaseModel):
     """A post as a list shows it — a card or a line: no text, which only its own page
     reads. A list of a few dozen posts need not carry each one's whole article."""
@@ -53,15 +62,11 @@ class PostSummary(BaseModel):
     slug: str
     title: str
     published_on: date
-    league_id: int | None = None
-    league: str | None = Field(
-        default=None,
-        validation_alias="league_slug",
-        description="The league's slug; empty for the association's own posts.",
+    leagues: list[PostLeague] = Field(
+        default_factory=list,
+        description="The leagues it is tagged with, in their order; none: the association's own.",
     )
-    league_name: str | None = Field(
-        default=None, description="The league's short name; empty for the association's."
-    )
+    league_ids: list[int] = Field(default_factory=list, description="The same, by id.")
     teaser: str | None = None
     photo_url: str | None = None
     photo_srcset: str | None = Field(
@@ -135,8 +140,9 @@ class PostCreate(PostFields):
     kind: PostKind = PostKind.NEWS
     title: Title
     published_on: date | None = Field(default=None, description="The date shown; today if absent.")
-    league_id: int | None = Field(
-        default=None, description="The league it belongs to; empty for the association's."
+    league_ids: list[int] = Field(
+        default_factory=list,
+        description="The leagues it is tagged with; none: the association's own.",
     )
     teaser: Lead = None
     body: Body = ""
@@ -159,7 +165,7 @@ class PostUpdate(PostFields):
     kind: PostKind = None  # type: ignore[assignment]
     title: Title = None  # type: ignore[assignment]
     published_on: date = None  # type: ignore[assignment]
-    league_id: int | None = None
+    league_ids: list[int] = None  # type: ignore[assignment]
     teaser: Lead = None
     body: Body = None  # type: ignore[assignment]
     author: Name = None
@@ -176,7 +182,7 @@ class PostUpdate(PostFields):
 
 
 def _with_league():
-    return select(Post).options(selectinload(Post.league))
+    return select(Post).options(selectinload(Post.leagues))
 
 
 @router.get("", response_model=Page[PostSummary], summary="Published news or press releases")
@@ -184,7 +190,7 @@ async def list_posts(
     kind: PostKind = Query(default=PostKind.NEWS),
     league: str | None = Query(
         default=None,
-        description="A league's slug: its posts and the association's. Absent: every post.",
+        description="A league's slug: the posts tagged with it. Absent: every post.",
     ),
     filters: PublicPostFilter = ListDepends(PublicPostFilter),
     params: PageParams = PageInput,
@@ -194,9 +200,7 @@ async def list_posts(
     ``GET /api/posts/{slug}``. Drafts never appear here."""
     stmt = _with_league().where(Post.published.is_(True), Post.kind == kind)
     if league is not None:
-        stmt = stmt.outerjoin(League, Post.league_id == League.id).where(
-            or_(Post.league_id.is_(None), League.slug == league)
-        )
+        stmt = stmt.where(Post.leagues.any(League.slug == league))
     posts, total = await paginate(session, filters.sort(stmt), params)
     return page_of(await _summaries(session, posts, PostSummary), total, params)
 
@@ -245,10 +249,11 @@ async def create_post(
     await _check_about(session, user, body)
     _title_not_in_text(body.title, body.body)
     _pictures_are_ours(body.body, body.photo_url)
-    fields = body.model_dump()
+    fields = body.model_dump(exclude={"league_ids"})
     fields["published_on"] = fields["published_on"] or date.today()
     # Cut before the slug is made, so a long title's slug still fits with a number added.
     post = Post(**fields, slug=await unique_slug(session, Post, body.title[:100]))
+    post.leagues = await _leagues(session, body.league_ids)
     session.add(post)
     await session.commit()
     return await _admin_out(session, post)
@@ -275,10 +280,10 @@ async def preview_post(
     await _check_about(session, user, body)
     _title_not_in_text(body.title, body.body)
     _pictures_are_ours(body.body, None)
-    fields = body.model_dump(exclude={"published"})
+    fields = body.model_dump(exclude={"published", "league_ids"})
     post = Post(**fields, id=0, slug="preview", published=False, example=False)
     post.published_on = post.published_on or date.today()
-    post.league = await session.get(League, body.league_id) if body.league_id else None
+    post.leagues = await _leagues(session, body.league_ids)
     return await _for_readers(session, post)
 
 
@@ -298,8 +303,6 @@ async def update_post(
     # own photos, and correcting a typo in one must not need a new picture.
     photo = changes.get("photo_url")
     _pictures_are_ours(changes.get("body", ""), None if photo == post.photo_url else photo)
-    if "league_id" in changes:
-        await _check_league(session, changes["league_id"])
     if "event_id" in changes or "series_id" in changes:
         # One of them is what the post is about; sending one replaces the other.
         changes.setdefault("event_id", None)
@@ -308,11 +311,16 @@ async def update_post(
         await editorial.ensure_about(session, user, changes["event_id"], changes["series_id"])
     if not editorial.site_editor(user):
         # A regatta's editor writes in its league, wherever the post says it is about.
-        changes["league_id"] = await editorial.league_of(
-            session,
-            changes.get("event_id", post.event_id),
-            changes.get("series_id", post.series_id),
+        changes["league_ids"] = _only(
+            await editorial.league_of(
+                session,
+                changes.get("event_id", post.event_id),
+                changes.get("series_id", post.series_id),
+            )
         )
+    if "league_ids" in changes:
+        await session.refresh(post, ["leagues"])
+        post.leagues = await _leagues(session, changes.pop("league_ids"))
     for name, value in changes.items():
         setattr(post, name, value)
     await session.commit()
@@ -335,13 +343,12 @@ async def delete_post(
 
 
 async def _check_about(session: AsyncSession, user: User, body: PostCreate) -> None:
-    """The league and the regatta exist, and this person writes about that regatta. A
-    regatta's editor writes in its league: ``league_id`` is set from it, not chosen."""
+    """The regatta exists, and this person writes about that regatta. A regatta's editor
+    writes in its league: ``league_ids`` is set from it, not chosen."""
     await media.check_context(session, body.event_id, body.series_id)
     await editorial.ensure_about(session, user, body.event_id, body.series_id)
     if not editorial.site_editor(user):
-        body.league_id = await editorial.league_of(session, body.event_id, body.series_id)
-    await _check_league(session, body.league_id)
+        body.league_ids = _only(await editorial.league_of(session, body.event_id, body.series_id))
 
 
 async def _own_post(session: AsyncSession, user: User, post_id: int) -> Post:
@@ -357,15 +364,15 @@ async def _own_post(session: AsyncSession, user: User, post_id: int) -> Post:
 
 
 async def _admin_out(session: AsyncSession, post: Post) -> PostAdminOut:
-    """The post as editorial sees it, its league (re)loaded — it may just have changed."""
-    await session.refresh(post, ["league", "updated_at"])
+    """The post as editorial sees it, its leagues (re)loaded — they may just have changed."""
+    await session.refresh(post, ["leagues", "updated_at"])
     (shown,) = await _shown(session, [post])
     return PostAdminOut.model_validate(post).model_copy(update=shown)
 
 
-async def _shown(session: AsyncSession, posts: list[Post]) -> list[dict[str, str | None]]:
-    """What each post shows beside its columns: its league's name and, for a library
-    picture, its sizes. Load ``league`` first."""
+async def _shown(session: AsyncSession, posts: list[Post]) -> list[dict[str, object]]:
+    """What each post shows beside its columns: its leagues' ids and, for a library
+    picture, its sizes. Load ``leagues`` first."""
     names = {name for post in posts if (name := media.name_in(post.photo_url))}
     pictures = await media.by_name(session, names)
     shown = []
@@ -373,7 +380,7 @@ async def _shown(session: AsyncSession, posts: list[Post]) -> list[dict[str, str
         item = pictures.get(media.name_in(post.photo_url) or "")
         shown.append(
             {
-                "league_name": post.league.short_name if post.league else None,
+                "league_ids": [league.id for league in post.leagues],
                 "photo_srcset": media.srcset(item) if item else None,
             }
         )
@@ -392,7 +399,7 @@ async def _summaries[T: PostSummary](
 
 async def _for_readers(session: AsyncSession, post: Post) -> PostOut:
     """The post as its public page shows it: the text's pictures from the library, and the
-    gallery of the regatta it names. Load ``league`` first."""
+    gallery of the regatta it names. Load ``leagues`` first."""
     (shown,) = await _shown(session, [post])
     gallery = media.public_of(post.event_id, post.series_id)
     total = await session.scalar(
@@ -440,6 +447,11 @@ def _title_not_in_text(title: str, body: str) -> None:
         )
 
 
-async def _check_league(session: AsyncSession, league_id: int | None) -> None:
-    if league_id is not None:
-        await get_or_404(session, League, league_id)
+async def _leagues(session: AsyncSession, league_ids: list[int]) -> list[League]:
+    """The leagues a post is tagged with — each one must exist (404 otherwise)."""
+    return [await get_or_404(session, League, league_id) for league_id in dict.fromkeys(league_ids)]
+
+
+def _only(league_id: int | None) -> list[int]:
+    """A regatta's league as tags: it, or none for a regatta in no league."""
+    return [] if league_id is None else [league_id]

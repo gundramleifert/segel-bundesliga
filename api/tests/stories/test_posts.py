@@ -1,7 +1,7 @@
 """Story R-1: editorial writes news and press releases on the site.
 
-A post is a draft until editorial publishes it, belongs to one league or to the
-association, and keeps its address when its title is corrected.
+A post is a draft until editorial publishes it, is tagged with the leagues it is about —
+none: the association's own — and keeps its address when its title is corrected.
 """
 
 import io
@@ -23,6 +23,16 @@ async def league_id(client, slug: str) -> int:
     return (await client.get(f"/api/leagues/{slug}")).json()["league"]["id"]
 
 
+def tags(post: dict) -> list[str]:
+    """The slugs of the leagues a post is tagged with."""
+    return [league["slug"] for league in post["leagues"]]
+
+
+async def listed(client, **params) -> list[str]:
+    """The slugs of the published posts a public list shows."""
+    return [p["slug"] for p in (await client.get("/api/posts", params=params)).json()["items"]]
+
+
 #: A library address, as the editor stores it.
 OURS = "/api/media/0123456789abcdef0123456789abcdef.webp"
 
@@ -36,13 +46,16 @@ def png() -> bytes:
 class TestReadPosts:
     """As a fan I read a league's news and its press releases — Stories R-1, B-14."""
 
-    async def test_a_league_shows_its_news_and_the_associations_newest_first(self, client):
-        """R-1: a league's news are its own posts and the association's, newest first."""
+    async def test_a_league_shows_only_the_news_tagged_with_it_newest_first(self, client):
+        """R-1: a league's news are the posts tagged with it — the association's own are on
+        the home page, which shows every post."""
         news = (await client.get("/api/posts", params={"league": "2-liga"})).json()["items"]
 
         assert news, "the seed carries the pages' articles"
-        assert {post["league"] for post in news} <= {"2-liga", None}
-        assert any(post["league"] is None for post in news)
+        assert all("2-liga" in tags(post) for post in news)
+        everything = (await client.get("/api/posts", params={"limit": 100})).json()["items"]
+        assert any(not post["leagues"] for post in everything), "the association's own"
+        assert {p["slug"] for p in news} < {p["slug"] for p in everything}
         dates = [post["published_on"] for post in news]
         assert dates == sorted(dates, reverse=True)
         assert all(post["kind"] == "news" for post in news)
@@ -66,7 +79,7 @@ class TestReadPosts:
         ).json()
 
         assert article["title"] == seeded["title"]
-        assert article["league"] is None
+        assert tags(article) == ["1-liga", "2-liga"], "a matchday of both leagues"
         assert article["body"].count("<p>") == seeded["body"].count("\n\n") + 1
         assert article["example"] is False
         draft = await client.get("/api/posts/asvw-takes-the-lead")
@@ -81,15 +94,17 @@ class TestReadPosts:
         assert press
         assert all(post["kind"] == "press" for post in press)
 
-    async def test_the_association_s_own_release_is_on_every_league_s_press_page(self, client):
+    async def test_a_release_is_in_the_press_centre_of_each_league_it_is_tagged_with(self, client):
         """R-1: the Wannsee release of 2026-09-16, as editorial wrote it — headings, quotes
-        and links kept, cleaned like any write — in the 1. and the 2. Liga's press centre."""
+        and links kept, cleaned like any write — in the 1. and the 2. Liga's press centre,
+        not the Junioren's."""
         for league in ("1-liga", "2-liga"):
             press = (
                 await client.get("/api/posts", params={"kind": "press", "league": league})
             ).json()["items"]
             release = next(p for p in press if p["title"].startswith("Segel-Bundesliga am Wannsee"))
             assert release["published_on"] == "2026-09-16" and release["example"] is False
+        assert release["slug"] not in await listed(client, kind="press", league="junioren-liga")
 
         article = (await client.get(f"/api/posts/{release['slug']}")).json()
         assert article["author"] == "Sven Jürgensen"
@@ -139,7 +154,7 @@ class TestWritePosts:
             headers=headers,
             json={
                 "title": "Junioren-Liga: entries open",
-                "league_id": await league_id(client, "junioren-liga"),
+                "league_ids": [await league_id(client, "junioren-liga")],
                 "teaser": "Every club may enter a youth crew.",
                 "body": "<p>First paragraph.</p><p>Second paragraph.</p>",
                 "published_on": "2026-10-19",
@@ -162,7 +177,7 @@ class TestWritePosts:
         assert published.status_code == 200, published.text
 
         public = (await client.get(f"/api/posts/{post['slug']}")).json()
-        assert public["league"] == "junioren-liga"
+        assert tags(public) == ["junioren-liga"]
         listed = (await client.get("/api/posts", params={"league": "junioren-liga"})).json()[
             "items"
         ]
@@ -179,8 +194,10 @@ class TestWritePosts:
         drafts = await client.get("/api/admin/posts", headers=headers, params={"q": "entries open"})
         assert [p["id"] for p in drafts.json()["items"]] == [post["id"]]
 
-    async def test_the_associations_post_appears_in_every_league(self, client, caplog):
-        """R-1: a post without a league is the association's, shown on every league's page."""
+    async def test_a_post_without_a_league_is_the_associations_on_the_home_page_only(
+        self, client, caplog
+    ):
+        """R-1: no league tag — the association's own ("Verein"), on the home page only."""
         headers = await editor(client, caplog)
         post = (
             await client.post(
@@ -190,10 +207,46 @@ class TestWritePosts:
             )
         ).json()
 
-        assert post["league"] is None
+        assert post["leagues"] == [] and post["league_ids"] == []
+        assert post["slug"] in await listed(client, limit=100)
         for league in ("1-liga", "dsl-pokal"):
-            listed = (await client.get("/api/posts", params={"league": league})).json()["items"]
-            assert post["slug"] in [p["slug"] for p in listed]
+            assert post["slug"] not in await listed(client, league=league)
+
+    async def test_a_post_is_on_the_page_of_every_league_it_is_tagged_with(self, client, caplog):
+        """R-1: any number of league tags; retagging moves the post between the pages."""
+        headers = await editor(client, caplog)
+        first, second, cup = [
+            await league_id(client, slug) for slug in ("1-liga", "2-liga", "dsl-pokal")
+        ]
+        post = (
+            await client.post(
+                "/api/admin/posts",
+                headers=headers,
+                json={
+                    "title": "Both leagues at Kiel",
+                    "league_ids": [second, first],
+                    "published": True,
+                },
+            )
+        ).json()
+
+        assert tags(post) == ["1-liga", "2-liga"], "in the leagues' order, not the request's"
+        assert sorted(post["league_ids"]) == sorted([first, second])
+        for league in ("1-liga", "2-liga"):
+            assert post["slug"] in await listed(client, league=league)
+        assert post["slug"] not in await listed(client, league="dsl-pokal")
+
+        moved = await client.patch(
+            f"/api/admin/posts/{post['id']}", headers=headers, json={"league_ids": [cup]}
+        )
+        assert tags(moved.json()) == ["dsl-pokal"]
+        assert post["slug"] in await listed(client, league="dsl-pokal")
+        assert post["slug"] not in await listed(client, league="1-liga")
+
+        unknown = await client.patch(
+            f"/api/admin/posts/{post['id']}", headers=headers, json={"league_ids": [99999]}
+        )
+        assert unknown.status_code == 404
 
     async def test_the_address_is_made_once(self, client, caplog):
         """R-1: correcting the title keeps the slug; a taken slug gets a number."""
@@ -550,11 +603,11 @@ class TestPicturesAndReading:
             )
         ).json()["items"]
         assert association
-        assert all(p["league_id"] is None and not p["published"] for p in association)
+        assert all(p["leagues"] == [] and not p["published"] for p in association)
         first = (
             await client.get("/api/admin/posts", headers=headers, params={"league": "1-liga"})
         ).json()["items"]
-        assert first and {p["league_name"] for p in first} == {"1. Liga"}
+        assert first and all("1-liga" in tags(p) for p in first)
 
 
 class TestRegattaGallery:

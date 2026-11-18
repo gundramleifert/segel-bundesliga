@@ -10,7 +10,7 @@ import type { PostKind } from './postKind';
 export type ListPostsParams = {
 kind?: PostKind;
 /**
- * A league's slug: its posts and the association's. Absent: every post.
+ * A league's slug: the posts tagged with it. Absent: every post.
  */
 league?: string | null;
 sort?: string | null;

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PostKind } from './postKind';
+import type { PostLeague } from './postLeague';
 
 export interface PostAdminSummary {
   id: number;
@@ -13,11 +14,10 @@ export interface PostAdminSummary {
   slug: string;
   title: string;
   published_on: string;
-  league_id?: number | null;
-  /** The league's slug; empty for the association's own posts. */
-  league?: string | null;
-  /** The league's short name; empty for the association's. */
-  league_name?: string | null;
+  /** The leagues it is tagged with, in their order; none: the association's own. */
+  leagues?: PostLeague[];
+  /** The same, by id. */
+  league_ids?: number[];
   teaser?: string | null;
   photo_url?: string | null;
   /** The picture's sizes, when it is the library's. */

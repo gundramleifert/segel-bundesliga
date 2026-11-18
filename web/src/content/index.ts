@@ -155,8 +155,9 @@ export type ArticleSummary = {
   slug: string;
   title: string;
   date: string;
-  /** The league's slug, or null for the association's own news (shown in every league). */
-  league: string | null;
+  /** The slugs of the leagues it is tagged with; none for the association's own news
+   *  (Story R-1: on the home page only). */
+  leagues: string[];
   teaser: string;
   /** None when the post has none (decided 2026-10-23: no picture stands in). */
   photo?: Photo;
@@ -191,7 +192,7 @@ function toSummary(post: PostSummary): ArticleSummary {
     slug: post.slug,
     title: post.title,
     date: post.published_on,
-    league: post.league ?? null,
+    leagues: (post.leagues ?? []).map((l) => l.slug),
     teaser: post.teaser ?? "",
     photo: postPhoto(post),
     example: post.example,

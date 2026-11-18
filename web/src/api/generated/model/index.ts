@@ -244,6 +244,7 @@ export * from './postAdminOut';
 export * from './postAdminSummary';
 export * from './postCreate';
 export * from './postKind';
+export * from './postLeague';
 export * from './postOut';
 export * from './postRef';
 export * from './postSummary';

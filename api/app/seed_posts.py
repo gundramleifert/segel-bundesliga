@@ -25,7 +25,7 @@ POSTS: list[dict] = [
         "slug": "prototyp-der-neuen-website",
         "title": "Die neue Website: Prototyp auf der Jahreshauptversammlung",
         "published_on": "2026-11-07",
-        "league": None,
+        "leagues": [],
         "teaser": "Morgen stellen wir auf der Jahreshauptversammlung der Deutschen Segel-Liga "
         "den Prototyp der neuen Website vor – und freuen uns auf eure Verbesserungsvorschläge.",
         "body": "Morgen, am 8. November 2026, stellen wir auf der Jahreshauptversammlung der "
@@ -50,7 +50,7 @@ POSTS: list[dict] = [
         "slug": "termine-2027-segel-bundesliga-junioren-liga-und-pokal",
         "title": "Termine 2027: Segel-Bundesliga, Junioren-Liga und Pokal",
         "published_on": "2026-10-13",
-        "league": None,
+        "leagues": ["1-liga", "2-liga", "junioren-liga", "dsl-pokal"],
         "teaser": "Die Termine für die Saison 2027 stehen fest: alle Spieltage der 1. und 2. "
         "Segel-Bundesliga, die ACTs der Deutschen Junioren Segel-Liga und der gemeinsame Pokal.",
         "body_html": (
@@ -96,7 +96,7 @@ POSTS: list[dict] = [
         "slug": "neuer-vorstand-gewaehlt",
         "title": "Neuer Vorstand gewählt – es geht los!",
         "published_on": "2026-01-27",
-        "league": None,
+        "leagues": [],
         "teaser": "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 "
         "von 36 Vereinen getroffen.",
         "body": "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 von "
@@ -111,7 +111,7 @@ POSTS: list[dict] = [
         "kind": "news",
         "title": "Wannsee: NRV und ASVW gewinnen den fünften Spieltag",
         "published_on": "2026-09-20",
-        "league": None,
+        "leagues": ["1-liga", "2-liga"],
         "teaser": "Beim Potsdamer Yacht Club sind in beiden Ligen alle 16 Flights gesegelt worden. "
         "Den Spieltag gewinnen der Norddeutsche Regatta Verein in der 1. und der Akademische "
         "Segelverein Warnemünde in der 2. Liga.",
@@ -149,7 +149,7 @@ POSTS: list[dict] = [
         "kind": "news",
         "title": "Hamburg: Der NRV gewinnt zu Hause und führt die Tabelle an",
         "published_on": "2026-08-03",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "teaser": "Auf der Außenalster holt der Norddeutsche Regatta Verein den Sieg am 4. "
         "Spieltag – vor eigenem Publikum. Damit steht er nun allein an der Spitze der "
         "Gesamtwertung.",
@@ -176,7 +176,7 @@ POSTS: list[dict] = [
         "kind": "news",
         "title": "Vorschau: Gleichstand an der Spitze vor dem Spieltag in Hamburg",
         "published_on": "2026-07-30",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "teaser": "Vom 30. Juli bis 2. August segelt die 1. Liga auf der Außenalster, "
         "Gastgeber ist der Norddeutsche Regatta Verein. Ausgerechnet er führt die Tabelle an "
         "– punktgleich mit dem Joersfelder Segel-Club.",
@@ -201,7 +201,7 @@ POSTS: list[dict] = [
         "kind": "news",
         "title": "Kiel: Mühlenberger SC und SC Ville gewinnen den dritten Spieltag",
         "published_on": "2026-07-12",
-        "league": None,
+        "leagues": ["1-liga", "2-liga"],
         "teaser": "Sonne, Wärme und Bilderbuchwind zum Abschluss auf der Kieler Förde: Nach 16 "
         "Läufen gewinnt der Mühlenberger Segel-Club die 1. Liga, der Segel-Club Ville die 2. "
         "Liga.",
@@ -232,7 +232,7 @@ POSTS: list[dict] = [
         "slug": "asvw-takes-the-lead",
         "title": "ASVW takes the lead after a perfect Sunday",
         "published_on": "2026-09-21",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "teaser": "Six wins in eight races — and the table has a new name at the top.",
         "body": "Saturday had been a day of waiting: the wind came late, turned twice and left the "
         "race committee with four flights. Sunday made up for it. A steady 12 knots from the "
@@ -258,7 +258,7 @@ POSTS: list[dict] = [
         "slug": "promotion-race",
         "title": "Promotion race: three clubs within two points",
         "published_on": "2026-09-14",
-        "league": "2-liga",
+        "leagues": ["2-liga"],
         "teaser": "Before the final act, nothing is decided.",
         "body": "Four places go up to the 1. Liga, and five clubs still have a realistic chance of "
         "one of them. The leaders are safe; behind them, three clubs are within two points "
@@ -280,7 +280,7 @@ POSTS: list[dict] = [
         "slug": "junioren-liga-champion",
         "title": "Junioren-Liga crowns its champion on the Alster",
         "published_on": "2026-08-30",
-        "league": "junioren-liga",
+        "leagues": ["junioren-liga"],
         "teaser": "The youngest crew in the field wins the last flight and the title.",
         "body": "The average age of the crew was seventeen. Their lead before the last flight was "
         "one point. They won the race, and with it the title.\n"
@@ -303,7 +303,7 @@ POSTS: list[dict] = [
         "slug": "dsl-pokal-registration",
         "title": "DSL-Pokal: registration opens",
         "published_on": "2026-08-12",
-        "league": "dsl-pokal",
+        "leagues": ["dsl-pokal"],
         "teaser": "Every member club can enter one crew. Deadline 31 January.",
         "body": "The DSL-Pokal is the one weekend of the year on which clubs of every level race "
         "each other — and the way into the 2. Liga for clubs not yet in a Bundesliga.\n"
@@ -323,7 +323,7 @@ POSTS: list[dict] = [
         "slug": "live-tracking",
         "title": "Live tracking: every boat on the map, from every phone",
         "published_on": "2026-07-28",
-        "league": None,
+        "leagues": [],
         "teaser": "From this season the tracker is the sailor's own phone.",
         "body": "No more boxes to charge and hand out on the pontoon: from this season a phone on "
         "board is the tracker. The race committee's phone marks the start and finish lines.\n"
@@ -343,7 +343,7 @@ POSTS: list[dict] = [
         "slug": "season-2027-calendar",
         "title": "Season 2027: six weekends, six venues",
         "published_on": "2026-10-02",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "teaser": "The calendar for next season is set — two venues are new.",
         "body": "The league office and the host clubs have agreed the calendar for 2027. The "
         "season opens in May and ends in late September with the final.\n"
@@ -363,7 +363,7 @@ POSTS: list[dict] = [
         "slug": "relegation-battle",
         "title": "Relegation: one weekend, four clubs, two places",
         "published_on": "2026-09-07",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "teaser": "The last four go down — and nobody below seventh is safe.",
         "body": "The rules are simple and hard: the last four of the 1. Liga go down to the 2. "
         "Liga. With one matchday left, the clubs between places 12 and 16 are separated by four "
@@ -381,7 +381,7 @@ POSTS: list[dict] = [
         "slug": "media-kit",
         "title": "Broadcast and media: every matchday live",
         "published_on": "2026-05-15",
-        "league": None,
+        "leagues": [],
         "teaser": "A studio on the pontoon, cameras on the water, the live map on screen.",
         "body": "Every matchday of the 1. Liga is broadcast live: a studio on the pontoon, cameras "
         "on RIBs, commentary and the live map with the boats' positions.\n"
@@ -398,7 +398,7 @@ POSTS: list[dict] = [
         "slug": "junioren-new-clubs",
         "title": "Junioren-Liga grows: five new clubs",
         "published_on": "2026-03-20",
-        "league": "junioren-liga",
+        "leagues": ["junioren-liga"],
         "teaser": "More youth teams than ever have entered this season.",
         "body": "Five clubs sail the Junioren-Liga for the first time this season. The league is "
         "open to youth teams of every German sailing club, from AK16 to AK21.\n"
@@ -415,7 +415,7 @@ POSTS: list[dict] = [
         "slug": "club-service",
         "title": "Run your own regatta here",
         "published_on": "2026-04-10",
-        "league": None,
+        "leagues": [],
         "teaser": "Pairing lists, results, tracking and waivers — the association's service for "
         "every club.",
         "body": "Everything the league uses on a matchday is available to every club that "
@@ -433,7 +433,7 @@ POSTS: list[dict] = [
         "kind": "press",
         "title": "Act 5: ASVW takes over the lead",
         "published_on": "2026-09-21",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "body": "Placeholder text of the release: the facts in the first paragraph, a quote, the "
         "next dates, and the press contact.",
         "example": True,
@@ -442,7 +442,7 @@ POSTS: list[dict] = [
         "kind": "press",
         "title": "Season 2027: calendar and venues confirmed",
         "published_on": "2026-09-02",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "body": "Placeholder text of the release: the facts in the first paragraph, a quote, the "
         "next dates, and the press contact.",
         "example": True,
@@ -451,7 +451,7 @@ POSTS: list[dict] = [
         "kind": "press",
         "title": "Media kit 2026: logos, fact sheet, contacts",
         "published_on": "2026-04-01",
-        "league": "1-liga",
+        "leagues": ["1-liga"],
         "body": "Placeholder text of the release: the facts in the first paragraph, a quote, the "
         "next dates, and the press contact.",
         "example": True,
@@ -466,10 +466,10 @@ def _paragraphs(text: str) -> str:
 
 async def seed_posts(session: AsyncSession) -> None:
     """Adds the posts: the real ones published, the examples as drafts."""
-    leagues = dict((await session.execute(select(League.slug, League.id))).tuples().all())
+    leagues = {league.slug: league for league in (await session.scalars(select(League))).all()}
     for row in [*POSTS, *PRESS_RELEASES]:
         fields = dict(row)
-        league = fields.pop("league")
+        tagged = fields.pop("leagues")
         # A release taken over as written is the editor's HTML — cleaned like any write,
         # so nothing reaches the table around the cleaner (Story R-1).
         html_body = fields.pop("body_html", None)
@@ -482,8 +482,8 @@ async def seed_posts(session: AsyncSession) -> None:
                     "body": clean_html(html_body)
                     if html_body is not None
                     else _paragraphs(fields["body"]),
-                    "league_id": leagues.get(league),
                     "published": not fields.get("example", False),
+                    "leagues": [leagues[slug] for slug in tagged if slug in leagues],
                 },
             )
         )

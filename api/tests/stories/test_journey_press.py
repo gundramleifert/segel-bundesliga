@@ -101,7 +101,7 @@ class TestFromARaceToThePress:
         report = {
             "kind": "news",
             "title": f"A close Sunday in Kiel {tag}",
-            "league_id": await league_id(client, LEAGUE),
+            "league_ids": [await league_id(client, LEAGUE)],
             "teaser": "The 2. Liga's second act, race by race.",
             "body": "<p>Light wind, and a leader who held on.</p>",
             "photo_url": picture["url"],
@@ -132,7 +132,7 @@ class TestFromARaceToThePress:
             json={
                 "kind": "press",
                 "title": f"Results of act 2 {tag}",
-                "league_id": await league_id(client, LEAGUE),
+                "league_ids": [await league_id(client, LEAGUE)],
                 "body": "<p>The standings after the second act.</p>",
                 "published": True,
             },

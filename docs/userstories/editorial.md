@@ -24,7 +24,7 @@ Acceptance criteria:
   VA-11, posts by participants VA-4.
 - **A regatta's editor writes about that regatta** (decided 2026-10-24): a series' or an
   event's `editor` writes posts whose event or series is theirs — a series' editor also
-  its events'. The post's league is **set from the regatta's league**, not chosen. A post
+  its events'. The post's league tag is **set from the regatta's league**, not chosen. A post
   about no regatta, or about another regatta, is refused (403); another regatta's post
   is not theirs to know of — their list leaves it out and its address answers 404. They
   organize nothing: the series cannot be changed by them, and an event's tools stay
@@ -40,8 +40,15 @@ Acceptance criteria:
 - **One kind of post, two kinds of page.** A post is a **news** article or a **press**
   release. An article has a title, a lead (the teaser on its card), the text, an optional
   quote with who said it, a byline and a picture; a release has a title, a date and its
-  text. Both belong to **one league or to the association**: the association's appear on
-  every league's page and on the home page.
+  text.
+- **A post is tagged with the leagues it is about** (decided 2026-11-18 — a report on a
+  matchday of the 1. and 2. Liga belonged to one of them or, untagged, to every league,
+  the Junioren's included): any number of leagues, chosen as tags. A league's news page,
+  its chapter page and its press centre show **only the posts tagged with it**; the
+  association's home shows every post. A post with no league tag is the **association's
+  own** ("Verein") — on the home page only; a release without one is in no press
+  centre, since only leagues have one. The editor's list shows each post's tags and
+  filters by one, or by the association's.
 - **Saving never requires publishing** — the same rule as an event (Story VA-8). A post
   starts as a draft; the public site does not show it and its address answers 404. Publishing
   locks nothing, and withdrawing it makes it a draft again. *Publish* is the page's one

@@ -77,7 +77,7 @@ function draftOf(post?: PostAdmin, about?: { event_id: number | null; series_id:
     kind: post?.kind ?? PostKind.news,
     title: post?.title ?? "",
     published_on: post?.published_on ?? todayIso(),
-    league_id: post?.league_id ?? null,
+    league_ids: post?.league_ids ?? [],
     teaser: post?.teaser ?? "",
     body: post?.body ?? "",
     author: post?.author ?? "",
@@ -211,8 +211,12 @@ function PostForm({ post }: { post?: PostAdmin }) {
   };
 
   const news = draft.kind === PostKind.news;
-  // An association's post is shown under the first member league (`content`, `Home.tsx`).
-  const publicLeague = post?.league ?? MEMBER_LEAGUES[0];
+  // Shown under its first league; the association's own under the first member league
+  // (`content`, `Home.tsx`).
+  const publicLeague = post?.leagues?.[0]?.slug ?? MEMBER_LEAGUES[0];
+  const tagged = (id: number) => draft.league_ids.includes(id);
+  const toggleLeague = (id: number) =>
+    set("league_ids", tagged(id) ? draft.league_ids.filter((l) => l !== id) : [...draft.league_ids, id]);
 
   if (previewing) return <Preview draft={draft} onBack={() => setPreviewing(false)} />;
 
@@ -259,20 +263,6 @@ function PostForm({ post }: { post?: PostAdmin }) {
             <option value={PostKind.press}>{t("posts.kind.press")}</option>
           </Select>
         </Field>
-        <Field label={t("posts.leagueLabel")} hint={t("posts.leagueHint")}>
-          <Select
-            value={draft.league_id ?? ""}
-            onChange={(e) => set("league_id", e.target.value ? Number(e.target.value) : null)}
-            testId="admin-post-league-select"
-          >
-            <option value="">{t("posts.association")}</option>
-            {(leagues.data ?? []).map((league) => (
-              <option key={league.id} value={league.id}>
-                {league.short_name}
-              </option>
-            ))}
-          </Select>
-        </Field>
         <Field label={t("posts.dateLabel")}>
           <input
             type="date"
@@ -283,6 +273,38 @@ function PostForm({ post }: { post?: PostAdmin }) {
           />
         </Field>
       </div>
+
+      {/* Story R-1: tagged with any number of leagues; none is the association's own. */}
+      <fieldset className="flex flex-col gap-1.5" data-testid="admin-post-leagues">
+        <legend className="mb-1.5 text-sm font-medium">{t("posts.leagueLabel")}</legend>
+        <div className="flex flex-wrap gap-2">
+          {(leagues.data ?? []).map((league) => (
+            <label
+              key={league.id}
+              data-testid={`admin-post-league-${league.slug}`}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
+                tagged(league.id)
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-border bg-surface text-foreground hover:bg-accent-soft"
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={tagged(league.id)}
+                onChange={() => toggleLeague(league.id)}
+              />
+              {league.short_name}
+            </label>
+          ))}
+          {draft.league_ids.length === 0 && (
+            <span className="rounded-full border border-dashed border-border px-3 py-1 text-sm text-muted" data-testid="admin-post-association">
+              {t("posts.association")}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-muted">{t("posts.leagueHint")}</span>
+      </fieldset>
 
       <Field label={t("posts.titleLabel")} hint={t("posts.titleHint")}>
         <input

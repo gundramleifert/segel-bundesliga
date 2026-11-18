@@ -65,10 +65,16 @@ describeStory("R-3: the league's media page shows the library", () => {
     // A page's worth of old news: the oldest is then past the first page whatever else
     // the league has.
     let oldest = "";
+    const league = (await (await page.request.get("/api/leagues/1-liga")).json()) as { league: { id: number } };
     for (let day = 12; day >= 1; day--) {
       const made = await page.request.post("/api/admin/posts", {
         headers,
-        data: { title: `Older news ${stamp} ${day}`, published_on: `2001-01-${String(day).padStart(2, "0")}`, published: true },
+        data: {
+          title: `Older news ${stamp} ${day}`,
+          league_ids: [league.league.id],
+          published_on: `2001-01-${String(day).padStart(2, "0")}`,
+          published: true,
+        },
       });
       expect(made.ok()).toBeTruthy();
       oldest = ((await made.json()) as { slug: string }).slug;
@@ -114,7 +120,7 @@ describeStory("R-1: a report ends with its regatta's photos", () => {
     const league = (await (await page.request.get("/api/leagues/1-liga")).json()) as { league: { id: number } };
     const post = await page.request.post("/api/admin/posts", {
       headers,
-      data: { title: `Act ${season.planned} report ${Date.now()}`, league_id: league.league.id, event_id: season.planned, published: true },
+      data: { title: `Act ${season.planned} report ${Date.now()}`, league_ids: [league.league.id], event_id: season.planned, published: true },
     });
     expect(post.ok()).toBeTruthy();
     const { slug } = (await post.json()) as { slug: string };

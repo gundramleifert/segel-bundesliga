@@ -50,15 +50,16 @@ class TestEditorialOfOneRegatta:
 
     async def test_a_series_editor_writes_about_its_events_in_its_league(self, client, caplog, ids):
         """Story R-1: a series' editor writes about the series and its events; the post
-        appears in the series' league, whatever league it names. Another regatta, or
+        is tagged with the series' league, whatever leagues it names. Another regatta, or
         none, is the site's editor's."""
         office = await admin(client, caplog, "regatta-office@example.com")
         editor = await _editor_of(client, caplog, office, f"series:{ids.series(SERIES)}")
 
-        written = await _post(client, editor, event_id=ids.event(ACT), league_id=None)
+        cup = (await client.get("/api/leagues/dsl-pokal")).json()["league"]["id"]
+        written = await _post(client, editor, event_id=ids.event(ACT), league_ids=[cup])
         assert written.status_code == 201, written.text
         one_liga = (await client.get("/api/leagues/1-liga")).json()["league"]["id"]
-        assert written.json()["league_id"] == one_liga
+        assert written.json()["league_ids"] == [one_liga], "its regatta's, not the one named"
 
         assert (await _post(client, editor, series_id=ids.series(SERIES))).status_code == 201
         other = await _post(client, editor, series_id=ids.series(ELSEWHERE))

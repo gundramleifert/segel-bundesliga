@@ -29,7 +29,7 @@ async function article(page: Page): Promise<string> {
       title: `No cover ${Date.now()}`,
       teaser: "A report with no picture of its own.",
       body: "<p>The library alone decides what is behind it.</p>",
-      league_id: league.league.id,
+      league_ids: [league.league.id],
       published: true,
     },
   });

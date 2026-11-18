@@ -23,7 +23,8 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await page.getByTestId("admin-posts-new-button").click();
 
     await page.getByTestId("admin-post-title-input").fill(title);
-    await page.getByTestId("admin-post-league-select").selectOption({ label: "1. Liga" });
+    await page.getByTestId("admin-post-league-1-liga").click();
+    await expect(page.getByTestId("admin-post-league-1-liga").getByRole("checkbox")).toBeChecked();
     await page.getByTestId("admin-post-teaser-input").fill("Open doors at the club house.");
 
     const content = page.getByTestId("admin-post-editor-content");
@@ -241,7 +242,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
     const post = async (title: string, leagueId: number, published: boolean) => {
       const response = await page.request.post("/api/admin/posts", {
         headers,
-        data: { title: `${title} ${stamp}`, league_id: leagueId, published },
+        data: { title: `${title} ${stamp}`, league_ids: [leagueId], published },
       });
       expect(response.ok(), await response.text()).toBeTruthy();
       made.push(((await response.json()) as { id: number }).id);

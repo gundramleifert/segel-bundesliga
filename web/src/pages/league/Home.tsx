@@ -21,7 +21,7 @@ export function AssociationHome() {
   const leagues = useLeagues();
   const association = useAssociation().data;
   const news = useNews().data ?? [];
-  const articleHref = (n: ArticleSummary) => href.article(n.league ?? MEMBER_LEAGUES[0], n.slug);
+  const articleHref = (n: ArticleSummary) => href.article(n.leagues[0] ?? MEMBER_LEAGUES[0], n.slug);
   const seasons = useQueries({ queries: leagues.map((l) => getGetLeagueSeasonQueryOptions(l.slug)) });
 
   const chapters: ChapterSpec[] = [

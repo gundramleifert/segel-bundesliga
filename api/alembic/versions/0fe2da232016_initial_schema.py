@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: c961f5134e61
+Revision ID: 0fe2da232016
 Revises:
-Create Date: 2026-11-15 16:59:19.065583
+Create Date: 2026-11-18 22:14:28.400129
 """
 
 from collections.abc import Sequence
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "c961f5134e61"
+revision: str = "0fe2da232016"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -1054,7 +1054,6 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("kind", sa.String(length=16), nullable=False),
         sa.Column("slug", sa.String(length=120), nullable=False),
-        sa.Column("league_id", sa.Integer(), nullable=True),
         sa.Column("title", sa.String(length=200), nullable=False),
         sa.Column("published_on", sa.Date(), nullable=False),
         sa.Column("teaser", sa.String(length=500), nullable=True),
@@ -1087,16 +1086,12 @@ def upgrade() -> None:
             ["event_id"], ["event.id"], name=op.f("fk_post_event_id_event"), ondelete="SET NULL"
         ),
         sa.ForeignKeyConstraint(
-            ["league_id"], ["league.id"], name=op.f("fk_post_league_id_league"), ondelete="SET NULL"
-        ),
-        sa.ForeignKeyConstraint(
             ["series_id"], ["series.id"], name=op.f("fk_post_series_id_series"), ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_post")),
     )
     op.create_index(op.f("ix_post_event_id"), "post", ["event_id"], unique=False)
     op.create_index(op.f("ix_post_kind"), "post", ["kind"], unique=False)
-    op.create_index(op.f("ix_post_league_id"), "post", ["league_id"], unique=False)
     op.create_index(op.f("ix_post_series_id"), "post", ["series_id"], unique=False)
     op.create_index(op.f("ix_post_slug"), "post", ["slug"], unique=True)
     op.create_table(
@@ -1432,6 +1427,22 @@ def upgrade() -> None:
         postgresql_where=sa.text("active"),
     )
     op.create_table(
+        "post_league",
+        sa.Column("post_id", sa.Integer(), nullable=False),
+        sa.Column("league_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["league_id"],
+            ["league.id"],
+            name=op.f("fk_post_league_league_id_league"),
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["post_id"], ["post.id"], name=op.f("fk_post_league_post_id_post"), ondelete="CASCADE"
+        ),
+        sa.PrimaryKeyConstraint("post_id", "league_id", name=op.f("pk_post_league")),
+    )
+    op.create_index(op.f("ix_post_league_league_id"), "post_league", ["league_id"], unique=False)
+    op.create_table(
         "race",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("flight_id", sa.Integer(), nullable=False),
@@ -1655,6 +1666,8 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_race_sequence"), table_name="race")
     op.drop_index(op.f("ix_race_flight_id"), table_name="race")
     op.drop_table("race")
+    op.drop_index(op.f("ix_post_league_league_id"), table_name="post_league")
+    op.drop_table("post_league")
     op.drop_index(
         "uq_payment_claim_one_live_payment",
         table_name="payment_claim",
@@ -1704,7 +1717,6 @@ def downgrade() -> None:
     op.drop_table("team")
     op.drop_index(op.f("ix_post_slug"), table_name="post")
     op.drop_index(op.f("ix_post_series_id"), table_name="post")
-    op.drop_index(op.f("ix_post_league_id"), table_name="post")
     op.drop_index(op.f("ix_post_kind"), table_name="post")
     op.drop_index(op.f("ix_post_event_id"), table_name="post")
     op.drop_table("post")

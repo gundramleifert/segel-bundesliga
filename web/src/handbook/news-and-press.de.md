@@ -38,7 +38,7 @@ Stapel.
 ### Schreiben und veröffentlichen {#news-and-press-write}
 
 1. Unter [*News*](place:admin.news) *Neuer Beitrag*. Die *Art* ① wählen — *News* oder
-   *Pressemitteilung* — und die *Liga*; Beiträge des Verbands erscheinen in jeder Liga.
+   *Pressemitteilung* — und die *Ligen* — markiere jede Liga, um die es geht; der Beitrag erscheint auf deren Seiten. Ohne Liga ist er ein Beitrag des Vereins und steht nur auf der Startseite.
 2. *Titel*, *Vorspann* und *Text* eintragen. Für das *Bild*: *Aus der Mediathek*, *Bild
    hochladen* oder eines darauf ziehen, dazu den *Bildnachweis*.
 3. Unter *Regatta* ② die Veranstaltung wählen: Ihre öffentlichen Fotos erscheinen am Ende

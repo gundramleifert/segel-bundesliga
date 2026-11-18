@@ -331,16 +331,15 @@ class PostFilter(ListFilter):
 
     def where_league(self, league: str):
         if league == ASSOCIATION:
-            return Post.league_id.is_(None)
-        return Post.league_id.in_(select(League.id).where(League.slug == league))
+            return ~Post.leagues.any()
+        return Post.leagues.any(League.slug == league)
 
     def where_series_id(self, series_id: int):
         return about_series(series_id, Post.event_id, Post.series_id)
 
 
 class PublicPostFilter(ListFilter):
-    """The published posts — their ``kind`` and ``league`` stay the route's, which reads
-    them differently (a league's page shows the association's posts too)."""
+    """The published posts — their ``kind`` and ``league`` stay the route's."""
 
     order_by: list[str] | None = SORT
 

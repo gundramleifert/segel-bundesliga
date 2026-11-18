@@ -7,11 +7,13 @@ from typing import TYPE_CHECKING
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Column,
     Date,
     DateTime,
     ForeignKey,
     Integer,
     String,
+    Table,
     Text,
     UniqueConstraint,
 )
@@ -30,11 +32,21 @@ class PostKind(StrEnum):
     PRESS = "press"
 
 
+#: A post's league tags — Story R-1 (decided 2026-11-18): any number of leagues.
+post_league = Table(
+    "post_league",
+    Base.metadata,
+    Column("post_id", ForeignKey("post.id", ondelete="CASCADE"), primary_key=True),
+    Column("league_id", ForeignKey("league.id", ondelete="CASCADE"), primary_key=True, index=True),
+)
+
+
 class Post(Base, TimestampMixin):
     """A news article or a press release, written by editorial — Story R-1.
 
-    Belongs to **one league or to the association** (``league_id`` empty): the
-    association's posts appear on every league's page and on the home page.
+    **Tagged with the leagues it is about** (``leagues``), any number: a league's pages
+    show the posts tagged with it, the association's home every post. A post with no tag
+    is the association's own, on the home page only.
 
     ``published`` works like an event's (Story VA-8): a draft is invisible on the public
     site, and publishing locks nothing. ``slug`` is made once from the title and kept
@@ -49,9 +61,6 @@ class Post(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     kind: Mapped[str] = mapped_column(String(16), default=PostKind.NEWS, index=True)
     slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
-    league_id: Mapped[int | None] = mapped_column(
-        ForeignKey("league.id", ondelete="SET NULL"), index=True, default=None
-    )
     title: Mapped[str] = mapped_column(String(200))
     # The date shown — editorial's, not the row's creation time.
     published_on: Mapped[date] = mapped_column(Date)
@@ -79,14 +88,11 @@ class Post(Base, TimestampMixin):
         ForeignKey("series.id", ondelete="SET NULL"), index=True, default=None
     )
 
-    league: Mapped[League | None] = relationship()
+    leagues: Mapped[list[League]] = relationship(
+        secondary=post_league, order_by="[League.position, League.id]"
+    )
     event: Mapped[Event | None] = relationship()
     series: Mapped[Series | None] = relationship()
-
-    @property
-    def league_slug(self) -> str | None:
-        """Where the public site shows it — ``PostOut.league``; load ``league`` first."""
-        return self.league.slug if self.league else None
 
 
 class MediaSource(StrEnum):

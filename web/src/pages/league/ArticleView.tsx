@@ -64,8 +64,8 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
         <section className="mb-12" data-testid="site-article-gallery">
           <h2 className={`mb-4 text-xl font-semibold ${tone.text}`}>{t("news.galleryTitle", { regatta: post.regatta ?? "" })}</h2>
           <Gallery photos={photos} grouped={false} />
-          {(post.gallery_total ?? 0) > photos.length && post.league && (
-            <Link to={href.media(post.league)} className={`text-sm font-medium ${tone.link}`} data-testid="site-article-gallery-more">
+          {(post.gallery_total ?? 0) > photos.length && post.leagues?.[0] && (
+            <Link to={href.media(post.leagues[0].slug)} className={`text-sm font-medium ${tone.link}`} data-testid="site-article-gallery-more">
               {t("news.galleryMore", { count: post.gallery_total ?? 0 })}
             </Link>
           )}

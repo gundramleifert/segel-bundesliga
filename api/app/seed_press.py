@@ -27,7 +27,7 @@ PRESS_RELEASES: list[dict] = [
         "kind": "press",
         "title": "Segel-Bundesliga am Wannsee: Wer stoppt den Norddeutschen Regatta Verein?",
         "published_on": "2026-09-16",
-        "league": None,
+        "leagues": ["1-liga", "2-liga"],
         "teaser": "Tabellenführer NRV reist mit elf Punkten Vorsprung nach Berlin – vier Berliner "
         "Clubs in der 1. Liga – in der 2. Liga liegen vier Vereine innerhalb von drei "
         "Punkten, Spitzenreiter Seglerhaus am Wannsee segelt auf dem Heimrevier – "
@@ -157,7 +157,7 @@ PRESS_RELEASES: list[dict] = [
             "kind": "press",
             "title": release["title"],
             "published_on": release["published_on"],
-            "league": None,
+            "leagues": release["leagues"],
             "teaser": release["teaser"],
             "body_html": (FOLDER / release["file"]).read_text(encoding="utf-8"),
             "author": "Sven Jürgensen",
