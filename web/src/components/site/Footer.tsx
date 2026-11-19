@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { DEV_TOOLS } from "../../dev/devTools";
-import { commit, version } from "../../lib/environment";
+import { commit, environment, version } from "../../lib/environment";
 import { useAssociation, useLocalized } from "../../content";
 import { eventDates } from "../../lib/format";
 import { href, type Act } from "../../lib/site";
@@ -73,11 +73,12 @@ export function GlassFooter() {
             <SapAttribution className="mt-2" testId="site-footer-sap-attribution" />
           </div>
         </div>
-        {/* What runs here, for a question or a bug report — the last and quietest line. */}
+        {/* What runs here, for a question or a bug report — the last and quietest line. A
+            release names its commit already; staging adds it, since rcs come and go. */}
         {version && (
           <p className="text-center text-[11px] tabular-nums text-muted opacity-70" data-testid="site-footer-version">
             {t("footer.version", { version })}
-            {commit && ` · ${commit}`}
+            {environment && commit && ` · ${commit}`}
           </p>
         )}
       </div>
