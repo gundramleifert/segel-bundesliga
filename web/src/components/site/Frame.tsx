@@ -61,9 +61,10 @@ export function TopBar({
             height={58}
           />
         </Link>
+        {/* On a phone the colour alone says it: the row has no room for a word more. */}
         {environment && (
           <span
-            className="shrink-0 rounded-full border border-current px-2 py-0.5 text-xs font-bold uppercase tracking-wider"
+            className="hidden shrink-0 sm:inline-block rounded-full border border-current px-2 py-0.5 text-xs font-bold uppercase tracking-wider"
             data-testid="site-environment"
           >
             {environment}
