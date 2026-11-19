@@ -66,8 +66,10 @@ scripts/check.sh                         # everything that must be green, before
   (`api/tests/conftest.py`, set at module level).
 - **Migrations chain** (since 2026-11-19, deutsche-segelliga.de runs): every model change is
   a new Alembic migration on top; the baseline `7133017ca682` is frozen
-  (`tests/unit/test_migrations.py` fails on drift and on a changed baseline). Deploying —
-  server, access, steps: `docs/deploy-server.md` § Our server.
+  (`tests/unit/test_migrations.py` fails on drift and on a changed baseline).
+- **Deploying**: tag `vX.Y.Z-rc.N` → `deploy.sh staging` (a copy of production, migrated),
+  then `vX.Y.Z` on the same commit → `deploy.sh prod`, which refuses anything staging has
+  not passed. Server, access, steps: `docs/deploy-server.md` § Our server.
 - **The frontend's API client is generated**: after any route or schema change run
   `scripts/gen-api-client.sh`, then `pnpm typecheck` in `web/` (`tsc --noEmit` checks
   nothing here). Nothing under `web/src/api/generated/` is edited; handler names become

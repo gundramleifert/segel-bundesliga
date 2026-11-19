@@ -388,6 +388,13 @@ Alembic migration on top, which `db-setup` applies on every `up`. The first one,
 `tests/unit/test_migrations.py`: models and migrations agree, and the baseline's hash is
 unchanged.
 
+**Staging first, by tags** (decided 2026-11-19): staging runs beside production on the
+same machine and gets a fresh copy of production's data on every deploy, so a migration
+meets the real rows before production does. A release candidate `vX.Y.Z-rc.N` goes to
+staging; the release `vX.Y.Z` is a second tag on the same commit, and
+`deploy/compose/deploy.sh prod` refuses any other commit, or a staging that no longer runs
+it. Staging has no SMTP: its copy holds real people's addresses.
+
 ### Logged in or guest
 
 Most requests carry a user, but the public site also serves guests.

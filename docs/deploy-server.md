@@ -11,40 +11,85 @@ secrets, storage).
 **The first start also seeds the test system.** `db-setup` runs `app.seed_test_setup` on
 an empty database: the real 2026 season (results, news, pictures) — and also the 44 test
 accounts (`@….example.com`). A seed without them is the next step of
-`docs/PLAN_SEEDING.md` (S-0); so is staging as a restored copy of prod. That ends with the seed of S-0. **Updates keep the data** (since 2026-11-19): the
+`docs/PLAN_SEEDING.md` (S-0), and it ends there. **Updates keep the data** (since 2026-11-19): the
 migrations chain on the baseline the server was installed with — § Migrations.
 
 ## Our server
 
-| | |
-|---|---|
-| Site | **https://deutsche-segelliga.de** (`www.` redirects to it) |
-| Machine | `segelliga-1` at Hetzner, **`178.104.43.254`** — no DNS alias in anyone's `~/.ssh/config`, use the IP |
-| Sign in | `ssh sbl@178.104.43.254` — user `sbl` (docker group), with your own key; `root` only for the host |
-| Repository | `~/sbl`, a clone of `main` |
-| Secrets | `deploy/compose/prod.sops.env` (`.sops.yaml`: you and the server); always `export SECRETS=$HOME/sbl/deploy/compose/prod.sops.env` before `compose.sh` |
-| Settings | `~/sbl/deploy/compose/.env` — `WEB_PORT=127.0.0.1:8080`, `SBL_SITE_URL=https://deutsche-segelliga.de` |
-| HTTPS | Caddy on the host, `/etc/caddy/Caddyfile` → `127.0.0.1:8080` |
+One machine runs **production and staging** side by side, each a Compose stack of its own
+(project name, containers, volumes, images, secrets), behind the host's Caddy.
 
-**Deploying `main`** — after it is pushed and `scripts/check.sh` is green. From your machine,
-in one go (the build takes a few minutes):
+| | Production | Staging |
+|---|---|---|
+| Site | **https://deutsche-segelliga.de** (`www.` redirects) | **https://staging.deutsche-segelliga.de** |
+| Clone | `~/sbl` | `~/sbl-staging` |
+| Secrets | `deploy/compose/prod.sops.env` | `deploy/compose/staging.sops.env` |
+| `.env` | `WEB_PORT=127.0.0.1:8080`, `S3_PORT=127.0.0.1:8333` | `COMPOSE_PROJECT_NAME=segelliga-staging`, `WEB_PORT=127.0.0.1:8081`, `S3_PORT=127.0.0.1:8334`, **no `SBL_SMTP_HOST`** |
+| Data | its own, kept across every update | **a copy of production's**, taken anew on every deploy |
+
+- **Machine:** `segelliga-1` at Hetzner, **`178.104.43.254`** (no alias in `~/.ssh/config`,
+  use the IP). `ssh sbl@178.104.43.254` for everything here — user `sbl`, docker group,
+  your own key; `root@` only for the host (Caddy, packages).
+- **HTTPS:** Caddy on the host (systemd), `/etc/caddy/Caddyfile`: each domain →
+  `reverse_proxy` to its stack's `WEB_PORT`. It stays on the host and not in a stack
+  because two stacks share ports 80 and 443.
+- **Staging sends no mail.** Its database holds production's real people; without
+  `SBL_SMTP_HOST` a sign-in code goes to its api log only
+  (`compose.sh logs api | grep -i code`). Sign in there with a password, or read the code
+  from the log. No dev login either — `compose.yaml` fixes it off.
+
+### Deploying — a release candidate on staging, then the release
+
+Every change reaches production as a **release**: a tag `vX.Y.Z` on `main`, preceded by a
+**release candidate** `vX.Y.Z-rc.N` on the same commit that staging has run.
+`deploy/compose/deploy.sh` does both and **refuses** production for anything staging has
+not passed on a copy of the real data — so a migration has always run once on that data
+before it touches production.
 
 ```bash
-ssh sbl@178.104.43.254 'set -e; cd sbl
-export SECRETS=$HOME/sbl/deploy/compose/prod.sops.env C=deploy/compose/compose.sh
-day=$(date +%F-%H%M); mkdir -p ~/backup/$day                       # 1. backup first
-$C exec -T db sh -c "pg_dump -U \$POSTGRES_USER -d \$POSTGRES_DB -Fc" > ~/backup/$day/db.dump
-git pull --ff-only                                                 # 2. the code
-$C up --build -d --wait                                            # 3. build; db-setup migrates
-$C exec -T db sh -c "psql -U \$POSTGRES_USER -d \$POSTGRES_DB -Atc \"select version_num from alembic_version\""
-$C ps'
+# 1. on your machine: main pushed, scripts/check.sh green
+git tag v1.2.0-rc.1 && git push origin v1.2.0-rc.1
+
+# 2. staging: a fresh copy of production (database and uploads), the rc built and migrated on it
+ssh sbl@178.104.43.254 sbl/deploy/compose/deploy.sh staging v1.2.0-rc.1
+
+# 3. try it on https://staging.deutsche-segelliga.de; broken → fix on main, v1.2.0-rc.2, step 1
+
+# 4. the release: the same commit, a second tag
+git tag v1.2.0 v1.2.0-rc.1 && git push origin v1.2.0
+
+# 5. production: a backup, then exactly that commit
+ssh sbl@178.104.43.254 sbl/deploy/compose/deploy.sh prod v1.2.0
 ```
 
-Then check: `version_num` is the newest file's `revision` in `api/alembic/versions/`, every
-service is healthy, `$C logs db-setup` ends without a traceback, and the change is visible
-on the site. A failed migration leaves the old schema (Postgres runs it in one transaction):
-fix it in a new commit and deploy again; restore the backup (§ Backups) only if data was
-damaged. **Never `down -v` here** — it deletes the database and every upload.
+`deploy.sh staging` takes production's database (`pg_dump`) and uploads, empties staging,
+restores them, builds the rc and starts it — `db-setup` migrates — and records in
+`~/staging-passed` the rc, its commit and the Alembic revision it reached. `deploy.sh
+prod` refuses unless the release tag is that commit and staging still runs it at that
+revision; then it backs production up into `~/backup/<date-time>/` (database and uploads),
+checks the commit out, builds, starts, and checks production reached the same revision.
+
+**Versions:** `X` for a change people must learn anew, `Y` for a new feature or a
+migration, `Z` for a fix. Each staging run takes ~5 minutes, each production run ~3.
+
+**When it fails:** a failed migration leaves the old schema (Postgres runs it in one
+transaction) — fix it on `main`, a new rc. Restore a backup (§ Backups) only if data was
+damaged. **Never `down -v` on this machine** — it deletes a stack's database and uploads.
+
+### Setting up staging (done once, 2026-11-19)
+
+```bash
+ssh sbl@178.104.43.254
+git clone -q https://github.com/gundramleifert/segel-bundesliga.git ~/sbl-staging
+cd ~/sbl-staging/deploy/compose && cp ~/sbl/deploy/compose/.env .env
+# in .env: COMPOSE_PROJECT_NAME=segelliga-staging, WEB_PORT=127.0.0.1:8081,
+# S3_PORT=127.0.0.1:8334, SBL_SITE_URL and SBL_CORS_ORIGINS to the staging domain,
+# SBL_SMTP_HOST= (empty)
+```
+
+The DNS record `staging.deutsche-segelliga.de A 178.104.43.254`, and as `root` a block in
+`/etc/caddy/Caddyfile` — `staging.deutsche-segelliga.de { reverse_proxy 127.0.0.1:8081 }` —
+then `systemctl reload caddy`.
 
 ## Migrations
 
@@ -61,9 +106,7 @@ change ships with a new migration in the same commit:
    defaults; a new required column needs a default or a data step for the rows already
    there. Fill `downgrade()` too.
 3. `uv run pytest tests/unit/test_migrations.py` — red if models and migrations differ.
-4. A migration that moves or rewrites data is tried on a copy of production first:
-   restore a server backup into the dev Postgres (§ Backups, *Restoring*), `alembic
-   upgrade head`, look.
+4. It runs on a copy of production on staging before production (§ Deploying), always.
 
 ## What the machine needs
 
@@ -179,8 +222,8 @@ deploy/compose/compose.sh up --build -d --wait
 ```
 
 `db-setup` runs again on every `up`: it migrates (§ Migrations), and seeds only an empty
-database. Take a backup first (§ Backups); for our own server the whole sequence is in
-§ Our server.
+database. Take a backup first (§ Backups); our own server deploys only through `deploy.sh`
+(§ Our server).
 
 ## Backups
 

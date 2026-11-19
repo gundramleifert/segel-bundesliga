@@ -4,6 +4,8 @@
 #   docker compose -f deploy/compose/compose.yaml up --build -d
 #
 # See deploy/compose/README.md.
+# Production's name; staging on the same machine sets COMPOSE_PROJECT_NAME=segelliga-staging
+# in its .env, which wins over this line and gives it containers, volumes and images of its own.
 name: segelliga
 
 # The API's settings: .env as it is (every SBL_* of api/app/config.py may go there, the
@@ -13,7 +15,7 @@ x-api: &api
   build:
     context: ../..
     dockerfile: deploy/compose/api.Dockerfile
-  image: segelliga-api:local
+  image: ${COMPOSE_PROJECT_NAME:-segelliga}-api:local
   env_file:
     - path: .env
       required: false
@@ -86,7 +88,7 @@ services:
       args:
         # The role switcher is compiled in only together with the dev login — never here.
         VITE_DEV_TOOLS: "false"
-    image: segelliga-web:local
+    image: ${COMPOSE_PROJECT_NAME:-segelliga}-web:local
     restart: unless-stopped
     logging:
       driver: journald

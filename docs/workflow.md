@@ -14,10 +14,10 @@ and `status`. The tool is the `gh` CLI (`gh auth login` once; in the sandbox it 
 
 **An issue is done when its stakeholder accepts it on staging, not when its PR merges.**
 Many issues come from stakeholders, and they judge a change by using it, not by reading a
-diff — and the place they can use it is **staging**. Today that is still the Render
-instance (`render.yaml`, free tier, reseeded on every start, **with** the dev login);
-it is to be replaced by a second Compose stack (`docs/deploy-server.md`) which, like
-production, runs **without the dev login** (`compose.yaml` fixes it off). So the
+diff — and the place they can use it is **staging**: https://staging.deutsche-segelliga.de,
+a second Compose stack beside production with a copy of production's data, **without the
+dev login** (`docs/deploy-server.md` § Our server; it replaced the Render instance on
+2026-11-19). A change reaches it as a release candidate `vX.Y.Z-rc.N`. So the
 PR **refers** to the issue and never closes it, and between merge and close the issue
 carries the label **`in-stakeholder-review`**. While nothing is in production, `main` is
 allowed to hold changes not yet accepted; that changes when there is a production.
@@ -39,12 +39,13 @@ allowed to hold changes not yet accepted; that changes when there is a productio
 5. **Merge only when the user says so** — `gh pr merge <PR> --squash --delete-branch`.
    Squash keeps `main` one commit per PR; its message is the PR title. Then
    `git switch main && git pull` and delete the local branch.
-6. **Hand over to the stakeholder once staging runs the change** — the deploy takes a
-   few minutes; check the change is visible there first. Then
+6. **Hand over to the stakeholder once staging runs the change** — a release candidate
+   deployed (`docs/deploy-server.md` § Deploying), a few minutes; check the change is visible there first. Then
    `gh issue edit <N> --add-label in-stakeholder-review` and comment on the issue
    (`gh issue comment <N>`): the staging URL, which role their own staging account
-   needs (granted to it there — staging has no role switcher), and what to try. Staging resets to the seeded data on every deploy, so
-   say how to get to the state the change is about.
+   needs (granted to it there — staging has no role switcher), and what to try. Staging
+   is reset to a copy of production on every deploy, so say how to get to the state the
+   change is about.
 7. **Accepted → close** — `gh issue close <N> --comment "Accepted on staging"` (or the
    stakeholder closes it). **Not accepted** → remove the label, and the feedback is a new
    branch for the **same** issue (`<N>-<slug>-2`) from step 2; the issue stays open until

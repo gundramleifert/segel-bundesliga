@@ -21,6 +21,12 @@ creation_rules:
       - *gundram
       - *gundram_wsl
       - *server
+  # Staging on segelliga-1 — its own secrets, so a copy of production never runs on them.
+  - path_regex: deploy/compose/staging\.sops\.env$
+    age:
+      - *gundram
+      - *gundram_wsl
+      - *server
   # Stays last: the first matching rule wins.
   # The Compose stack's secrets, one dotenv file per installation, encrypted in full.
   - path_regex: deploy/compose/[^/]*\.sops\.env$
