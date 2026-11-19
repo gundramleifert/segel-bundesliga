@@ -102,7 +102,7 @@ CLUBS: list[tuple[str, str, str, int]] = [
     ("Münchener Ruder- und Segelverein „Bayern“ von 1910", "MRSV", "München", 2),
     ("Regatta-Segler Neuruppin", "RSN", "Neuruppin", 2),
     ("Segel-Club Hansa Münster", "SCHM", "Münster", 2),
-    ("Segelclub Rheingau", "SCRh", "Rheingau", 2),
+    ("Segelclub Rheingau", "SCR", "Rheingau", 2),
     ("Segel-Club Ville", "SCV", "Erftstadt", 2),
     ("Seglervereinigung 1903", "SV03", "Berlin", 2),
     ("Verein Seglerhaus am Wannsee", "VSaW", "Berlin", 2),

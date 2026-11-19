@@ -69,7 +69,6 @@ LEAGUE_CODES = {
     "KYC (BW)": "KYC (BA)",
     "BuSC": "BUC",
     "SHM": "SCHM",
-    "SCR": "SCRh",
     "WSW": "WsW",
 }
 
