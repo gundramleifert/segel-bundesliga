@@ -242,6 +242,6 @@ The backend words nothing at a call site: errors are RFC 9457 Problems with a co
 (`raise Problem(status, code, title)`, never `HTTPException`), worded by the frontend's
 `errors` namespace; mails are Jinja2 templates per language (German by default); the few
 sentences a route answers are TOML catalogs (`app/i18n.py`). Domain terms: Wettfahrt →
-Race, Spieltag → Matchday, Wettfahrtleitung → Race committee, Serie → Series, Verein →
+Race, Spieltag → Matchday (on screen *Act*, in German too), Wettfahrtleitung → Race committee, Serie → Series, Verein →
 Club, Segler → Sailor, Mannschaft → Team, Kader → Squad, Aufstellung → Lineup, Liga →
 League, Boot → Boat, Ausrichter → Host club, Revier → Venue. Details: `docs/workflow.md`.

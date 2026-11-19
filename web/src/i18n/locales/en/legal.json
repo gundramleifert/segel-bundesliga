@@ -255,7 +255,7 @@
         "heading": "Sailor profiles, publication and results",
         "paragraphs": [
           "A sailor record holds first and last name, date of birth, optionally an email address that links the profile to an account, and a federation number where one is on file.",
-          "Publicly — that is, without any sign-in — only name and role are shown, together with the club, the squads and the matchdays a person took part in. Email address, date of birth and federation number are never published.",
+          "Publicly — that is, without any sign-in — only name and role are shown, together with the club, the squads and the acts a person took part in. Email address, date of birth and federation number are never published.",
           "Standings and results are recorded per team, not per person. Names become part of the public record through squad and lineup lists.",
           "The legal basis is our legitimate interest (Art. 6(1)(f) GDPR), for participants under 18 as well: the results and lineups of a public competition name who sailed. You can object under Art. 21 GDPR — an email to vorstand@deutsche-segelliga.de is enough; we then decide case by case whether your name appears only as plain text without a profile page, or not at all."
         ]

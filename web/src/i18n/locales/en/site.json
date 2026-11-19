@@ -64,7 +64,7 @@
   "season": {
     "more": "Season",
     "empty": "No events published yet.",
-    "matchdays": "Events",
+    "matchdays": "Acts",
     "calendar": "Season {year}"
   },
   "clubs": {

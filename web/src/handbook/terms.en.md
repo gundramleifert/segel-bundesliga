@@ -6,7 +6,7 @@ audience: [sailor, club, event-organizer, race-committee, treasurer, administrat
 stories: [A-4, A-5, VA-8, VA-10]
 journey: null
 route: null
-tags: [glossary, terms, glossar, begriffe, serie, spieltag, kader, aufstellung, ausrichter, revier, wertung, punkte, streicher, haftungsausschluss]
+tags: [glossary, terms, glossar, begriffe, serie, spieltag, act, kader, aufstellung, ausrichter, revier, wertung, punkte, streicher, haftungsausschluss]
 title: "Terms"
 ---
 

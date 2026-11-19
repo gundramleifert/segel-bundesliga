@@ -48,7 +48,7 @@
   },
   "act": {
     "title": "Act {n}",
-    "tabs": "Spieltag",
+    "tabs": "Act",
     "division": "Liga"
   },
   "hostedBy": "ausgerichtet von {host}",
@@ -63,8 +63,8 @@
   },
   "season": {
     "more": "Saison",
-    "empty": "Noch keine Spieltage veröffentlicht.",
-    "matchdays": "Spieltage",
+    "empty": "Noch keine Acts veröffentlicht.",
+    "matchdays": "Acts",
     "calendar": "Saison {year}"
   },
   "clubs": {
@@ -99,7 +99,7 @@
     "photos": "Druckfotos",
     "photosText": "Hohe Auflösung, frei für redaktionelle Nutzung",
     "accreditation": "Akkreditierung",
-    "accreditationText": "Auf dem Wasser oder an Land, pro Spieltag",
+    "accreditationText": "Auf dem Wasser oder an Land, pro Act",
     "contact": "Kontakt",
     "older": "Ältere Mitteilungen"
   },
@@ -110,7 +110,7 @@
   },
   "noticeBoard": {
     "season": "Schwarzes Brett der Saison",
-    "intro": "Dokumente für die ganze Saison. Die Aushänge eines Spieltags — Änderungen, Jury-Entscheidungen, die Protestliste — stehen auf seiner Seite:",
+    "intro": "Dokumente für die ganze Saison. Die Aushänge eines Acts — Änderungen, Jury-Entscheidungen, die Protestliste — stehen auf seiner Seite:",
     "ofAct": "Schwarzes Brett von {act}",
     "announcements": "Aushänge",
     "documents": "Dokumente",

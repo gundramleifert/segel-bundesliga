@@ -49,19 +49,19 @@ sofort gespeichert, ohne Speichern-Knopf; Punkte und Tabellen folgen live auf de
 - Die Jury entscheidet über einen Protest, trägt aber selbst nichts ein — die
   Wettfahrtleitung trägt ihre Entscheidung hier ein.
 
-### Strafpunkte für den Spieltag {#results-entry-penalty}
+### Strafpunkte für den Act {#results-entry-penalty}
 
 Für eine Strafe außerhalb einzelner Wettfahrten: verspätete Crewliste, verpasste
 Besprechung, Schaden am Boot.
 
-1. *Strafpunkte für den Spieltag* unter den Wettfahrten öffnen.
+1. *Strafpunkte für den Act* unter den Wettfahrten öffnen.
 2. Die Punkte des Teams (mehr als 0, höchstens 100) und eine *Begründung (optional)*
    eintragen.
 3. *Speichern*.
 
 - Einmal gezählt, zusätzlich zu den Wettfahrten des Teams, nie gestrichen, nur dieser
-  Spieltag.
-- Die Spieltagstabelle zeigt *inkl. … Strafpunkte*, die Begründung als Tooltip.
+  Act.
+- Die Act-Tabelle zeigt *inkl. … Strafpunkte*, die Begründung als Tooltip.
 - Erneutes Speichern ersetzt sie; ein leeres Feld und *Speichern* entfernt sie. Auch eine
   abgeschlossene Veranstaltung nimmt sie noch an.
 

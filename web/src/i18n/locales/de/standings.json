@@ -13,7 +13,7 @@
     "rank": "Platz",
     "club": "Verein",
     "points": "Punkte",
-    "act": "{matchday}. Act",
+    "act": "Act {matchday}",
     "notSailed": "nicht angetreten — Teilnehmerzahl + 1"
   },
   "seriesOverview": {

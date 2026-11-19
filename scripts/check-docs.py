@@ -486,6 +486,40 @@ def render_index(entries: list[tuple[str, str]]) -> str:
     return "\n".join(lines)
 
 
+# Words the site no longer uses for what it shows (decided 2026-11-19: an event of a series
+# is an *Act*, in German too, never a *Spieltag*). Checked in every catalog message and in
+# the help's prose; a page's `tags:` may keep the old word, so a search for it still finds.
+RETIRED_WORDS = {re.compile(r"spieltag", re.I): "Act"}
+CATALOGS = ROOT / "web" / "src" / "i18n" / "locales"
+
+
+def check_retired_words() -> list[str]:
+    def flat(value: object) -> list[str]:
+        if isinstance(value, str):
+            return [value]
+        if isinstance(value, dict):
+            return [text for item in value.values() for text in flat(item)]
+        return []
+
+    texts = [
+        (path.relative_to(ROOT), text)
+        for path in sorted(CATALOGS.glob("*/*.json"))
+        for text in flat(json.loads(path.read_text(encoding="utf-8")))
+    ]
+    texts += [
+        (path.relative_to(ROOT), line)
+        for path in sorted(HANDBOOK.glob("*.md"))
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if not line.startswith("tags:")
+    ]
+    return [
+        f"{where}: {pattern.pattern!r} is retired, say {instead!r} — {text.strip()[:80]}"
+        for where, text in texts
+        for pattern, instead in RETIRED_WORDS.items()
+        if pattern.search(text)
+    ]
+
+
 def scaffold(rule: str) -> int:
     from datetime import date
 
@@ -1177,6 +1211,7 @@ def main(argv: list[str]) -> int:
     problems += journey_problems
     gotcha_problems, entries = check_gotchas()
     problems += gotcha_problems
+    problems += check_retired_words()
     handbook = check_handbook(markers, all_journeys, files)
     problems += handbook.problems
     warnings = [*warnings, *handbook.warnings]

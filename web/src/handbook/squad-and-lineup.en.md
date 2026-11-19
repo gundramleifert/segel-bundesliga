@@ -6,7 +6,7 @@ audience: [club]
 stories: [V-5, V-6, V-4, V-1, V-2, V-12]
 journey: null
 route: null
-tags: [crew, squad, matchday, roster, kader, aufstellung, spieltag, meldung, teammanager]
+tags: [crew, squad, matchday, roster, kader, aufstellung, spieltag, act, meldung, teammanager]
 title: "Register the squad and name the crew"
 ---
 

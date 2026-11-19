@@ -29,7 +29,7 @@ Organisation ist, sieht den Bereich, aber nicht diesen Bildschirm.
    hoch, Vorbereitungssignal hoch, Vorbereitungssignal runter, Clubflagge runter — Start
    bei null erfasst.
 
-- Die Veranstaltung muss laufen; eine geplante bietet *Spieltag starten* an (braucht eine
+- Die Veranstaltung muss laufen; eine geplante bietet *Act starten* an (braucht eine
   vollständige Konfiguration und eine Pairing-Liste).
 - *Start*: erfasst den Start beim Tippen, ohne Startfolge.
 - *Startfolge abbrechen* stoppt sie; ein Startfolge-Knopf startet sie neu.

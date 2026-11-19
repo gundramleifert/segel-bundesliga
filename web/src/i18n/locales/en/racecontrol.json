@@ -12,7 +12,7 @@
   "noRaces": "No pairing list yet — draw one on the manage screen first.",
   "event": {
     "planned": "The event has not started yet.",
-    "startMatchday": "Start event",
+    "startMatchday": "Start act",
     "startHint": "Starting needs a complete setup and a pairing list.",
     "final": "Racing is over for this day.",
     "cancelled": "This event was called off.",

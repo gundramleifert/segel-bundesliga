@@ -6,7 +6,7 @@ audience: [event-organizer]
 stories: []
 journey: null
 route: null
-tags: [organizer, host club, matchday, regatta, veranstaltung, ausrichter, spieltag, organisation]
+tags: [organizer, host club, matchday, regatta, veranstaltung, ausrichter, spieltag, act, organisation]
 title: "Help for event organizers"
 ---
 

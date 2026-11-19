@@ -94,7 +94,7 @@
         "heading": "Wer verantwortlich ist, wenn ein Verein seine eigene Veranstaltung durchführt",
         "paragraphs": [
           "Ein Verein kann über diese Website eine eigene Veranstaltung durchführen, die zu keiner Serie des Verbandes gehört — einen Pokal, ein Trainingswochenende. Für eine solche Veranstaltung ist der ausrichtende Verein Verantwortlicher für die Daten der Teilnehmenden: Er entscheidet, wer teilnimmt, nimmt Meldungen, Crews und Haftungserklärungen entgegen und veröffentlicht die Ergebnisse. Der Verband stellt die Website bereit und verarbeitet diese Daten im Auftrag des Vereins (Art. 28 DSGVO). Ihre Rechte zu einer solchen Veranstaltung richten Sie an den Ausrichter, der auf der Seite der Veranstaltung genannt ist.",
-          "Für die Veranstaltungen der eigenen Serien des Verbandes — auch wenn ein Verein einen Spieltag ausrichtet — und für alles, was über einzelne Veranstaltungen hinausgeht (Konten, Personen, Profile, Tabellen), ist der Deutsche Segel-Liga e.V. Verantwortlicher."
+          "Für die Veranstaltungen der eigenen Serien des Verbandes — auch wenn ein Verein einen Act ausrichtet — und für alles, was über einzelne Veranstaltungen hinausgeht (Konten, Personen, Profile, Tabellen), ist der Deutsche Segel-Liga e.V. Verantwortlicher."
         ],
         "open": "Der Auftragsverarbeitungsvertrag, den ein Ausrichter annimmt, bevor er hier eine eigene Veranstaltung durchführt, und die Nennung des Ausrichters als Verantwortlicher auf der Seite der Veranstaltung sind entschieden, aber noch nicht gebaut."
       },
@@ -255,7 +255,7 @@
         "heading": "Seglerprofile, Veröffentlichung und Ergebnisse",
         "paragraphs": [
           "Ein Seglerdatensatz enthält Vor- und Nachnamen, das Geburtsdatum, optional eine E-Mail-Adresse, die das Profil mit einem Konto verbindet, und eine Verbandsnummer, sofern erfasst.",
-          "Öffentlich — also ohne jede Anmeldung — werden nur Name und Rolle gezeigt, dazu der Verein, die Kader und die Spieltage, an denen eine Person teilgenommen hat. E-Mail-Adresse, Geburtsdatum und Verbandsnummer werden nie veröffentlicht.",
+          "Öffentlich — also ohne jede Anmeldung — werden nur Name und Rolle gezeigt, dazu der Verein, die Kader und die Acts, an denen eine Person teilgenommen hat. E-Mail-Adresse, Geburtsdatum und Verbandsnummer werden nie veröffentlicht.",
           "Tabellen und Ergebnisse werden je Team erfasst, nicht je Person. Namen werden über Kader- und Aufstellungslisten Teil des öffentlichen Bestands.",
           "Rechtsgrundlage ist unser berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO), auch für Teilnehmende unter 18: Ergebnisse und Aufstellungen eines öffentlichen Wettbewerbs nennen, wer gesegelt ist. Sie können dem nach Art. 21 DSGVO widersprechen — eine E-Mail an vorstand@deutsche-segelliga.de genügt; wir prüfen dann im Einzelfall, ob Ihr Name nur noch als Text ohne Profilseite oder gar nicht mehr erscheint."
         ]

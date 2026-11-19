@@ -38,7 +38,7 @@ full translation — same sections, same depth, same screenshots, never a summar
   quotes `en/*.json`, the German page `de/*.json`. Never translate a label yourself; if a
   label is missing in one catalog, that is a finding.
 - **Domain words are fixed** (CLAUDE.md § Language, `docs/concepts.md`): Series / Serie,
-  Event / Veranstaltung, Matchday / Spieltag, Act, Squad / Kader, Lineup / Aufstellung,
+  Event / Veranstaltung, Act (German too — never *Spieltag*), Squad / Kader, Lineup / Aufstellung,
   Host club / Ausrichter, Venue / Revier, Race committee / Wettfahrtleitung, Pairing list,
   Flight. Use what the catalogs use in that locale. Never call the site "Segel-Bundesliga":
   that is one series' name.

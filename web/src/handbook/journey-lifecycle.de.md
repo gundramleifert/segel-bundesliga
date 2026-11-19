@@ -6,11 +6,11 @@ audience: [administration, event-organizer, race-committee]
 stories: [A-1, A-6, VA-8, VA-6, VA-7, B-3, WL-2, B-1, VA-10, VA-9]
 journey: J-1
 route: null
-tags: [lifecycle, season, matchday, spieltag, serie, veranstaltung, auslosung, wertung]
-title: Von der leeren Serie zum gewerteten Spieltag
+tags: [lifecycle, season, matchday, spieltag, act, serie, veranstaltung, auslosung, wertung]
+title: Von der leeren Serie zum gewerteten Act
 ---
 
-## Von der leeren Serie zum gewerteten Spieltag
+## Von der leeren Serie zum gewerteten Act
 
 Wer: die Geschäftsstelle, die Veranstaltungsleitung, die Wettfahrtleitung, die Jury, ein
 Besucher.

@@ -6,7 +6,7 @@ audience: [sailor, club, event-organizer, race-committee, treasurer, administrat
 stories: [A-4, A-5, VA-8, VA-10]
 journey: null
 route: null
-tags: [glossary, terms, glossar, begriffe, serie, spieltag, kader, aufstellung, ausrichter, revier, wertung, punkte, streicher, haftungsausschluss]
+tags: [glossary, terms, glossar, begriffe, serie, spieltag, act, kader, aufstellung, ausrichter, revier, wertung, punkte, streicher, haftungsausschluss]
 title: "Begriffe"
 ---
 
@@ -19,8 +19,8 @@ title: "Begriffe"
 | Liga | Ein Wettbewerb, der jedes Jahr wiederkommt, etwa die 1. Liga. Ihre Seite führt zu ihren Jahrgängen. |
 | Serie | Die Veranstaltungen eines Jahres, die zusammen gewertet werden. Der Name enthält das Jahr: „1. Segel-Bundesliga 2026“. |
 | Jahrgang | Eine Serie einer Liga. |
-| Veranstaltung | Ein Termin mit Wettfahrten. Sie gehört als Spieltag zu einer Serie oder steht für sich (ein Pokal, ein Trainingswochenende) und zählt dann in keiner Serientabelle. |
-| Spieltag, *Act* | Eine Veranstaltung einer Serie, mit ihrer Nummer. Auf den Seiten einer Liga ist *3. Act* der dritte Spieltag dieses Jahrgangs. |
+| Veranstaltung | Ein Termin mit Wettfahrten. Sie gehört als Act zu einer Serie oder steht für sich (ein Pokal, ein Trainingswochenende) und zählt dann in keiner Serientabelle. |
+| Act | Eine Veranstaltung einer Serie, mit ihrer Nummer. *Act 3* ist der dritte Act dieses Jahrgangs. |
 | Ausrichter | Der Verein, der die Veranstaltung durchführt. Er trägt ihre Kosten. |
 | Revier | Wo gesegelt wird. Steht oft erst später fest. |
 | Pairing-Liste | Welches Team in welcher Wettfahrt welches Boot segelt. Wird für jede Veranstaltung ausgelost. |
@@ -35,7 +35,7 @@ title: "Begriffe"
 | Mitglied | Eine Person, die durch Mitgliedschaft zu einem Verein gehört. Die Vereinsverwaltung nimmt sie auf; wer in einem anderen Verein ist, kommt nur mit Zustimmung dazu. Eine Person kann in mehreren Vereinen sein. |
 | Segler | Eine Person, die für einen Verein segelt. |
 | Kader | Die Segler, die ein Verein für eine Serie meldet. Die Serie legt die kleinste und größte Zahl fest, eine Einzelveranstaltung für sich selbst. Eine Person segelt in einer Serie nur für einen Verein. |
-| Crew, Aufstellung | Wer an einem Spieltag für den Verein segelt. Aufgestellt werden kann nur, wer im Kader steht. |
+| Crew, Aufstellung | Wer bei einem Act für den Verein segelt. Aufgestellt werden kann nur, wer im Kader steht. |
 | Haftungsausschluss | Wird einmal je Serie bestätigt und gilt dann für alle ihre Veranstaltungen. Eine Einzelveranstaltung braucht einen eigenen. Ein neuer Wortlaut muss erneut bestätigt werden. |
 | Erziehungsberechtigte | Das Konto eines Elternteils, das der Verein des Kindes mit einem Segler unter 18 verknüpft hat. |
 | Rollen | Wer was darf: [Rollen](#roles-list). |
@@ -54,7 +54,7 @@ Zwei getrennte Fragen: wer die Veranstaltung sieht und wie weit sie ist.
 | *abgesagt* | Abgesagt. | Nichts wird gelöscht und nichts gewertet. Absage zurücknehmen (zurück zu *geplant*). |
 
 > **Hinweis:** Ab dem ersten Startsignal oder dem ersten Ergebnis steht die Konfiguration
-> fest: Zahl der Teams, Boote und Flights, Serie und Spieltag, die Vereine, die Boote und
+> fest: Zahl der Teams, Boote und Flights, Serie und Act, die Vereine, die Boote und
 > die Pairing-Liste. Ergebnisse stehen nie fest. Eine Protestentscheidung Monate später
 > zählt weiterhin.
 
@@ -67,13 +67,13 @@ korrigiert, ändern sich alle Summen mit.
   gestartet, nicht im Ziel oder disqualifiziert: die Zahl der Starter + 1. Bei Wiedergutmachung (Redress) zählen die zugesprochenen Punkte. Eine
   Punktstrafe schlägt einen Anteil der Starter auf (20 %, wenn die Serie nichts anderes
   festlegt), mindestens 1 Punkt, nie mehr als für Nichtankommen.
-- **Ein Spieltag:** Die Punkte der Wettfahrten werden addiert. Strafpunkte für den
-  Spieltag zählen einmal und werden nie gestrichen. Streicher gibt es nur, wenn die Serie
+- **Ein Act:** Die Punkte der Wettfahrten werden addiert. Strafpunkte für den
+  Act zählen einmal und werden nie gestrichen. Streicher gibt es nur, wenn die Serie
   sie festlegt, was sie normalerweise nicht tut. Bei Gleichstand gewinnt das Team mit
   mehr besseren Plätzen, danach entscheidet die letzte Wettfahrt.
-- **Die Serie:** Die Plätze der Spieltage werden addiert. Ein Verein, der einen Spieltag
+- **Die Serie:** Die Plätze der Acts werden addiert. Ein Verein, der einen Act
   verpasst, erhält dort die Zahl der platzierten Vereine + 1 (*nicht angetreten —
   Teilnehmerzahl + 1*). Fernbleiben ist so nie besser als Letzter zu werden. Bei
-  Gleichstand gewinnt der bessere Platz am jüngsten Spieltag.
+  Gleichstand gewinnt der bessere Platz beim jüngsten Act.
 - Es zählen nur Veranstaltungen im Status *läuft* oder *beendet*. Eine Veranstaltung im
   Status *abgesagt* kostet niemanden Punkte.

@@ -53,7 +53,7 @@ mit eigenen Bereichen.
 
 ### Wo das hineinpasst {#start-administration-journeys}
 
-- [Von der leeren Serie zum gewerteten Spieltag](#journey-lifecycle)
+- [Von der leeren Serie zum gewerteten Act](#journey-lifecycle)
 - [Ein neuer Verein startet und führt sich selbst](#journey-club)
 - [Eine Organisation richtet eine Serie ein](#journey-series)
 

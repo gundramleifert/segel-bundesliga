@@ -6,7 +6,7 @@ audience: [event-organizer]
 stories: []
 journey: null
 route: null
-tags: [organizer, host club, matchday, regatta, veranstaltung, ausrichter, spieltag, organisation]
+tags: [organizer, host club, matchday, regatta, veranstaltung, ausrichter, spieltag, act, organisation]
 title: "Hilfe für die Organisation einer Veranstaltung"
 ---
 
@@ -48,8 +48,8 @@ sagt, was noch fehlt; *Einrichten* und *Wettfahrttag* enthalten die Arbeit.
 
 ### Wie es zusammenhängt {#start-event-organizer-journeys}
 
-- [Von der leeren Serie zum gewerteten Spieltag](#journey-lifecycle)
+- [Von der leeren Serie zum gewerteten Act](#journey-lifecycle)
 - [Eine Serienleitung richtet eine Serie ein](#journey-series)
-- [Die Crew eines Vereins wird für einen Spieltag freigegeben](#journey-crew-cleared)
+- [Die Crew eines Vereins wird für einen Act freigegeben](#journey-crew-cleared)
 
 [Veranstaltung in Mein Bereich öffnen](place:event.overview)

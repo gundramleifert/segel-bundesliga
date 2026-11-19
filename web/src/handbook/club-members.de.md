@@ -90,7 +90,7 @@ Nur die Vereinsverwaltung, in [*Ihr Verein* › *Vereinsseite*](place:club.page)
 *Stander ersetzen* – und wählen Sie ein Bild von höchstens 2 MB; Transparenz bleibt
 erhalten, die längste Kante wird auf höchstens 512 px verkleinert. *Stander entfernen*
 nimmt ihn ab. Er erscheint auf der Vereinsseite, in der Vereinsliste und
-bei den Crews eines Spieltags.
+bei den Crews eines Acts.
 
 Abgelehnt? Siehe [FAQ](#faq-club).
 

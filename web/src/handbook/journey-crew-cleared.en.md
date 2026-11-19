@@ -6,7 +6,7 @@ audience: [club, sailor, event-organizer]
 stories: [V-1, V-12, V-2, Z-8, VA-5, S-2, S-1, V-13, S-8]
 journey: J-5
 route: null
-tags: [crew, squad, waiver, check-in, kader, aufstellung, haftungsausschluss, erziehungsberechtigte, spieltag]
+tags: [crew, squad, waiver, check-in, kader, aufstellung, haftungsausschluss, erziehungsberechtigte, spieltag, act]
 title: A club's crew is cleared for an event
 ---
 

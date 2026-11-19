@@ -397,6 +397,16 @@ or a staging that no longer runs it. Production takes staging's images rather th
 building its own, so it runs exactly what was tried. Staging has no SMTP: its copy holds
 real people's addresses.
 
+### An event of a series is an *Act*
+
+Decided 2026-11-19: what German pages called a *Spieltag* is an **Act** on screen, in
+German as in English — the word the league pages and their URLs (`/1-liga/2026/act-3`)
+already used, so one thing has one name. Code keeps `matchday` (`Event.matchday`, the
+`matchday` namespace): renaming a column is a migration for no reader's gain. Recorded
+texts — press releases, Manage2Sail pages, SAP exports, news — keep their own words.
+`scripts/check-docs.py` (`RETIRED_WORDS`) refuses *Spieltag* in the catalogs and the help
+outside a page's search tags.
+
 ### Logged in or guest
 
 Most requests carry a user, but the public site also serves guests.

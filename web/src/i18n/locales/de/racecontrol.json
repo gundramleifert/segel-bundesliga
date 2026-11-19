@@ -11,8 +11,8 @@
   "allDone": "Alle Wettfahrten dieses Tages sind erledigt.",
   "noRaces": "Noch keine Pairing-Liste — zuerst auf der Verwaltungsseite auslosen.",
   "event": {
-    "planned": "Der Spieltag hat noch nicht begonnen.",
-    "startMatchday": "Spieltag starten",
+    "planned": "Der Act hat noch nicht begonnen.",
+    "startMatchday": "Act starten",
     "startHint": "Der Start braucht eine vollständige Konfiguration und eine Pairing-Liste.",
     "final": "Die Wettfahrten dieses Tages sind beendet.",
     "cancelled": "Diese Veranstaltung wurde abgesagt.",
