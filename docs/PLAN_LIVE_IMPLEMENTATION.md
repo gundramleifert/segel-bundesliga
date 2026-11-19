@@ -176,8 +176,8 @@ Numbered so stories can cite them.
 commit does not block the RC's result PUT or a spectator GET — plus an export-after-the-day
 (`GET /api/races/{id}/track` → file), so a day is never only in one database. The free test
 instance resets its database on every sleep and redeploy: there fixes are **ephemeral by
-design**, and the page says so. Retention beyond that is a later decision. One initial
-migration, regenerated, as always.
+design**, and the page says so. Retention beyond that is a later decision. A new
+migration on top, as always.
 
 ---
 

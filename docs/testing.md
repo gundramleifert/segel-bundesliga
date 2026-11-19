@@ -121,14 +121,12 @@ e2e stacks stay `scripts/dev-stack.sh`'s job.
 reference data (`app.seed`), accounts (`app.seed_users`). Repeatable; `--reset` drops all
 tables and migration state first. Individual steps still work.
 
-**Migrations:** There is **one** initial migration. As long as nothing is in production, it is
-regenerated when models change rather than creating a chain —
-`rm alembic/versions/*.py`, then `alembic revision --autogenerate` against an empty
-database, then `seed_test_setup --reset`. **The first production deploy with real data
-ends this** (decided 2026-11-11): the migration it ran is the baseline, never regenerated
-again, and every model change after it is a new migration on top, with its data carried
-over — tried on a copy of production first. `tests/unit/test_migrations.py` fails whenever
-the models and the migrations differ, so a forgotten migration is red in CI.
+**Migrations chain.** Until 2026-11-19 there was one initial migration, regenerated on
+every model change; since deutsche-segelliga.de runs on it, `7133017ca682_initial_schema.py`
+is the **baseline, frozen** — every model change is a new migration on top, written as
+`docs/deploy-server.md` § Migrations says. `tests/unit/test_migrations.py` fails when the
+models and the migrations differ (a forgotten migration) and when the baseline's bytes
+change (a regenerated one).
 
 **Database: Postgres, and nothing else** (decided 2026-11-11) — production, development
 and both test suites. No SQLite path, no second dialect to stay compatible with: Postgres

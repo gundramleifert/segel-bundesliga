@@ -129,6 +129,9 @@ curl to the `db-setup` log — signed with your `SBL_JWT_SECRET`, valid for its 
 
 ## Reset
 
+Not on deutsche-segelliga.de — it deletes the database and every upload; there an
+update migrates (`docs/deploy-server.md` § Our server).
+
 ```bash
 deploy/compose/compose.sh down -v      # drop all volumes
 deploy/compose/compose.sh up -d --wait # migrate and seed afresh

@@ -6,24 +6,64 @@ needs, the first installation, updates, backups and what to watch.
 `deploy/compose/README.md` is the reference for the stack itself (services, settings,
 secrets, storage).
 
-## Read this first — it is not ready for real data yet
+## Read this first — the seed still holds test accounts
 
-Two things make this a **demonstration or pre-production** install today, not one that
-keeps a club's real data:
+**The first start also seeds the test system.** `db-setup` runs `app.seed_test_setup` on
+an empty database: the real 2026 season (results, news, pictures) — and also the 44 test
+accounts (`@….example.com`). A seed without them is the next step of
+`docs/PLAN_SEEDING.md` (S-0); so is staging as a restored copy of prod. That ends with the seed of S-0. **Updates keep the data** (since 2026-11-19): the
+migrations chain on the baseline the server was installed with — § Migrations.
 
-- **The first start also seeds the test system.** `db-setup` runs `app.seed_test_setup` on
-  an empty database: the real 2026 season (results, news, pictures) — and also the 44 test
-  accounts (`@….example.com`). A seed without them is the next step of
-  `docs/PLAN_SEEDING.md` (S-0); so is staging as a restored copy of prod.
-- **An update can lose the data.** As long as nothing is in production there is **one**
-  Alembic migration, regenerated whenever the models change (CLAUDE.md, "Migrations").
-  An existing database cannot be upgraded across such a change: `alembic upgrade head`
-  finds nothing to do and the code meets a schema it does not expect. Such an update is a
-  reset.
+## Our server
 
-Both end with the first production deploy that holds real data: its migration becomes the
-baseline, and every later model change is a migration on top (CLAUDE.md, "Migrations").
-Until then, anything entered on the server is test data.
+| | |
+|---|---|
+| Site | **https://deutsche-segelliga.de** (`www.` redirects to it) |
+| Machine | `segelliga-1` at Hetzner, **`178.104.43.254`** — no DNS alias in anyone's `~/.ssh/config`, use the IP |
+| Sign in | `ssh sbl@178.104.43.254` — user `sbl` (docker group), with your own key; `root` only for the host |
+| Repository | `~/sbl`, a clone of `main` |
+| Secrets | `deploy/compose/prod.sops.env` (`.sops.yaml`: you and the server); always `export SECRETS=$HOME/sbl/deploy/compose/prod.sops.env` before `compose.sh` |
+| Settings | `~/sbl/deploy/compose/.env` — `WEB_PORT=127.0.0.1:8080`, `SBL_SITE_URL=https://deutsche-segelliga.de` |
+| HTTPS | Caddy on the host, `/etc/caddy/Caddyfile` → `127.0.0.1:8080` |
+
+**Deploying `main`** — after it is pushed and `scripts/check.sh` is green. From your machine,
+in one go (the build takes a few minutes):
+
+```bash
+ssh sbl@178.104.43.254 'set -e; cd sbl
+export SECRETS=$HOME/sbl/deploy/compose/prod.sops.env C=deploy/compose/compose.sh
+day=$(date +%F-%H%M); mkdir -p ~/backup/$day                       # 1. backup first
+$C exec -T db sh -c "pg_dump -U \$POSTGRES_USER -d \$POSTGRES_DB -Fc" > ~/backup/$day/db.dump
+git pull --ff-only                                                 # 2. the code
+$C up --build -d --wait                                            # 3. build; db-setup migrates
+$C exec -T db sh -c "psql -U \$POSTGRES_USER -d \$POSTGRES_DB -Atc \"select version_num from alembic_version\""
+$C ps'
+```
+
+Then check: `version_num` is the newest file's `revision` in `api/alembic/versions/`, every
+service is healthy, `$C logs db-setup` ends without a traceback, and the change is visible
+on the site. A failed migration leaves the old schema (Postgres runs it in one transaction):
+fix it in a new commit and deploy again; restore the backup (§ Backups) only if data was
+damaged. **Never `down -v` here** — it deletes the database and every upload.
+
+## Migrations
+
+`db-setup` runs `alembic upgrade head` on every `up`. The chain starts at
+`7133017ca682_initial_schema.py`, the schema the server was installed with — **frozen**:
+never edited, never regenerated (`tests/unit/test_migrations.py` checks its hash). A model
+change ships with a new migration in the same commit:
+
+1. Change the model.
+2. In `api/`, against a database at the current head (the dev database after
+   `uv run python -m app.seed_test_setup`):
+   `uv run alembic revision --autogenerate -m "what changes, in a sentence"`. Read what it
+   wrote: autogenerate misses renames (it drops and adds — the data is lost) and server
+   defaults; a new required column needs a default or a data step for the rows already
+   there. Fill `downgrade()` too.
+3. `uv run pytest tests/unit/test_migrations.py` — red if models and migrations differ.
+4. A migration that moves or rewrites data is tried on a copy of production first:
+   restore a server backup into the dev Postgres (§ Backups, *Restoring*), `alembic
+   upgrade head`, look.
 
 ## What the machine needs
 
@@ -138,10 +178,9 @@ git pull
 deploy/compose/compose.sh up --build -d --wait
 ```
 
-`db-setup` runs again on every `up`: it migrates, and seeds only an empty database. Read
-"it is not ready for real data" above first — while the migration is regenerated, a pull
-that changed the models needs a reset (`compose.sh down -v`, then `up`), and a backup
-before it is all that keeps anything.
+`db-setup` runs again on every `up`: it migrates (§ Migrations), and seeds only an empty
+database. Take a backup first (§ Backups); for our own server the whole sequence is in
+§ Our server.
 
 ## Backups
 

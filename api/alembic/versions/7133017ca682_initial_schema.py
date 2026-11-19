@@ -1059,6 +1059,8 @@ def upgrade() -> None:
         sa.Column("teaser", sa.String(length=500), nullable=True),
         sa.Column("body", sa.Text(), nullable=False),
         sa.Column("author", sa.String(length=120), nullable=True),
+        sa.Column("quote", sa.String(length=500), nullable=True),
+        sa.Column("quote_by", sa.String(length=120), nullable=True),
         sa.Column("photo_url", sa.String(length=500), nullable=True),
         sa.Column("photo_credit", sa.String(length=160), nullable=True),
         sa.Column("published", sa.Boolean(), server_default="0", nullable=False),

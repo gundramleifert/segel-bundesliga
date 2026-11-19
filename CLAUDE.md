@@ -64,8 +64,10 @@ scripts/check.sh                         # everything that must be green, before
 
 - **Postgres only**, everywhere (decided 2026-11-11). Tests make their own databases
   (`api/tests/conftest.py`, set at module level).
-- **One initial migration**, regenerated when models change, until the first production
-  deploy; then migrations chain. `tests/unit/test_migrations.py` fails on drift.
+- **Migrations chain** (since 2026-11-19, deutsche-segelliga.de runs): every model change is
+  a new Alembic migration on top; the baseline `7133017ca682` is frozen
+  (`tests/unit/test_migrations.py` fails on drift and on a changed baseline). Deploying —
+  server, access, steps: `docs/deploy-server.md` § Our server.
 - **The frontend's API client is generated**: after any route or schema change run
   `scripts/gen-api-client.sh`, then `pnpm typecheck` in `web/` (`tsc --noEmit` checks
   nothing here). Nothing under `web/src/api/generated/` is edited; handler names become

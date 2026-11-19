@@ -377,6 +377,17 @@ These points were deliberately decided this way; bypassing them costs a lot late
   `SapAttribution`. Tried against a local SAP: `deploy/sap-local/`.
 
 
+### Migrations chain from the live site on
+
+Until 2026-11-19 the schema was one initial migration, regenerated on every model change,
+and an update of an installation was a reset. Since deutsche-segelliga.de runs
+(`docs/deploy-server.md` § Our server), its database is kept: the migration it was
+installed with (`7133017ca682`) is the frozen baseline and every model change is a new
+Alembic migration on top, which `db-setup` applies on every `up`. The first one,
+`0002_post_drops_quote`, dropped a post's separate quote. Checked by
+`tests/unit/test_migrations.py`: models and migrations agree, and the baseline's hash is
+unchanged.
+
 ### Logged in or guest
 
 Most requests carry a user, but the public site also serves guests.
