@@ -15,6 +15,10 @@ x-api: &api
   build:
     context: ../..
     dockerfile: deploy/compose/api.Dockerfile
+    # The commit it was built from: deploy.sh hands production only images staging built
+    # from the commit it passed, and reads this to know (docs/deploy-server.md).
+    labels: &revision
+      org.opencontainers.image.revision: ${SBL_COMMIT:-unknown}
   image: ${COMPOSE_PROJECT_NAME:-segelliga}-api:local
   env_file:
     - path: .env
@@ -85,6 +89,7 @@ services:
     build:
       context: ../..
       dockerfile: deploy/compose/web.Dockerfile
+      labels: *revision
       args:
         # The role switcher is compiled in only together with the dev login — never here.
         VITE_DEV_TOOLS: "false"

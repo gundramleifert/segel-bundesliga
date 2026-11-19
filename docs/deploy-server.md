@@ -42,35 +42,41 @@ One machine runs **production and staging** side by side, each a Compose stack o
 
 Every change reaches production as a **release**: a tag `vX.Y.Z` on `main`, preceded by a
 **release candidate** `vX.Y.Z-rc.N` on the same commit that staging has run.
-`deploy/compose/deploy.sh` does both and **refuses** production for anything staging has
-not passed on a copy of the real data — so a migration has always run once on that data
+`scripts/deploy.py` (a uv script with a Typer CLI) does it from your machine; the server
+side, `deploy/compose/deploy.sh`, **refuses** production for anything staging has not
+passed on a copy of the real data — so a migration has always run once on that data
 before it touches production.
 
 ```bash
-# 1. on your machine: main pushed, scripts/check.sh green
-git tag v1.2.0-rc.1 && git push origin v1.2.0-rc.1
-
-# 2. staging: a fresh copy of production (database and uploads), the rc built and migrated on it
-ssh sbl@178.104.43.254 sbl/deploy/compose/deploy.sh staging v1.2.0-rc.1
-
-# 3. try it on https://staging.deutsche-segelliga.de; broken → fix on main, v1.2.0-rc.2, step 1
-
-# 4. the release: the same commit, a second tag
-git tag v1.2.0 v1.2.0-rc.1 && git push origin v1.2.0
-
-# 5. production: a backup, then exactly that commit
-ssh sbl@178.104.43.254 sbl/deploy/compose/deploy.sh prod v1.2.0
+scripts/deploy.py status            # what prod and staging run: tag, image, migration
+scripts/deploy.py staging 1.2.0     # check.sh, tag v1.2.0-rc.N on main, run it on staging
+#   try it on https://staging.deutsche-segelliga.de; broken → fix on main, the same command again (rc.N+1)
+scripts/deploy.py prod              # tag v1.2.0 on the commit staging passed, deploy it
+scripts/deploy.py logs staging api  # the last lines of a service's log
 ```
 
-`deploy.sh staging` takes production's database (`pg_dump`) and uploads, empties staging,
-restores them, builds the rc and starts it — `db-setup` migrates — and records in
-`~/staging-passed` the rc, its commit and the Alembic revision it reached. `deploy.sh
-prod` refuses unless the release tag is that commit and staging still runs it at that
-revision; then it backs production up into `~/backup/<date-time>/` (database and uploads),
-checks the commit out, builds, starts, and checks production reached the same revision.
+`staging` wants `main` checked out and pushed (a tag names what origin has), runs
+`scripts/check.sh` unless `--no-check`, picks the next `rc.N`, and pushes the tag. On the
+server it runs `deploy.sh` **as that tag has it** (`git show <tag>:…` into a temporary
+file — never the copy in a clone it is about to check out). `deploy.sh staging` takes
+production's database (`pg_dump`) and uploads, empties staging, restores them, builds the
+rc **on the server** — the images carry their commit as the label
+`org.opencontainers.image.revision` — starts it (`db-setup` migrates) and records in
+`~/staging-passed` the rc, its commit and the Alembic revision it reached.
+
+`prod` reads `~/staging-passed`, asks, tags the release on that commit and runs `deploy.sh
+prod`: it refuses unless the release is that commit and staging still runs it at that
+revision, from images built from it; then it backs production up into
+`~/backup/<date-time>/` (database and uploads), checks the commit out, **re-tags staging's
+images as production's** — nothing is built again, production runs the very images
+staging ran — starts them and checks production reached the same revision.
+
+Without the tool, the same by hand: `git tag v1.2.0-rc.1 && git push origin v1.2.0-rc.1`,
+then on the server `bash <(git -C ~/sbl-staging show v1.2.0-rc.1:deploy/compose/deploy.sh)
+staging v1.2.0-rc.1` after a `git -C ~/sbl-staging fetch --tags`; likewise `prod v1.2.0`.
 
 **Versions:** `X` for a change people must learn anew, `Y` for a new feature or a
-migration, `Z` for a fix. Each staging run takes ~5 minutes, each production run ~3.
+migration, `Z` for a fix. A staging run takes ~5 minutes (the build), a production run ~1.
 
 **When it fails:** a failed migration leaves the old schema (Postgres runs it in one
 transaction) — fix it on `main`, a new rc. Restore a backup (§ Backups) only if data was

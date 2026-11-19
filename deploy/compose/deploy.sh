@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # Deploys a release on our server, staging first — docs/deploy-server.md § Our server.
 #
-#   deploy/compose/deploy.sh staging v1.2.0-rc.1  # a fresh copy of production, migrated by it
-#   deploy/compose/deploy.sh prod v1.2.0          # only the commit that rc passed staging with
+#   deploy/compose/deploy.sh staging v1.2.0-rc.1  # built, then run on a fresh copy of production
+#   deploy/compose/deploy.sh prod v1.2.0          # staging's very images, nothing built anew
+#   deploy/compose/deploy.sh status               # what each runs, and what staging passed
+#
+# Normally started by scripts/deploy.py from your machine, which runs the copy of this file
+# from the commit being deployed — never the one in a clone it is about to check out.
 #
 # A release candidate is a tag on main; the release is a second tag on the same commit.
 # Production takes only what staging has run, so every migration is tried on a copy of the
@@ -25,6 +29,8 @@ stack() {
 }
 sql() { stack "$1" exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -Atc "$0"' "$2"; }
 revision() { sql "$1" "select version_num from alembic_version"; }
+image() { [[ $1 == prod ]] && echo "segelliga-$2:local" || echo "segelliga-staging-$2:local"; }
+built_from() { docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$1" 2>/dev/null; }
 uploads() { # $1 installation, $2 export|import, $3 directory
   stack "$1" run --rm --no-deps --user "$(id -u):$(id -g)" -v "$3:/copy" api \
     python -m app.storage_copy "$2" /copy
@@ -49,7 +55,7 @@ deploy_staging() {
   git -C "$STAGING_DIR" checkout -q --detach "$commit"
   git -C "$STAGING_DIR" log --oneline -1
   rm -f "$PASSED" # whatever passed before is no longer what staging runs
-  stack staging build
+  SBL_COMMIT=$commit stack staging build
 
   say "staging: a copy of production"
   local copy="$BACKUPS/for-staging"
@@ -86,18 +92,37 @@ deploy_prod() {
   say "prod: backup"
   backup "$BACKUPS/$(date +%F-%H%M)"
 
-  say "prod: $tag"
+  say "prod: $tag — staging's images"
+  local service
+  for service in api web; do
+    [[ $(built_from "$(image staging "$service")") == "$commit" ]] \
+      || die "staging's $service image is not built from ${commit:0:7} — deploy staging again"
+  done
   git -C "$PROD_DIR" checkout -q --detach "$commit"
   git -C "$PROD_DIR" log --oneline -1
-  stack prod up --build -d --wait
+  for service in api web; do docker tag "$(image staging "$service")" "$(image prod "$service")"; done
+  stack prod up --no-build -d --wait
   [[ $(revision prod) == "$version" ]] \
     || die "production is at $(revision prod), staging was at $version — compose.sh logs db-setup"
   stack prod ps --format '{{.Service}} {{.Status}}'
   say "production runs $tag at $version"
 }
 
+show_status() {
+  local name dir
+  for name in prod staging; do
+    [[ $name == prod ]] && dir=$PROD_DIR || dir=$STAGING_DIR
+    printf '%-8s code %-14s image %-8s db %s\n' "$name" \
+      "$(git -C "$dir" describe --tags --always 2>/dev/null || echo '?')" \
+      "$(built_from "$(image "$name" api)" | cut -c1-7)" \
+      "$(revision "$name" 2>/dev/null || echo '?')"
+  done
+  if [[ -f $PASSED ]]; then echo "staging passed: $(cat "$PASSED")"; else echo "staging passed: nothing"; fi
+}
+
 case "${1:-} ${2:-}" in
+  "status ") show_status ;;
   "staging "?*) deploy_staging "$2" ;;
   "prod "?*) deploy_prod "$2" ;;
-  *) die "usage: deploy.sh staging vX.Y.Z-rc.N | deploy.sh prod vX.Y.Z" ;;
+  *) die "usage: deploy.sh staging vX.Y.Z-rc.N | prod vX.Y.Z | status" ;;
 esac

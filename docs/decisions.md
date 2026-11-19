@@ -392,8 +392,10 @@ unchanged.
 same machine and gets a fresh copy of production's data on every deploy, so a migration
 meets the real rows before production does. A release candidate `vX.Y.Z-rc.N` goes to
 staging; the release `vX.Y.Z` is a second tag on the same commit, and
-`deploy/compose/deploy.sh prod` refuses any other commit, or a staging that no longer runs
-it. Staging has no SMTP: its copy holds real people's addresses.
+`deploy/compose/deploy.sh prod` (started by `scripts/deploy.py`) refuses any other commit,
+or a staging that no longer runs it. Production takes staging's images rather than
+building its own, so it runs exactly what was tried. Staging has no SMTP: its copy holds
+real people's addresses.
 
 ### Logged in or guest
 

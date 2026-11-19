@@ -30,7 +30,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
 | `docs/components.md` | **The frontend's building blocks** — read before writing a page |
 | `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |
-| `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
+| `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client), `deploy.py` (staging, then production) |
 | `docs/deploy-server.md` | **Running the site on a server** — the Compose stack's runbook: machine, first install with sops, HTTPS, updates, backups; what still makes it pre-production |
 | `compose.dev.yml` | **Backing services for development** — Postgres, SeaweedFS (S3), Mailpit; the API and web stay on the host, the header says which `SBL_*` to export |
 | `deploy/compose/` | **The whole site in Docker Compose** — Postgres, API, the SPA behind Caddy, SeaweedFS; started with `compose.sh`, secrets sops-encrypted in `secrets.sops.env` (recipients: `.sops.yaml`); `README.md` there |
@@ -67,9 +67,10 @@ scripts/check.sh                         # everything that must be green, before
 - **Migrations chain** (since 2026-11-19, deutsche-segelliga.de runs): every model change is
   a new Alembic migration on top; the baseline `7133017ca682` is frozen
   (`tests/unit/test_migrations.py` fails on drift and on a changed baseline).
-- **Deploying**: tag `vX.Y.Z-rc.N` → `deploy.sh staging` (a copy of production, migrated),
-  then `vX.Y.Z` on the same commit → `deploy.sh prod`, which refuses anything staging has
-  not passed. Server, access, steps: `docs/deploy-server.md` § Our server.
+- **Deploying**: `scripts/deploy.py staging X.Y.Z` (tags `vX.Y.Z-rc.N`, builds on the
+  server, runs it on a copy of production), then `scripts/deploy.py prod` (tags `vX.Y.Z` on
+  the same commit, staging's images, nothing rebuilt); the server's `deploy.sh` refuses
+  anything staging has not passed. `docs/deploy-server.md` § Our server.
 - **The frontend's API client is generated**: after any route or schema change run
   `scripts/gen-api-client.sh`, then `pnpm typecheck` in `web/` (`tsc --noEmit` checks
   nothing here). Nothing under `web/src/api/generated/` is edited; handler names become
