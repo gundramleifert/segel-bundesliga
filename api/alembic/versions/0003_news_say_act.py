@@ -1,4 +1,5 @@
-"""The news say Act where they said Spieltag, and the 2027 dates are "Termine 2027".
+"""The news say Act where they said Spieltag; the 2027 dates are "Termine 2027", one host
+club per line.
 
 Content, not schema: the posts live in the database, so the words change here, where
 staging tries them on a copy of production first (docs/deploy-server.md § Deploying).
@@ -30,6 +31,15 @@ PHRASES = [
     ("die ACTs der", "die Acts der"),
     ("<th>ACT</th>", "<th>Act</th>"),
     ("<td>ACT ", "<td>Act "),
+    # Two host clubs: one per line, not "A / B" (the "Ort / Revier" column keeps its slash).
+    *(
+        (f"<td>{a} / {b}</td>", f"<td>{a}<br>{b}</td>")
+        for a, b in [
+            ("Württembergischer Yacht-Club", "Konstanzer Yacht-Club"),
+            ("Bodensee Yacht-Club Überlingen", "Segel- und Motorbootclub Überlingen"),
+            ("Konstanzer Yacht-Club", "Schüler Segel-Club Konstanz"),
+        ]
+    ),
 ]
 # Then the word in all its forms (\m \M: Postgres' word boundaries), the longest first.
 WORDS = [("Spieltagen", "Acts"), ("Spieltage", "Acts"), ("Spieltags", "Acts"), ("Spieltag", "Act")]
