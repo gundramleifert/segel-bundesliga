@@ -200,7 +200,8 @@
     "allClubs": "Alle Vereine",
     "credits": "Fotos © ihrer Fotografinnen und Fotografen, wie an jedem Bild genannt.",
     "now": "Jetzt: {act} · {dates}",
-    "next": "Als Nächstes: {act} · {dates}"
+    "next": "Als Nächstes: {act} · {dates}",
+    "version": "Version {version}"
   },
   "dev": {
     "pictures": "Bilder",

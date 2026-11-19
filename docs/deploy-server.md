@@ -44,7 +44,11 @@ One machine runs **production and staging** side by side, each a Compose stack o
 ### Deploying — a release candidate on staging, then the release
 
 Every change reaches production as a **release**: a tag `vX.Y.Z` on `main`, preceded by a
-**release candidate** `vX.Y.Z-rc.N` on the same commit that staging has run.
+**release candidate** `vX.Y.Z-rc.N` on the same commit that staging has run. Both are
+**annotated** tags (who, when, a message), so `git describe` names them; production only
+ever takes a release, never an rc. The footer of every page shows what runs: *Version
+0.1.0 · 08203c7* — `deploy.sh` writes `SBL_VERSION` and `SBL_COMMIT` to the stack's `.env`
+when it starts it, and the web container hands them out with `SBL_ENVIRONMENT`.
 `scripts/deploy.py` (a uv script with a Typer CLI) does it from your machine; the server
 side, `deploy/compose/deploy.sh`, **refuses** production for anything staging has not
 passed on a copy of the real data — so a migration has always run once on that data

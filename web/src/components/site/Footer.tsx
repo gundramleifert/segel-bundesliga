@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { DEV_TOOLS } from "../../dev/devTools";
+import { commit, version } from "../../lib/environment";
 import { useAssociation, useLocalized } from "../../content";
 import { eventDates } from "../../lib/format";
 import { href, type Act } from "../../lib/site";
@@ -65,6 +66,12 @@ export function GlassFooter() {
           <p className="flex flex-wrap gap-x-4 gap-y-1">
             <Link to="/legal-notice" className={link} data-testid="site-footer-legal-notice">{tc("userMenu.legalNotice")}</Link>
             <Link to="/privacy" className={link}>{tc("userMenu.privacy")}</Link>
+            {version && (
+              <span data-testid="site-footer-version">
+                {t("footer.version", { version })}
+                {commit && ` · ${commit}`}
+              </span>
+            )}
           </p>
           <div className="space-y-1">
             <p>{t("footer.credits")}</p>

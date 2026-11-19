@@ -122,7 +122,7 @@ def staging(
             fail("checks are red — nothing tagged")
 
     step(f"{tag} on {commit[:7]}")
-    git("tag", tag, commit)
+    git("tag", "-a", tag, "-m", f"Release candidate {tag}", commit)
     git("push", "-q", "origin", tag)
     step(f"staging: {tag}")
     server_deploy("staging", tag, ref=tag)
@@ -152,7 +152,7 @@ def prod(
 
     if not existing:
         step(f"{release} on {commit[:7]}")
-        git("tag", release, commit)
+        git("tag", "-a", release, "-m", f"Release {release} ({rc} passed staging)", commit)
         git("push", "-q", "origin", release)
     step(f"prod: {release}")
     server_deploy("prod", release, ref=release)

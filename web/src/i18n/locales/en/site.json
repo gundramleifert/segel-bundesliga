@@ -200,7 +200,8 @@
     "allClubs": "All clubs",
     "credits": "Photos © their photographers, as each picture credits them.",
     "now": "Now: {act} · {dates}",
-    "next": "Next: {act} · {dates}"
+    "next": "Next: {act} · {dates}",
+    "version": "Version {version}"
   },
   "dev": {
     "pictures": "Pictures",

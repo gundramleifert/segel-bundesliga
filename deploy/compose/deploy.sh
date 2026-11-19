@@ -36,6 +36,14 @@ uploads() { # $1 installation, $2 export|import, $3 directory
     python -m app.storage_copy "$2" /copy
 }
 
+# Writes KEY=value into an installation's .env, where `compose up` reads it: the release
+# it runs (SBL_VERSION, SBL_COMMIT), shown in the footer and kept for any later `up`.
+set_env() { # $1 installation, $2 key, $3 value
+  local dir; [[ $1 == prod ]] && dir=$PROD_DIR || dir=$STAGING_DIR
+  local file="$dir/deploy/compose/.env"
+  if grep -q "^$2=" "$file"; then sed -i "s|^$2=.*|$2=$3|" "$file"; else echo "$2=$3" >> "$file"; fi
+}
+
 # Production's database and uploads, into directory $1.
 backup() {
   mkdir -p "$1/uploads"
@@ -68,6 +76,7 @@ deploy_staging() {
   echo "production at $(revision staging)"
 
   say "staging: migrate and start"
+  set_env staging SBL_VERSION "$tag"; set_env staging SBL_COMMIT "$commit"
   stack staging up -d --wait
   local now; now=$(revision staging)
   local head; head=$(stack staging run --rm --no-deps -T api alembic heads 2>/dev/null | awk 'NR==1{print $1}')
@@ -101,6 +110,7 @@ deploy_prod() {
   git -C "$PROD_DIR" checkout -q --detach "$commit"
   git -C "$PROD_DIR" log --oneline -1
   for service in api web; do docker tag "$(image staging "$service")" "$(image prod "$service")"; done
+  set_env prod SBL_VERSION "$tag"; set_env prod SBL_COMMIT "$commit"
   stack prod up --no-build -d --wait
   [[ $(revision prod) == "$version" ]] \
     || die "production is at $(revision prod), staging was at $version — compose.sh logs db-setup"
@@ -113,7 +123,7 @@ show_status() {
   for name in prod staging; do
     [[ $name == prod ]] && dir=$PROD_DIR || dir=$STAGING_DIR
     printf '%-8s code %-14s image %-8s db %s\n' "$name" \
-      "$(git -C "$dir" describe --tags --always 2>/dev/null || echo '?')" \
+      "$(git -C "$dir" describe --always 2>/dev/null || echo '?')" \
       "$(built_from "$(image "$name" api)" | cut -c1-7)" \
       "$(revision "$name" 2>/dev/null || echo '?')"
   done

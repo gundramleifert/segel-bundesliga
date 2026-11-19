@@ -99,6 +99,9 @@ services:
       # "staging" marks every page with a red top bar (Caddyfile, /environment.js); empty in
       # production. Set in .env — the image stays the same either way.
       SBL_ENVIRONMENT: ${SBL_ENVIRONMENT:-}
+      # The release it runs, shown in the footer; deploy.sh writes both to .env.
+      SBL_VERSION: ${SBL_VERSION:-}
+      SBL_COMMIT: ${SBL_COMMIT:-}
     logging:
       driver: journald
     ports:

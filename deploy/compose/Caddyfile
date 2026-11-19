@@ -20,13 +20,14 @@
 		}
 	}
 
-	# Which installation this is, for the SPA (web/src/lib/environment.ts): SBL_ENVIRONMENT
-	# of this container, read when Caddy starts. Staging sets it and gets a red top bar;
-	# production leaves it empty. At runtime, so both run the same image.
+	# Which installation this is and what it runs, for the SPA (web/src/lib/environment.ts):
+	# this container's SBL_ENVIRONMENT (staging sets it and gets a red top bar), SBL_VERSION
+	# and SBL_COMMIT (deploy.sh writes them to .env), read when Caddy starts. At runtime,
+	# so staging and production run the same image and each still names its own release.
 	handle /environment.js {
 		header Content-Type "text/javascript; charset=utf-8"
 		header Cache-Control "no-cache"
-		respond `window.sblEnvironment = "{$SBL_ENVIRONMENT}";`
+		respond `window.sblEnvironment = "{$SBL_ENVIRONMENT}"; window.sblVersion = "{$SBL_VERSION}"; window.sblCommit = "{$SBL_COMMIT}";`
 	}
 
 	# Hashed bundle files never change under the same name.

@@ -2,3 +2,5 @@
 // SBL_ENVIRONMENT (deploy/compose/Caddyfile), so one image serves staging and production.
 // Empty here, in development and wherever nothing replaces it: no marker.
 window.sblEnvironment = "";
+window.sblVersion = "";
+window.sblCommit = "";
