@@ -20,6 +20,15 @@
 		}
 	}
 
+	# Which installation this is, for the SPA (web/src/lib/environment.ts): SBL_ENVIRONMENT
+	# of this container, read when Caddy starts. Staging sets it and gets a red top bar;
+	# production leaves it empty. At runtime, so both run the same image.
+	handle /environment.js {
+		header Content-Type "text/javascript; charset=utf-8"
+		header Cache-Control "no-cache"
+		respond `window.sblEnvironment = "{$SBL_ENVIRONMENT}";`
+	}
+
 	# Hashed bundle files never change under the same name.
 	handle /assets/* {
 		encode zstd gzip

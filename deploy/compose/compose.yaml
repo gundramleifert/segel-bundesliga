@@ -95,6 +95,10 @@ services:
         VITE_DEV_TOOLS: "false"
     image: ${COMPOSE_PROJECT_NAME:-segelliga}-web:local
     restart: unless-stopped
+    environment:
+      # "staging" marks every page with a red top bar (Caddyfile, /environment.js); empty in
+      # production. Set in .env — the image stays the same either way.
+      SBL_ENVIRONMENT: ${SBL_ENVIRONMENT:-}
     logging:
       driver: journald
     ports:

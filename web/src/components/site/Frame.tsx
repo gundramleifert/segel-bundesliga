@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { environment } from "../../lib/environment";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, type To } from "react-router-dom";
 
@@ -44,8 +45,11 @@ export function TopBar({
   ];
   return (
     <header
-      className="relative z-40 border-b border-separator text-sm text-muted"
+      className={`relative z-40 border-b border-separator text-sm ${
+        environment ? "bg-danger text-danger-foreground" : "text-muted"
+      }`}
       data-testid="site-top-bar"
+      data-environment={environment || undefined}
     >
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-4">
         <Link to={href.home()} className="shrink-0" data-testid="site-logo">
@@ -57,6 +61,14 @@ export function TopBar({
             height={58}
           />
         </Link>
+        {environment && (
+          <span
+            className="shrink-0 rounded-full border border-current px-2 py-0.5 text-xs font-bold uppercase tracking-wider"
+            data-testid="site-environment"
+          >
+            {environment}
+          </span>
+        )}
         {/* A phone has no room for five entries: one button names where you are and opens
             them as a list. Keyed on the path, so it closes when a link is followed. */}
         <details key={pathname} className="relative min-w-0 flex-1 md:hidden" data-testid="site-menu">

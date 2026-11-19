@@ -24,7 +24,7 @@ One machine runs **production and staging** side by side, each a Compose stack o
 | Site | **https://deutsche-segelliga.de** (`www.` redirects) | **https://staging.deutsche-segelliga.de** |
 | Clone | `~/sbl` | `~/sbl-staging` |
 | Secrets | `deploy/compose/prod.sops.env` | `deploy/compose/staging.sops.env` |
-| `.env` | `WEB_PORT=127.0.0.1:8080`, `S3_PORT=127.0.0.1:8333` | `COMPOSE_PROJECT_NAME=segelliga-staging`, `WEB_PORT=127.0.0.1:8081`, `S3_PORT=127.0.0.1:8334`, **no `SBL_SMTP_HOST`** |
+| `.env` | `WEB_PORT=127.0.0.1:8080`, `S3_PORT=127.0.0.1:8333` | `COMPOSE_PROJECT_NAME=segelliga-staging`, `WEB_PORT=127.0.0.1:8081`, `S3_PORT=127.0.0.1:8334`, `SBL_ENVIRONMENT=staging`, **no `SBL_SMTP_HOST`** |
 | Data | its own, kept across every update | **a copy of production's**, taken anew on every deploy |
 
 - **Machine:** `segelliga-1` at Hetzner, **`178.104.43.254`** (no alias in `~/.ssh/config`,
@@ -33,6 +33,9 @@ One machine runs **production and staging** side by side, each a Compose stack o
 - **HTTPS:** Caddy on the host (systemd), `/etc/caddy/Caddyfile`: each domain →
   `reverse_proxy` to its stack's `WEB_PORT`. It stays on the host and not in a stack
   because two stacks share ports 80 and 443.
+- **Staging is red.** `SBL_ENVIRONMENT=staging` in its `.env` paints every page's top bar
+  red and names it there. The web container's Caddy hands the value to the SPA as
+  `/environment.js` when it starts — not built in, since production runs staging's images.
 - **Staging sends no mail.** Its database holds production's real people; without
   `SBL_SMTP_HOST` a sign-in code goes to its api log only
   (`compose.sh logs api | grep -i code`). Sign in there with a password, or read the code
@@ -90,7 +93,7 @@ git clone -q https://github.com/gundramleifert/segel-bundesliga.git ~/sbl-stagin
 cd ~/sbl-staging/deploy/compose && cp ~/sbl/deploy/compose/.env .env
 # in .env: COMPOSE_PROJECT_NAME=segelliga-staging, WEB_PORT=127.0.0.1:8081,
 # S3_PORT=127.0.0.1:8334, SBL_SITE_URL and SBL_CORS_ORIGINS to the staging domain,
-# SBL_SMTP_HOST= (empty)
+# SBL_SMTP_HOST= (empty), SBL_ENVIRONMENT=staging
 ```
 
 The DNS record `staging.deutsche-segelliga.de A 178.104.43.254`, and as `root` a block in
