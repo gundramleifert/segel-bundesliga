@@ -66,12 +66,6 @@ export function GlassFooter() {
           <p className="flex flex-wrap gap-x-4 gap-y-1">
             <Link to="/legal-notice" className={link} data-testid="site-footer-legal-notice">{tc("userMenu.legalNotice")}</Link>
             <Link to="/privacy" className={link}>{tc("userMenu.privacy")}</Link>
-            {version && (
-              <span data-testid="site-footer-version">
-                {t("footer.version", { version })}
-                {commit && ` · ${commit}`}
-              </span>
-            )}
           </p>
           <div className="space-y-1">
             <p>{t("footer.credits")}</p>
@@ -79,6 +73,13 @@ export function GlassFooter() {
             <SapAttribution className="mt-2" testId="site-footer-sap-attribution" />
           </div>
         </div>
+        {/* What runs here, for a question or a bug report — the last and quietest line. */}
+        {version && (
+          <p className="text-center text-[11px] tabular-nums text-muted opacity-70" data-testid="site-footer-version">
+            {t("footer.version", { version })}
+            {commit && ` · ${commit}`}
+          </p>
+        )}
       </div>
     </footer>
   );
