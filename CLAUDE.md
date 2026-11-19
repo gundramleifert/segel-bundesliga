@@ -70,7 +70,10 @@ scripts/check.sh                         # everything that must be green, before
 - **Deploying**: `scripts/deploy.py staging X.Y.Z` (tags `vX.Y.Z-rc.N`, builds on the
   server, runs it on a copy of production), then `scripts/deploy.py prod` (tags `vX.Y.Z` on
   the same commit, staging's images, nothing rebuilt); the server's `deploy.sh` refuses
-  anything staging has not passed. `docs/deploy-server.md` § Our server.
+  anything staging has not passed. `docs/deploy-server.md` § Our server. **Staging when
+  the user asks for it** (or `/issue handover`); **production only on the user's explicit
+  word**, each time — never as a follow-up of staging. Skipping `check.sh` (`--no-check`)
+  is said in the report.
 - **The frontend's API client is generated**: after any route or schema change run
   `scripts/gen-api-client.sh`, then `pnpm typecheck` in `web/` (`tsc --noEmit` checks
   nothing here). Nothing under `web/src/api/generated/` is edited; handler names become

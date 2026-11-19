@@ -184,12 +184,14 @@ Then `handover`.
 
 ## `handover <N>` — the stakeholder's turn
 
-Staging runs `main` — a Compose stack with the demo published and dev login on
-(`docs/deploy-server.md`). Not set up yet since Render was removed (2026-10-28): until it
-runs, say so on the issue and show the change on a local stack instead.
+Staging is https://staging.deutsche-segelliga.de — a copy of production's data, red top
+bar, **no dev login and no role switcher**, no mail (`docs/deploy-server.md` § Our server).
+A change gets there as a release candidate: `scripts/deploy.py staging X.Y.Z` (X.Y.Z the
+next release; `scripts/deploy.py status` shows the current one).
 
-1. **Check the change is live** before telling anyone — fetch the page or endpoint it is
-   about. Not there: look at the deploy, don't hand over.
+1. **Deploy and check the change is live** before telling anyone — deploy the merged
+   `main` to staging, then fetch the page or endpoint it is about. Not there: look at the
+   deploy (`scripts/deploy.py logs staging api`), don't hand over.
 2. **Label** — created once, harmless when it exists:
    ```bash
    gh label create in-stakeholder-review --color FBCA04 \
@@ -198,10 +200,11 @@ runs, say so on the issue and show the change on a local stack instead.
    ```
    and the card → **Stakeholder Review** (see The board).
 3. **Comment** (`gh issue comment <N>`), written for the stakeholder, not a developer —
-   in the language the issue was written in: the staging URL of the page; which seeded
-   account to pick in the role switcher (CLAUDE.md, Testing different roles); the steps
-   from fresh seed data to the state the change is about, since staging has none of the
-   data the work was tested with; and what to look at.
+   in the language the issue was written in: the staging URL of the page; which role
+   their own account needs there (granted on staging, which is reset to a copy of
+   production on every deploy — a grant made only on staging is gone after the next one);
+   the steps to the state the change is about, since staging has production's data, not
+   the data the work was tested with; and what to look at.
 
 ## `accepted <N>` / `rejected <N>`
 
