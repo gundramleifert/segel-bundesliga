@@ -6,6 +6,7 @@ import { useGetSeriesTable, useListSeriesDocuments } from "../../api/generated/s
 import type { LeagueSeason, Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
+import { Crest } from "../../components/Crest";
 import { StandingsTable } from "../../components/StandingsTable";
 import { Card, CardRow, Columns, MediaCard, Panel, TagChips, TextCard, tone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand, PageLoading } from "../../components/site/Frame";
@@ -254,7 +255,7 @@ function DivisionClubs({ series }: { series: LeagueSeason["series"][number] }) {
       {clubs.map((club) => (
         <li key={club.id}>
           <Card to={href.club(club.id)} className="flex h-full flex-col items-center gap-2 p-4 text-center">
-            <span className={`grid size-12 place-items-center rounded-full text-sm font-bold bg-default text-foreground`}>{club.short_name}</span>
+            <Crest src={club.logo_url} short={club.short_name} />
             <span className={`line-clamp-2 text-xs ${tone.muted}`}>{club.name}</span>
           </Card>
         </li>
