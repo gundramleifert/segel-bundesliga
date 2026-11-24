@@ -477,7 +477,10 @@ Acceptance criteria:
     it I sail in, since that is where I meet it (S-1); on an event in no series, there;
   - claims waiting for my decision or payment (on the event when I hold the event, else
     on the club that pays);
-  - as a club's organizer: a series squad below its minimum, an upcoming entry with no crew
+  - as a club's organizer: a series squad below its minimum — only until the series'
+    first act starts racing: after that the squad is what was sailed, and a reminder
+    would stay for the rest of the season with nothing left to fix (2026-11-24) —, an
+    upcoming entry with no crew
     named (the matchday's crew, `EventCrew` — until 2026-10-17 this counted the squad on
     the entry instead, so a series matchday asked for a crew that was already named; found
     by Journey J-5), an upcoming matchday whose crew has a waiver not cleared (VA-5);

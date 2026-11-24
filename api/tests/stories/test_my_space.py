@@ -263,6 +263,32 @@ class TestMySpace:
 
         assert _needs(_context(await _mine(client, helper), "event", event)) == {}
 
+    async def test_a_short_squad_is_no_longer_news_once_racing_started(self, client, caplog):
+        """Z-8: the squad minimum is a reminder for before the season — once an act of the
+        series has started racing, a squad below it is no longer on the club's card."""
+        club = await _club()
+        series = await _series(squad_min=4)
+        await _team(club, series_id=series)  # registered, nobody in the squad
+        event = await _event(series_id=series, starts_on=SOON)
+        async with SessionLocal() as session:
+            flight = Flight(event_id=event, number=1)
+            session.add(flight)
+            await session.flush()
+            session.add(
+                Race(
+                    flight_id=flight.id, number_in_flight=1, sequence=1, status=RaceStatus.FINISHED
+                )
+            )
+            await session.commit()
+
+        manager = await login(
+            client,
+            caplog,
+            f"z8-started-{_tag()}@example.com",
+            Grant(relation=Relation.MANAGER, club_id=club),
+        )
+        assert "squad_below_min" not in _needs(_context(await _mine(client, manager), "club", club))
+
     async def test_a_club_organizer_hears_about_squads_and_crews(self, client, caplog):
         """A squad below the series' minimum, an upcoming entry with nobody named — the two
         things only the club's organizer can fix, on the club's card."""

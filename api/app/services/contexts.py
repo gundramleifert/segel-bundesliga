@@ -60,7 +60,7 @@ from app.models.org import MembershipStatus, TeamStatus
 from app.models.racing import RaceStatus
 from app.problems import Problem
 from app.services import dpa, expenses, jury
-from app.services.event_readiness import event_readiness
+from app.services.event_readiness import event_readiness, series_racing_started
 from app.services.waivers import (
     WaiverStatus,
     current_waiver_text,
@@ -720,7 +720,7 @@ async def _organizer(
     )
     short = (
         await session.execute(
-            select(Team.club_id)
+            select(Team.club_id, Team.series_id)
             .join(Series, Team.series_id == Series.id)
             .where(
                 Team.club_id.in_(clubs),
@@ -730,9 +730,11 @@ async def _organizer(
                 size < Series.squad_min,
             )
         )
-    ).scalars()
-    for club_id in short:
-        contexts[("club", club_id)].need(NeedCode.SQUAD_BELOW_MIN)
+    ).all()
+    # Before the season only: once an act has started, the squad is what was sailed.
+    for club_id, series_id in short:
+        if not await series_racing_started(session, series_id):
+            contexts[("club", club_id)].need(NeedCode.SQUAD_BELOW_MIN)
     # The crew is the matchday's `EventCrew`, never the entry's `TeamMembership`: a series
     # matchday's entry holds no members at all (its squad is the series registration's),
     # and a stand-alone event's entry holds the squad — neither says who is named.
