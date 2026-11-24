@@ -112,9 +112,11 @@ class TestEventTerm:
 
     async def test_each_league_says_its_word(self, client):
         """B-22: Spieltag for the 1. and 2. Liga, Act for the Junioren, the name for the Pokal."""
+        # Only the seeded four: the practice seasons' league joins them once built.
         leagues = {
             league["slug"]: league["event_term"]
             for league in (await client.get("/api/leagues")).json()
+            if league["slug"] != "practice"
         }
         assert leagues == {
             "1-liga": "matchday",
