@@ -47,6 +47,14 @@
   "file": "docs/userstories/administration.md",
   "anchor": "a-14--import-clubs-past-seasons-and-event-documents-from-sap-sailing-and-manage2sail"
  },
+ "A-15": {
+  "title": "Read the feedback, and receive it by mail",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The admin screens",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-15--read-the-feedback-and-receive-it-by-mail"
+ },
  "A-2": {
   "title": "Create matchday",
   "status": "●",
@@ -1542,6 +1550,14 @@
   "phase": "Before the season: the waiver",
   "file": "docs/userstories/sailor.md",
   "anchor": "s-8--my-parent-accepts-the-waiver-for-me"
+ },
+ "S-9": {
+  "title": "Send feedback from any page",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "Telling the league office what I think",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-9--send-feedback-from-any-page"
  },
  "V-1": {
   "title": "Register season squad",

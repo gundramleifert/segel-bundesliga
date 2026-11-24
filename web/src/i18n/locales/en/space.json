@@ -204,7 +204,8 @@
     "race_officer": "Race officer",
     "jury": "Jury",
     "helper": "Helper",
-    "jury_organizer": "Jury organizer"
+    "jury_organizer": "Jury organizer",
+    "feedback_receiver": "Feedback receiver"
   },
   "needs": {
     "waiver": "{count, plural, one {Your liability waiver is not signed yet} other {# liability waivers not signed yet}}",
@@ -339,7 +340,8 @@
         "news": "News",
         "media": "Media",
         "imports": "Imports",
-        "jury": "Jury"
+        "jury": "Jury",
+        "feedback": "Feedback"
       },
       "club": {
         "overview": "Overview",

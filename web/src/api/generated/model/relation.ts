@@ -23,5 +23,6 @@ export const Relation = {
   helper: 'helper',
   jury_organizer: 'jury_organizer',
   judge: 'judge',
+  feedback_receiver: 'feedback_receiver',
   treasurer: 'treasurer',
 } as const;

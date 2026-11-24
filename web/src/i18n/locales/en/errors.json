@@ -257,5 +257,6 @@
   "tuple-is-membership": "Membership of a club is managed on the club's People page, not as a relation.",
   "event-final": "This event is over and scored. Reopen it before cancelling it.",
   "crew-missing": "Name the crew before checking the team in.",
-  "crew-waiver-missing": "Everyone in the crew must have cleared the liability waiver before the team checks in."
+  "crew-waiver-missing": "Everyone in the crew must have cleared the liability waiver before the team checks in.",
+  "feedback-message-empty": "Feedback needs a message."
 }

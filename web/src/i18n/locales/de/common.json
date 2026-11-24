@@ -105,5 +105,22 @@
   "sapAttribution": {
     "poweredBy": "Ergebnisse powered by"
   },
-  "matchdayNumber": "{number}. Spieltag"
+  "matchdayNumber": "{number}. Spieltag",
+  "feedback": {
+    "menu": "Feedback",
+    "title": "Feedback senden",
+    "intro": "Was wünschen Sie sich, was stört Sie? Die Seite, auf der Sie sind, wird mitgeschickt.",
+    "categoryLabel": "Art",
+    "messageLabel": "Nachricht",
+    "messagePlaceholder": "Was ist passiert, oder was wünschen Sie sich?",
+    "categories": {
+      "bug": "Fehler",
+      "feature": "Wunsch",
+      "question": "Frage",
+      "other": "Sonstiges"
+    },
+    "send": "Senden",
+    "thanks": "Danke — Ihr Feedback ist beim Ligabüro angekommen.",
+    "tooLong": "{count, plural, one {# Zeichen zu viel} other {# Zeichen zu viel}}"
+  }
 }

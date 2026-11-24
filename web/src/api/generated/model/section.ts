@@ -55,4 +55,5 @@ export const Section = {
   accounts: 'accounts',
   media: 'media',
   imports: 'imports',
+  feedback: 'feedback',
 } as const;

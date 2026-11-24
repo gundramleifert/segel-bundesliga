@@ -421,6 +421,20 @@ texts — press releases, Manage2Sail pages, SAP exports — keep their own word
 Bundesliga's news say *Spieltag* again (migration `0004_league_event_term`), the
 Junioren's *Act*.
 
+### Feedback goes to a role, not to the admins
+
+Decided 2026-11-24 (Stories S-9, A-15). Anyone signed in sends feedback from the account
+menu; a guest cannot — an anonymous box would be a spam inlet. **Who is mailed is a site
+relation, `feedback_receiver`** (*Feedback-Empfang*), granted in *Access* like every site
+role, not "every site admin": the admins are whoever keeps the site running, the receivers
+whoever answers people, and those need not be the same. The model says
+`feedback_receiver: [user] or admin`, so the admin **reads** the list and marks it, but is
+**mailed** only for a written tuple (`grants_on`, never `check`) — reading is a permission,
+a mail is a subscription. No holder, no mail; the message is stored either way. The
+browser is the request's `User-Agent`, read by the server; the page, language, release
+and window are the page's. A message is plain text, capped at 5000 characters, and goes
+with its sender's account (Z-7).
+
 ### Logged in or guest
 
 Most requests carry a user, but the public site also serves guests.

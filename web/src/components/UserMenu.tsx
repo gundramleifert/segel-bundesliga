@@ -7,6 +7,7 @@ import type { Account } from "../api/types";
 import { useDisclosure } from "../lib/useDisclosure";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
 import { helpFor, helpPath } from "../handbook";
+import { FeedbackDialog } from "./FeedbackDialog";
 
 /** Everything that is about *you*, top right in the one row (Story A-12).
  *
@@ -16,7 +17,8 @@ import { helpFor, helpPath } from "../handbook";
  *
  * **Signed in**, the account button opens a menu: my space, profile, the league office
  * (only with a site relation — the `office` of the same answer, Stories Z-10, A-11), help
- * (the handbook is internal) and the language. Each is
+ * (the handbook is internal), *Feedback* (Story S-9 — a dialog, so it is on every page
+ * without taking room from any) and the language. Each is
  * used rarely and none is about the page being read, so as separate items they competed
  * with the navigation for room. The legal pages are not here: both footers carry them on
  * every page, which is what § 5 DDG asks.
@@ -31,6 +33,8 @@ import { helpFor, helpPath } from "../handbook";
 export function UserMenu({ account, loading }: { account: Account | null; loading: boolean }) {
   const { t, i18n } = useTranslation();
   const menu = useDisclosure("user-menu");
+  // Held here, not in the panel: the menu closes as the dialog opens (Story S-9).
+  const [feedback, setFeedback] = useState(false);
   const space = useMyContexts({
     query: { enabled: Boolean(account), staleTime: 5 * 60_000, refetchOnWindowFocus: false },
   });
@@ -118,11 +122,25 @@ export function UserMenu({ account, loading }: { account: Account | null; loadin
               </li>
             ))}
             <li>
+              <button
+                type="button"
+                onClick={() => {
+                  menu.close();
+                  setFeedback(true);
+                }}
+                data-testid="layout-user-menu-feedback"
+                className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-surface-tertiary"
+              >
+                {t("feedback.menu")}
+              </button>
+            </li>
+            <li>
               <LanguageChoice />
             </li>
           </ul>
         </div>
       )}
+      <FeedbackDialog open={feedback} onOpenChange={setFeedback} />
     </div>
   );
 }

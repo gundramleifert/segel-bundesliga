@@ -31,4 +31,5 @@ export const Role = {
   helper: 'helper',
   jury_organizer: 'jury_organizer',
   judge: 'judge',
+  feedback_receiver: 'feedback_receiver',
 } as const;

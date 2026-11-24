@@ -88,6 +88,11 @@ class Relation(StrEnum):
     """Site: in the league's pool of judges (Story JU-1). Grants nothing on any event; it
     is whom the jury organizer may ask and write to. Written by the jury organizer."""
 
+    FEEDBACK_RECEIVER = "feedback_receiver"
+    """Site: reads what people send with *Feedback* and is mailed each new message
+    (Stories S-9, A-15). The site's ``admin`` reads it too, but is mailed only when it holds
+    this tuple itself."""
+
     TREASURER = "treasurer"
     """Club or event: holds the money — checks and pays the expense claims of an event
     (Story F-1). The host club pays its events' costs, so the host club's treasurer is
@@ -157,7 +162,9 @@ SITE = ObjectRef(ObjectType.SITE)
 #: that of every event it hosts (Story F-1). ``helper`` works one event's day and holds
 #: no power on it (Story VA-12). The site's ``jury_organizer`` keeps the pool of judges —
 #: ``judge`` on the site, which grants nothing on an event — and whom they approve gets the
-#: event's ``jury`` tuple, written by `app/services/jury.py` (Stories JU-1–JU-5). A
+#: event's ``jury`` tuple, written by `app/services/jury.py` (Stories JU-1–JU-5). The site's
+#: ``feedback_receiver`` reads the feedback and is mailed each one; the admin reads it as
+#: well, but only a written tuple is mailed (Stories S-9, A-15). A
 #: person's ``manager`` is the organizer of a club they are an active member of (``club``
 #: — the clubs of their active ``ClubMembership`` rows, Story V-4): who puts them in a
 #: squad, changes them, signs their waiver forms and links their parents.
@@ -174,6 +181,7 @@ type site
     define race_officer: [user] or admin
     define jury_organizer: [user] or admin
     define judge: [user]
+    define feedback_receiver: [user] or admin
 
 type club
   relations
@@ -301,6 +309,7 @@ class Role(StrEnum):
     HELPER = "helper"
     JURY_ORGANIZER = "jury_organizer"
     JUDGE = "judge"
+    FEEDBACK_RECEIVER = "feedback_receiver"
 
 
 class IdentityProvider(StrEnum):

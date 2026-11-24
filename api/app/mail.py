@@ -144,6 +144,39 @@ async def send_jury_message(
     await _deliver(email, mail, what="jury message", secret=subject)
 
 
+async def send_feedback(
+    email: str,
+    *,
+    category: str,
+    message: str,
+    link: str,
+    sender: str,
+    sender_email: str,
+    sent_at: str,
+    locale_shown: str,
+    app_version: str,
+    viewport: str,
+    user_agent: str,
+    locale: Locale = MAIL_LOCALE,
+) -> None:
+    """Story A-15: a new feedback, to each of the site's ``feedback_receiver``s."""
+    mail = render_mail(
+        "feedback",
+        locale,
+        category=category,
+        message=message,
+        link=link,
+        sender=sender,
+        sender_email=sender_email,
+        sent_at=sent_at,
+        locale_shown=locale_shown,
+        app_version=app_version,
+        viewport=viewport,
+        user_agent=user_agent,
+    )
+    await _deliver(email, mail, what="feedback", secret=link)
+
+
 async def _deliver(email: str, mail: Mail, *, what: str, secret: str) -> None:
     """Hands one mail to SBL_SMTP_HOST — or, without one, logs ``secret`` (the code, the
     link) instead, so the site works locally without a mail server. The secret is the

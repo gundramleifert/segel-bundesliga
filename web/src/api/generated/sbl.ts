@@ -87,6 +87,8 @@ import type {
   EventUpdate,
   EventWaiverList,
   FailBody,
+  FeedbackIn,
+  FeedbackOut,
   FixBatchIn,
   FixBatchOut,
   FromCatalogRequest,
@@ -95,6 +97,7 @@ import type {
   GetLeagueSeasonParams,
   GetPersonParams,
   GuardianOut,
+  HandledIn,
   Health200,
   ImportKeyCreate,
   ImportKeyCreated,
@@ -123,6 +126,7 @@ import type {
   ListClubPeopleParams,
   ListClubsParams,
   ListEventsParams,
+  ListFeedbackParams,
   ListJudgesParams,
   ListJuryCandidatesParams,
   ListJuryEventsParams,
@@ -159,6 +163,7 @@ import type {
   PageClubOut,
   PageClubPersonOut,
   PageEventOut,
+  PageFeedbackOut,
   PageJudgeOut,
   PageJuryEventOut,
   PageMediaOut,
@@ -20844,6 +20849,296 @@ export function useGetMediaFile<TData = Awaited<ReturnType<typeof getMediaFile>>
 
 
 
+
+export const getSendFeedbackUrl = () => {
+
+
+
+
+  return `/api/feedback`
+}
+
+/**
+ * Story S-9: anyone signed in. The browser is the request's ``User-Agent``; the rest
+ * of the context is what the page knew. Mailed to the site's feedback receivers after
+ * it is stored — none, and it is stored all the same (Story A-15).
+ * @summary Send feedback
+ */
+export const sendFeedback = async (feedbackIn: FeedbackIn, options?: RequestInit): Promise<FeedbackOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<FeedbackOut>(getSendFeedbackUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(feedbackIn)
+  }
+);}
+
+
+
+
+
+export const getSendFeedbackMutationKey = () => ['sendFeedback'] as const;
+
+export const getSendFeedbackMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendFeedback>>, TError,SendFeedbackMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof sendFeedback>>, TError,SendFeedbackMutationVariables, TContext> => {
+
+const mutationKey = getSendFeedbackMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendFeedback>>, SendFeedbackMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendFeedback(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendFeedbackMutationResult = NonNullable<Awaited<ReturnType<typeof sendFeedback>>>
+    export type SendFeedbackMutationBody = BodyType<FeedbackIn>
+    export type SendFeedbackMutationError = ErrorType<ProblemDetails>
+    export type SendFeedbackMutationVariables = {data: BodyType<FeedbackIn>}
+
+    /**
+ * @summary Send feedback
+ */
+export const useSendFeedback = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendFeedback>>, TError,SendFeedbackMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof sendFeedback>>,
+        TError,
+        SendFeedbackMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendFeedbackMutationOptions(options), queryClient);
+    }
+
+export const getListFeedbackUrl = (params?: ListFeedbackParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/feedback?${stringifiedParams}` : `/api/admin/feedback`
+}
+
+/**
+ * Story A-15: newest first, filtered by kind and handled on the server.
+ * @summary List feedback
+ */
+export const listFeedback = async (params?: ListFeedbackParams, options?: RequestInit): Promise<PageFeedbackOut> => {
+
+  return http<PageFeedbackOut>(getListFeedbackUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFeedbackQueryKey = (params?: ListFeedbackParams,) => {
+    return [
+    `/api/admin/feedback`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFeedbackQueryOptions = <TData = Awaited<ReturnType<typeof listFeedback>>, TError = ErrorType<ProblemDetails>>(params?: ListFeedbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFeedback>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFeedbackQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFeedback>>> = ({ signal }) => listFeedback(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFeedback>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListFeedbackQueryResult = NonNullable<Awaited<ReturnType<typeof listFeedback>>>
+export type ListFeedbackQueryError = ErrorType<ProblemDetails>
+
+
+export function useListFeedback<TData = Awaited<ReturnType<typeof listFeedback>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListFeedbackParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFeedback>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFeedback>>,
+          TError,
+          Awaited<ReturnType<typeof listFeedback>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFeedback<TData = Awaited<ReturnType<typeof listFeedback>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListFeedbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFeedback>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listFeedback>>,
+          TError,
+          Awaited<ReturnType<typeof listFeedback>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListFeedback<TData = Awaited<ReturnType<typeof listFeedback>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListFeedbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFeedback>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List feedback
+ */
+
+export function useListFeedback<TData = Awaited<ReturnType<typeof listFeedback>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListFeedbackParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listFeedback>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListFeedbackQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkFeedbackUrl = (feedbackId: number,) => {
+
+
+
+
+  return `/api/admin/feedback/${feedbackId}`
+}
+
+/**
+ * Story A-15: a flag, not a workflow — the answer goes by mail, outside the site.
+ * @summary Mark feedback handled or open
+ */
+export const markFeedback = async (feedbackId: number,
+    handledIn: HandledIn, options?: RequestInit): Promise<FeedbackOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<FeedbackOut>(getMarkFeedbackUrl(feedbackId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(handledIn)
+  }
+);}
+
+
+
+
+
+export const getMarkFeedbackMutationKey = () => ['markFeedback'] as const;
+
+export const getMarkFeedbackMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markFeedback>>, TError,MarkFeedbackMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof markFeedback>>, TError,MarkFeedbackMutationVariables, TContext> => {
+
+const mutationKey = getMarkFeedbackMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markFeedback>>, MarkFeedbackMutationVariables> = (props) => {
+          const {feedbackId,data} = props ?? {};
+
+          return  markFeedback(feedbackId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkFeedbackMutationResult = NonNullable<Awaited<ReturnType<typeof markFeedback>>>
+    export type MarkFeedbackMutationBody = BodyType<HandledIn>
+    export type MarkFeedbackMutationError = ErrorType<ProblemDetails>
+    export type MarkFeedbackMutationVariables = {feedbackId: number;data: BodyType<HandledIn>}
+
+    /**
+ * @summary Mark feedback handled or open
+ */
+export const useMarkFeedback = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markFeedback>>, TError,MarkFeedbackMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof markFeedback>>,
+        TError,
+        MarkFeedbackMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMarkFeedbackMutationOptions(options), queryClient);
+    }
 
 export const getListTestUsersUrl = () => {
 

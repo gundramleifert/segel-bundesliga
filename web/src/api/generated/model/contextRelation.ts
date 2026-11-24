@@ -24,5 +24,6 @@ export const ContextRelation = {
   jury: 'jury',
   helper: 'helper',
   jury_organizer: 'jury_organizer',
+  feedback_receiver: 'feedback_receiver',
   judge: 'judge',
 } as const;

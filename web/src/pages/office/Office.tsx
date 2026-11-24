@@ -10,6 +10,7 @@ import { SailorsAdmin } from "../AdminSailors";
 import { EventsAdmin } from "../admin/events/EventList";
 import { MediaAdmin } from "../admin/media/MediaAdmin";
 import { PostsAdmin } from "../admin/posts/PostList";
+import { FeedbackAdmin } from "./Feedback";
 import { JuryOffice } from "./Jury";
 import { TodoList } from "../me/Todos";
 import { useMySpace } from "../me/shared";
@@ -66,6 +67,7 @@ export function OfficePage({ section: fixed }: { section?: string } = {}) {
     { key: "news", render: () => <PostsAdmin /> },
     { key: "media", render: () => <MediaAdmin /> },
     { key: "jury", render: () => <JuryOffice /> },
+    { key: "feedback", render: () => <FeedbackAdmin /> },
   ];
   return (
     <WorkspaceFrame

@@ -14,6 +14,11 @@ export function formatDate(iso: string): string {
   );
 }
 
+/** "24.11.2026, 14:05" — a moment, date and time (when feedback was sent, Story A-15). */
+export function formatDateTime(iso: string): string {
+  return dateFormatter({ dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+}
+
 /** "Sat 08:15" / "Sa., 08:15" — when a notice went up on a matchday's board: the days of
  *  one act are a weekend, so the weekday tells them apart and a date would be noise. */
 export function noticeTime(iso: string): string {

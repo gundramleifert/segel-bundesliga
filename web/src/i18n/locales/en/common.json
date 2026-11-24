@@ -105,5 +105,22 @@
   "sapAttribution": {
     "poweredBy": "Results powered by"
   },
-  "matchdayNumber": "Matchday {number}"
+  "matchdayNumber": "Matchday {number}",
+  "feedback": {
+    "menu": "Feedback",
+    "title": "Send feedback",
+    "intro": "What would you like, what bothers you? The page you are on is sent along.",
+    "categoryLabel": "Kind",
+    "messageLabel": "Message",
+    "messagePlaceholder": "What happened, or what would you like?",
+    "categories": {
+      "bug": "Bug",
+      "feature": "Feature request",
+      "question": "Question",
+      "other": "Other"
+    },
+    "send": "Send",
+    "thanks": "Thank you — your feedback has reached the league office.",
+    "tooLong": "{count, plural, one {# character too many} other {# characters too many}}"
+  }
 }

@@ -66,6 +66,7 @@ SERIES_EDITOR = "series_editor"  # editor of the event's series (R-1, R-2)
 JURY_ORGANIZER = "jury_organizer"  # the site's jury organizer (JU-1…JU-5)
 JUDGE = "judge"  # in the judges' pool, asked for the live event
 GUARDIAN = "guardian"  # the member's linked parent (V-13, S-8)
+FEEDBACK_RECEIVER = "feedback_receiver"  # the site's: mailed and reads the feedback (A-15)
 
 EVERYONE = frozenset(
     {
@@ -90,6 +91,7 @@ EVERYONE = frozenset(
         JURY_ORGANIZER,
         JUDGE,
         GUARDIAN,
+        FEEDBACK_RECEIVER,
     }
 )
 SIGNED_IN = EVERYONE - {GUEST}
@@ -118,6 +120,8 @@ JURY_OFFICE = frozenset({JURY_ORGANIZER, SITE_ADMIN})
 #: Editorial: the site's (all), a series' (its regatta's).
 SITE_EDITORS = frozenset({EDITOR, SITE_ADMIN})
 ANY_EDITOR = SITE_EDITORS | {SERIES_EDITOR}
+#: Who reads the feedback: the site's receivers, and its admin (A-15).
+FEEDBACK_READERS = frozenset({FEEDBACK_RECEIVER, SITE_ADMIN})
 
 
 @dataclass(frozen=True)
@@ -256,6 +260,11 @@ POLICY: dict[str, Row] = {
     "GET /api/admin/teams/{team_id}/members": Row(SIGNED_IN),
     "PUT /api/admin/teams/{team_id}/members": Row(ORGANIZERS, json={"members": []}),
     # Clubs: created and enrolled by the league office; kept by their admin (A-1, V-3).
+    # ------------------------------------------------------------------------------- feedback
+    # Anyone signed in sends it (S-9); the receivers and the admin read and mark it (A-15).
+    "POST /api/feedback": Row(SIGNED_IN, json={"category": "bug", "message": "x", "path": "/"}),
+    "GET /api/admin/feedback": Row(FEEDBACK_READERS),
+    "PATCH /api/admin/feedback/{feedback_id}": Row(FEEDBACK_READERS, json={"handled": True}),
     "GET /api/admin/clubs": Row(frozenset({SITE_ADMIN})),
     "POST /api/admin/clubs": Row(frozenset({SITE_ADMIN}), json={"name": "Az Club"}),
     "PATCH /api/admin/clubs/{club_id}": Row(CLUB_DOOR, json={"city": "Kiel"}),
@@ -521,6 +530,9 @@ async def _world(client, caplog, season) -> World:
         SERIES_EDITOR: await person(SERIES_EDITOR, Grant(relation=Relation.EDITOR, **series)),
         JURY_ORGANIZER: await person(JURY_ORGANIZER, Grant(relation=Relation.JURY_ORGANIZER)),
         JUDGE: await person(JUDGE, Grant(relation=Relation.JUDGE)),
+        FEEDBACK_RECEIVER: await person(
+            FEEDBACK_RECEIVER, Grant(relation=Relation.FEEDBACK_RECEIVER)
+        ),
     }
     treasurer, claimant = headers[TREASURER], headers[CLAIMANT]
 
@@ -664,6 +676,12 @@ async def _world(client, caplog, season) -> World:
     )
     assert key.status_code == 201, key.text
 
+    # A message sent with Feedback (S-9).
+    sent = await client.post(
+        "/api/feedback", headers=member, json={"category": "bug", "message": "x", "path": "/"}
+    )
+    assert sent.status_code == 201, sent.text
+
     return World(
         headers=headers,
         ids={
@@ -699,6 +717,7 @@ async def _world(client, caplog, season) -> World:
             "media_id": pic.json()["id"],
             "media_name": media_name,
             "key_id": key.json()["id"],
+            "feedback_id": sent.json()["id"],
         },
     )
 

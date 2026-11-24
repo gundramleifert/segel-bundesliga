@@ -1,0 +1,20 @@
+{#- Story A-15: someone sent feedback; to each of the site's feedback receivers. -#}
+{% extends "en/_base.txt" %}
+{% block subject %}Feedback ({{ {"bug": "Bug", "feature": "Feature request", "question": "Question", "other": "Other"}.get(category, category) }}) from {{ sender }}{% endblock %}
+{% block reason %}you receive the feedback sent on the Deutsche Segel-Liga's website{% endblock %}
+{% block body %}
+{{ sender }} <{{ sender_email }}> sent feedback.
+
+Kind: {{ {"bug": "Bug", "feature": "Feature request", "question": "Question", "other": "Other"}.get(category, category) }}
+Sent: {{ sent_at }}
+Page: {{ link }}
+
+{{ message }}
+
+Language: {{ locale_shown }}
+Release: {{ app_version }}
+Window: {{ viewport }}
+Browser: {{ user_agent }}
+
+Every message is in the league office: {{ site }}/office/feedback
+{% endblock %}

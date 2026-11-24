@@ -193,6 +193,8 @@ Public endpoints show published data only and answer 404 for a draft.
 | Decide and pay a claim | the event's direct `manager`, `treasurer` of event or club (and their admins); never the claimant |
 | See a person's documents | the person; `manager` of an event they work at directly or of a club they are a member of |
 | Bank account | its owner only |
+| Send feedback | anyone signed in, never a guest (S-9) |
+| Read feedback, mark it handled; mailed each new one | the site's `feedback_receiver` (read, mark, mailed); `admin` (read, mark — mailed only holding the tuple itself) (A-15) |
 | Club's bank account, payment runs, SEPA and Excel exports | the club's `treasurer` (and its admin) — not its `manager` |
 
 Defined as dependencies in `api/app/auth.py`; roles are checked fresh from the database on

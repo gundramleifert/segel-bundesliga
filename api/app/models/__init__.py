@@ -15,6 +15,7 @@ from app.models.competition import (
     Venue,
 )
 from app.models.editorial import ImportKey, MediaItem, MediaSource, Post, PostKind
+from app.models.feedback import FEEDBACK_MAX_LENGTH, Feedback, FeedbackCategory
 from app.models.finance import (
     ClaimStatus,
     ClubBankAccount,
@@ -63,6 +64,9 @@ from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "FEEDBACK_MAX_LENGTH",
+    "Feedback",
+    "FeedbackCategory",
     "JudgeLicence",
     "JudgeLicenceHolding",
     "JuryRequest",

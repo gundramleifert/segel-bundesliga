@@ -151,6 +151,8 @@ const OFFICE_GROUPS = [
       imports: { for: [Relation.admin] },
       // The pool of judges and every event's jury (Stories JU-1, JU-3, JU-5).
       jury: { for: [Relation.admin, ContextRelation.jury_organizer] },
+      // What people sent with Feedback (Stories S-9, A-15).
+      feedback: { for: [Relation.admin, ContextRelation.feedback_receiver] },
     },
   },
 ] as const satisfies readonly GroupDecl[];

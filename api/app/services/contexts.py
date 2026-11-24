@@ -85,6 +85,8 @@ class ContextRelation(StrEnum):
     HELPER = "helper"
     # Site only: opens the league office's Jury section (Story JU-1).
     JURY_ORGANIZER = "jury_organizer"
+    # Site only: opens the league office's Feedback section (Story A-15).
+    FEEDBACK_RECEIVER = "feedback_receiver"
     # Site only, and *Me*'s, never the office's: a judge has *Me › Jury* (Story JU-1).
     JUDGE = "judge"
 
@@ -172,6 +174,7 @@ class Section(StrEnum):
     ACCOUNTS = "accounts"
     MEDIA = "media"
     IMPORTS = "imports"
+    FEEDBACK = "feedback"
 
 
 class Severity(StrEnum):

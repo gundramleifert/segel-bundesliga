@@ -205,7 +205,8 @@
       "club_admin": "Club admin",
       "series_manager": "Series manager",
       "jury_organizer": "Jury organizer",
-      "judge": "Judge"
+      "judge": "Judge",
+      "feedback_receiver": "Feedback receiver"
     },
     "nameHeader": "Name",
     "emailHeader": "Email",
@@ -229,7 +230,8 @@
       "helper": "Helper",
       "member": "Member",
       "jury_organizer": "Jury organizer",
-      "judge": "Judge"
+      "judge": "Judge",
+      "feedback_receiver": "Feedback receiver"
     },
     "objectTypeLabels": {
       "site": "Whole site",
@@ -555,5 +557,33 @@
     "close": "Close",
     "empty": "No pictures here yet — upload one, or change the filter.",
     "hint": "A click puts the picture in. You can also drop a picture onto this panel."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Words in the message",
+    "categoryLabel": "Kind",
+    "allCategories": "All kinds",
+    "stateLabel": "State",
+    "stateAll": "Open and handled",
+    "stateOpen": "Open",
+    "stateHandled": "Handled",
+    "loadingText": "Loading feedback…",
+    "emptyText": "No feedback matches.",
+    "whenHeader": "When",
+    "kindHeader": "Kind",
+    "messageHeader": "Message",
+    "fromHeader": "From",
+    "contextHeader": "Context",
+    "handledHeader": "Handled",
+    "page": "Page",
+    "language": "Language",
+    "release": "Release",
+    "window": "Window",
+    "browser": "Browser",
+    "markHandled": "Mark handled",
+    "markOpen": "Open again",
+    "handled": "Handled",
+    "open": "Open"
   }
 }

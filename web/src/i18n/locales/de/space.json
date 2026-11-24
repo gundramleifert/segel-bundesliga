@@ -204,7 +204,8 @@
     "race_officer": "Wettfahrtleitung",
     "jury": "Jury",
     "helper": "Helfer",
-    "jury_organizer": "Jury-Obmann"
+    "jury_organizer": "Jury-Obmann",
+    "feedback_receiver": "Feedback-Empfang"
   },
   "needs": {
     "waiver": "{count, plural, one {Ihr Haftungsausschluss ist noch nicht unterschrieben} other {# Haftungsausschlüsse sind noch nicht unterschrieben}}",
@@ -339,7 +340,8 @@
         "news": "News",
         "media": "Medien",
         "imports": "Importe",
-        "jury": "Jury"
+        "jury": "Jury",
+        "feedback": "Feedback"
       },
       "club": {
         "overview": "Übersicht",

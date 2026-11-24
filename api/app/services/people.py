@@ -100,13 +100,15 @@ async def by_address(session: AsyncSession, email: str) -> Person | None:
 async def end_account(session: AsyncSession, user: User) -> None:
     """The account stops signing in and the person behind it is erased (Story Z-7, review
     5.5, GDPR Art. 17): sign-in methods, password, every role and every club membership
-    go; the address becomes a placeholder, freeing the real one; birth date and federation
-    id are cleared and the profile page is switched off. The **name** stays — results carry
-    it — and so do the account and person rows, which squads, results and waivers point
-    at. Flushes nothing, commits nothing."""
+    go, and the feedback they sent (Story S-9); the address becomes a placeholder, freeing
+    the real one; birth date and federation id are cleared and the profile page is
+    switched off. The **name** stays — results carry it — and so do the account and person
+    rows, which squads, results and waivers point at. Flushes nothing, commits nothing."""
+    from app.services.feedback import erase_of  # feedback imports grants, not us
     from app.services.participation import end  # participation imports grants, not us
 
     person = await person_for(session, user)
+    await erase_of(session, user)
     for link in list(person.club_memberships):
         await end(session, person, link.club_id)
     await passwords.remove_password(session, user)

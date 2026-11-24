@@ -1,0 +1,20 @@
+{#- Story A-15: someone sent feedback; to each of the site's feedback receivers. -#}
+{% extends "de/_base.txt" %}
+{% block subject %}Feedback ({{ {"bug": "Fehler", "feature": "Wunsch", "question": "Frage", "other": "Sonstiges"}.get(category, category) }}) von {{ sender }}{% endblock %}
+{% block reason %}Sie das Feedback zur Website der Deutschen Segel-Liga empfangen{% endblock %}
+{% block body %}
+{{ sender }} <{{ sender_email }}> hat Feedback geschickt.
+
+Art: {{ {"bug": "Fehler", "feature": "Wunsch", "question": "Frage", "other": "Sonstiges"}.get(category, category) }}
+Gesendet: {{ sent_at }}
+Seite: {{ link }}
+
+{{ message }}
+
+Sprache: {{ locale_shown }}
+Version: {{ app_version }}
+Fenster: {{ viewport }}
+Browser: {{ user_agent }}
+
+Alle Nachrichten stehen im Ligabüro: {{ site }}/office/feedback
+{% endblock %}

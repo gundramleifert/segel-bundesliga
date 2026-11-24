@@ -756,3 +756,42 @@ Acceptance criteria:
   (Story Z-8 — it replaced "My club" and "Reimbursements").
 
 Tests: `e2e/visitor.spec.ts::A-12: the account menu and the page's name`
+
+### A-15 ● Read the feedback, and receive it by mail
+As **the league office** — whoever the site's admin has named to receive the feedback —
+I want to **be mailed each message people send with *Feedback*** (Story
+[S-9](sailor.md#s-9--send-feedback-from-any-page)) **and read them all, newest first, with
+where they were**, so that **I can reproduce a defect and answer a question without asking
+back**.
+
+Acceptance criteria:
+- **Receiving the feedback is a site relation, `feedback_receiver`** (decided 2026-11-24,
+  *Feedback-Empfang*), a tuple in the model like every other (`feedback_receiver: [user]
+  or admin` on the site), granted and revoked by the site's admin in the league office's
+  *Access* section (Story Z-2).
+- **Each new message is mailed to every holder of the tuple** — the mail mechanism's
+  template `feedback` per language, German unless the reader's language is known: kind,
+  message, the page as a link, who sent it (name and address), when, and the context
+  taken along. **Only written tuples are mailed**: the site's admin reads the list through
+  the model's rewrite, but is mailed only when holding the tuple itself. **No holder, no
+  mail** — the message is stored all the same; a mail server that refuses is logged,
+  never answered to the sender.
+- **The league office has a *Feedback* section** (`/office/feedback`) for the receivers
+  and the site's admin; anyone else is refused (`GET /api/admin/feedback` answers 403)
+  and is not offered the section. A receiver holding nothing else sees the office with
+  *Feedback* alone.
+- One row per message, **newest first**, paged (Story A-13): kind, message, the page it
+  was sent from **as a link** to that page, who sent it (name and address, from the
+  account), when, and the context taken along — language, release, window size, browser.
+- **Searched in the message, filtered by kind and by handled / open, on the server**
+  (`FeedbackFilter` in `app/filters.py`), never in the browser.
+- **A message can be marked handled, and open again** (`PATCH /api/admin/feedback/{id}`,
+  receivers and admin) — a flag, not a workflow: the answer itself goes by mail, outside
+  the site.
+
+Frontend: `web/src/pages/office/Feedback.tsx`, `web/src/lib/workspace.ts`
+
+Tests: `api/tests/stories/test_feedback.py::TestReadFeedback`,
+`api/tests/stories/test_feedback.py::TestFeedbackReceivers`,
+`web/tests/test_workspace.ts`,
+`e2e/feedback.spec.ts::S-9/A-15: feedback from any page, read in the league office`

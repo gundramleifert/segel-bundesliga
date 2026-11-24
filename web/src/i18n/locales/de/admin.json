@@ -205,7 +205,8 @@
       "club_admin": "Vereinsverwaltung",
       "series_manager": "Serienleitung",
       "jury_organizer": "Jury-Obmann",
-      "judge": "Schiedsrichter"
+      "judge": "Schiedsrichter",
+      "feedback_receiver": "Feedback-Empfang"
     },
     "nameHeader": "Name",
     "emailHeader": "E-Mail",
@@ -229,7 +230,8 @@
       "helper": "Helfer",
       "member": "Mitglied",
       "jury_organizer": "Jury-Obmann",
-      "judge": "Schiedsrichter"
+      "judge": "Schiedsrichter",
+      "feedback_receiver": "Feedback-Empfang"
     },
     "objectTypeLabels": {
       "site": "Gesamte Seite",
@@ -555,5 +557,33 @@
     "close": "Schließen",
     "empty": "Hier gibt es noch keine Bilder — eins hochladen oder den Filter ändern.",
     "hint": "Ein Klick fügt das Bild ein. Ein Bild lässt sich auch auf diese Fläche ziehen."
+  },
+  "feedback": {
+    "title": "Feedback",
+    "searchLabel": "Suche",
+    "searchPlaceholder": "Wörter in der Nachricht",
+    "categoryLabel": "Art",
+    "allCategories": "Alle Arten",
+    "stateLabel": "Stand",
+    "stateAll": "Offen und erledigt",
+    "stateOpen": "Offen",
+    "stateHandled": "Erledigt",
+    "loadingText": "Feedback wird geladen…",
+    "emptyText": "Kein Feedback gefunden.",
+    "whenHeader": "Wann",
+    "kindHeader": "Art",
+    "messageHeader": "Nachricht",
+    "fromHeader": "Von",
+    "contextHeader": "Umfeld",
+    "handledHeader": "Erledigt",
+    "page": "Seite",
+    "language": "Sprache",
+    "release": "Version",
+    "window": "Fenster",
+    "browser": "Browser",
+    "markHandled": "Als erledigt markieren",
+    "markOpen": "Wieder öffnen",
+    "handled": "Erledigt",
+    "open": "Offen"
   }
 }

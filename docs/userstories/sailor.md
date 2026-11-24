@@ -897,3 +897,34 @@ sign-in is about whom the help is written for, not about hiding it.
 Frontend: `web/src/pages/Help.tsx`, `web/src/handbook/` (places: `places.ts`), `web/src/lib/workspace.ts`, `web/src/components/HelpLink.tsx`
 
 Tests: `e2e/help.spec.ts::B-18: as a guest I am asked to sign in for the help`, `e2e/help.spec.ts::B-18: as anyone signed in I find the help for what I do`, `e2e/help.spec.ts::B-18: a click path in the help opens that place, for the reader who can use it`
+
+## Telling the league office what I think
+
+### S-9 ● Send feedback from any page
+As **someone signed in** — whatever I do on the site — I want to **tell the league office
+what I want or what bothers me, from the page I am on**, so that **a wish or a defect
+reaches someone who can act on it without my having to find an address and describe where
+I was**.
+
+Acceptance criteria:
+- **Signed in, every page offers *Feedback*** — an entry of the account menu (Story A-12),
+  so it is on every page without taking room from it. **A guest gets none**, and the
+  endpoint refuses one (`401 not-signed-in`): an anonymous box would be a spam inlet.
+- It opens a small dialog: **what kind** — *Bug*, *Feature request*, *Question*, *Other*
+  (a closed set, `FeedbackCategory`) — and **the message**, plain text, never rich text.
+  An empty or blank message is refused (`feedback-message-empty`); more than 5000
+  characters is refused before anything is stored.
+- **What I do not type is taken along**: the page I was on (path and query, the address
+  the dialog was opened from — an address inside the site, nothing else is accepted),
+  the time, my account (name and address are the account's, never typed), the language
+  the site was shown in, the release the footer names, the window's size, and the
+  browser (its `User-Agent`, read by the server from the request). No screenshot.
+- After sending, the dialog says thank you and closes; what I wrote is not shown back to
+  me anywhere — it is a message, not a ticket.
+- **Ending my account erases what I sent** (Story Z-7): a message is written by me and may
+  say anything about me.
+
+Frontend: `web/src/components/FeedbackDialog.tsx`, `web/src/components/UserMenu.tsx`
+
+Tests: `api/tests/stories/test_feedback.py::TestSendFeedback`,
+`e2e/feedback.spec.ts::S-9/A-15: feedback from any page, read in the league office`

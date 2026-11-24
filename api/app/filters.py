@@ -26,6 +26,8 @@ from app.models import (
     ClubMembership,
     Event,
     EventStatus,
+    Feedback,
+    FeedbackCategory,
     InvitationState,
     JudgeLicence,
     JudgeLicenceHolding,
@@ -302,6 +304,21 @@ class UserFilter(ListFilter):
         sortable: ClassVar = {"display_name": User.display_name, "email": User.email}
         default_order: ClassVar = (User.display_name, User.id)
         search_columns: ClassVar = (User.display_name, User.email)
+
+
+class FeedbackFilter(ListFilter):
+    """The league office's feedback (Story A-15), newest first."""
+
+    q: str | None = Field(default=None, description="Search in the message")
+    category: FeedbackCategory | None = Field(default=None, description="Only this kind")
+    handled: bool | None = Field(default=None, description="Only handled, or only open")
+    order_by: list[str] | None = SORT
+
+    class Constants(ListFilter.Constants):
+        model = Feedback
+        sortable: ClassVar = {"created_at": Feedback.created_at, "category": Feedback.category}
+        default_order: ClassVar = (Feedback.created_at.desc(), Feedback.id.desc())
+        search_columns: ClassVar = (Feedback.message,)
 
 
 # ---------------------------------------------------------------- editorial
