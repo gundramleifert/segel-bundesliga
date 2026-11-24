@@ -98,6 +98,7 @@ export * from './eventStandingRow';
 export * from './eventStandingRowPointsByFlight';
 export * from './eventStandingRowPointsByRace';
 export * from './eventStatus';
+export * from './eventTerm';
 export * from './eventUpdate';
 export * from './eventWaiverList';
 export * from './expenseKind';

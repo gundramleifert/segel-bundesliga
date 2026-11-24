@@ -27,7 +27,7 @@ Sie wirkt ab dem nächsten Klick.
 | *Kassenwart* | einen Verein | Zahlt die Abrechnungen des Vereins und jeder Veranstaltung, die er ausrichtet. |
 | *Mitglied* | einen Verein | Gehört durch Mitgliedschaft zum Verein — die Vereinsverwaltung nimmt auf, niemand vergibt sie als Rolle. Sieht die *Personen* des Vereins. |
 | *Verwaltung* | eine Serie | Alles an der Serie und ihren Veranstaltungen, Personen eingeschlossen. |
-| *Organisation* (*Serienleitung*) | eine Serie | Ihre Vereine, Meldungen, Termine, Kadergröße, Veröffentlichung; legt ihre Acts an. Organisation jeder Veranstaltung der Serie. |
+| *Organisation* (*Serienleitung*) | eine Serie | Ihre Vereine, Meldungen, Termine, Kadergröße, Veröffentlichung; legt ihre Veranstaltungen an. Organisation jeder Veranstaltung der Serie. |
 | *Wettfahrtleitung*, *Jury* | eine Serie | Diese Rolle bei jeder Veranstaltung der Serie. |
 | *Verwaltung* | eine Veranstaltung | Alles an der Veranstaltung, Personen eingeschlossen. |
 | *Organisation* (*Veranstaltungsleitung*) | eine Veranstaltung | Konfiguration, Vereine, Veröffentlichung, Start und Abschluss. |
@@ -68,7 +68,7 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 | Personen suchen und anlegen | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
 | Angaben eines Seglers ändern | ✓⁹ | — | — | — | — | — | — | Kader²˒⁹ | Kader²˒⁹ | — | selbst |
 | Kader melden | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
-| Crew für einen Act aufstellen | ✓⁹ | — | ✓⁹ | Serie⁹ | eigene⁹ | eigene⁹ | — | eigene, ausgerichtet⁹ | eigene, ausgerichtet⁹ | — | — |
+| Crew für eine Veranstaltung aufstellen | ✓⁹ | — | ✓⁹ | Serie⁹ | eigene⁹ | eigene⁹ | — | eigene, ausgerichtet⁹ | eigene, ausgerichtet⁹ | — | — |
 | Erziehungsberechtigte verknüpfen | ✓⁹ | — | — | — | — | — | — | eigene | eigene | — | — |
 | Haftungsausschluss für einen Segler bestätigen | ✓⁹ | — | — | — | — | — | — | Kader⁹ | Kader⁹ | — | selbst³ |
 | Unterschriebenes Formular sehen | ✓ | — | ✓ | Serie⁴ | eigene⁴ | eigene⁴ | — | Kader, ausgerichtet⁴ | Kader, ausgerichtet⁴ | — | selbst |

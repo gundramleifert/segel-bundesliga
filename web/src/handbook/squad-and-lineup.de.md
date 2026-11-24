@@ -18,7 +18,7 @@ Für Teammanager oder Vereinsverwaltung; andere Mitglieder sehen Kader und Crews
 
 Die Geschäftsstelle oder die Organisation der Serie (*die Serie* › *Vereine &
 Meldungen*) meldet Ihren Verein für eine Serie, damit auch für deren noch nicht
-begonnene und alle späteren Acts. Bei einer
+begonnene und alle späteren Veranstaltungen. Bei einer
 Veranstaltung ohne Serie meldet deren Organisation die Vereine. Oder bewerben Sie sich
 selbst: [*Ihr Verein* › *Kader*](place:club.series) › *Für eine Serie bewerben* –
 *wartet*, bis die Organisation der Serie annimmt; *Zurückziehen* nimmt sie zurück.
@@ -47,7 +47,7 @@ Ihr Verein ist für die Serie gemeldet.
 - *Segelt in dieser Serie schon für …* lässt sich nicht hinzufügen.
 - *Segelt für einen anderen Verein* lässt sich nicht hinzufügen: Fragen Sie die
   Geschäftsstelle.
-- Wer für einen Act aufgestellt ist, bleibt, bis die Aufstellung geändert ist.
+- Wer für eine Veranstaltung aufgestellt ist, bleibt, bis die Aufstellung geändert ist.
 - Eine Veranstaltung ohne Serie hat unter *Kader* eine eigene Zeile, markiert
   *Veranstaltung ohne Serie*.
 
@@ -69,14 +69,14 @@ Der Kader ist gemeldet.
 
 1. [*Ihr Verein* › *Veranstaltungen & Crews*](place:club.events) listet jedes Team, das Ihr Verein gemeldet hat, eine
    Zeile je Team: *Aufstellung*.
-2. Verschieben Sie Personen aus dem Kader ① nach *Ausgewählt*; passen Sie die *Rolle am
-   Act* ② an.
+2. Verschieben Sie Personen aus dem Kader ① nach *Ausgewählt*; passen Sie die *Rolle bei der
+   Veranstaltung* ② an.
 3. Drücken Sie *Aufstellung speichern* ③.
 
-![Die Aufstellung für einen Act: der Kader ①, die Rolle ②, *Aufstellung speichern* ③](shot:help-club-lineup)
+![Die Aufstellung für eine Veranstaltung: der Kader ①, die Rolle ②, *Aufstellung speichern* ③](shot:help-club-lineup)
 
-Angeboten wird nur der Kader; die Anzahl ist frei (*üblich …*). Niemand segelt an einem
-Act für zwei Teams; eine leere Liste entfernt die Aufstellung. Auf der Website stellt
+Angeboten wird nur der Kader; die Anzahl ist frei (*üblich …*). Niemand segelt bei einer
+Veranstaltung für zwei Teams; eine leere Liste entfernt die Aufstellung. Auf der Website stellt
 nur der Teammanager oder die Verwaltung des Vereins die Crew auf; alle anderen fragen den
 Verein. Ein
 [fehlender Haftungsausschluss](#club-waivers-missing) sperrt niemanden.

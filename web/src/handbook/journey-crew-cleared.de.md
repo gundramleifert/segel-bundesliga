@@ -7,27 +7,27 @@ stories: [V-1, V-12, V-2, Z-8, VA-5, S-2, S-1, V-13, S-8]
 journey: J-5
 route: null
 tags: [crew, squad, waiver, check-in, kader, aufstellung, haftungsausschluss, erziehungsberechtigte, spieltag, act]
-title: Die Crew eines Vereins wird für einen Act freigegeben
+title: Die Crew eines Vereins wird für eine Veranstaltung freigegeben
 ---
 
-## Die Crew eines Vereins wird für einen Act freigegeben
+## Die Crew eines Vereins wird für eine Veranstaltung freigegeben
 
 Wer: der Teammanager, die Segler, die Erziehungsberechtigten eines Minderjährigen, die
 Veranstaltungsleitung.
 
 Drei Dinge zu drei Zeitpunkten, jedes die Grundlage des nächsten: der **Kader** (je Serie),
-die **Crew** (je Act), der **Haftungsausschluss** (je Wettbewerb).
+die **Crew** (je Veranstaltung), der **Haftungsausschluss** (je Wettbewerb).
 
-Vorher: Der Verein ist für eine veröffentlichte Serie gemeldet und für einen ihrer Acts
+Vorher: Der Verein ist für eine veröffentlichte Serie gemeldet und für eine ihrer Veranstaltungen
 eingetragen; jeder Segler hat ein Konto, das mit seinem Personen-Datensatz verknüpft ist.
 
 | Schritt | Wer | Was danach gilt | Wie |
 |---|---|---|---|
 | J-5.1 | Teammanager | der Kader ist für die Serie gespeichert, innerhalb ihres Maximums | [Kader melden](#squad-and-lineup-squad) |
-| J-5.5 | Teammanager | die Crew für den Act ist benannt — nur aus dem Kader | [Crew benennen](#squad-and-lineup-crew) |
+| J-5.5 | Teammanager | die Crew für die Veranstaltung ist benannt — nur aus dem Kader | [Crew benennen](#squad-and-lineup-crew) |
 | J-5.6 | Segler | *Ich* › *Übersicht* meldet *Ihr Haftungsausschluss ist noch nicht unterschrieben* | [Welcher Haftungsausschluss](#waiver-which) |
 | J-5.17 | Teammanager | *Ich* › *Übersicht* meldet, dass einem Crewmitglied der Haftungsausschluss fehlt — die Crew bleibt benannt, nichts wird gesperrt | [Fehlende Haftungsausschlüsse](#club-waivers-missing) |
-| J-5.8 | Segler (volljährig) | der Haftungsausschluss ist online bestätigt; der Segler ist für jeden Act der Serie freigegeben | [Als Volljährige bestätigen](#waiver-adult) |
+| J-5.8 | Segler (volljährig) | der Haftungsausschluss ist online bestätigt; der Segler ist für jede Veranstaltung der Serie freigegeben | [Als Volljährige bestätigen](#waiver-adult) |
 | J-5.14 | Veranstaltungsleitung | die Check-in-Liste zeigt jedes Kadermitglied als *Erledigt*, die unterschriebenen Formulare der Minderjährigen liegen vor | [Check-in-Liste](#event-checkin-list) |
 
 Die Check-in-Liste zeigt den ganzen Kader, nicht nur die Crew: Wer noch aufgestellt werden

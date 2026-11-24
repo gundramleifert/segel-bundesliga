@@ -30,6 +30,7 @@ from app.models import (
     Event,
     EventCrew,
     EventStatus,
+    EventTerm,
     ExternalId,
     Flight,
     ImportRun,
@@ -206,6 +207,7 @@ async def seed() -> None:
         # but each is its own entry on the site.
         first_division = League(
             slug="1-liga",
+            event_term=EventTerm.MATCHDAY,
             short_name="1. Liga",
             name="1. Segel-Bundesliga",
             tagline="18 clubs, six weekends — the last four go down.",
@@ -213,6 +215,7 @@ async def seed() -> None:
         )
         second_division = League(
             slug="2-liga",
+            event_term=EventTerm.MATCHDAY,
             short_name="2. Liga",
             name="2. Segel-Bundesliga",
             tagline="18 clubs, five weekends — the first four go up.",
@@ -220,6 +223,7 @@ async def seed() -> None:
         )
         junior_league = League(
             slug="junioren-liga",
+            event_term=EventTerm.ACT,
             short_name="Junioren",
             name="Deutsche Junioren Segel-Liga",
             tagline="AK16 to AK21 — the talent school of club sailing.",
@@ -227,6 +231,7 @@ async def seed() -> None:
         )
         cup = League(
             slug="dsl-pokal",
+            event_term=EventTerm.NAME,
             short_name="DSL-Pokal",
             name="DSL-Pokal",
             tagline="One weekend where amateur meets professional.",

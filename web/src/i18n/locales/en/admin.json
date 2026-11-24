@@ -60,7 +60,7 @@
   "events": {
     "title": "Events",
     "nameLabel": "Name",
-    "namePlaceholder": "Act 1 Kiel",
+    "namePlaceholder": "Warnemünde 2027",
     "startsLabel": "Starts on",
     "endsLabel": "Ends on",
     "endsHint": "optional",
@@ -525,7 +525,7 @@
     "title": "Upload links",
     "intro": "A link lets a photographer send pictures into the library without an account — from a phone, at the regatta. Make one per photographer or event; revoke it when it is no longer needed.",
     "labelLabel": "For",
-    "labelPlaceholder": "Photos Kiel, act 3",
+    "labelPlaceholder": "Photos Kiel, Saturday",
     "creditLabel": "Credit",
     "optional": "Optional — used when the photographer gives none.",
     "daysLabel": "Days valid",

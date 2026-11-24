@@ -5,6 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { EventTerm } from './eventTerm';
 
 /**
  * A Series — the name already carries the year ("DSBL 2026").
@@ -23,4 +24,5 @@ export interface SeriesOut {
   squad_max?: number;
   published?: boolean;
   description?: string | null;
+  event_term?: EventTerm;
 }

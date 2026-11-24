@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { EventSummary, SeriesTable } from "../api/types";
-import { formatPoints, teamLabel } from "../lib/format";
+import { eventNumber, formatPoints, teamLabel } from "../lib/format";
 import { TableFrame } from "./Blocks";
 import { SapAttribution } from "./SapAttribution";
 import { Tip } from "./Tip";
@@ -75,14 +75,14 @@ export function StandingsTable({
               {data.events.map((event) => (
                 <th key={event.id} scope="col" className="w-20 whitespace-nowrap text-center font-medium text-muted">
                   {/* The heading is the way into the matchday; the tooltip carries the
-                      event's full name — the column fits only "Act 2". */}
+                      event's full name — the column fits only "2. Spieltag". */}
                   <Tip text={event.title}>
                     <Link
                       to={actHref(event)}
                       data-testid={`${testId}-event-link-${event.id}`}
                       className="underline-offset-2 hover:text-foreground hover:underline"
                     >
-                      {t("table.act", { matchday: event.matchday })}
+                      {eventNumber(event) ?? event.title}
                     </Link>
                   </Tip>
                 </th>

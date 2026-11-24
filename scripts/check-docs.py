@@ -486,37 +486,43 @@ def render_index(entries: list[tuple[str, str]]) -> str:
     return "\n".join(lines)
 
 
-# Words the site no longer uses for what it shows (decided 2026-11-19: an event of a series
-# is an *Act*, in German too, never a *Spieltag*). Checked in every catalog message and in
-# the help's prose; a page's `tags:` may keep the old word, so a search for it still finds.
-RETIRED_WORDS = {re.compile(r"spieltag", re.I): "Act"}
+# A league's word for its numbered events (Story B-22, decided 2026-11-19): the 1. and
+# 2. Liga say *Spieltag* (*Matchday*), the Junioren-Liga *Act*, the DSL-Pokal neither —
+# the screen picks it from the event's league (`League.event_term`). A text that knows no
+# league says *Veranstaltung* (*event*), so no league's word lands on another's page. The
+# words stand only in the messages that are the league's word, and in the help's glossary
+# row that explains them; a page's `tags:` may keep them, so a search for one still finds.
+LEAGUE_WORDS = re.compile(r"Spieltag|\bActs?\b|\bMatchdays?\b")
+LEAGUE_WORD_MESSAGES = {"common.actNumber", "common.matchdayNumber", "site.season.matchdays"}
+LEAGUE_WORD_GLOSSARY = re.compile(r"^\| (Spieltag|Matchday), Act \|")
 CATALOGS = ROOT / "web" / "src" / "i18n" / "locales"
 
 
-def check_retired_words() -> list[str]:
-    def flat(value: object) -> list[str]:
+def check_league_words() -> list[str]:
+    def flat(value: object, key: str) -> list[tuple[str, str]]:
         if isinstance(value, str):
-            return [value]
+            return [(key, value)]
         if isinstance(value, dict):
-            return [text for item in value.values() for text in flat(item)]
+            return [pair for k, item in value.items() for pair in flat(item, f"{key}.{k}" if key else k)]
         return []
 
     texts = [
-        (path.relative_to(ROOT), text)
+        (f"{path.relative_to(ROOT)}: {key}", text)
         for path in sorted(CATALOGS.glob("*/*.json"))
-        for text in flat(json.loads(path.read_text(encoding="utf-8")))
+        for key, text in flat(json.loads(path.read_text(encoding="utf-8")), path.stem)
+        if key not in LEAGUE_WORD_MESSAGES
     ]
     texts += [
         (path.relative_to(ROOT), line)
         for path in sorted(HANDBOOK.glob("*.md"))
         for line in path.read_text(encoding="utf-8").splitlines()
-        if not line.startswith("tags:")
+        if not line.startswith("tags:") and not LEAGUE_WORD_GLOSSARY.match(line)
     ]
     return [
-        f"{where}: {pattern.pattern!r} is retired, say {instead!r} — {text.strip()[:80]}"
+        f"{where}: {match[0]!r} is a league's word (Story B-22) — say Veranstaltung/event, "
+        f"or take the event's own: {text.strip()[:80]}"
         for where, text in texts
-        for pattern, instead in RETIRED_WORDS.items()
-        if pattern.search(text)
+        if (match := LEAGUE_WORDS.search(text))
     ]
 
 
@@ -1211,7 +1217,7 @@ def main(argv: list[str]) -> int:
     problems += journey_problems
     gotcha_problems, entries = check_gotchas()
     problems += gotcha_problems
-    problems += check_retired_words()
+    problems += check_league_words()
     handbook = check_handbook(markers, all_journeys, files)
     problems += handbook.problems
     warnings = [*warnings, *handbook.warnings]

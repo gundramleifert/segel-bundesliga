@@ -31,6 +31,7 @@ from app.models import (
     Event,
     EventCrew,
     EventStatus,
+    EventTerm,
     Flight,
     League,
     Person,
@@ -127,6 +128,8 @@ async def _build(session: AsyncSession, level: int, label: str) -> None:
             name="Practice league",
             tagline="Invented squads, weekends and results — for the test suites.",
             position=9,
+            # It practises the 1. Liga, so it says its word (Story B-22).
+            event_term=EventTerm.MATCHDAY,
         )
         session.add(league)
         await session.flush()

@@ -394,6 +394,31 @@ carrying SAP's results (none yet) needs it too.
 
 Tests: `api/tests/stories/test_sap_attribution.py::TestSapIsCredited`, `e2e/visitor.spec.ts`
 
+### B-22 ● Each league calls its events by its own word
+As a **fan** I want **each league to call its weekends what its sailors call them** — the
+Bundesliga a *Spieltag*, the Junioren-Liga an *Act*, the Pokal by its name — so that **the
+site speaks the league's language, not one word forced on all**.
+
+Initial feedback, 2026-11-19, the same day the site had made every one of them an *Act*
+(decision of that morning, reversed).
+
+Acceptance criteria:
+- **The league holds the word** (`League.event_term`): `matchday` for the 1. and 2. Liga —
+  *Spieltag*, *Matchday* in English —, `act` for the Junioren-Liga — *Act* in both —, `name`
+  for the DSL-Pokal. Every series says its league's word (`SeriesOut.event_term`); a series
+  without a league, and an event without a series, say `name`.
+- **Where an event with a number is labelled** — a league's acts, the footer, the season
+  table's columns, an event's subtitle, my space's event lists — the label is *3. Spieltag*,
+  *Act 3*, or with `name` the event's own title, never a number with no word.
+- **Texts that know no event** — errors, hints, the help — say *Veranstaltung* (*event*),
+  so no league's word lands on another's page. `scripts/check-docs.py` allows *Spieltag*
+  and *Act* only in the three label messages.
+- **The Bundesliga's news say *Spieltag* again** (migration `0004_league_event_term`, the
+  seed's posts); the Junioren's keep *Act*. URLs stay as they are (`/1-liga/2026/act-3`):
+  an address is made once, and identifiers are English.
+
+Tests: `api/tests/stories/test_league_pages.py::TestEventTerm`
+
 ## The leagues
 
 The site's structure is option E of issue #14, recorded in `docs/site-structure.md`:

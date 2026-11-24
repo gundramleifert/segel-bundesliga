@@ -5,6 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { EventTerm } from './eventTerm';
 
 /**
  * A competition that runs year after year — the public site's top level.
@@ -15,4 +16,5 @@ export interface LeagueOut {
   short_name: string;
   name: string;
   tagline?: string | null;
+  event_term?: EventTerm;
 }

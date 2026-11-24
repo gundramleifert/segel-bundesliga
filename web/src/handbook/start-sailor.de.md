@@ -31,7 +31,7 @@ Profil, Ihren Verein.
   [Mein Bereich](#my-space-overview).
 - Bestätigen Sie den [Haftungsausschluss](#waiver-which) einmal pro Serie: ab 18 online,
   unter 18 mit [der Unterschrift eines Elternteils](#waiver-minor-paper).
-- Benennt Ihr Verein Sie in der Crew eines Acts, erscheint auch die Veranstaltung
+- Benennt Ihr Verein Sie in der Crew einer Veranstaltung, erscheint auch die Veranstaltung
   dort ([Ihre Bereiche](#my-space-pages)).
 - Laden Sie Ihre Scheine einmal hoch: [Dokumente](#profile-documents). Hinterlegen Sie
   Ihre [Bankverbindung](#profile-bank), bevor Sie eine Abrechnung einreichen.
@@ -40,7 +40,7 @@ Profil, Ihren Verein.
 
 - [Ein Segler kommt in seinen Verein](#journey-member) – was Sie, der Admin des Vereins
   und der Teammanager jeweils tun.
-- [Die Crew eines Vereins ist für einen Act freigegeben](#journey-crew-cleared) –
+- [Die Crew eines Vereins ist für eine Veranstaltung freigegeben](#journey-crew-cleared) –
   vom Kader bis zum bestätigten Haftungsausschluss.
 
 [Mein Bereich öffnen](place:space)

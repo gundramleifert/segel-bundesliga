@@ -6,7 +6,7 @@ audience: [club]
 stories: []
 journey: null
 route: null
-tags: [club, members, squad, crew, waiver, verein, mitglieder, kader, aufstellung, teammanager, haftungsausschluss]
+tags: [club, members, squad, crew, waiver, verein, mitglieder, kader, aufstellung, teammanager, haftungsausschluss, spieltag, act, matchday]
 title: "Help for club admins and team managers"
 ---
 

@@ -38,7 +38,7 @@
     "WHITE": "Weiß"
   },
   "hostedBy": "Ausrichter: {name}",
-  "actNumber": "{number}. Act",
+  "actNumber": "Act {number}",
   "language": {
     "label": "Sprache",
     "en": "English",
@@ -104,5 +104,6 @@
   },
   "sapAttribution": {
     "poweredBy": "Ergebnisse powered by"
-  }
+  },
+  "matchdayNumber": "{number}. Spieltag"
 }

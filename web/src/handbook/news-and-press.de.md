@@ -21,7 +21,7 @@ allein die Redaktion der Seite an.
 ### Bilder von einem Fotografen {#news-and-press-pictures}
 
 1. Unter [*Medien*](place:admin.media), bei *Upload-Links*: *Für* ① eintragen (z. B. „Fotos
-   Kiel, Act 3“), unter *Bilder von* ② die Veranstaltung wählen, nach Wunsch einen
+   Kiel, Samstag“), unter *Bilder von* ② die Veranstaltung wählen, nach Wunsch einen
    *Bildnachweis* und die *Tage gültig* eintragen, dann *Link anlegen* ③.
 
    ![Upload-Links: *Für* ①, *Bilder von* ②, *Link anlegen* ③](shot:help-news-upload-link)

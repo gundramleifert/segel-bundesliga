@@ -127,7 +127,7 @@ export function SeasonPage() {
         const { league, acts, year } = data;
         return (
           <DepthPage league={league} title={t("pages.season")} kicker={kickerOf(data)}>
-            <Block title={t("season.matchdays")}>
+            <Block title={t("season.matchdays", { term: league.event_term })}>
               {!acts.length && <TextCard>{t("season.empty")}</TextCard>}
               {acts.length > 0 && <Card className="px-4">
               {acts.map((act) => (

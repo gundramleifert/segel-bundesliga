@@ -6,7 +6,7 @@ audience: [race-committee]
 stories: [WL-2, WL-4]
 journey: null
 route: null
-tags: [results, protest, penalty, redress, ergebnisse, protestentscheidung, strafpunkte, wettfahrt]
+tags: [results, protest, penalty, redress, ergebnisse, protestentscheidung, strafpunkte, wettfahrt, spieltag, act, matchday]
 title: "Enter and correct results"
 ---
 ## Enter and correct results

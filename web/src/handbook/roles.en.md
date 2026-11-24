@@ -27,7 +27,7 @@ the next click.
 | *Treasurer* | a club | Pays the club's claims and those of every event it hosts. |
 | *Member* | a club | Belongs to the club by membership — the club's admin takes them in, nobody grants it as a role. Sees the club's *People*. |
 | *Admin* | a series | Everything on the series and its events, people included. |
-| *Organizer* (*Series manager*) | a series | Its clubs, applications, dates, squad size, publication; creates its acts. Organizer of every event in it. |
+| *Organizer* (*Series manager*) | a series | Its clubs, applications, dates, squad size, publication; creates its events. Organizer of every event in it. |
 | *Race officer*, *Jury* | a series | That role at every event in it. |
 | *Admin* | an event | Everything on the event, people included. |
 | *Organizer* (*Event manager*) | an event | Setup, clubs, publication, start and close. |

@@ -71,7 +71,7 @@
     "photoUploading": "Wird hochgeladen…",
     "removePhoto": "Foto entfernen",
     "publicLabel": "Öffentliche Profilseite",
-    "publicOn": "Alle können Ihre Seite mit Foto, Vereinen und Acts öffnen.",
+    "publicOn": "Alle können Ihre Seite mit Foto, Vereinen und Veranstaltungen öffnen.",
     "publicOff": "Ihre Seite ist verborgen: Nur Sie, die Leitung Ihres Vereins und die Ligageschäftsstelle können sie öffnen. Ihr Name steht weiter in Kader, Aufstellung und Ergebnissen — als reiner Text, ohne Foto."
   },
   "deleteAccount": {
@@ -85,7 +85,7 @@
   },
   "waiver": {
     "title": "Haftungsausschluss",
-    "description": "Eine Erklärung pro Serie – oder pro Veranstaltung, wenn sie zu keiner Serie gehört. Sie gilt für alle Acts dieser Wettbewerbe; ein neuer Wortlaut verlangt eine neue Bestätigung.",
+    "description": "Eine Erklärung pro Serie – oder pro Veranstaltung, wenn sie zu keiner Serie gehört. Sie gilt für alle Veranstaltungen dieser Wettbewerbe; ein neuer Wortlaut verlangt eine neue Bestätigung.",
     "none": "Sie sind noch für keinen Wettbewerb gemeldet, es gibt also nichts zu unterschreiben.",
     "forCompetition": "Stichtag {date}",
     "status": {

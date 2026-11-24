@@ -53,13 +53,13 @@ POSTS: list[dict] = [
         "published_on": "2026-10-13",
         "leagues": ["1-liga", "2-liga", "junioren-liga", "dsl-pokal"],
         "association": True,
-        "teaser": "Die Termine für die Saison 2027 stehen fest: alle Acts der 1. und 2. "
+        "teaser": "Die Termine für die Saison 2027 stehen fest: alle Spieltage der 1. und 2. "
         "Segel-Bundesliga, die Acts der Deutschen Junioren Segel-Liga und der gemeinsame Pokal.",
         "body_html": (
-            "<p>Die Termine für die Saison 2027 stehen fest. Hier der Überblick über alle Ac"
-            "ts der 1. und 2. Segel-Bundesliga, die Acts der Deutschen Junioren Segel-Lig"
+            "<p>Die Termine für die Saison 2027 stehen fest. Hier der Überblick über alle Spi"
+            "eltage der 1. und 2. Segel-Bundesliga, die Acts der Deutschen Junioren Segel-Lig"
             "a sowie den gemeinsamen Pokal.</p><h2>1. und 2. Segel-Bundesliga (DSBL)</h2><p><"
-            "em>Regatten jeweils Freitag bis Sonntag</em></p><table><thead><tr><th>Act</"
+            "em>Regatten jeweils Freitag bis Sonntag</em></p><table><thead><tr><th>Spieltag</"
             "th><th>Termin</th><th>Ort / Revier</th><th>Ausrichter</th><th>Liga</th></tr></th"
             "ead><tbody><tr><td>1</td><td>16.–18.04.2027</td><td>Friedrichshafen / Bodensee</"
             "td><td>Württembergischer Yacht-Club<br>Konstanzer Yacht-Club</td><td>1. &amp; 2."
@@ -114,11 +114,11 @@ POSTS: list[dict] = [
         "kind": "news",
         # The slug of its first title: a URL is made once.
         "slug": "wannsee-nrv-und-asvw-gewinnen-den-fuenften-spieltag",
-        "title": "Wannsee: NRV und ASVW gewinnen den fünften Act",
+        "title": "Wannsee: NRV und ASVW gewinnen den fünften Spieltag",
         "published_on": "2026-09-20",
         "leagues": ["1-liga", "2-liga"],
         "teaser": "Beim Potsdamer Yacht Club sind in beiden Ligen alle 16 Flights gesegelt worden. "
-        "Den Act gewinnen der Norddeutsche Regatta Verein in der 1. und der Akademische "
+        "Den Spieltag gewinnen der Norddeutsche Regatta Verein in der 1. und der Akademische "
         "Segelverein Warnemünde in der 2. Liga.",
         "body": "Das Wochenende auf dem Wannsee hat den Crews keine Pause gegönnt: An den ersten "
         "beiden Tagen wehte nur wenig Wind, der dazu ständig die Richtung wechselte, am Sonntag "
@@ -155,10 +155,10 @@ POSTS: list[dict] = [
         "title": "Hamburg: Der NRV gewinnt zu Hause und führt die Tabelle an",
         "published_on": "2026-08-03",
         "leagues": ["1-liga"],
-        "teaser": "Auf der Außenalster holt der Norddeutsche Regatta Verein den Sieg bei Act "
-        "4 – vor eigenem Publikum. Damit steht er nun allein an der Spitze der "
+        "teaser": "Auf der Außenalster holt der Norddeutsche Regatta Verein den Sieg am 4. "
+        "Spieltag – vor eigenem Publikum. Damit steht er nun allein an der Spitze der "
         "Gesamtwertung.",
-        "body": "Der Gastgeber hat seinen eigenen Act gewonnen: Beim vierten Wochenende "
+        "body": "Der Gastgeber hat seinen eigenen Spieltag gewonnen: Beim vierten Wochenende "
         "der 1. Liga lag am Ende der Norddeutsche Regatta Verein vorn. Zweiter wurde der "
         "Bayerische Yacht-Club, knapp dahinter belegte der Mühlenberger Segel-Club Rang drei.\n"
         "\n"
@@ -181,13 +181,13 @@ POSTS: list[dict] = [
         "kind": "news",
         # The slug of its first title: a URL is made once.
         "slug": "vorschau-gleichstand-an-der-spitze-vor-dem-spieltag-in-hamburg",
-        "title": "Vorschau: Gleichstand an der Spitze vor dem Act in Hamburg",
+        "title": "Vorschau: Gleichstand an der Spitze vor dem Spieltag in Hamburg",
         "published_on": "2026-07-30",
         "leagues": ["1-liga"],
         "teaser": "Vom 30. Juli bis 2. August segelt die 1. Liga auf der Außenalster, "
         "Gastgeber ist der Norddeutsche Regatta Verein. Ausgerechnet er führt die Tabelle an "
         "– punktgleich mit dem Joersfelder Segel-Club.",
-        "body": "Der vierte Act der Saison 2026 führt die 1. Liga nach Hamburg. Der "
+        "body": "Der vierte Spieltag der Saison 2026 führt die 1. Liga nach Hamburg. Der "
         "Norddeutsche Regatta Verein lädt vom 30. Juli bis 2. August auf die Außenalster ein.\n"
         "\n"
         "Spannender könnte die Ausgangslage kaum sein: Der Gastgeber und der Joersfelder "
@@ -208,7 +208,7 @@ POSTS: list[dict] = [
         "kind": "news",
         # The slug of its first title: a URL is made once.
         "slug": "kiel-muehlenberger-sc-und-sc-ville-gewinnen-den-dritten-spieltag",
-        "title": "Kiel: Mühlenberger SC und SC Ville gewinnen den dritten Act",
+        "title": "Kiel: Mühlenberger SC und SC Ville gewinnen den dritten Spieltag",
         "published_on": "2026-07-12",
         "leagues": ["1-liga", "2-liga"],
         "teaser": "Sonne, Wärme und Bilderbuchwind zum Abschluss auf der Kieler Förde: Nach 16 "
@@ -216,20 +216,20 @@ POSTS: list[dict] = [
         "Liga.",
         "body": "Am Hotel Kieler Yacht Club blieb es bis zum letzten Rennen offen. Der Schlusstag "
         "brachte Sonnenschein, warme Temperaturen und angenehmen Wind – ein schöner Ausklang für "
-        "einen gelungenen dritten Act.\n"
+        "einen gelungenen dritten Spieltag.\n"
         "\n"
         "In der 1. Liga führte der Mühlenberger Segel-Club vom ersten Tag an und gab die Spitze "
         "nicht mehr ab: 33 Punkte nach 16 Läufen. Der Norddeutsche Regatta Verein folgt mit 38 "
         "Punkten, der Münchner Yacht-Club mit 45.\n"
         "\n"
         "In der 2. Liga legte der Segel-Club Ville am Schlusstag noch einmal zu und gewann den "
-        "Act mit 35 Punkten. Zweiter wurde der Flensburger Segel-Club (38), Dritter der "
+        "Spieltag mit 35 Punkten. Zweiter wurde der Flensburger Segel-Club (38), Dritter der "
         "Konstanzer Yacht-Club (42).\n"
         "\n"
-        "Zur Halbzeit der 1. Liga – drei von sechs Acts sind gesegelt – teilen sich der "
+        "Zur Halbzeit der 1. Liga – drei von sechs Spieltagen sind gesegelt – teilen sich der "
         "Norddeutsche Regatta Verein und der Joersfelder Segel-Club mit je 9 Punkten die "
         "Tabellenspitze, dahinter liegt der Münchner Yacht-Club (17). In der 2. Liga stehen nach "
-        "drei von fünf Acts der Verein Seglerhaus am Wannsee (13), der Konstanzer "
+        "drei von fünf Spieltagen der Verein Seglerhaus am Wannsee (13), der Konstanzer "
         "Yacht-Club (14) und der Lübecker Yacht-Club (16) vorn.",
         "author": "Redaktion",
         "photo_url": None,
@@ -438,7 +438,7 @@ POSTS: list[dict] = [
     },
     {
         "kind": "press",
-        "title": "Act 5: ASVW takes over the lead",
+        "title": "Matchday 5: ASVW takes over the lead",
         "published_on": "2026-09-21",
         "leagues": ["1-liga"],
         "body": "Placeholder text of the release: the facts in the first paragraph, a quote, the "

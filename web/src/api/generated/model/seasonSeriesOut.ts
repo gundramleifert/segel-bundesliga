@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClubOut } from './clubOut';
+import type { EventTerm } from './eventTerm';
 
 /**
  * A series on its league's page, with the clubs registered (accepted) for it.
@@ -24,5 +25,6 @@ export interface SeasonSeriesOut {
   squad_max?: number;
   published?: boolean;
   description?: string | null;
+  event_term?: EventTerm;
   clubs?: ClubOut[];
 }

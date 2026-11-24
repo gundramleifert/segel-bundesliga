@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import type { EventSummary } from "../../api/types";
 import { Badge, StatusBadge } from "../../components/Blocks";
-import { eventDates } from "../../lib/format";
+import { eventDates, eventNumber } from "../../lib/format";
 import { sectionPath } from "../../lib/workspace";
 
 /** Events as rows, each opening the event's own context (`/me/event/<id>`) — a club's
@@ -21,7 +21,7 @@ export function EventLinks({ events, testId }: { events: EventSummary[]; testId:
             className="min-w-0 flex-1 font-medium underline-offset-2 hover:underline"
             data-testid={`${testId}-${event.id}-link`}
           >
-            {event.matchday != null && <span className="mr-1 text-muted">{t("clubSections.matchday", { n: event.matchday })}</span>}
+            {eventNumber(event) && <span className="mr-1 text-muted">{eventNumber(event)} ·</span>}
             {event.title}
           </Link>
           <span className="text-muted">{eventDates(event)}</span>

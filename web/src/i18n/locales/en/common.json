@@ -104,5 +104,6 @@
   },
   "sapAttribution": {
     "poweredBy": "Results powered by"
-  }
+  },
+  "matchdayNumber": "Matchday {number}"
 }

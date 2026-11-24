@@ -397,15 +397,26 @@ or a staging that no longer runs it. Production takes staging's images rather th
 building its own, so it runs exactly what was tried. Staging has no SMTP: its copy holds
 real people's addresses.
 
-### An event of a series is an *Act*
+### Each league names its events
 
-Decided 2026-11-19: what German pages called a *Spieltag* is an **Act** on screen, in
-German as in English — the word the league pages and their URLs (`/1-liga/2026/act-3`)
-already used, so one thing has one name. Code keeps `matchday` (`Event.matchday`, the
-`matchday` namespace): renaming a column is a migration for no reader's gain. Recorded
-texts — press releases, Manage2Sail pages, SAP exports, news — keep their own words.
-`scripts/check-docs.py` (`RETIRED_WORDS`) refuses *Spieltag* in the catalogs and the help
-outside a page's search tags.
+Decided 2026-11-19, evening (Story B-22), replacing the morning's "an event of a series is
+an *Act*, in German too": the league's sailors call their weekends differently, and the
+site speaks their language. **The league holds the word** (`League.event_term`): the 1. and
+2. Liga *Spieltag* (*Matchday*), the Junioren-Liga *Act* (in both languages), the DSL-Pokal
+neither — there an event is its name, as for a series without a league or an event
+without a series. On the league rather than the series, so a new year needs no setting.
+Every `SeriesOut` carries it (`Series.league` loads with the series, `selectin`, never a
+join: a joined eager load changed a `GROUP BY` query's SQL), and the frontend labels an
+event through one function, `lib/format.ts::eventNumber`.
+
+**A text that knows no event says *Veranstaltung* (*event*)** — errors, hints, the help —
+so the Bundesliga's word never lands on a junior's page. `scripts/check-docs.py`
+(`check_league_words`) allows *Spieltag*, *Act* and *Matchday* only in the three label
+messages and the help's glossary row. Code and URLs keep `matchday`/`act`
+(`/1-liga/2026/act-3`): an address is made once, and identifiers are English. Recorded
+texts — press releases, Manage2Sail pages, SAP exports — keep their own words; the
+Bundesliga's news say *Spieltag* again (migration `0004_league_event_term`), the
+Junioren's *Act*.
 
 ### Logged in or guest
 

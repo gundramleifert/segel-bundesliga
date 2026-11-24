@@ -54,7 +54,7 @@ die einer Einzelveranstaltung deren Organisation. Nehmen Sie jemanden heraus, od
 [Kadergröße](#squad-and-lineup-size).
 
 #### Warum kann ich niemanden aus dem Kader nehmen?
-Die Person steht in einer Crew eines Acts. Ändern Sie zuerst die Aufstellung: [die Crew](#squad-and-lineup-crew).
+Die Person steht in einer Crew einer Veranstaltung. Ändern Sie zuerst die Aufstellung: [die Crew](#squad-and-lineup-crew).
 
 #### Das Mitglied, das ich eintragen möchte, hat kein Konto.
 Wer schon erfasst ist – eine Person, die Ihr Verein angelegt hat –, nehmen Sie über die
@@ -96,7 +96,7 @@ Veranstaltung selbst, ihrer Serie oder ihres Ausrichters, oder die Geschäftsste
 ### Für die Wettfahrtleitung {#faq-race-committee}
 
 #### Warum kann ich keine Wettfahrt starten?
-Der Act ist nicht gestartet (*Act starten*), oder eine andere Wettfahrt läuft
+Die Veranstaltung ist nicht gestartet (*Veranstaltung starten*), oder eine andere Wettfahrt läuft
 noch – es läuft immer nur eine: [Start](#race-control-start).
 
 #### Kann ich ein Ergebnis noch korrigieren, wenn die Wettfahrten beendet sind?

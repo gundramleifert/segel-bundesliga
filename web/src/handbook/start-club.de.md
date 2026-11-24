@@ -6,7 +6,7 @@ audience: [club]
 stories: []
 journey: null
 route: null
-tags: [club, members, squad, crew, waiver, verein, mitglieder, kader, aufstellung, teammanager, haftungsausschluss]
+tags: [club, members, squad, crew, waiver, verein, mitglieder, kader, aufstellung, teammanager, haftungsausschluss, spieltag, act, matchday]
 title: "Hilfe für Vereinsverwaltung und Teammanager"
 ---
 
@@ -39,7 +39,7 @@ den Verein im Kontextwechsler; seine Bereiche stehen unter *Personen*, *Segeln* 
   [den Kader melden](#squad-and-lineup-squad), innerhalb der
   [Kadergröße](#squad-and-lineup-size) – Teammanager.
 
-### Vor jedem Act {#start-club-matchday}
+### Vor jeder Veranstaltung {#start-club-matchday}
 
 - [Die Crew aufstellen](#squad-and-lineup-crew), aus dem Kader – Teammanager.
 - [Sehen, wessen Haftungsausschluss vorliegt](#club-waivers-overview), und
@@ -50,7 +50,7 @@ den Verein im Kontextwechsler; seine Bereiche stehen unter *Personen*, *Segeln* 
 - [Ein neuer Verein kommt in Gang und verwaltet sich selbst](#journey-club)
 - [Ein Segler tritt seinem Verein bei](#journey-member)
 - [Eine Serienleitung richtet eine Serie ein](#journey-series)
-- [Die Crew eines Vereins wird für einen Act freigegeben](#journey-crew-cleared)
+- [Die Crew eines Vereins wird für eine Veranstaltung freigegeben](#journey-crew-cleared)
 
 Wer was darf: [Rollen](#roles-list).
 

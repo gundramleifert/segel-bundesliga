@@ -20,7 +20,7 @@ regatta, at *the series* (or *the event*) › *News & pictures*, and finds all o
 ### Pictures from a photographer {#news-and-press-pictures}
 
 1. On [*Media*](place:admin.media), under *Upload links*: enter *For* ① (e.g. "Photos
-   Kiel, act 3"), choose the event in *Pictures of* ②, add a *Credit* if you like and the
+   Kiel, Saturday"), choose the event in *Pictures of* ②, add a *Credit* if you like and the
    *Days valid*, then *Make link* ③.
 
    ![Upload links: *For* ①, *Pictures of* ②, *Make link* ③](shot:help-news-upload-link)

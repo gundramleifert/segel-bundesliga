@@ -6,7 +6,7 @@ audience: [race-committee]
 stories: [WL-3]
 journey: null
 route: /events/:id/race-control
-tags: [start sequence, recall, abandon, postpone, flags, wettfahrtleitung, startfolge, rückruf, startverschiebung]
+tags: [start sequence, recall, abandon, postpone, flags, wettfahrtleitung, startfolge, rückruf, startverschiebung, spieltag, act, matchday]
 title: "Run the races from the water"
 ---
 ## Run the races from the water

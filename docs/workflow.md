@@ -111,8 +111,9 @@ contract, and the frontend maps `<code>` to the `errors` i18n namespace. Typed e
 validation errors are rendered as problem+json too (generic type, `detail` preserved).
 
 **Domain terms** — the German word and the English one used in code, docs and comments:
-Wettfahrt → Race, Flight → Flight (unchanged), Spieltag → Matchday (on screen *Act* in both
-languages — `scripts/check-docs.py` refuses *Spieltag* in the catalogs and the help),
+Wettfahrt → Race, Flight → Flight (unchanged), Spieltag → Matchday (on screen the league's
+word — *Spieltag*/*Matchday*, *Act*, or the event's name, `League.event_term`; a text that
+knows no league says *Veranstaltung*/*event*, which `scripts/check-docs.py` holds),
 Wettfahrtleitung → Race
 committee, Serie → Series, Verein → Club, Segler → Sailor, Mannschaft → Team, Kader → Squad,
 Aufstellung → Lineup, Liga → League, Jahrgang → Year, Boot → Boat, Pairing-Liste → Pairing

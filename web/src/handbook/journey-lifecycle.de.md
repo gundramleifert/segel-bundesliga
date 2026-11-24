@@ -7,10 +7,10 @@ stories: [A-1, A-6, VA-8, VA-6, VA-7, B-3, WL-2, B-1, VA-10, VA-9]
 journey: J-1
 route: null
 tags: [lifecycle, season, matchday, spieltag, act, serie, veranstaltung, auslosung, wertung]
-title: Von der leeren Serie zum gewerteten Act
+title: Von der leeren Serie zur gewerteten Veranstaltung
 ---
 
-## Von der leeren Serie zum gewerteten Act
+## Von der leeren Serie zur gewerteten Veranstaltung
 
 Wer: die Geschäftsstelle, die Veranstaltungsleitung, die Wettfahrtleitung, die Jury, ein
 Besucher.
@@ -31,7 +31,7 @@ deren Punkte sich noch ändern, wenn nach der letzten Wettfahrt ein Protest ents
 | J-1.8 | Besucher | die Pairing-Liste lässt sich drucken — wo der Server nicht drucken kann, wird der Download nicht angeboten | die öffentliche Website |
 | J-1.9 | Veranstaltungsleitung | die Veranstaltung *läuft* | [Veranstaltung starten](#run-event-start) |
 | J-1.10 | Wettfahrtleitung | jede Wettfahrt hat ihre Ergebnisse; die Punkte ergeben sich daraus | [Ergebnisse eintragen](#results-entry-enter) |
-| J-1.11 | Besucher | die Serientabelle enthält den Act, jeden Verein mit seiner Platzierung | die öffentliche Website |
+| J-1.11 | Besucher | die Serientabelle enthält die Veranstaltung, jeden Verein mit seiner Platzierung | die öffentliche Website |
 | J-1.12 | Veranstaltungsleitung | Zuschnitt, Vereine, Boote und Pairing-Liste sind eingefroren; der Titel lässt sich noch korrigieren | [Eingefroren nach der ersten Wettfahrt](#run-event-frozen) |
 | J-1.13 | Jury, dann Wettfahrtleitung | die Jury disqualifiziert Monate später einen Sieger, und die Wettfahrtleitung trägt die Entscheidung ein; Punkte und Tabellen folgen sofort | [Ergebnis korrigieren](#results-entry-correct) |
 | J-1.14 | Wettfahrtleitung | die Wettfahrtleitung erklärt die Wettfahrten für beendet: die Veranstaltung ist *beendet*; Ergebnisse bleiben korrigierbar | [Wettfahrten sind beendet](#close-event-finish) |

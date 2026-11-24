@@ -76,7 +76,7 @@ zeigt dann *Es wird gesegelt …*.
 
 | Steht fest | Bleibt änderbar |
 |---|---|
-| Zuschnitt, Serie und Act, Teams pro Verein, Vereine, Boote, Pairing-Liste | Titel, Ausrichter, Revier, Datum, Veröffentlichung, Druckeinstellungen, Ergebnisse — eine Protestentscheidung Monate später landet trotzdem |
+| Zuschnitt, Serie und Nummer, Teams pro Verein, Vereine, Boote, Pairing-Liste | Titel, Ausrichter, Revier, Datum, Veröffentlichung, Druckeinstellungen, Ergebnisse — eine Protestentscheidung Monate später landet trotzdem |
 
 ### Personen der Veranstaltung {#run-event-helpers}
 

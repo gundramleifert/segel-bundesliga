@@ -10,7 +10,15 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Literal, NamedTuple
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import (
+    AliasChoices,
+    AliasPath,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    model_validator,
+)
 
 from app.crests import crest_url
 from app.models.auth import Relation
@@ -18,6 +26,7 @@ from app.models.competition import (
     AnnouncementIssuer,
     EventDocumentKind,
     EventStatus,
+    EventTerm,
     ResultsSource,
 )
 from app.models.org import CrewRole, InvitationState, MembershipStatus, Person
@@ -76,6 +85,8 @@ class LeagueOut(BaseModel):
     short_name: str
     name: str
     tagline: str | None = None
+    #: What its series call their numbered events on screen.
+    event_term: EventTerm = EventTerm.NAME
 
 
 class LeagueSeason(BaseModel):
@@ -116,6 +127,12 @@ class SeriesOut(BaseModel):
     published: bool = False
     # Free-text, Markdown, for the public standings page. Absent unless an admin set one.
     description: str | None = None
+    #: What an event of this series is called on screen — its league's word
+    #: (`League.event_term`); a series without a league names its events.
+    event_term: EventTerm = Field(
+        default=EventTerm.NAME,
+        validation_alias=AliasChoices("event_term", AliasPath("league", "event_term")),
+    )
 
 
 class SeasonSeriesOut(SeriesOut):

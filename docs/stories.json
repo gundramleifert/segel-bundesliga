@@ -223,6 +223,14 @@
   "file": "docs/userstories/visitor.md",
   "anchor": "b-21--sap-sailing-is-credited-wherever-its-results-show"
  },
+ "B-22": {
+  "title": "Each league calls its events by its own word",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The matchday",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-22--each-league-calls-its-events-by-its-own-word"
+ },
  "B-3": {
   "title": "View pairing list",
   "status": "●",

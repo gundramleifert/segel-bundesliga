@@ -94,6 +94,9 @@ check is the rule** — change the code, not the list.
 - The site is several Series (1./2. Liga, Junioren, Pokal), and a service to other clubs:
   never brand it "Segel-Bundesliga"; an Event need not belong to a Series.
 - Series instead of League + Season; a League links a series' years (`/1-liga/2026/act-3`).
+- A league names its events (`League.event_term`): 1./2. Liga *Spieltag*, Junioren *Act*,
+  Pokal the event's name; a text that knows no league says *Veranstaltung*
+  (`scripts/check-docs.py`, Story B-22). URLs and code keep `act`/`matchday`.
 - `Team` is the enrollment — `event_id` empty: the Series; set: the Event. A club enters
   up to `teams_per_club` teams per event, registered once per series.
 - The Event defines the configuration (`team_count`, `boat_count`, `flight_count`); no
@@ -245,6 +248,6 @@ The backend words nothing at a call site: errors are RFC 9457 Problems with a co
 (`raise Problem(status, code, title)`, never `HTTPException`), worded by the frontend's
 `errors` namespace; mails are Jinja2 templates per language (German by default); the few
 sentences a route answers are TOML catalogs (`app/i18n.py`). Domain terms: Wettfahrt →
-Race, Spieltag → Matchday (on screen *Act*, in German too), Wettfahrtleitung → Race committee, Serie → Series, Verein →
+Race, Spieltag → Matchday (on screen the league's word, below), Wettfahrtleitung → Race committee, Serie → Series, Verein →
 Club, Segler → Sailor, Mannschaft → Team, Kader → Squad, Aufstellung → Lineup, Liga →
 League, Boot → Boat, Ausrichter → Host club, Revier → Venue. Details: `docs/workflow.md`.

@@ -47,7 +47,6 @@
     "entry": "Enter results"
   },
   "act": {
-    "title": "Act {n}",
     "tabs": "Event",
     "division": "Division"
   },
@@ -64,7 +63,7 @@
   "season": {
     "more": "Season",
     "empty": "No events published yet.",
-    "matchdays": "Acts",
+    "matchdays": "{term, select, matchday {Matchdays} act {Acts} other {Events}}",
     "calendar": "Season {year}"
   },
   "clubs": {

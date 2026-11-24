@@ -67,7 +67,7 @@ The manager finds the series in the context switcher, under *Organize* and *Seri
 | [*Clubs & registrations*](place:series.organize) | sets the clubs under *Registered clubs*; decides those under *Applications to decide* |
 | [*Dates & publication*](place:series.dates) | *First day*, *Last day*; *Publish*, *Unpublish*; *Description* |
 | [*Squad size & scoring*](place:series.scoring) | *Squad minimum*, *Squad maximum*; the scoring has no screen |
-| [*Events*](place:series.events) | every act, drafts too; each opens the event's context, where they organize it. A new act: [*New event*](place:admin.new-event) ([create an event](#create-event-wizard)) |
+| [*Events*](place:series.events) | every event of the series, drafts too; each opens the event's context, where they organize it. A new one: [*New event*](place:admin.new-event) ([create an event](#create-event-wizard)) |
 | *Race committee & jury* | shown, but only the series' *Admin* names people there |
 
 | Role on a series | |

@@ -521,7 +521,7 @@ describeStory("B-14: a league's page in chapters", () => {
       "about",
     ]);
     await expect(page.getByTestId("site-chapter-dots").getByRole("link")).toHaveCount(5);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Act 2");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Matchday 2");
     await expect(page.getByTestId("site-chapter-archive")).toHaveCount(0);
     // The practice 1. Liga's first five, from its table.
     await expect(page.getByTestId(`site-top-five-${season.label}`).getByRole("listitem")).toHaveCount(5);

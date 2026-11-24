@@ -51,6 +51,17 @@ class ResultsSource(StrEnum):
     SAP = "sap"
 
 
+class EventTerm(StrEnum):
+    """What a league calls the numbered events of a series (decided 2026-11-19): the
+    1. and 2. Liga a *Spieltag* (Matchday), the Junioren-Liga an *Act*, the DSL-Pokal
+    neither — there an event is its name. A series without a league says its event's name
+    too. Only the screen's word; the code keeps ``matchday`` throughout."""
+
+    MATCHDAY = "matchday"
+    ACT = "act"
+    NAME = "name"
+
+
 class League(Base, TimestampMixin):
     """A competition that runs year after year: DSBL, Junioren-Liga, DSL-Pokal.
 
@@ -74,6 +85,10 @@ class League(Base, TimestampMixin):
     tagline: Mapped[str | None] = mapped_column(String(200), default=None)
     # The order of the top navigation row.
     position: Mapped[int] = mapped_column(default=0, server_default="0")
+    # What its series call their numbered events on screen (`EventTerm`).
+    event_term: Mapped[str] = mapped_column(
+        String(16), default=EventTerm.NAME, server_default=EventTerm.NAME
+    )
 
     series: Mapped[list[Series]] = relationship(back_populates="league")
 
@@ -126,7 +141,10 @@ class Series(Base, TimestampMixin):
     # thanked, or a season recapped, so `Text` rather than a bounded `String`.
     description: Mapped[str | None] = mapped_column(Text, default=None)
 
-    league: Mapped[League | None] = relationship(back_populates="series")
+    # Loaded with every series (one more query, never a join that changes the SQL): every
+    # `SeriesOut` says its league's `event_term`, and a lazy load
+    # in an async session is an error, not a query.
+    league: Mapped[League | None] = relationship(back_populates="series", lazy="selectin")
     events: Mapped[list[Event]] = relationship(back_populates="series")
     teams: Mapped[list[Team]] = relationship(back_populates="series")
 

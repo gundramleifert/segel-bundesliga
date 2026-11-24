@@ -19,8 +19,8 @@ title: "Terms"
 | League | A competition that returns every year, such as the 1. Liga. Its page leads to its years. |
 | Series | The events of one year that are scored together. The name carries the year: "1. Segel-Bundesliga 2026". |
 | Year | One series of a league. |
-| Event | One date with races. It belongs to a series as one of its acts, or stands alone (a cup, a training weekend) and then counts in no series standings. |
-| *Act* | An event of a series, with its number. On a league's pages, *Act 3* is that year's third event. |
+| Event | One date with races. It belongs to a series, or stands alone (a cup, a training weekend) and then counts in no series standings. |
+| Matchday, Act | What a league calls the numbered events of its series: the 1. and 2. Liga say *Matchday*, the Junioren-Liga *Act*; the DSL-Pokal gives only their name. The help says *event* throughout. |
 | Host club | The club that runs the event. It pays the event's costs. |
 | Venue | Where the event is sailed. Often set only later. |
 | Pairing list | Which team sails which boat in which race. Drawn for each event. |

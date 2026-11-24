@@ -1,6 +1,7 @@
 /** Display helpers. Locale-aware: they read the active i18next language at call time
  *  rather than baking one locale in, so a language switch updates dates, numbers and
  *  translated labels together with the rest of the page. */
+import { EventTerm } from "../api/types";
 import i18n from "../i18n";
 
 function dateFormatter(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
@@ -101,19 +102,34 @@ export function locationText(event: {
   return "";
 }
 
+/** An event's number in its league's word — "3. Spieltag", "Act 3" — or `null` where the
+ *  league names its events, or the event has no number (Story B-22). The word is the
+ *  league's (`series.event_term`): the Bundesliga's is not the Junioren's. */
+export function eventNumber(event: {
+  matchday?: number | null;
+  series?: { event_term?: EventTerm } | null;
+}): string | null {
+  if (event.matchday == null) return null;
+  switch (event.series?.event_term) {
+    case EventTerm.matchday:
+      return i18n.t("common:matchdayNumber", { number: event.matchday });
+    case EventTerm.act:
+      return i18n.t("common:actNumber", { number: event.matchday });
+    default:
+      return null;
+  }
+}
+
 /** How an event is subtitled.
  *
- * The act number belongs to the event, not the series — and a standalone event has none.
+ * The number belongs to the event, not the series — and a standalone event has none.
  * The series name already carries the year ("1st Sailing Bundesliga 2026").
  */
 export function matchdaySubtitle(event: {
   matchday?: number | null;
-  series?: { name: string } | null;
+  series?: { name: string; event_term?: EventTerm } | null;
 }): string | null {
-  const parts = [
-    event.matchday ? i18n.t("common:actNumber", { number: event.matchday }) : null,
-    event.series?.name ?? null,
-  ].filter(Boolean);
+  const parts = [eventNumber(event), event.series?.name ?? null].filter(Boolean);
   return parts.length ? parts.join(" · ") : null;
 }
 

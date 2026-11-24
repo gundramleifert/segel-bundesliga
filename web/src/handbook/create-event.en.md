@@ -12,7 +12,7 @@ title: "Create an event"
 ## Create an event
 
 May create one: the league office and its race committee, any event; a series' manager
-the acts of their series, with any club as host; a club's manager an event their own
+the events of their series, with any club as host; a club's manager an event their own
 club hosts outside a series. The form offers only what you may pick — your series, the
 hosts you may name — and *＋ New event* is there only if you may create one. Every
 screen of the league office and of My space works on a phone: a table wider than the screen scrolls sideways,
@@ -43,7 +43,7 @@ space ([what is missing](#run-event-readiness)).
 |---|---|
 | *Teams and boats* | only sizes with a pre-computed pairing list; another size must be added first — the form names whom to ask |
 | *Flights* | 1 to that list's length; a shorter day sails its first flights. Below: races per flight (teams ÷ boats, rounded up) and the total |
-| *Series* | empty: the event stands alone, in no series table; set: it becomes the next act by itself |
+| *Series* | empty: the event stands alone, in no series table; set: it becomes the series' next one by itself |
 | *Starts on* | may stay empty, but without a date no draw or start |
 | *Ends on* | empty: a one-day event; an end before the start is refused |
 | *Host club* | may stay *- to be determined -* |

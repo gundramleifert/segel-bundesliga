@@ -3,15 +3,17 @@ import { useTranslation } from "react-i18next";
 
 import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
+import { eventNumber } from "../../lib/format";
 import { actsOf, currentAct, type Act } from "../../lib/site";
 
-/** "Act 2" — the act's number, or its event's title when it has none. */
+/** "2. Spieltag", "Act 2" — the act's number in its league's word, or its event's title
+ *  where the league names its events (Story B-22). */
 export function useActName() {
-  const { t } = useTranslation("site");
-  return (act: Act) => (act.matchday != null ? t("act.title", { n: act.matchday }) : act.first.title);
+  useTranslation("site"); // re-renders on a language switch; the words are `common`'s
+  return (act: Act) => eventNumber(act.first) ?? act.first.title;
 }
 
-/** "Act 2 · Kiel" — the act's number and its place. */
+/** "2. Spieltag · Kiel" — the act's name and its place. */
 export function useActTitle() {
   const actName = useActName();
   return (act: Act) => {

@@ -16,7 +16,7 @@ describeJourney("J-9: a fan follows an act", () => {
     await step("J-9.1", "a fan opens the league's page — the act being sailed comes first", async () => {
       await page.goto("/practice");
       await expect(page.getByTestId("site-chapter-results")).toBeVisible();
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Act 2");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Matchday 2");
     });
 
     await step("J-9.2", "the fan opens the act's page — its tab in the address", async () => {

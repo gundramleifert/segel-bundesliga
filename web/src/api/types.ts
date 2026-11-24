@@ -126,6 +126,7 @@ export { ResultsSource } from "./generated/model/resultsSource";
  *  (`EventStatus.live`), so a comparison names a member the compiler knows — a typo or a
  *  renamed value is a build error rather than a branch that silently never runs. */
 export { EventStatus } from "./generated/model/eventStatus";
+export { EventTerm } from "./generated/model/eventTerm";
 export { AnnouncementIssuer } from "./generated/model/announcementIssuer";
 export { PostKind } from "./generated/model/postKind";
 export { MediaSource } from "./generated/model/mediaSource";

@@ -13,7 +13,7 @@ title: "Die Haftungsausschlüsse Ihrer Segler"
 ## Die Haftungsausschlüsse Ihrer Segler
 
 Jeder Segler bestätigt den Haftungsausschluss einmal je Serie, in der er gemeldet ist –
-das gilt für alle ihre Acts – und einmal für jede Veranstaltung ohne Serie. Der
+das gilt für alle ihre Veranstaltungen – und einmal für jede Veranstaltung ohne Serie. Der
 Verein kann ihn auf dieser Seite nicht für ihn bestätigen; er sieht, wer
 fehlt.
 
@@ -59,12 +59,12 @@ Sie können eine Crew aufstellen, bevor deren Haftungsausschlüsse vorliegen; ge
 nichts. Stattdessen:
 
 - *Zu erledigen* auf *Ich* › *Übersicht* und [*Ihr Verein* › *Haftungsausschlüsse*](place:club.waivers) zählen
-  die kommenden Acts, bei denen einem Crewmitglied der Haftungsausschluss fehlt;
+  die kommenden Veranstaltungen, bei denen einem Crewmitglied der Haftungsausschluss fehlt;
 - die eigene *Ich* › *Übersicht* des Seglers, und die eines verknüpften Elternteils, sagt,
   dass seiner noch aussteht;
 - die Organisation der Veranstaltung sieht alle Personen Ihres Kaders in der
   [Check-in-Liste](#event-checkin-list), freigegeben oder nicht.
 
-Gehen Sie fehlenden Haftungsausschlüssen vor dem Act nach, nicht erst beim Check-in.
+Gehen Sie fehlenden Haftungsausschlüssen vor der Veranstaltung nach, nicht erst beim Check-in.
 
 [Mein Bereich öffnen](place:space)

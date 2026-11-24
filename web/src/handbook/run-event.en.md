@@ -71,7 +71,7 @@ drawn pairing list. A started race (even one later recalled) or a result fixes t
 
 | Fixed | Still editable |
 |---|---|
-| size, series and act, teams per club, clubs, boats, pairing list | title, host club, venue, dates, publication, print settings, results — a protest decision months later still lands |
+| size, series and number, teams per club, clubs, boats, pairing list | title, host club, venue, dates, publication, print settings, results — a protest decision months later still lands |
 
 ### People on the event {#run-event-helpers}
 

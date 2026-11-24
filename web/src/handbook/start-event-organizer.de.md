@@ -48,8 +48,8 @@ sagt, was noch fehlt; *Einrichten* und *Wettfahrttag* enthalten die Arbeit.
 
 ### Wie es zusammenhängt {#start-event-organizer-journeys}
 
-- [Von der leeren Serie zum gewerteten Act](#journey-lifecycle)
+- [Von der leeren Serie zur gewerteten Veranstaltung](#journey-lifecycle)
 - [Eine Serienleitung richtet eine Serie ein](#journey-series)
-- [Die Crew eines Vereins wird für einen Act freigegeben](#journey-crew-cleared)
+- [Die Crew eines Vereins wird für eine Veranstaltung freigegeben](#journey-crew-cleared)
 
 [Veranstaltung in Mein Bereich öffnen](place:event.overview)

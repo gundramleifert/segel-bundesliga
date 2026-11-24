@@ -74,7 +74,7 @@ Die Organisation findet die Serie im Kontextwechsler, unter *Organisieren* und *
 | [*Vereine & Meldungen*](place:series.organize) | setzt die Vereine unter *Gemeldete Vereine*; entscheidet, was unter *Anmeldungen zu entscheiden* steht |
 | [*Termine & Veröffentlichung*](place:series.dates) | *Erster Tag*, *Letzter Tag*; *Veröffentlichen*, *Zurückziehen*; *Beschreibung* |
 | [*Kadergröße & Wertung*](place:series.scoring) | *Kader mindestens*, *Kader höchstens*; für die Wertung gibt es keine Seite |
-| [*Veranstaltungen*](place:series.events) | jeder Act, auch Entwürfe; jeder öffnet den Kontext der Veranstaltung, wo sie ihn organisiert. Ein neuer Act: [*Neue Veranstaltung*](place:admin.new-event) ([eine Veranstaltung anlegen](#create-event-wizard)) |
+| [*Veranstaltungen*](place:series.events) | jede Veranstaltung der Serie, auch Entwürfe; jeder öffnet den Kontext der Veranstaltung, wo sie ihn organisiert. Eine neue: [*Neue Veranstaltung*](place:admin.new-event) ([eine Veranstaltung anlegen](#create-event-wizard)) |
 | *Wettfahrtleitung & Jury* | sichtbar, aber Personen benennt dort nur die *Verwaltung* der Serie |
 
 | Rolle in einer Serie | |

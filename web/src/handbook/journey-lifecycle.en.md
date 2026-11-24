@@ -30,7 +30,7 @@ when a protest is decided after the last race.
 | J-1.8 | Visitor | the pairing list can be printed — where the server cannot print, the download is not offered | the public site |
 | J-1.9 | Event organizer | the event is *live* | [Start the event](#run-event-start) |
 | J-1.10 | Race committee | every race has its results; the points follow from them | [Enter results](#results-entry-enter) |
-| J-1.11 | Visitor | the series table has the act in it, every club with its placement | the public site |
+| J-1.11 | Visitor | the series table has the event in it, every club with its placement | the public site |
 | J-1.12 | Event organizer | dimensions, clubs, boats and pairing list are frozen; the title can still be corrected | [Frozen after the first race](#run-event-frozen) |
 | J-1.13 | Jury, then race committee | the jury disqualifies a winner, months later, and a race officer enters the decision; the points and the tables follow at once | [Correct a result](#results-entry-correct) |
 | J-1.14 | Race committee | the race committee declares racing over: the event is *final*; results stay correctable | [Racing is over](#close-event-finish) |

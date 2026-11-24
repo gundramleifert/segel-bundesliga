@@ -105,3 +105,41 @@ class TestLeagueSeason:
         )
         assert response.status_code == 422
         assert response.json()["type"].endswith("/league-not-found")
+
+
+class TestEventTerm:
+    """As a fan, I want each league to call its events by its own word — Story B-22."""
+
+    async def test_each_league_says_its_word(self, client):
+        """B-22: Spieltag for the 1. and 2. Liga, Act for the Junioren, the name for the Pokal."""
+        leagues = {
+            league["slug"]: league["event_term"]
+            for league in (await client.get("/api/leagues")).json()
+        }
+        assert leagues == {
+            "1-liga": "matchday",
+            "2-liga": "matchday",
+            "junioren-liga": "act",
+            "dsl-pokal": "name",
+        }
+
+    async def test_every_series_and_its_events_carry_the_word(self, client):
+        """B-22: the series says its league's word, on the league's page and on each event."""
+        for slug, term in [("1-liga", "matchday"), ("junioren-liga", "act"), ("dsl-pokal", "name")]:
+            season = (await client.get(f"/api/leagues/{slug}")).json()
+            assert season["league"]["event_term"] == term
+            assert {s["event_term"] for s in season["series"]} == {term}
+            assert {e["series"]["event_term"] for e in season["events"]} == {term}
+            event = (await client.get(f"/api/events/{season['events'][0]['id']}")).json()
+            assert event["event"]["series"]["event_term"] == term
+
+    async def test_a_series_without_a_league_names_its_events(self):
+        """B-22: no league, no word — the event's own name stands."""
+        from types import SimpleNamespace
+
+        from app.schemas.public import SeriesOut
+
+        series = SimpleNamespace(
+            id=1, slug="club-cup", name="Club Cup", short_name="Cup", league=None
+        )
+        assert SeriesOut.model_validate(series, from_attributes=True).event_term == "name"
