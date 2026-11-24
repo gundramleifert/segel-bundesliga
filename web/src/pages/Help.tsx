@@ -1,11 +1,9 @@
-import { Children, Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Children, Fragment, useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useParams } from "react-router-dom";
 import Markdown, { defaultUrlTransform, type Components, type ExtraProps } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { useMyContexts, useWardWaivers } from "../api/generated/sbl";
-import type { Account, MyContext } from "../api/types";
 import { useAccount } from "../api/useApi";
 import { Loading, PageHeader, TableFrame } from "../components/Blocks";
 import { CardGrid, Stack } from "../components/Layouts";
@@ -20,9 +18,9 @@ import {
   relatedPages,
   searchPages,
   startPageId,
-  type Audience,
 } from "../handbook";
 import { usePlace } from "../handbook/places";
+import { isForMe, useReaderAudiences } from "../lib/helpAudiences";
 import { useMediaQuery } from "../lib/useMediaQuery";
 
 /** Story B-18: the help for what I do.
@@ -33,69 +31,15 @@ import { useMediaQuery } from "../lib/useMediaQuery";
  * the matrix is now the `roles` page, the cards are guides.
  *
  * **For signed-in accounts only.** The handbook is internal: the public site must explain
- * itself, so a guest gets a sign-in prompt here and no page content. Signed in, **nothing
- * is hidden** — every page is readable by every account, because someone about to become
- * a team manager should be able to read what that means. Who you are only *orders* the
- * audiences.
+ * itself, so a guest gets a sign-in prompt here and no page content. Signed in, a person
+ * **sees the help for what they may do, and only that** (decided 2026-11-24, replacing
+ * "nothing is hidden"): pages for an audience they do not have are left out of every
+ * list, and opened directly say whom they are for (`lib/helpAudiences.ts`).
  *
  * (The store is still bundled into the public JavaScript by the eager glob, so its text
  * is not secret — it contains nothing that has to be. The gate is about what the public
  * site shows, not about protecting the content.)
  */
-
-// ------------------------------------------------------------------ Who the reader is
-
-/** Which audiences a signed-in person *has*, from the same answer my space uses
- *  (`GET /api/me/contexts`, Story Z-8) plus the summary site roles. Someone with none
- *  sees the audiences in their usual order. */
-/** A parent linked to a child as guardian (Story V-13) reads the sailor's pages for that
- * child — the waiver above all (S-8). The link sits on the sailor, which neither the
- * account's roles nor my space's contexts list, so it comes from the wards themselves. */
-function audiencesOf(account: Account | null, contexts: MyContext[], hasWards: boolean): Set<Audience> {
-  const out = new Set<Audience>();
-  if (!account) return out;
-  if (hasWards) out.add("sailor");
-  const byRole: Record<string, Audience> = {
-    admin: "administration",
-    editor: "administration",
-    race_officer: "race-committee",
-    jury: "race-committee",
-    series_manager: "event-organizer",
-    event_manager: "event-organizer",
-    helper: "event-organizer",
-    team_manager: "club",
-    club_admin: "club",
-    treasurer: "treasurer",
-  };
-  for (const role of account.roles) if (byRole[role]) out.add(byRole[role]);
-  for (const context of contexts) {
-    for (const relation of context.relations) {
-      if (relation === "sailor" || relation === "member") out.add("sailor");
-      else if (relation === "treasurer") out.add("treasurer");
-      else if (relation === "race_officer" || relation === "jury") out.add("race-committee");
-      else if (relation === "manager" || relation === "admin" || relation === "helper") {
-        out.add(context.kind === "club" && relation !== "helper" ? "club" : "event-organizer");
-      }
-    }
-  }
-  return out;
-}
-
-function useReaderAudiences(): { mine: Set<Audience>; signedIn: boolean } {
-  const { account } = useAccount();
-  const contexts = useMyContexts({
-    query: { enabled: Boolean(account), staleTime: 5 * 60_000, refetchOnWindowFocus: false },
-  });
-  const wards = useWardWaivers({
-    query: { enabled: Boolean(account), staleTime: 5 * 60_000, refetchOnWindowFocus: false },
-  });
-  const hasWards = (wards.data?.length ?? 0) > 0;
-  const mine = useMemo(
-    () => audiencesOf(account, account ? (contexts.data?.contexts ?? []) : [], hasWards),
-    [account, contexts.data, hasWards],
-  );
-  return { mine, signedIn: Boolean(account) };
-}
 
 // ------------------------------------------------------------------ The landing page
 
@@ -144,10 +88,10 @@ function Landing() {
   const [query, setQuery] = useState("");
   const { mine } = useReaderAudiences();
 
-  // Theirs first, in the usual order; then the rest.
-  const audiences = [...AUDIENCES.filter((a) => mine.has(a)), ...AUDIENCES.filter((a) => !mine.has(a))];
-  const journeys = pagesOfType("journey", language);
-  const lookup = [...pagesOfType("doc", language), ...pagesOfType("faq", language)];
+  // Only theirs, in the usual order.
+  const audiences = AUDIENCES.filter((a) => mine.has(a));
+  const journeys = pagesOfType("journey", language).filter((p) => isForMe(p, mine));
+  const lookup = [...pagesOfType("doc", language), ...pagesOfType("faq", language)].filter((p) => isForMe(p, mine));
   const empty = !journeys.length && !lookup.length && !pagesOfType("start", language).length;
 
   return (
@@ -174,7 +118,7 @@ function Landing() {
           <section className="flex flex-col gap-3" data-testid="help-audiences">
             <div>
               <h2 className="text-lg font-semibold">{t("audiencesTitle")}</h2>
-              {mine.size > 0 && <p className="text-sm text-muted">{t("audiencesSignedIn")}</p>}
+              <p className="text-sm text-muted">{t("audiencesSignedIn")}</p>
             </div>
             <CardGrid columns={3}>
               {audiences.map((audience) => (
@@ -184,7 +128,6 @@ function Landing() {
                     testId={`help-audience-${audience}`}
                     title={t(`audiences.${audience}.title`)}
                     description={t(`audiences.${audience}.description`)}
-                    aside={mine.has(audience) ? <MineChip testId={`help-audience-${audience}-mine`} /> : undefined}
                   />
                 </li>
               ))}
@@ -241,23 +184,12 @@ function Landing() {
   );
 }
 
-function MineChip({ testId }: { testId: string }) {
-  const { t } = useTranslation("help");
-  return (
-    <span
-      data-testid={testId}
-      className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-soft-foreground ring-1 ring-inset ring-accent/30"
-    >
-      {t("mine")}
-    </span>
-  );
-}
-
 /** Titles, headings and search words, in either language — client-side, the store is
  *  small. A matching section links straight to its anchor. */
 function SearchResults({ query }: { query: string }) {
   const { t, i18n } = useTranslation("help");
-  const hits = searchPages(query, i18n.resolvedLanguage);
+  const { mine } = useReaderAudiences();
+  const hits = searchPages(query, i18n.resolvedLanguage).filter((hit) => isForMe(hit.page, mine));
 
   return (
     <section className="flex flex-col gap-3" data-testid="help-search-results" aria-live="polite">
@@ -305,17 +237,19 @@ function PageView() {
   const language = i18n.resolvedLanguage;
   const page = getPage(id, language);
   const { hash } = useLocation();
+  const { mine, ready } = useReaderAudiences();
 
   // `/help/roles#roles-matrix` lands on the section, in a fresh tab too. Deferred one
   // tick: the layout's scroll-to-top runs in the *parent's* effect, which comes after
   // this one, and would otherwise undo it.
   useEffect(() => {
-    if (!hash) return;
+    // Not before the reader's audiences are known: until then the article is not there.
+    if (!hash || !ready) return;
     const timer = window.setTimeout(() => {
       document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [hash, page?.id, page?.locale]);
+  }, [hash, page?.id, page?.locale, ready]);
 
   if (!page) {
     return (
@@ -331,8 +265,25 @@ function PageView() {
     );
   }
 
+  if (!ready) return <Loading testId="help-loading" />;
+  if (!isForMe(page, mine)) {
+    return (
+      <Stack gap={4} testId="help-not-mine">
+        <PageHeader title={page.title} />
+        <p className="text-muted">
+          {t("notMine.text", { audiences: page.audience.map((a) => t(`audiences.${a}.title`)).join(" · ") })}
+        </p>
+        <p>
+          <Link to={helpPath()} className="text-link underline underline-offset-2">
+            {t("notFound.link")}
+          </Link>
+        </p>
+      </Stack>
+    );
+  }
+
   const sections = page.headings.filter((h) => h.level === 3 && h.anchor);
-  const related = relatedPages(page, language);
+  const related = relatedPages(page, language).filter((p) => isForMe(p, mine));
   const untranslated = page.locale !== helpLocale(language);
 
   return (

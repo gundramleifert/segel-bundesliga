@@ -2,8 +2,7 @@
   "title": "Help",
   "intro": "Find the help for what you do on this site. Every page is open to every account — pick yours, or read what someone else does.",
   "audiencesTitle": "Help for …",
-  "audiencesSignedIn": "Yours first, marked.",
-  "mine": "Yours",
+  "audiencesSignedIn": "The help for what you do — a new role brings its own.",
   "audiences": {
     "sailor": {
       "title": "Sailors",
@@ -51,6 +50,9 @@
   "toc": "On this page",
   "related": "The other side of this",
   "untranslated": "This page is not yet translated; it is shown in English.",
+  "notMine": {
+    "text": "This page is for: {audiences}. It shows here once you have that role."
+  },
   "notFound": {
     "title": "Page not found",
     "text": "There is no help page called “{id}” — yet, or any more.",

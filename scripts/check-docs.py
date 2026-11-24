@@ -638,6 +638,10 @@ class Frontmatter:
     audience: tuple[str, ...] = ()
     stories: tuple[str, ...] = ()
     journey: str | None = None
+    # A generated step-by-step guide (`e2e/guides/`): the journey steps it walks one person
+    # through, and the script that writes it.
+    steps: tuple[str, ...] = ()
+    source: str | None = None
     route: str | None = None
     tags: tuple[str, ...] = ()
     title: str | None = None
@@ -913,6 +917,42 @@ def _check_body(page: Page, owners: dict[str, str], routes: list[str], places: d
     return problems
 
 
+GUIDES = ROOT / "e2e" / "guides"
+GUIDE_ID = re.compile(r'^\s*id:\s*"(?P<id>[a-z0-9-]+)"', re.M)
+
+
+def guide_scripts() -> dict[str, str]:
+    """Every step-by-step guide script (`e2e/guides/*.spec.ts`) → the page id it writes."""
+    out: dict[str, str] = {}
+    for path in sorted(GUIDES.glob("*.spec.ts")) if GUIDES.is_dir() else []:
+        m = GUIDE_ID.search(path.read_text(encoding="utf-8"))
+        if m:
+            out[str(path.relative_to(ROOT))] = m["id"]
+    return out
+
+
+def _check_guide_steps(page: Page, meta: Frontmatter, all_journeys: list[Journey]) -> list[str]:
+    """A generated guide is held to its journey and its script: every step it names is a
+    step of a journey, whose story the page cites; the script it names exists and writes
+    exactly this page. Only a guide names steps, and only one with a script."""
+    if not meta.steps and not meta.source:
+        return []
+    problems: list[str] = []
+    if meta.type != "guide":
+        problems.append(f"{page.file}: only a guide names journey steps and a source")
+    step_story = {s.id: s.story for j in all_journeys for s in j.steps}
+    for sid in meta.steps:
+        if sid not in step_story:
+            problems.append(f"{page.file}: step {sid} is not a step of any journey in docs/journeys/")
+        elif step_story[sid] not in meta.stories:
+            problems.append(f"{page.file}: step {sid} is story {step_story[sid]}, which the page does not cite")
+    if not meta.source:
+        problems.append(f"{page.file}: names journey steps but no source script")
+    elif guide_scripts().get(meta.source) != page.id:
+        problems.append(f"{page.file}: source {meta.source} is not a guide script in e2e/guides/ writing {page.id}")
+    return problems
+
+
 def _check_lock(before: Structure, now: Structure) -> list[str]:
     """`content-model.md` § Structure lock: pages may be added and rewritten, never silently
     restructured — they are bookmarked and linked from mails."""
@@ -1006,12 +1046,17 @@ def check_handbook(markers: StoryMarkers, all_journeys: list[Journey], files: St
                     problems += _check_journey_page(page, journey)
         elif meta.journey:
             problems.append(f"{en.file}: only a journey page names a journey")
+        problems += _check_guide_steps(en, meta, all_journeys)
         for page in locales.values():
             problems += _check_body(page, owners, routes, places)
             shots_used.update(page.shots)
         budget = BUDGET.get(meta.type or "")
         if budget and en.words > budget * 1.2:
             warnings.append(f"{en.file}: {en.words} words, budget {budget} for a {meta.type}")
+
+    problems += [f"{script}: writes page {gid}, which is not in web/src/handbook/ — run it "
+                 f"(GUIDES=1 playwright test e2e/guides) and commit the page"
+                 for script, gid in guide_scripts().items() if gid not in by_id]
 
     in_use = {a for p in store.pages for a in p.meta.audience}
     problems += [f"web/src/handbook/start-{a}.en.md is missing — every audience in use has a start page"
@@ -1052,6 +1097,11 @@ def render_traceability(files: dict[str, str], all_journeys: list[Journey]) -> s
     names = [n for n in order if n in files] + [n for n in files if n not in order and n != "README.md"]
     step_story = {s.id: s.story for j in all_journeys for s in j.steps}
     help_by_story, help_by_journey = handbook_pages()
+    guide_by_step: dict[str, list[str]] = {}
+    for page in handbook_store().pages:
+        if page.locale == "en":
+            for sid in page.meta.steps:
+                guide_by_step.setdefault(sid, []).append(page.id)
 
     browser: dict[str, list[str]] = {}
     for path in sorted((ROOT / "e2e").glob("*.spec.ts")):
@@ -1107,7 +1157,8 @@ def render_traceability(files: dict[str, str], all_journeys: list[Journey]) -> s
         "The chain is **journey → story → tests → help → report**. Every journey step names one",
         "story; every story names the backend tests on its `Tests:` line and is tagged by the",
         "browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages",
-        "(`web/src/handbook/`) cite the stories and journeys they explain; and the Allure report",
+        "(`web/src/handbook/`) cite the stories and journeys they explain — a step-by-step guide",
+        "(`e2e/guides/`, column *Guide*) the very journey steps it clicks through —; and the Allure report",
         "(`scripts/allure-report.sh`) shows each test's last result under the same story and",
         "journey names, a journey's walk with one Allure step per journey step. Results are not",
         "here — this page says what *exists*, the report what *passed*.",
@@ -1138,8 +1189,8 @@ def render_traceability(files: dict[str, str], all_journeys: list[Journey]) -> s
             lines += [f"- **{names[r]}** `{_short(r)}`" for r in journey_walks] or ["- no walk yet"]
             lines += [
                 "",
-                "| Step | Path | Story | | Walked by | Also covered by | Help |",
-                "|---|---|---|---|---|---|---|",
+                "| Step | Path | Story | | Walked by | Also covered by | Help | Guide |",
+                "|---|---|---|---|---|---|---|---|",
             ]
             for s in j.steps:
                 by = [names[r] for r, seq in journey_walks.items() if s.id in seq]
@@ -1147,7 +1198,8 @@ def render_traceability(files: dict[str, str], all_journeys: list[Journey]) -> s
                 walked_cell = "*(offline)*" if s.offline else (", ".join(by) or "—")
                 lines.append(
                     f"| {s.id} | {s.path} | {s.story} | {markers.get(s.story, '?')} | {walked_cell} "
-                    f"| {cell(also)} | {cell(help_by_story.get(s.story, []))} |"
+                    f"| {cell(also)} | {cell(help_by_story.get(s.story, []))} "
+                    f"| {cell(guide_by_step.get(s.id, []))} |"
                 )
     for name in names:
         if name not in rows:

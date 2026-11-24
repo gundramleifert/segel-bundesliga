@@ -28,6 +28,8 @@ nutzen darf. *Zugriff* gehört allein der Verwaltung der Seite.
 
 ### Zugriff vergeben {#admin-accounts-grant}
 
+Schritt für Schritt, mit Bildern: [Jemanden zur Verwaltung eines Vereins machen](#guide-access-grant-steps).
+
 1. [*Zugriff*](place:admin.accounts): die Person nach Name oder E-Mail suchen.
 2. Spalte *Zugriff*: *＋ Zugriff vergeben*.
 3. *Für* (*Gesamte Seite*, *Einen Verein*, *Eine Serie*, *Eine Veranstaltung*), *Als*,

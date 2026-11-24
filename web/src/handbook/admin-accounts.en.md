@@ -27,6 +27,8 @@ The *League office* has a section per area; a role sees only the sections it may
 
 ### Grant access {#admin-accounts-grant}
 
+Step by step, with pictures: [Make someone a club's admin](#guide-access-grant-steps).
+
 1. [*Access*](place:admin.accounts): search the person by name or email.
 2. *Access* column: *＋ Grant access*.
 3. *On* (*Whole site*, *One club*, *One series*, *One event*), *As*, *Which*.

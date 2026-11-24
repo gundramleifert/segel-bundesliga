@@ -435,6 +435,18 @@ browser is the request's `User-Agent`, read by the server; the page, language, r
 and window are the page's. A message is plain text, capped at 5000 characters, and goes
 with its sender's account (Z-7).
 
+### The help shows what I may do, and only that
+
+Decided 2026-11-24 (Story B-18), replacing "nothing is hidden from a signed-in person, the
+audience only orders": the owner wants a person with a role to see what that role can do,
+and nothing they cannot. The audiences come from my space's answer (`GET /api/me/contexts`
+— relations on my objects, the league office's site relations), never the summary roles;
+every account has the sailor's (every account is a person), a club's admin also the
+treasurer's (it decides the club's money), the site's admin all. Lists, search and "see
+also" leave other pages out; one opened by its address names its audience and shows no
+content. The pages are still bundled into the public JavaScript — this is about what the
+screen offers, not a secret (`web/src/lib/helpAudiences.ts`, `web/tests/test_help_audiences.ts`).
+
 ### Logged in or guest
 
 Most requests carry a user, but the public site also serves guests.

@@ -27,8 +27,10 @@ const AUDIENCES = [
   "administration",
 ];
 const TEAM_MANAGER = "teams@asvw.example.com";
-// An account with no relation at all: the handbook is for every signed-in account.
+// An account with no relation at all: it sees the sailor's help, and only that.
 const ANYONE = "gast@sbl.example.com";
+// The site's admin may do everything, so reads every page.
+const ADMIN = "admin@sbl.example.com";
 
 /** The English pages of the store, by id, with their raw text. */
 function storePages(): Map<string, string> {
@@ -65,16 +67,14 @@ describeStory("B-18: as a guest I am asked to sign in for the help", () => {
 describeStory("B-18: as anyone signed in I find the help for what I do", () => {
   test.beforeEach(async ({ page }) => {
     // A test about one person signs in again as them; the later init script wins.
-    await signIn(page, ANYONE);
+    await signIn(page, ADMIN);
   });
 
-  test("the landing shows a tile per audience and a card per journey", async ({ page }) => {
+  test("the site's admin sees a tile per audience and a card per journey", async ({ page }) => {
     await page.goto("/help");
     const tiles = page.locator('a[data-testid^="help-audience-"]');
     await expect(tiles).toHaveCount(AUDIENCES.length);
-    // An account with no relation has nothing marked, and sees the usual order.
     await expect(tiles.first()).toHaveAttribute("data-testid", "help-audience-sailor");
-    await expect(page.locator('[data-testid$="-mine"]')).toHaveCount(0);
     for (const audience of AUDIENCES) {
       await expect(page.getByTestId(`help-audience-${audience}`)).toHaveAttribute(
         "href",
@@ -87,16 +87,29 @@ describeStory("B-18: as anyone signed in I find the help for what I do", () => {
     await expect(page.getByTestId("help-page-terms")).toBeVisible();
   });
 
-  test("a signed-in team manager sees the club's help first, marked as theirs", async ({ page }) => {
+  test("an account with no relation sees the sailor's help, and only that", async ({ page }) => {
+    await signIn(page, ANYONE);
+    await page.goto("/help");
+    const tiles = page.locator('a[data-testid^="help-audience-"]');
+    await expect(tiles).toHaveCount(1);
+    await expect(tiles.first()).toHaveAttribute("data-testid", "help-audience-sailor");
+    // Another audience's page, opened by its address, says whom it is for — not its content.
+    await page.goto("/help/club-members");
+    await expect(page.getByTestId("help-not-mine")).toBeVisible();
+    await expect(page.getByTestId("help-article-club-members")).toHaveCount(0);
+    // And the search does not find it.
+    await page.goto("/help");
+    await page.getByTestId("help-search").fill("members");
+    await expect(page.getByTestId("help-search-results")).toBeVisible();
+    await expect(page.getByTestId("help-result-club-members")).toHaveCount(0);
+  });
+
+  test("a signed-in team manager sees the club's help and the sailor's, not the treasurer's", async ({ page }) => {
     await signIn(page, TEAM_MANAGER);
     await page.goto("/help");
-    await expect(page.getByTestId("help-audience-club-mine")).toBeVisible();
-    const tiles = page.locator('a[data-testid^="help-audience-"]');
-    await expect(tiles).toHaveCount(AUDIENCES.length);
-    // Theirs first — the club among them — and every audience still there.
-    const order = await tiles.evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
-    const marked = await page.locator('[data-testid^="help-audience-"][data-testid$="-mine"]').count();
-    expect(order.slice(0, marked)).toContain("help-audience-club");
+    await expect(page.getByTestId("help-audience-club")).toBeVisible();
+    await expect(page.getByTestId("help-audience-sailor")).toBeVisible();
+    await expect(page.getByTestId("help-audience-treasurer")).toHaveCount(0);
   });
 
   test("a parent the club linked as guardian sees the sailor's help marked as theirs", async ({
@@ -122,7 +135,7 @@ describeStory("B-18: as anyone signed in I find the help for what I do", () => {
 
     await signIn(page, parent);
     await page.goto("/help");
-    await expect(page.getByTestId("help-audience-sailor-mine")).toBeVisible();
+    await expect(page.getByTestId("help-audience-sailor")).toBeVisible();
     await expect(page.locator('a[data-testid^="help-audience-"]').first()).toHaveAttribute(
       "data-testid",
       "help-audience-sailor",
@@ -265,16 +278,13 @@ describeStory("B-18: a click path in the help opens that place, for the reader w
     });
   }
 
-  test("a plain sailor reads the Money path as words, not as a link", async ({ page, request }) => {
+  test("a plain sailor is not shown the treasurer's guide at all", async ({ page, request }) => {
+    // Since 2026-11-24 the help shows only what I may do (B-18) — the guide that once
+    // showed its Money path as plain words is not shown to a plain sailor any more.
     await signIn(page, await plainSailor(request));
     await page.goto("/help/decide-claims");
-    const place = page.getByTestId("help-place-club.money").first();
-    await expect(place).toHaveAttribute("data-reachable", "false");
-    await expect(place.locator("a")).toHaveCount(0);
-    await expect(place).not.toHaveAttribute("href", /./);
-    // The same sailor is a member, so the Members tab of their club is theirs to open.
-    await page.goto("/help/club-members");
-    await expect(page.getByTestId("help-place-club.people").first()).toHaveAttribute("data-reachable", "true");
+    await expect(page.getByTestId("help-not-mine")).toBeVisible();
+    await expect(page.getByTestId("help-place-club.money")).toHaveCount(0);
   });
 });
 

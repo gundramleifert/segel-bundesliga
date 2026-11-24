@@ -2,8 +2,7 @@
   "title": "Hilfe",
   "intro": "Hier finden Sie die Hilfe zu dem, was Sie auf dieser Seite tun. Jede Seite ist für jedes Konto lesbar — wählen Sie Ihre, oder lesen Sie nach, was andere tun.",
   "audiencesTitle": "Hilfe für …",
-  "audiencesSignedIn": "Ihre zuerst, markiert.",
-  "mine": "Ihre",
+  "audiencesSignedIn": "Die Hilfe für das, was Sie tun — eine neue Rolle bringt ihre eigene mit.",
   "audiences": {
     "sailor": {
       "title": "Segler",
@@ -51,6 +50,9 @@
   "toc": "Auf dieser Seite",
   "related": "Die andere Seite davon",
   "untranslated": "Diese Seite ist noch nicht übersetzt; sie wird auf Englisch angezeigt.",
+  "notMine": {
+    "text": "Diese Seite ist für: {audiences}. Sie erscheint hier, sobald Sie diese Rolle haben."
+  },
   "notFound": {
     "title": "Seite nicht gefunden",
     "text": "Es gibt keine Hilfeseite „{id}“ — noch nicht oder nicht mehr.",

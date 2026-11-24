@@ -7,6 +7,7 @@ import type { Account } from "../api/types";
 import { useDisclosure } from "../lib/useDisclosure";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
 import { helpFor, helpPath } from "../handbook";
+import { isForMe, useReaderAudiences } from "../lib/helpAudiences";
 import { FeedbackDialog } from "./FeedbackDialog";
 
 /** Everything that is about *you*, top right in the one row (Story A-12).
@@ -47,7 +48,11 @@ export function UserMenu({ account, loading }: { account: Account | null; loadin
   // Help for this page (Story B-18): the handbook page whose route is this screen, else
   // the help's landing page. The handbook is internal, so only a signed-in account is
   // offered it, and a public screen never has a page of its own (`helpFor`).
-  const pageHelp = account ? helpFor(pathname, i18n.resolvedLanguage) : undefined;
+  // Only a page written for the reader (B-18, 2026-11-24): another role's page would say
+  // "not for you", so the overview is the better answer.
+  const { mine } = useReaderAudiences();
+  const found = account ? helpFor(pathname, i18n.resolvedLanguage) : undefined;
+  const pageHelp = found && isForMe(found, mine) ? found : undefined;
 
   // Not known yet: a quiet placeholder of the button's size, so the row does not jump
   // from the guest's controls to the avatar when a stored session turns out valid.

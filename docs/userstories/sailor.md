@@ -855,9 +855,15 @@ Acceptance criteria:
 - `/help` opens **one tile per audience** — sailor, club, event organizer, race committee,
   treasurer, administration — each opening that audience's starting page. The audiences a
   person **has** come first and are marked, taken from the answer my space uses
-  (`GET /api/me/contexts`, Story Z-8, plus the site roles). **Nothing is hidden from a
-  signed-in person**: the audience only orders, so someone about to become a team manager
-  can read what that means.
+  (`GET /api/me/contexts`, Story Z-8 — its contexts' relations and the league office's
+  site relations, never the summary roles).
+- **I see the help for what I may do, and only that** (decided 2026-11-24, replacing
+  "nothing is hidden, the audience only orders"): tiles, journeys, references, search
+  results and "see also" show only pages written for an audience I have. Every account
+  has the sailor's — every account is a person with a profile. A page for an audience I do
+  not have, opened by its address or a link, says whom it is for and leads back to the
+  overview, without its content. A new role shows its help at once, as the role's screens
+  do.
 - Below the tiles: one card per **journey** page (the journeys in `docs/journeys/`, in the
   order they happen across people), then the reference pages — terms, roles, questions.
 - A **search** box over titles, headings and search words finds a page in either language.
@@ -886,6 +892,14 @@ Acceptance criteria:
   covers. *Why hidden, not refused:* a link that ends in a 403 or an empty page is worse
   than none (Story A-12's rule for the administration link) — and the help is read by
   people about to take on a role, who must not be led to doors that do not open for them.
+- **Step-by-step guides are clicked, not written** (decided 2026-11-24, proposal B): a
+  script in `e2e/guides/` signs in as the role, clicks the real way through the running
+  stack, pictures each step with the control to press marked, and writes the guide page in
+  both languages — the labels quoted from the catalogs, the *why* and the pitfalls written
+  by hand in the script. The page names the **journey steps** it walks (`steps:`) and its
+  script (`source:`); `scripts/check-docs.py` holds page, script and journey together and
+  lists the guide beside each step in `docs/traceability.md`. A guide that no longer runs
+  no longer matches the site. First: *Make someone a club's admin* (J-2.3).
 - The pages are files in `web/src/handbook/`, built from the stories and journeys by the
   `handbook` skill; `scripts/check-docs.py` holds them to the stories, the journeys, the
   routes and each other (both languages present, anchors unique, links resolve, the

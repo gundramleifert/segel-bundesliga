@@ -382,8 +382,9 @@ async def delete_my_account(
     """Story Z-7: I end my account. Since #52 every person has an account, so it is
     **deactivated**, never deleted: it can no longer sign in — its identities, password
     and roles go, and so do my documents, bank account and unsent claims (Stories S-5,
-    S-6, F-2). The person and their memberships stay with their ``member`` tuples:
-    squads, results and waivers point at the person, and the club decides who is in it.
+    S-6, F-2). Since review 5.5 the person is erased too (`people.end_account`): address,
+    birth date, federation id and memberships go; the name stays for the results, and
+    the rows squads, results and waivers point at.
     """
     # A club this account is the last admin of would be left unmanaged (Story A-8) — the
     # account going is one way past `grants.revoke`'s guard.

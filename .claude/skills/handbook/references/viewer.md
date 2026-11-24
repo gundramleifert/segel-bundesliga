@@ -83,13 +83,13 @@ is worse than none (Story A-12).
 
 ## The landing page `/help`
 
-1. **"Help for …" tiles, one per audience** (`LinkCard`s in a `CardGrid`), opening
-   `start-<audience>`. When signed in, the audiences the person **has** come first, marked
-   — derived from `GET /api/me/contexts` (relations and `sailor`) and `User.roles` (site
-   roles), the same answer my space uses (Story Z-8). A guest sees no tiles at all — only a prompt
-   to sign in (Story B-18). **Nothing is hidden from a signed-in person**: the audience only orders and
-   filters. The help contains nothing secret, and someone about to become a team manager
-   should be able to read what that means.
+1. **"Help for …" tiles, one per audience the person has** (`LinkCard`s in a `CardGrid`),
+   opening `start-<audience>` — from `GET /api/me/contexts` (its relations and the league
+   office's site relations, never `User.roles`), `web/src/lib/helpAudiences.ts`. Everyone
+   has the sailor's; the site's admin has all. **A person sees only the help for what they
+   may do** (Story B-18, decided 2026-11-24): every list, the search and "see also" leave
+   other audiences' pages out, and such a page opened directly says whom it is for. A guest
+   sees no tiles at all — only a prompt to sign in.
 2. **Journeys** — one `LinkCard` per `journey` page.
 3. **Look up** — `terms`, `roles`, the FAQ.
 4. A search box over titles, headings and `tags`, client-side (the store is small).
