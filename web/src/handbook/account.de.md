@@ -58,14 +58,17 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 
 [*Ich* › *Profil & Konto*](place:profile.account) → *Mein Konto beenden* → *Ja, beenden*.
 
-> **Achtung:** Danach können Sie sich nicht mehr anmelden. Jede Person hat ein Konto, es
-> wird daher abgeschaltet, nicht gelöscht.
+> **Achtung:** Danach können Sie sich nicht mehr anmelden und sind in keinem Verein mehr.
+> Es bleibt Ihr Name dort, wo Sie gesegelt sind.
 
 | Geht | Bleibt |
 |---|---|
-| die Anmeldung: Anmeldewege und Passwort | das Konto, abgeschaltet, und Ihr Personendatensatz: Ihr Name in Kadern, Crews und Ergebnissen, Ihre Bestätigungen des Haftungsausschlusses, Ihre Vereinsmitgliedschaften |
-| jede Rolle | bereits eingereichte Abrechnungen, beim Verein, der sie bezahlt |
+| die Anmeldung: Anmeldewege und Passwort | Ihr Name in Kadern, Crews und Ergebnissen |
+| jede Rolle und jede Vereinsmitgliedschaft | Ihre Bestätigungen des Haftungsausschlusses |
+| Ihre Adresse, Ihr Geburtsdatum und Ihre DSV-Nummer; Ihre Profilseite | bereits eingereichte Abrechnungen, beim Verein, der sie bezahlt |
 | Ihre Dokumente, Ihre Bankverbindung und nicht eingereichte Abrechnungen | Bestätigungen, die Sie für andere erfasst haben |
+
+Ihre Adresse ist danach wieder frei: Sie können sich damit neu registrieren.
 
 ### Sprache und hell oder dunkel {#account-look}
 

@@ -57,14 +57,17 @@ confirmed — signing in with a code once does that.
 
 [*Me* › *Profile & account*](place:profile.account) → *End my account* → *Yes, end it*.
 
-> **Careful:** Afterwards you can no longer sign in. Every person has an account, so it is
-> switched off, not deleted.
+> **Careful:** Afterwards you can no longer sign in, and you leave every club. What stays
+> is your name where you sailed.
 
 | Goes | Stays |
 |---|---|
-| signing in: its sign-in methods and password | the account, switched off, and your person record: your name in squads, crews and results, your waiver confirmations, your club memberships |
-| every role | claims already submitted, with the club that pays them |
+| signing in: its sign-in methods and password | your name in squads, crews and results |
+| every role and every club membership | your waiver confirmations |
+| your address, birth date and federation id; your profile page | claims already submitted, with the club that pays them |
 | your documents, bank account and unsubmitted claims | waiver confirmations you recorded for others |
+
+Your address is free again afterwards: you can register with it as someone new.
 
 ### Language and light or dark {#account-look}
 

@@ -35,6 +35,7 @@
   "pairing-list-missing": "This event has no pairing list yet, so there is nothing to print.",
   "event-without-pairing-list": "This event has no pairing list yet, so there is nothing to sail. Draw one first.",
   "event-configuration-frozen": "Racing has started ({races_started} races, {results_recorded} results), so the setup can no longer be changed. Results stay editable.",
+  "series-scoring-frozen": "An act of this series has started racing, so its scoring rules can no longer be changed — they would re-score acts already sailed.",
   "club-crest-invalid-type": "That file type cannot be used as a crest. Use PNG, JPEG, WebP or GIF.",
   "club-crest-invalid": "That file could not be read as an image.",
   "club-crest-too-large": "The crest is too large. Please use a smaller file.",

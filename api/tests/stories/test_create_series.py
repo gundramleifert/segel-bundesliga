@@ -4,8 +4,11 @@ A series is a set of events scored together. When creating, you select from exis
 which ones participate — this generates the teams.
 """
 
+from app.db import SessionLocal
+from app.models import Series
 from app.models.auth import Role
 from tests.pages import all_items
+from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
@@ -175,3 +178,24 @@ class TestSeriesCreation:
             "/api/admin/series", json={"name": "Anonymous Series 2028", "year": 2028}
         )
         assert response.status_code == 401
+
+
+class TestTheSeasonsRulesStay:
+    async def test_a_series_scoring_is_frozen_once_an_act_is_scored(self, client, caplog, season):
+        """A-6, review 2.2: changing the discards after act 3 would re-score acts 1–3
+        without a word. Once an act of the series is sailed, its rules are the season's."""
+        headers = await admin(client, caplog, "frozen-scoring@example.com")
+        async with SessionLocal() as session:
+            before = (await session.get(Series, season.series)).scoring
+
+        response = await client.patch(
+            f"/api/admin/series/{season.series}",
+            json={"scoring": {"discard_after": [4]}},
+            headers=headers,
+        )
+        try:
+            assert response.status_code == 409, response.text
+        finally:
+            async with SessionLocal() as session:
+                (await session.get(Series, season.series)).scoring = before
+                await session.commit()

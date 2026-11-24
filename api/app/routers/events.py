@@ -205,8 +205,8 @@ class EventUpdate(BaseModel):
     squad_min: int | None = Field(default=None, ge=1, le=50)
     squad_max: int | None = Field(default=None, ge=1, le=50)
     print_settings: PrintSettingsIn | None = None
-    # Story VA-14: results entered here or taken from SAP Sailing. Not configuration — an
-    # event may move to SAP's scoring until it is sent there, and back.
+    # Story VA-14: results entered here or taken from SAP Sailing. Onto SAP only before
+    # racing starts (review 2.4); back to this site at any time.
     results_source: ResultsSource | None = None
     boats: list[BoatSpec] | None = Field(
         default=None,
@@ -484,6 +484,10 @@ async def update_event(
         if field in changes and changes[field] is None:
             del changes[field]
     if _CONFIGURATION_FIELDS & changes.keys():
+        await require_editable_configuration(session, event.id)
+    if changes.get("results_source") == ResultsSource.SAP != event.results_source:
+        # Moving a sailed event to SAP would let the next poll overwrite the committee's
+        # results (review 2.4); back to this site stays open, the fallback VA-14 promises.
         await require_editable_configuration(session, event.id)
     check_squad_limits(
         changes.get("squad_min", event.squad_min), changes.get("squad_max", event.squad_max)

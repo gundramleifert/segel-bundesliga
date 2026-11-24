@@ -5,6 +5,7 @@ from app.services.event_readiness import (
     configuration_frozen,
     event_readiness,
     require_editable_configuration,
+    require_editable_scoring,
     require_ready,
 )
 from app.services.participation import (
@@ -57,6 +58,7 @@ __all__ = [
     "is_minor",
     "new_event_entry",
     "require_editable_configuration",
+    "require_editable_scoring",
     "require_ready",
     "series_of_year",
     "series_reference_date",

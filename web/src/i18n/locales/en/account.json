@@ -78,7 +78,7 @@
     "title": "End account",
     "description": "Your account is switched off: you can no longer sign in, and your roles go. Your person record and your club memberships stay — your club decides who is in it.",
     "button": "End my account",
-    "confirmPrompt": "You can no longer sign in afterwards. End the account?",
+    "confirmPrompt": "You can no longer sign in afterwards, you leave every club, and only your name stays where you sailed. End the account?",
     "confirmButton": "Yes, end it",
     "cancelButton": "Cancel",
     "deleting": "Ending…"

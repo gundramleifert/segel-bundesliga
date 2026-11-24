@@ -424,19 +424,26 @@ in without asking the administration**.
 Until 2026-10-28 this deleted the account row outright — a testing-phase convenience,
 safe while nothing pointed at an account. Since #52 **every person has an account**, so
 an account is never deleted: ending it **deactivates** it, like administration does for
-someone else (Z-6).
+someone else (Z-6). Since 2026-11-24 (review 5.5, GDPR Art. 17) it also **erases who I
+am**: what stays is the name my results carry, nothing to find or reach me by.
 
 Acceptance criteria:
-- `DELETE /api/auth/me` deactivates the account (`is_active`); the row stays, and so does
-  the fact that its address was proven — it only stops signing in (`User.signs_in`).
-- Sign-in goes: identities and the password. Roles go — every tuple but the
-  memberships' `member`. My documents, bank account and unsent claims go (S-5, S-6, F-2).
-- The person and their club memberships stay, with their `member` tuples: squads,
-  results and waivers point at the person, and the club decides who is in it.
+- `DELETE /api/auth/me` deactivates the account (`is_active`); the row stays — squads,
+  results and waivers point at its person — and stops signing in (`User.signs_in`).
+- Sign-in goes: identities and the password. Roles go — every tuple. My documents, bank
+  account and unsent claims go (S-5, S-6, F-2).
+- **Who I am goes, my name stays**: the address is replaced by a placeholder no one can
+  receive mail at (`erased-<id>@invalid`, unproven), so the real one is free to register
+  again; birth date and federation id are cleared; my profile page is switched off. The
+  name stays, as on every result list (decided: a name in a result is never removed).
+- **My club memberships end** — active, invited or asked — with their `member` tuples:
+  the club no longer has me on its list. Squads and lineups I sailed in keep my name.
 - A waiver confirmation the account recorded for someone else keeps its row, with the
   reference cleared.
 - The club's last admin cannot end their account (A-8).
 - The now-invalid token stops working immediately, same as any other removed account.
+
+Still open (review 5.5): retention of my own waivers and a minor's scans.
 
 Endpoints: `DELETE /api/auth/me`
 

@@ -200,8 +200,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
   account cannot sign in yet only the league office adds — no club can simply take
   anyone. An account made with a person is **unverified** and signs in once its address
   is proven, by a code or the club's invitation; it counts as a member all the same.
-  Ending an account **deactivates** it (`DELETE /api/auth/me`): sign-in and roles go,
-  the account, the person and their memberships stay. An `invited` or `requested` row
+  Ending an account **deactivates** it and **erases the person** (`DELETE /api/auth/me`,
+  decided 2026-11-24, review 5.5, GDPR Art. 17): sign-in, roles and memberships go, the
+  address becomes `erased-<id>@invalid` (the real one is free again), birth date and
+  federation id are cleared; the name stays, because results carry it, and so do the
+  rows that squads, results and waivers point at. An `invited` or `requested` row
   grants nothing — only `active` rows are the edge and the `member`.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   and organizing (`manager` or `admin` on it) are both per

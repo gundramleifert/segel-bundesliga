@@ -240,6 +240,23 @@ async def require_editable_configuration(session: AsyncSession, event_id: int) -
         )
 
 
+async def require_editable_scoring(session: AsyncSession, series_id: int) -> None:
+    """Refuses a change to a series' scoring rules once any of its acts has started racing
+    (review 2.2): a new discard rule after act 3 would re-score acts 1–3 without a word, so
+    once one act is sailed the rules are the season's."""
+    event_ids = (
+        await session.execute(select(Event.id).where(Event.series_id == series_id))
+    ).scalars()
+    for event_id in event_ids.all():
+        if await racing_started(session, event_id):
+            raise Problem(
+                409,
+                "series-scoring-frozen",
+                "An act of this series has started racing; its scoring rules can no longer "
+                "be changed.",
+            )
+
+
 async def require_ready(
     session: AsyncSession, event: Event, *, ignore: Collection[str] = ()
 ) -> None:

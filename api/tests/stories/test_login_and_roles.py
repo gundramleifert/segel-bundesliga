@@ -3,6 +3,8 @@
 We do not manage passwords: identity comes from Google, Microsoft, or a one-time code via email.
 """
 
+from datetime import date
+
 import pytest
 from sqlalchemy import select
 
@@ -274,9 +276,8 @@ class TestDeleteMyAccount:
     someone else (Z-6)."""
 
     async def test_ending_deactivates_drops_the_roles_and_the_token(self, client, caplog, ids):
-        """The token stops working at once, sign-in and roles go; the account and its
-        person stay with their membership and its ``member`` tuple — results, squads and
-        waivers point at the person, and the club decides who is in it (#52)."""
+        """The token stops working at once, sign-in, roles and memberships go; the account
+        and its person stay, so results, squads and waivers keep pointing at them."""
         user_id = await make_user("del-member@example.org")
         token = await login_as(client, "del-member@example.org", caplog)
         headers = {"Authorization": f"Bearer {token}"}
@@ -294,12 +295,42 @@ class TestDeleteMyAccount:
             person = (
                 await session.execute(select(Person).where(Person.user_id == user_id))
             ).scalar_one()
-        # Switched off, not unverified: the address was proven, the account just ends.
-        assert (user.is_active, user.email_verified, user.signs_in) == (False, True, False)
-        assert [(g.relation, g.club_id) for g in user.grants] == [
-            (Relation.MEMBER, ids.club("fsc"))
-        ]
-        assert person.club_ids == [ids.club("fsc")]
+        assert (user.is_active, user.signs_in) == (False, False)
+        assert user.grants == []
+        assert person.club_memberships == []
+
+    async def test_deleting_my_account_erases_who_i_am(self, client, caplog):
+        """Z-7, review 5.5 (GDPR Art. 17): afterwards nothing names the person but the
+        results they sailed — no address, no birth date, no federation id, no public
+        page — and the address is free to register again."""
+        email = "erase-me@example.com"
+        user_id = await make_user(email)
+        async with SessionLocal() as session:
+            person = (
+                await session.execute(select(Person).where(Person.user_id == user_id))
+            ).scalar_one()
+            person.first_name, person.last_name = "Erika", "Erased"
+            person.birth_date, person.federation_id = date(2000, 5, 1), "GER-4711"
+            person.profile_public_choice = True
+            await session.commit()
+        headers = {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
+
+        assert (await client.delete("/api/auth/me", headers=headers)).status_code == 204
+
+        async with SessionLocal() as session:
+            assert (
+                await session.execute(select(Person).where(Person.email == email))
+            ).scalar_one_or_none() is None
+            person = (
+                await session.execute(select(Person).where(Person.user_id == user_id))
+            ).scalar_one()
+        assert person.email == f"erased-{user_id}@invalid"
+        assert (person.birth_date, person.federation_id) == (None, None)
+        assert person.profile_public_choice is False
+        assert person.full_name == "Erika Erased"
+        assert not person.user.email_verified
+        # The address is anyone's again.
+        assert await make_user(email) != user_id
 
     async def test_waiver_confirmations_survive_with_recorder_cleared(self, client, caplog, ids):
         """A waiver confirmation is someone else's evidence — it must outlive the staff

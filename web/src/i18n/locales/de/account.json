@@ -78,7 +78,7 @@
     "title": "Konto beenden",
     "description": "Ihr Konto wird abgeschaltet: Sie können sich nicht mehr anmelden, und Ihre Rollen entfallen. Ihr Personendatensatz und Ihre Vereinsmitgliedschaften bleiben — wer im Verein ist, entscheidet Ihr Verein.",
     "button": "Mein Konto beenden",
-    "confirmPrompt": "Danach können Sie sich nicht mehr anmelden. Konto beenden?",
+    "confirmPrompt": "Danach können Sie sich nicht mehr anmelden, sind in keinem Verein mehr, und nur Ihr Name bleibt, wo Sie gesegelt sind. Konto beenden?",
     "confirmButton": "Ja, beenden",
     "cancelButton": "Abbrechen",
     "deleting": "Wird beendet…"

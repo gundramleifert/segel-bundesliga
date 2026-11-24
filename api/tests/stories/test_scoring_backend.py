@@ -13,6 +13,8 @@ from uuid import uuid4
 import pytest
 
 from app.config import settings
+from app.db import SessionLocal
+from app.models import Event
 from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
@@ -87,3 +89,25 @@ class TestTheEventChoosesItsScoring:
         await make_user(stranger)
         headers = auth_headers(await login_as(client, stranger, caplog))
         assert (await client.get(f"/api/events/{draft}/access", headers=headers)).status_code == 404
+
+
+class TestTheSourceStaysOnceSailed:
+    async def test_where_results_come_from_is_frozen_with_the_configuration(
+        self, client, caplog, season
+    ):
+        """VA-14, review 2.4: switching a sailed act to SAP would let the next poll
+        overwrite the committee's results, protest decisions included — refused once racing
+        has started, like the rest of the configuration."""
+        headers = await admin(client, caplog, "frozen-source@example.com")
+        async with SessionLocal() as session:
+            before = (await session.get(Event, season.live)).results_source
+
+        response = await client.patch(
+            f"/api/admin/events/{season.live}", json={"results_source": "sap"}, headers=headers
+        )
+        try:
+            assert response.status_code == 409, response.text
+        finally:
+            async with SessionLocal() as session:
+                (await session.get(Event, season.live)).results_source = before
+                await session.commit()

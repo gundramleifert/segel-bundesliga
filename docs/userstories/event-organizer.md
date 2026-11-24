@@ -230,7 +230,9 @@ Acceptance criteria:
 - **Who may:** whoever may edit the event (VA-6). Switching back to this site keeps the
   results already taken from SAP; from then on they are entered here.
 - The configuration still belongs to the event (teams, boats, flights) and freezes with
-  the first race as before (VA-8).
+  the first race as before (VA-8), and so does the move **onto** SAP: once racing has
+  started here, SAP's next poll would overwrite the committee's results
+  (`event-configuration-frozen`, review 2.4). Back to this site stays open throughout.
 
 - **The choice is on the event's screen** — *Set up › Scoring*: this site or SAP
   Sailing, offered only when this installation can reach SAP (`EventAccess.sap`, its

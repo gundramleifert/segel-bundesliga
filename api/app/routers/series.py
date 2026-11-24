@@ -34,7 +34,7 @@ from app.pagination import (
 from app.problems import Problem
 from app.schemas.admin import ScoringIn
 from app.schemas.public import ClubOut, SeriesOut
-from app.services import check_squad_limits
+from app.services import check_squad_limits, require_editable_scoring
 from app.services.lookup import get_or_404
 from app.services.registrations import Registration, RegistrationHasResults, sync_registrations
 from app.text import slugify
@@ -276,6 +276,8 @@ async def update_series(
     if request.scoring is not None:
         # Whole, with defaults: ``exclude_unset`` would otherwise store a partial object.
         changes["scoring"] = request.scoring.model_dump()
+        if changes["scoring"] != series.scoring:
+            await require_editable_scoring(session, series.id)
     check_squad_limits(
         changes.get("squad_min", series.squad_min), changes.get("squad_max", series.squad_max)
     )

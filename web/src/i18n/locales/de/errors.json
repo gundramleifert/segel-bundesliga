@@ -35,6 +35,7 @@
   "pairing-list-missing": "Für diese Veranstaltung ist noch keine Pairing-Liste ausgelost, es gibt also nichts zu drucken.",
   "event-without-pairing-list": "Für diese Veranstaltung gibt es noch keine Pairing-Liste, es gibt also nichts zu segeln. Lose zuerst eine aus.",
   "event-configuration-frozen": "Es wird gesegelt ({races_started} Wettfahrten, {results_recorded} Ergebnisse), deshalb lässt sich die Konfiguration nicht mehr ändern. Ergebnisse bleiben änderbar.",
+  "series-scoring-frozen": "In dieser Serie wurde schon gesegelt, deshalb lassen sich die Wertungsregeln nicht mehr ändern – sie würden bereits gesegelte Veranstaltungen neu werten.",
   "club-crest-invalid-type": "Dieser Dateityp lässt sich nicht als Stander verwenden. Nutze PNG, JPEG, WebP oder GIF.",
   "club-crest-invalid": "Diese Datei ließ sich nicht als Bild lesen.",
   "club-crest-too-large": "Der Stander ist zu groß. Nutze bitte eine kleinere Datei.",
