@@ -95,7 +95,7 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
 
 - **An account first.** Signing in does not create one. You create it yourself with
   *Create an account*; neither your club nor the league office can do it for you.
-- **League office roles:** its admin grants them under [*Accounts*](place:admin.accounts).
+- **League office roles:** its admin grants them under [*Access*](place:admin.accounts).
 - **Club:** the club's admin adds people and names its organizers at [*the club* ›
   *People*](place:club.people). Someone already in another club joins only with consent:
   they accept an invitation, or ask to join and the admin accepts. One *Admin* must always

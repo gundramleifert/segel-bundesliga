@@ -187,7 +187,7 @@
     "noAccessError": "This page belongs to the league office."
   },
   "accounts": {
-    "title": "Accounts",
+    "title": "Access",
     "searchLabel": "Search",
     "searchHint": "name or email",
     "searchPlaceholder": "Enter a name or address ...",

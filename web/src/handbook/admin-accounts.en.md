@@ -13,7 +13,7 @@ title: Accounts and who may do what
 ## Accounts and who may do what
 
 The *League office* has a section per area; a role sees only the sections it may use.
-*Accounts* is the site admin's alone.
+*Access* is the site admin's alone.
 
 ![The league office's sections, in the order a season is set up](shot:help-admin-tabs)
 
@@ -23,18 +23,18 @@ The *League office* has a section per area; a role sees only the sections it may
   ([register](#account-register)).
 - Signing in with an unknown address creates nothing; it is refused, pointing to the
   league office.
-- *Accounts* creates no accounts, and every role needs one: an unknown address is refused.
+- *Access* creates no accounts, and every role needs one: an unknown address is refused.
 
 ### Grant access {#admin-accounts-grant}
 
-1. [*Accounts*](place:admin.accounts): search the person by name or email.
+1. [*Access*](place:admin.accounts): search the person by name or email.
 2. *Access* column: *＋ Grant access*.
 3. *On* (*Whole site*, *One club*, *One series*, *One event*), *As*, *Which*.
 4. *Grant*. The new line shows the role and where it is held.
 
 - **A club's first admin comes from you:** *One club*, *Admin*. Then the club's admin
   adds its people and names its organizers in [*People*](place:club.people)
-  ([club members](#club-members-add)). *Accounts* shows roles, not club memberships.
+  ([club members](#club-members-add)). *Access* shows roles, not club memberships.
 - Roles on the *Whole site* — *Admin*, *Editor*, *Race officer* — are granted only here.
 - Also on the *People* panel of a series ([series manager](#admin-series-manager)), and
   at *the event* › [*People*](place:event.people) — from [*Events*](place:admin.events),
@@ -56,9 +56,9 @@ The *League office* has a section per area; a role sees only the sections it may
 
 | | |
 |---|---|
-| Pages | *Accounts*, *People* and the *Events* list: 25 rows a page, *Previous* and *Next* |
+| Pages | *Access*, *People* and the *Events* list: 25 rows a page, *Previous* and *Next* |
 | Search | anywhere in name or email (events: title, venue, host club), any case |
-| Sort | *Name* or *Email* sorts *Accounts* or *People*; again reverses |
+| Sort | *Name* or *Email* sorts *Access* or *People*; again reverses |
 | Address | holds page, sort and search: a reload keeps them; a sent link shows exactly this list |
 | *Clubs*, *Series* | every row at once, without a search |
 

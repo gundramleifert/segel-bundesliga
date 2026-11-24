@@ -187,7 +187,7 @@
     "noAccessError": "Diese Seite gehört zum Ligabüro."
   },
   "accounts": {
-    "title": "Konten",
+    "title": "Zugriff",
     "searchLabel": "Suchen",
     "searchHint": "Name oder E-Mail",
     "searchPlaceholder": "Name oder Adresse eingeben ...",

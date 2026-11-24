@@ -98,7 +98,7 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 
 - **Zuerst ein Konto.** Die Anmeldung legt keines an. Sie legen es selbst mit *Konto
   anlegen* an; weder Ihr Verein noch die Geschäftsstelle kann das für Sie tun.
-- **Rollen der Geschäftsstelle:** vergibt deren Verwaltung unter [*Konten*](place:admin.accounts).
+- **Rollen der Geschäftsstelle:** vergibt deren Verwaltung unter [*Zugriff*](place:admin.accounts).
 - **Verein:** Die Vereinsverwaltung nimmt Personen auf und benennt die Organisation unter
   [*der Verein* › *Personen*](place:club.people). Wer schon in einem anderen Verein ist,
   kommt nur mit Zustimmung dazu: Die Person nimmt eine Einladung an, oder sie fragt an und

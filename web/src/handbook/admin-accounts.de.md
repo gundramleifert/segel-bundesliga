@@ -13,7 +13,7 @@ title: Konten und wer was darf
 ## Konten und wer was darf
 
 Das *Ligabüro* hat einen Bereich je Aufgabe; eine Rolle sieht nur die Bereiche, die sie
-nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
+nutzen darf. *Zugriff* gehört allein der Verwaltung der Seite.
 
 ![Die Bereiche des Ligabüros, in der Reihenfolge, in der eine Saison eingerichtet wird](shot:help-admin-tabs)
 
@@ -23,12 +23,12 @@ nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
   zugeschickten Code ([registrieren](#account-register)).
 - Eine Anmeldung mit unbekannter Adresse legt nichts an; sie wird abgelehnt, mit Verweis
   auf die Geschäftsstelle.
-- *Konten* legt keine Konten an, und jede Rolle braucht eines: Eine unbekannte Adresse
+- *Zugriff* legt keine Konten an, und jede Rolle braucht eines: Eine unbekannte Adresse
   wird abgelehnt.
 
 ### Zugriff vergeben {#admin-accounts-grant}
 
-1. [*Konten*](place:admin.accounts): die Person nach Name oder E-Mail suchen.
+1. [*Zugriff*](place:admin.accounts): die Person nach Name oder E-Mail suchen.
 2. Spalte *Zugriff*: *＋ Zugriff vergeben*.
 3. *Für* (*Gesamte Seite*, *Einen Verein*, *Eine Serie*, *Eine Veranstaltung*), *Als*,
    *Welche*.
@@ -36,7 +36,7 @@ nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
 
 - **Die erste Verwaltung eines Vereins kommt von Ihnen:** *Einen Verein*, *Verwaltung*.
   Danach nimmt sie unter [*Personen*](place:club.people) die Personen des Vereins auf und
-  benennt seine Organisation ([Vereinsmitglieder](#club-members-add)). *Konten* zeigt
+  benennt seine Organisation ([Vereinsmitglieder](#club-members-add)). *Zugriff* zeigt
   Rollen, keine Vereinsmitgliedschaften.
 - Rollen auf der *Gesamte Seite* — *Verwaltung*, *Redaktion*, *Wettfahrtleitung* — werden
   nur hier vergeben.
@@ -61,9 +61,9 @@ nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
 
 | | |
 |---|---|
-| Seiten | *Konten*, *Personen* und die Liste unter *Veranstaltungen*: 25 Zeilen je Seite, *Zurück* und *Weiter* |
+| Seiten | *Zugriff*, *Personen* und die Liste unter *Veranstaltungen*: 25 Zeilen je Seite, *Zurück* und *Weiter* |
 | Suche | überall in Name oder Adresse (Veranstaltungen: Titel, Revier, Ausrichter), gleich in welcher Schreibung |
-| Sortierung | *Name* oder *E-Mail* sortiert *Konten* oder *Personen*; nochmals kehrt um |
+| Sortierung | *Name* oder *E-Mail* sortiert *Zugriff* oder *Personen*; nochmals kehrt um |
 | Adresse | enthält Seite, Sortierung und Suche: Neu laden behält sie; ein geschickter Link zeigt genau diese Liste |
 | *Vereine*, *Serien* | alle Zeilen auf einmal, ohne Suche |
 

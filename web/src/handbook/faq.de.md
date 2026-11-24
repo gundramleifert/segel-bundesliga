@@ -126,7 +126,7 @@ Speichern Sie zuerst das Konto des Vereins: [Konto des Vereins](#payment-runs-ba
 ### Für die Geschäftsstelle {#faq-administration}
 
 #### Jemand kann sich nicht anmelden: Es gibt kein Konto.
-*Konten* legt keine Konten an: Die Person registriert sich auf [ihrer Kontoseite](/account)
+*Zugriff* legt keine Konten an: Die Person registriert sich auf [ihrer Kontoseite](/account)
 und bestätigt den Code, danach vergeben Sie ihre Rolle —
 [woher Konten kommen](#admin-accounts-create) · [Zugriff vergeben](#admin-accounts-grant).
 

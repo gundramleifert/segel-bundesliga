@@ -116,7 +116,7 @@ Save the club's account first: [the club's account](#payment-runs-bank).
 ### For the league office {#faq-administration}
 
 #### Someone cannot sign in: there is no account.
-*Accounts* creates no accounts: the person registers on [their account page](/account)
+*Access* creates no accounts: the person registers on [their account page](/account)
 and confirms the code, then you grant their role —
 [where accounts come from](#admin-accounts-create) · [grant access](#admin-accounts-grant).
 
